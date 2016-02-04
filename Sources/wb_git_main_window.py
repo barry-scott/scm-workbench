@@ -9,7 +9,7 @@
 
     wb_git_main_window.py
 
-    Based on code from git WorkBench
+    Based on code from pysvn WorkBench
 
 '''
 import sys
@@ -29,59 +29,8 @@ import wb_git_version
 
 import wb_git_config
 
-#
-#   QFileSystemModel uses columns 0-3
-#
-class WbGitFilesystemModel(QtWidgets.QFileSystemModel):
-    def __init__( self ):
-        super().__init__()
-
-    custom_column_position = 4
-    custom_column_count = 1
-
-    def columnCount( self, parent=None ):
-        print( 'qqq: columnCount( %r )' % (parent,) )
-        return super().columnCount( parent ) + self.custom_column_count
-
-    def data_( self, index, role ):
-        result = self._data( index, role )
-        print( 'qqq: data => %r' % (result,) )
-
-    def data( self, index, role ):
-        print( 'qqq: data column %d role %d' % (index.column(), role) )
-        if( index.isValid()
-        and index.column() >= self.custom_column_position
-        and index.column() < (self.custom_column_position + self.custom_column_count) ):
-            if role == QtCore.Qt.DisplayRole:
-                return 'Barry'
-
-            elif role == QtCore.Qt.TextAlignmentRole:
-                return QtCore.Qt.AlignLeft
-
-            else:
-                return None
-
-        return super().data( index, role )
-
-    def headerData( self, section, orientantion, role ):
-        print( 'headerData( %r, %r, %r )' % (section, orientantion, role) )
-
-        if( section >= self.custom_column_position
-        and section < (self.custom_column_position + self.custom_column_count) ):
-            if role == QtCore.Qt.DisplayRole:
-                return 'Header'
-
-            elif role == QtCore.Qt.TextAlignmentRole:
-                return QtCore.Qt.AlignLeft
-
-            else:
-                return None
-
-        elif( section >= self.custom_column_position
-        and section >= (self.custom_column_position + self.custom_column_count) ):
-            section += self.custom_column_count
-
-        return super().headerData( section, orientantion, role )
+import wb_git_tree_model
+import wb_git_table_model
 
 class WbGitMainWindow(QtWidgets.QMainWindow):
     def __init__( self, app ):
@@ -101,16 +50,23 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__setupMenuBar()
         self.__setupStatusBar()
 
-        if win_prefs.frame_position is not None:
-            self.move( win_prefs.frame_position )
+        if win_prefs.getFramePosition() is not None:
+            self.move( *win_prefs.getFramePosition() )
 
         self.resize( *win_prefs.getFrameSize() )
+
+        # models
+        self.table_model = wb_git_table_model.WbGitTableModel( self.app )
+        self.tree_model = wb_git_tree_model.WbGitTreeModel( self.app, self.table_model )
 
         # window major widgets
         self.log_view = QtWidgets.QLabel( 'Hello World')
 
         self.tree_view = QtWidgets.QTreeView()
-        self.list_view = QtWidgets.QListView()
+        self.tree_view.setModel( self.tree_model )
+
+        self.table_view = QtWidgets.QTableView()
+        self.table_view.setModel( self.table_model )
 
         # layout widgets in window
         self.v_split = QtWidgets.QSplitter( self )
@@ -121,19 +77,21 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.h_split.setOrientation( QtCore.Qt.Horizontal )
 
         self.h_split.addWidget( self.tree_view )
-        self.h_split.addWidget( self.list_view )
+        self.h_split.addWidget( self.table_view )
 
         self.v_split.addWidget( self.h_split )
         self.v_split.addWidget( self.log_view )
 
-        self.model = QtWidgets.QFileSystemModel()
-        self.model.setRootPath( '/user/barry/wc/git' )
+        selection_model = self.tree_view.selectionModel()
+        selection_model.selectionChanged.connect( self.tree_model.selectionChanged )
 
-        self.tree_view.setModel( self.model )
-        self.tree_view.setRootIndex( self.model.index( '/user/barry/wc/git' ) )
+        # select the first project
+        selection_model.select( self.tree_model.createIndex( 0, 0 ), selection_model.ClearAndSelect )
 
-        self.list_view.setModel( self.model )
-        self.list_view.setRootIndex( self.model.index( '/user/barry/wc/git' ) )
+
+        self.table_view.setColumnWidth( 0, 10*32 )
+        self.table_view.setColumnWidth( 1, 10*16 )
+        self.table_view.setColumnWidth( 2, 6*16 )
 
     def __setupMenuBar( self ):
         mb = self.menuBar()
@@ -156,17 +114,19 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         s.addWidget( self.status_message )
 
     def moveEvent( self, event ):
-        self.app.prefs.getWindow().frame_position = event.pos()
+        self.app.prefs.getWindow().setFramePosition( event.pos().x(), event.pos().y() )
 
     def resizeEvent( self, event ):
-        self.app.prefs.getWindow().frame_size = event.size()
+        self.app.prefs.getWindow().setFrameSize( event.size().width(), event.size().height() )
+
+    def closeEvent( self, event ):
+        self.app.writePreferences()
 
     def onActPreferences( self ):
         pref_dialog = wb_git_preferences_dialog.PreferencesDialog( self, self.app )
         rc = pref_dialog.exec_()
         if rc == QtWidgets.QDialog.Accepted:
             self.app.writePreferences()
-            self.emacs_panel.newPreferences()
             self.newPreferences()
 
     def onActAbout( self ):

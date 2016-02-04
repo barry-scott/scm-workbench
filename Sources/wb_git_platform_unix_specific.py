@@ -16,7 +16,7 @@ import os
 import types
 
 def getApplicationDir():
-    return os.path.join( os.environ['HOME'], '.WorkBench' )
+    return os.path.join( os.environ['HOME'], '.GitWorkBench' )
 
 def getLocalePath( app ):
     return os.path.join( app.app_dir, 'locale' )

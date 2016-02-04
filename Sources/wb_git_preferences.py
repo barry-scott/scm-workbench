@@ -43,17 +43,18 @@ class Preferences:
 
         # all the preference section handles get created here
         self.pref_handlers = {}
-        self.pref_handlers['Projects'] = ProjectsPreferences( self.app )
-        self.pref_handlers['Bookmarks'] = BookmarksPreferences( self.app )
         self.pref_handlers['Window'] = WindowPreferences( self.app )
-        self.pref_handlers['DiffWindow'] = DiffWindowPreferences( self.app )
-        self.pref_handlers['View'] = ViewPreferences( self.app )
-        self.pref_handlers['Editor'] = EditorPreferences( self.app )
-        self.pref_handlers['Shell'] = ShellPreferences( self.app )
-        self.pref_handlers['DiffTool'] = DiffToolPreferences( self.app )
-        self.pref_handlers['LogHistory'] = LogHistoryPreferences( self.app )
+        self.pref_handlers['Projects'] = ProjectsPreferences( self.app )
+
+        #self.pref_handlers['Bookmarks'] = BookmarksPreferences( self.app )
+        #self.pref_handlers['DiffWindow'] = DiffWindowPreferences( self.app )
+        #self.pref_handlers['View'] = ViewPreferences( self.app )
+        #self.pref_handlers['Editor'] = EditorPreferences( self.app )
+        #self.pref_handlers['Shell'] = ShellPreferences( self.app )
+        #self.pref_handlers['DiffTool'] = DiffToolPreferences( self.app )
+        #self.pref_handlers['LogHistory'] = LogHistoryPreferences( self.app )
         #qqq#self.pref_handlers['Toolbar'] = ToolbarPreferences( self.app )
-        self.pref_handlers['Advanced'] = AdvancedPreferences( self.app )
+        #self.pref_handlers['Advanced'] = AdvancedPreferences( self.app )
 
         # read preferences into the handlers
         self.readPreferences()
@@ -64,7 +65,7 @@ class Preferences:
 
         except ParseError as e:
             self.app.log.error( str(e) )
-            return
+            self.pref_data = PreferenceData( self.app.log, None )
 
         for handler in self.pref_handlers.values():
             if self.pref_data.has_section( handler.section_name ):
@@ -79,7 +80,6 @@ class Preferences:
 
         raise AttributeError( '%s has no attribute %s' % (self.__class__.__name__, name) )
 
-
     def writePreferences( self ):
         try:
             for handler in self.pref_handlers.values():
@@ -93,7 +93,7 @@ class Preferences:
             new_name = self.pref_filename + '.tmp'
             old_name = self.pref_filename + '.old'
 
-            f = open( new_name, 'w' )
+            f = open( new_name, 'w', encoding='utf-8' )
             self.pref_data.write( f )
             f.close()
 
@@ -114,12 +114,13 @@ class PreferenceData:
     def __init__( self, log, xml_pref_filename ):
         self.all_sections = {}
 
-        log.info( T_('Reading preferences from %s') % xml_pref_filename )
-        self.__readXml( xml_pref_filename )
+        if xml_pref_filename is not None:
+            log.info( T_('Reading preferences from %s') % xml_pref_filename )
+            self.__readXml( xml_pref_filename )
 
     def __readXml( self, xml_pref_filename ):
         try:
-            f = open( xml_pref_filename, 'r' )
+            f = open( xml_pref_filename, 'rb' )
             text = f.read()
             f.close()
 
@@ -131,7 +132,7 @@ class PreferenceData:
         except xml.parsers.expat.ExpatError as e:
             raise ParseError( str(e) )
 
-        prefs = dom.getElementsByTagName( 'workbench-preferences' )[0]
+        prefs = dom.getElementsByTagName( 'git-workbench-preferences' )[0]
 
         self.__parseXmlChildren( prefs, self.all_sections )
 
@@ -191,7 +192,6 @@ class PreferenceData:
 
         return default
 
-
     def has_section( self, section_name ):
         return section_name in self.all_sections
 
@@ -238,13 +238,12 @@ class PreferenceData:
 
     def write( self, f ):
         f.write( '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' )
-        f.write( '<workbench-preferences>\n' )
+        f.write( '<git-workbench-preferences>\n' )
         self.__writeDictionary( f, self.all_sections, 4 )
-        f.write( '</workbench-preferences>\n' )
+        f.write( '</git-workbench-preferences>\n' )
 
     def __writeDictionary( self, f, d, indent ):
-        all_key_names = d.keys()
-        all_key_names.sort()
+        all_key_names = sorted( d.keys() )
 
         for key_name in all_key_names:
             value = d[ key_name ]
@@ -259,7 +258,7 @@ class PreferenceData:
                     self.__writeDictionary( f, item, indent + 4 )
                     f.write( '%*s</%s>\n' % (indent, '', key_name) )
             else:
-                quoted_value = xml.sax.saxutils.escape( unicode( value ) ).encode('utf-8')
+                quoted_value = xml.sax.saxutils.escape( str( value ) )
                 f.write( '%*s<%s>%s</%s>\n' % (indent, '', key_name, quoted_value, key_name) )
 
 class PreferenceSection:
@@ -339,6 +338,14 @@ class GetIndexedOption:
     def getbool( self, name ):
         return self.getstr( name ).lower() == 'true'
 
+class Project:
+    def __init__( self, name, path ):
+        self.name = name
+        self.path = path
+
+    def __lt__( self, other ):
+        return self.name.lower() < other.name.lower()
+
 class ProjectsPreferences(PreferenceSection):
     def __init__( self, app ):
         PreferenceSection.__init__( self, 'Projects' )
@@ -353,37 +360,27 @@ class ProjectsPreferences(PreferenceSection):
         num_projects = pref_data.len_section( self.section_name, 'project' )
         for index in range( num_projects ):
             get_option = GetIndexedOption( pref_data, self.section_name, index, 'project' )
-            provider = get_option.getstr( 'provider' )
+            name = get_option.getstr( 'name' )
+            path = get_option.getstr( 'path' )
 
-            if wb_source_control_providers.hasProvider( provider ):
-                provider = wb_source_control_providers.getProvider( provider )
-                pi = provider.getProjectInfo( self.app )
-                pi.readPreferences( get_option )
-                self.all_projects[ pi.project_name ] = pi
+            self.all_projects[ name ] = Project( name, path )
 
     def writePreferences( self, pref_data ):
         pref_data.remove_section( self.section_name )
         pref_data.add_section( self.section_name )
 
-        for pi in self.all_projects.values():
-            pref_dict = {}
-
-            pi.writePreferences( pref_dict )
+        for project in self.all_projects.values():
+            pref_dict = { 'name': project.name, 'path': project.path }
             pref_data.append_dict( self.section_name, 'project', pref_dict )
 
-    def _by_project_name( self, a, b ):
-        return cmp( a.project_name.lower(), b.project_name.lower() )
-
     def getProjectList( self ):
-        pl = self.all_projects.values()
-        pl.sort( self._by_project_name )
-        return pl
+        return sorted( self.all_projects.values() )
 
-    def addProject( self, pi ):
-        self.all_projects[ pi.project_name ] = pi
+    def addProject( self, project ):
+        self.all_projects[ project.name ] = project
 
-    def delProject( self, pi ):
-        del self.all_projects[ pi.project_name ]
+    def delProject( self, project ):
+        del self.all_projects[ project.name ]
 
 class BookmarksPreferences(PreferenceSection):
     def __init__( self, app ):
@@ -437,7 +434,7 @@ class BookmarksPreferences(PreferenceSection):
 
         set_option = SetOption( pref_data, self.section_name )
 
-        all_bookmarks = self.all_bookmarks.items()
+        all_bookmarks = list( self.all_bookmarks.items() )
         all_bookmarks.sort( key=self.__keyBookmarksMenuAndName )
 
         for bookmark_name, bookmark in all_bookmarks:
@@ -534,7 +531,7 @@ class WindowPreferences(PreferenceSection):
         self.v_sash_ratio = 0.2
 
         self.__frame_size = ( 700, 500 )
-        self.frame_position = None
+        self.__frame_position = None
         self.maximized = False
         self.zoom = 0
 
@@ -546,7 +543,7 @@ class WindowPreferences(PreferenceSection):
         y = get_option.getint( 'pos_y' )
         if y < 0:
             y = 0
-        self.frame_position = ( x, y )
+        self.__frame_position = ( x, y )
 
         w = get_option.getint( 'width' )
         h = get_option.getint( 'height' )
@@ -563,20 +560,27 @@ class WindowPreferences(PreferenceSection):
     def writePreferences( self, pref_data ):
         set_option = SetOption( pref_data, self.section_name )
 
-        set_option.set( 'pos_x', self.frame_position.x )
-        set_option.set( 'pos_y', self.frame_position.y )
-        set_option.set( 'width', self.__frame_size.GetWidth() )
-        set_option.set( 'height', self.__frame_size.GetHeight() )
+        if self.__frame_position is not None:
+            set_option.set( 'pos_x', self.__frame_position[0] )
+            set_option.set( 'pos_y', self.__frame_position[1] )
+        set_option.set( 'width', self.__frame_size[0] )
+        set_option.set( 'height', self.__frame_size[1] )
         set_option.set( 'maximized', self.maximized )
         set_option.set( 'zoom', self.zoom )
         set_option.set( 'h_sash_ratio', self.h_sash_ratio )
         set_option.set( 'v_sash_ratio', self.v_sash_ratio )
 
+    def getFramePosition( self ):
+        return self.__frame_position
+
+    def setFramePosition( self, x, y ):
+        self.__frame_position = (x, y)
+
     def getFrameSize( self ):
         return self.__frame_size
 
-    def setFrameSize( self, size ):
-        self.__frame_size = size
+    def setFrameSize( self, width, height ):
+        self.__frame_size = (width, height)
 
 class DiffWindowPreferences(PreferenceSection):
     def __init__( self, app ):
@@ -584,7 +588,7 @@ class DiffWindowPreferences(PreferenceSection):
         self.app = app
 
         self.__frame_size = ( 700, 500 )
-        self.frame_position = None
+        self.__frame_position = None
         self.maximized = False
         self.zoom = 0
 
@@ -596,7 +600,7 @@ class DiffWindowPreferences(PreferenceSection):
         y = get_option.getint( 'pos_y' )
         if y < 0:
             y = 0
-        self.frame_position = ( x, y )
+        self.__frame_position = ( x, y )
 
         w = get_option.getint( 'width' )
         h = get_option.getint( 'height' )
@@ -610,18 +614,25 @@ class DiffWindowPreferences(PreferenceSection):
     def writePreferences( self, pref_data ):
         set_option = SetOption( pref_data, self.section_name )
 
-        set_option.set( 'pos_x', self.frame_position.x )
-        set_option.set( 'pos_y', self.frame_position.y )
-        set_option.set( 'width', self.__frame_size.GetWidth() )
-        set_option.set( 'height', self.__frame_size.GetHeight() )
+        if self.__frame_position is not None:
+            set_option.set( 'pos_x', self.__frame_position[0] )
+            set_option.set( 'pos_y', self.__frame_position[1] )
+        set_option.set( 'width', self.__frame_size[0] )
+        set_option.set( 'height', self.__frame_size[1] )
         set_option.set( 'maximized', self.maximized )
         set_option.set( 'zoom', self.zoom )
+
+    def getFramePosition( self ):
+        return self.__frame_position
+
+    def setFramePosition( self, x, y ):
+        self.__frame_position = (x, y)
 
     def getFrameSize( self ):
         return self.__frame_size
 
-    def setFrameSize( self, size ):
-        self.__frame_size = size
+    def setFrameSize( self, width, height ):
+        self.__frame_size = (width, height)
 
 class ViewPreferences(PreferenceSection):
     def __init__( self, app ):
