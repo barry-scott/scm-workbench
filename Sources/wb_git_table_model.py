@@ -54,7 +54,11 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
             col = index.column()
 
             if col == 0:
-                return entry.name
+                if entry.is_dir():
+                    return entry.name + os.sep
+
+                else:
+                    return entry.name
 
             elif col == 1:
                 return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( entry.stat().st_mtime ) )
