@@ -89,9 +89,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         selection_model.select( self.tree_model.createIndex( 0, 0 ), selection_model.ClearAndSelect )
 
 
-        self.table_view.setColumnWidth( 0, 10*32 )
-        self.table_view.setColumnWidth( 1, 10*16 )
-        self.table_view.setColumnWidth( 2, 6*16 )
+        char_width = 10
+        self.table_view.setColumnWidth( 0, char_width*32 )
+        self.table_view.setColumnWidth( 1, char_width*16 )
+        self.table_view.setColumnWidth( 2, char_width*6 )
 
     def __setupMenuBar( self ):
         mb = self.menuBar()
