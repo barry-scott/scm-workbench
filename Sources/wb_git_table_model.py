@@ -34,6 +34,30 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
 
         return True
 
+    def lessThan( self, source_left, source_right ):
+        model = self.sourceModel()
+        left_ent = model.entry( source_left )
+        right_ent = model.entry( source_right )
+
+        column = source_left.column()
+
+        if column == model.col_name:
+            return left_ent.name < right_ent.name
+
+        if column == model.col_date:
+            left = (left_ent.stat().st_mtime, left_ent.name)
+            right = (right_ent.stat().st_mtime, right_ent.name)
+
+            return left < right
+
+        if column == model.col_type:
+            left = (left_ent.is_dir(), left_ent.name)
+            right = (right_ent.is_dir(), right_ent.name)
+
+            return left < right
+
+        assert False, 'Unknown column %r' % (source_left,)
+
 class WbGitTableModel(QtCore.QAbstractTableModel):
     col_name = 0
     col_date = 1
@@ -68,6 +92,9 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
             return QtCore.Qt.AlignLeft
 
         return None
+
+    def entry( self, index ):
+        return self.all_files[ index.row() ]
 
     def data( self, index, role ):
         if role == QtCore.Qt.DisplayRole:
