@@ -17,8 +17,30 @@ from PyQt5 import QtCore
 import os
 import time
 
+class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
+    def __init__( self, app, parent=None ):
+        self.app = app
+        super().__init__( parent )
+
+    def filterAcceptsRow( self, source_row, source_parent ):
+        # simple filter to lose editor backup~ files
+
+        model = self.sourceModel()
+        index = model.createIndex( source_row, WbGitTableModel.col_name )
+
+        name = model.data( index, QtCore.Qt.DisplayRole )
+        if name.endswith( '~' ):
+            return False
+
+        return True
+
 class WbGitTableModel(QtCore.QAbstractTableModel):
+    col_name = 0
+    col_date = 1
+    col_type = 2
+
     column_titles = ['Name', 'Date', 'Type']
+
     def __init__( self, app ):
         self.app = app
         super().__init__()
@@ -53,17 +75,17 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
             col = index.column()
 
-            if col == 0:
+            if col == self.col_name:
                 if entry.is_dir():
                     return entry.name + os.sep
 
                 else:
                     return entry.name
 
-            elif col == 1:
+            elif col == self.col_date:
                 return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( entry.stat().st_mtime ) )
 
-            elif col == 2:
+            elif col == self.col_type:
                 return entry.is_dir() and 'dir' or 'file'
 
         return None

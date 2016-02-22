@@ -59,6 +59,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_model = wb_git_table_model.WbGitTableModel( self.app )
         self.tree_model = wb_git_tree_model.WbGitTreeModel( self.app, self.table_model )
 
+        self.table_sortfilter = wb_git_table_model.WbGitTableSortFilter( self.app )
+        self.table_sortfilter.setSourceModel( self.table_model )
+
         # window major widgets
         self.log_view = QtWidgets.QLabel( 'Hello World')
 
@@ -66,7 +69,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.tree_view.setModel( self.tree_model )
 
         self.table_view = QtWidgets.QTableView()
-        self.table_view.setModel( self.table_model )
+        self.table_view.setModel( self.table_sortfilter )
 
         # layout widgets in window
         self.v_split = QtWidgets.QSplitter( self )
@@ -88,11 +91,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         # select the first project
         selection_model.select( self.tree_model.createIndex( 0, 0 ), selection_model.ClearAndSelect )
 
-
         char_width = 10
-        self.table_view.setColumnWidth( 0, char_width*32 )
-        self.table_view.setColumnWidth( 1, char_width*16 )
-        self.table_view.setColumnWidth( 2, char_width*6 )
+        self.table_view.setColumnWidth( self.table_model.col_name, char_width*32 )
+        self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
+        self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
 
     def __setupMenuBar( self ):
         mb = self.menuBar()
