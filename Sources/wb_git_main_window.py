@@ -62,6 +62,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_sortfilter = wb_git_table_model.WbGitTableSortFilter( self.app )
         self.table_sortfilter.setSourceModel( self.table_model )
 
+        self.table_sort_column = self.table_model.col_name
+        self.table_sort_order = QtCore.Qt.AscendingOrder
+
         # window major widgets
         self.log_view = QtWidgets.QLabel( 'Hello World')
 
@@ -70,6 +73,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.table_view = QtWidgets.QTableView()
         self.table_view.setModel( self.table_sortfilter )
+        # set sort params
+        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
+        # and enable to apply
+        self.table_view.setSortingEnabled( True )
 
         # layout widgets in window
         self.v_split = QtWidgets.QSplitter( self )
@@ -91,6 +98,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         # select the first project
         selection_model.select( self.tree_model.createIndex( 0, 0 ), selection_model.ClearAndSelect )
 
+        # connect up signals
+        self.table_view.horizontalHeader().sectionClicked.connect( self.tableHeaderClicked )
+
+        # size columns
         char_width = 10
         self.table_view.setColumnWidth( self.table_model.col_name, char_width*32 )
         self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
@@ -115,6 +126,19 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.status_message = QtWidgets.QLabel()
         s.addWidget( self.status_message )
+
+    def tableHeaderClicked( self, column ):
+        if column == self.table_sort_column:
+            if self.table_sort_order == QtCore.Qt.DescendingOrder:
+                self.table_sort_order = QtCore.Qt.AscendingOrder
+            else:
+                self.table_sort_order = QtCore.Qt.DescendingOrder
+
+        else:
+            self.table_sort_column = column
+            self.table_sort_order = QtCore.Qt.AscendingOrder
+
+        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
 
     def moveEvent( self, event ):
         self.app.prefs.getWindow().setFramePosition( event.pos().x(), event.pos().y() )
