@@ -77,6 +77,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
         # and enable to apply
         self.table_view.setSortingEnabled( True )
+        # always select a whole row
+        self.table_view.setSelectionBehavior( self.table_view.SelectRows )
 
         # layout widgets in window
         self.v_split = QtWidgets.QSplitter( self )
@@ -100,6 +102,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         # connect up signals
         self.table_view.horizontalHeader().sectionClicked.connect( self.tableHeaderClicked )
+        self.table_view.customContextMenuRequested.connect( self.tableContextMenu )
+        self.table_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
         # size columns
         char_width = 10
@@ -126,6 +130,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.status_message = QtWidgets.QLabel()
         s.addWidget( self.status_message )
+
+    def tableContextMenu( self, pos ):
+        selection_model = self.table_view.selectionModel()
+        print( [(index.row(), index.column()) for index in selection_model.selectedRows()] )
 
     def tableHeaderClicked( self, column ):
         if column == self.table_sort_column:
