@@ -66,7 +66,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         # window major widgets
-        self.log_view = QtWidgets.QLabel( 'Hello World')
+        self.log_view = QtWidgets.QLabel( 'Log view: Hello World')
 
         self.tree_view = QtWidgets.QTreeView()
         self.tree_view.setModel( self.tree_model )
