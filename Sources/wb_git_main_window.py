@@ -97,9 +97,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         selection_model = self.tree_view.selectionModel()
         selection_model.selectionChanged.connect( self.tree_model.selectionChanged )
 
-        # select the first project
-        selection_model.select( self.tree_model.createIndex( 0, 0 ), selection_model.ClearAndSelect )
-
         # connect up signals
         self.table_view.horizontalHeader().sectionClicked.connect( self.tableHeaderClicked )
         self.table_view.customContextMenuRequested.connect( self.tableContextMenu )
@@ -110,6 +107,18 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_view.setColumnWidth( self.table_model.col_name, char_width*32 )
         self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
+
+        self.completeStatupInitialisation()
+
+    def completeStatupInitialisation( self ):
+        # select the first project
+        index = self.tree_model.getFirstProjectIndex()
+
+        selection_model = self.tree_view.selectionModel()
+        selection_model.select( index,
+                    selection_model.Clear |
+                    selection_model.Select |
+                    selection_model.Current )
 
     def __setupMenuBar( self ):
         mb = self.menuBar()

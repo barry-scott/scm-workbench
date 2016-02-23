@@ -28,12 +28,16 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
         for project in self.app.prefs.getProjects().getProjectList():
             root.appendRow( ProjectNode( project ) )
 
+    def getFirstProjectIndex( self ):
+        item = self.invisibleRootItem().child( 0 )
+        return self.indexFromItem( item )
+
     def headerData( self, section, orientation, role ):
         return None
 
     def selectionChanged( self, selected, deselected ):
         index = selected.indexes()[0]
-        node = self.itemFromIndex( selected.indexes()[0] )
+        node = self.itemFromIndex( index )
         if node is not None:
             self.table_model.setProjectAndPath( node.project, node.path )
 
