@@ -151,12 +151,8 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         try_wrapper = wb_git_exceptions.TryWrapperFactory( self.log )
 
     def event( self, event ):
-        self._debugApp( 'BemacsApp.event() type() %r  %s' %
+        self._debugApp( 'WbGit_App.event() type() %r  %s' %
             (event.type(), qt_event_type_names.get( event.type(), '-unknown-' )) )
-
-        if event.type() == QtCore.QEvent.FileOpen:
-            self.guiClientCommandHandler( [os.getcwd(), 'emacs'] + [event.file()] )
-            return True
 
         return QtWidgets.QApplication.event( self, event )
 
@@ -164,7 +160,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         return EventScheduling( self, function )
 
     def isMainThread( self ):
-        'return true if the caller is running on the main thread'
+        # return true if the caller is running on the main thread
         return self.main_thread is threading.currentThread()
 
     def setupLogging( self ):
