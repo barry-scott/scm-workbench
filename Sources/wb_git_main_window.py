@@ -104,13 +104,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         # size columns
         char_width = 10
+        self.table_view.setColumnWidth( self.table_model.col_cache, char_width*4 )
+        self.table_view.setColumnWidth( self.table_model.col_working, char_width*4 )
         self.table_view.setColumnWidth( self.table_model.col_name, char_width*32 )
         self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
 
-        self.completeStatupInitialisation()
-
-    def completeStatupInitialisation( self ):
         # select the first project
         index = self.tree_model.getFirstProjectIndex()
 
@@ -119,6 +118,20 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     selection_model.Clear |
                     selection_model.Select |
                     selection_model.Current )
+
+        # The rest of init has to be done after the widgets are rendered
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect( self.completeStatupInitialisation )
+        self.timer.setSingleShot( True )
+        self.timer.start( 0 )
+
+    def completeStatupInitialisation( self ):
+        # set splitter position
+        tree_size_ratio = 0.3
+        width = sum( self.h_split.sizes() )
+        tree_width = int( width * tree_size_ratio )
+        table_width = width - tree_width
+        self.h_split.setSizes( [tree_width, table_width] )
 
     def __setupMenuBar( self ):
         mb = self.menuBar()
