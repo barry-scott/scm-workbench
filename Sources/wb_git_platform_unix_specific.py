@@ -1,7 +1,7 @@
 '''
 
  ====================================================================
- Copyright (c) 2003-2011 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -14,12 +14,13 @@
 '''
 import os
 import types
+import pathlib
 
 def getApplicationDir():
-    return os.path.join( os.environ['HOME'], '.GitWorkBench' )
+    return pathlib.Path( os.environ['HOME'] ) / '.GitWorkBench'
 
 def getLocalePath( app ):
-    return os.path.join( app.app_dir, 'locale' )
+    return pathlib.Path( app.app_dir ) / 'locale'
 
 def getNullDevice():
-    return '/dev/null'
+    return pathlib.Path( '/dev/null' )

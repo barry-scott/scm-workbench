@@ -17,6 +17,8 @@ from PyQt5 import QtCore
 import os
 import time
 
+import pygit2
+
 class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
     def __init__( self, app, parent=None ):
         self.app = app
@@ -44,6 +46,12 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
         if column == model.col_name:
             return left_ent.name < right_ent.name
 
+        if column == model.col_cache:
+            return left_ent.name < right_ent.name
+
+        if column == model.col_working:
+            return left_ent.name < right_ent.name
+
         if column == model.col_date:
             left = (left_ent.stat().st_mtime, left_ent.name)
             right = (right_ent.stat().st_mtime, right_ent.name)
@@ -59,11 +67,13 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
         assert False, 'Unknown column %r' % (source_left,)
 
 class WbGitTableModel(QtCore.QAbstractTableModel):
-    col_name = 0
-    col_date = 1
-    col_type = 2
+    col_cache = 0
+    col_working = 1
+    col_name = 2
+    col_date = 3
+    col_type = 4
 
-    column_titles = ['Name', 'Date', 'Type']
+    column_titles = ['Cache', 'Working', 'Name', 'Date', 'Type']
 
     def __init__( self, app ):
         self.app = app
@@ -78,7 +88,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
         return len( self.all_files )
 
     def columnCount( self, parent ):
-        return len(self.column_titles)
+        return len( self.column_titles )
 
     def headerData( self, section, orientation, role ):
         if role == QtCore.Qt.DisplayRole:
@@ -102,7 +112,13 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
             col = index.column()
 
-            if col == self.col_name:
+            if col == self.col_cache:
+                return entry.cacheAsString()
+
+            elif col == self.col_working:
+                return entry.workingAsString()
+
+            elif col == self.col_name:
                 if entry.is_dir():
                     return entry.name + os.sep
 
@@ -110,32 +126,124 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
                     return entry.name
 
             elif col == self.col_date:
-                return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( entry.stat().st_mtime ) )
+                return entry.fileDate()
 
             elif col == self.col_type:
                 return entry.is_dir() and 'dir' or 'file'
 
         return None
 
-    def setProjectAndPath( self, project, path ):
-        self.project = project
-        self.path = path
+    def setGitProjectTreeNode( self, git_project_tree_node ):
+        self.git_project_tree_node = git_project_tree_node
 
         self.beginResetModel()
 
-        if hasattr( os, 'scandir' ):
-            self.all_files = sorted( os.scandir( path ) )
+        all_files = {}
+        for dirent in os_scandir( str( git_project_tree_node.path() ) ):
+            entry = WbGitTableEntry( dirent.name )
+            entry.updateFromDirEnt( dirent )
+            
+            all_files[ entry.name ] = entry
 
-        else:
-            self.all_files = [DirEntPre35( filename, path ) for filename in sorted( os.listdir( path ) )]
+        for name in self.git_project_tree_node.all_files.keys():
+            if name not in all_files:
+                entry = WbGitTableEntry( name )
 
-        #self.dataChanged.emit( self.createIndex( 0, 0 ), self.createIndex( len(self.all_files), len(self.column_titles) ) )
+            else:
+                entry = all_files[ name ]
+
+            entry.updateFromGit( self.git_project_tree_node.state( name ) )
+
+            all_files[ entry.name ] = entry
+
+        self.all_files = sorted( all_files.values() )
+
         self.endResetModel()
 
+class WbGitTableEntry:
+    def __init__( self, name ):
+        self.name = name
+        self.dirent = None
+        self.status = None
+
+    def updateFromDirEnt( self, dirent ):
+        self.dirent = dirent
+
+    def updateFromGit( self, status ):
+        self.status = status
+
+    def __lt__( self, other ):
+        return self.name < other.name
+
+    def is_dir( self ):
+        return self.dirent is not None and self.dirent.is_dir()
+
+    def fileDate( self ):
+        if self.dirent is None:
+            return '-'
+
+        else:
+            return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( self.dirent.stat().st_mtime ) )
+
+
+
+    def cacheAsString( self ):
+        '''
+GIT_STATUS_CONFLICTED: 0x8000
+GIT_STATUS_CURRENT: 0x0
+GIT_STATUS_IGNORED: 0x4000
+GIT_STATUS_INDEX_DELETED: 0x4
+GIT_STATUS_INDEX_MODIFIED: 0x2
+GIT_STATUS_INDEX_NEW: 0x1
+GIT_STATUS_WT_DELETED: 0x200
+GIT_STATUS_WT_MODIFIED: 0x100
+GIT_STATUS_WT_NEW: 0x80
+'''
+        if self.status is None:
+            return ''
+
+        status = self.status[1]
+        state = []
+
+        if status&pygit2.GIT_STATUS_INDEX_NEW:
+            state.append( 'A' )
+
+        elif status&pygit2.GIT_STATUS_INDEX_MODIFIED:
+            state.append( 'M' )
+
+        elif status&pygit2.GIT_STATUS_INDEX_DELETED:
+            state.append( 'D' )
+
+        return ''.join( state )
+
+    def workingAsString( self ):
+        if self.status is None:
+            return ''
+
+        status = self.status[1]
+        state = []
+
+        if status&pygit2.GIT_STATUS_CONFLICTED:
+            state.append( 'C' )
+
+        if status&pygit2.GIT_STATUS_WT_MODIFIED:
+            state.append( 'M' )
+
+        elif status&pygit2.GIT_STATUS_WT_DELETED:
+            state.append( 'D' )
+
+        return ''.join( state )
+
+def os_scandir( path ):
+    if hasattr( os, 'scandir' ):
+        return os.scandir( path )
+
+    return [DirEntPre35( filename, path ) for filename in os.listdir( path )]
+
 class DirEntPre35:
-    def __init__( self, filename, parent ):
-        self.name = filename
-        self.__full_path = os.path.join( parent, filename )
+    def __init__( self, name, parent ):
+        self.name = name
+        self.__full_path = os.path.join( parent, name )
         self.__stat = os.stat( self.__full_path )
 
     def stat( self ):

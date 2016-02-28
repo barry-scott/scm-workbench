@@ -13,6 +13,7 @@
 
 '''
 import os
+import pathlib
 import copy
 
 import xml.parsers.expat
@@ -90,20 +91,15 @@ class Preferences:
             # write the prefs so that a failure to write does not
             # destroy the original
             # also keep one backup copy
-            new_name = self.pref_filename + '.tmp'
-            old_name = self.pref_filename + '.old'
+            new_name = self.pref_filename.with_name( self.pref_filename.name + '.tmp' )
+            old_name = self.pref_filename.with_name( self.pref_filename.name + '.old' )
 
-            f = open( new_name, 'w', encoding='utf-8' )
+            f = new_name.open( 'w', encoding='utf-8' )
             self.pref_data.write( f )
             f.close()
 
-            if os.path.exists( self.pref_filename ):
-                if os.path.exists( old_name ): # os.rename does not delete automatically on Windows.
-                    os.remove( old_name )
-
-                os.rename( self.pref_filename, old_name )
-
-            os.rename( new_name, self.pref_filename )
+            self.pref_filename.replace( old_name )
+            new_name.rename( self.pref_filename )
 
             self.app.log.info( T_('Wrote preferences to %s') % self.pref_filename )
 
@@ -120,7 +116,7 @@ class PreferenceData:
 
     def __readXml( self, xml_pref_filename ):
         try:
-            f = open( xml_pref_filename, 'rb' )
+            f = xml_pref_filename.open( 'rb' )
             text = f.read()
             f.close()
 
@@ -361,7 +357,7 @@ class ProjectsPreferences(PreferenceSection):
         for index in range( num_projects ):
             get_option = GetIndexedOption( pref_data, self.section_name, index, 'project' )
             name = get_option.getstr( 'name' )
-            path = get_option.getstr( 'path' )
+            path = pathlib.Path( get_option.getstr( 'path' ) )
 
             self.all_projects[ name ] = Project( name, path )
 
@@ -370,7 +366,9 @@ class ProjectsPreferences(PreferenceSection):
         pref_data.add_section( self.section_name )
 
         for project in self.all_projects.values():
-            pref_dict = { 'name': project.name, 'path': project.path }
+            pref_dict = {'name': project.name
+                        ,'path': project.path
+                        }
             pref_data.append_dict( self.section_name, 'project', pref_dict )
 
     def getProjectList( self ):

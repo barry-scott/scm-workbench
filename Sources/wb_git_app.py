@@ -119,7 +119,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         locale_path = wb_git_platform_specific.getLocalePath( self )
         self.translation = gettext.translation(
                 'bemacs',
-                locale_path,
+                str(locale_path),
                 # language defaults
                 fallback=True )
 
@@ -138,7 +138,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
 
         self.log.info( 'startup_dir %s' % (self.startup_dir,) )
         self.log.info( 'locale_path %s' % (locale_path,) )
-        self.log.info( 'find %r' % (gettext.find( 'wb_git', locale_path ),) )
+        self.log.info( 'find %r' % (gettext.find( 'wb_git', str(locale_path) ),) )
         self.log.info( 'info %r' % (self.translation.info(),) )
         self.log.info( T_("GIT Workbench") )
 
@@ -259,7 +259,7 @@ class RotatingFileHandler(logging.FileHandler):
 
         If maxBytes is zero, rollover never occurs.
         """
-        logging.FileHandler.__init__(self, filename, mode)
+        logging.FileHandler.__init__(self, str(filename), mode)
         self.maxBytes = maxBytes
         self.backupCount = backupCount
         if maxBytes > 0:

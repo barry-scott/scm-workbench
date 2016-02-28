@@ -14,12 +14,13 @@
 '''
 import os
 import types
+import pathlib
 
 def getApplicationDir():
-    return os.path.join( os.environ['HOME'], 'Library/Preferences/org.tigris.git.Workbench' )
+    return pathlib.Path( os.path.join( os.environ['HOME'] ) / 'Library/Preferences/org.tigris.git.Workbench'
 
 def getLocalePath( app ):
-    return os.path.join( os.environ.get( 'PYTHONHOME', app.app_dir ), 'locale' )
+    return pathlib.Path( os.environ.get( 'PYTHONHOME', app.app_dir ) ) / 'locale'
 
 def getNullDevice():
-    return '/dev/null'
+    return pathlib.Path( '/dev/null' )

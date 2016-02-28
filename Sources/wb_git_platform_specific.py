@@ -25,18 +25,18 @@ else:
     from wb_git_platform_unix_specific import *
 
 def getPreferencesFilename():
-    return os.path.join( getApplicationDir(), 'GitWorkBench.xml' )
+    return getApplicationDir() / 'GitWorkBench.xml'
 
 def getLogFilename():
-    return os.path.join( getApplicationDir(), 'GitWorkBench.log' )
+    return getApplicationDir() / 'GitWorkBench.log'
 
 def getLastCheckinMessageFilename():
-    return os.path.join( getApplicationDir(), 'log_message.txt' )
+    return getApplicationDir() / 'log_message.txt'
 
 def getLastLockMessageFilename():
-    return os.path.join( getApplicationDir(), 'lock_message.txt' )
+    return getApplicationDir() / 'lock_message.txt'
 
 def setupPlatform():
     app_dir = getApplicationDir()
-    if not os.path.exists( app_dir ):
-        os.makedirs( app_dir )
+    if not app_dir.exists():
+        app_dir.mkdir( parents=True )
