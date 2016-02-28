@@ -46,11 +46,32 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
         if column == model.col_name:
             return left_ent.name < right_ent.name
 
-        if column == model.col_cache:
+        if column in (model.col_cache, model.col_working):
+            # cached first
+            left = left_ent.cacheAsString()
+            right = right_ent.cacheAsString()
+            if left != right:
+                return left > right
+
+            # then working changes
+            left = left_ent.workingAsString()
+            right = right_ent.workingAsString()
+            if left != right:
+                return left > right
+
+            left = left_ent.isWorkingNew()
+            right = right_ent.isWorkingNew()
+            if left != right:
+                return left < right
+
+            # finally in name order
             return left_ent.name < right_ent.name
 
         if column == model.col_working:
-            return left_ent.name < right_ent.name
+            if left == right:
+                return left_ent.name < right_ent.name
+
+            return left > right
 
         if column == model.col_date:
             left = (left_ent.stat().st_mtime, left_ent.name)
@@ -83,6 +104,10 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
         self.path = None
 
         self.all_files = []
+
+        self.__brush_working_new = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
+        self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 0, 255 ) )
+        self.__brush_is_working_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
 
     def rowCount( self, parent ):
         return len( self.all_files )
@@ -133,6 +158,23 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
             elif col == self.col_type:
                 return entry.is_dir() and 'dir' or 'file'
+
+        if role == QtCore.Qt.ForegroundRole:
+            entry = self.all_files[ index.row() ]
+            cached = entry.cacheAsString()
+            working = entry.workingAsString()
+
+            if cached != '':
+                return self.__brush_is_cached
+
+            if working != '':
+                return self.__brush_is_working_changed
+
+            if entry.isWorkingNew():
+                return self.__brush_working_new
+
+        #if role == QtCore.Qt.BackgroupRole:
+
 
         return None
 
@@ -239,6 +281,15 @@ GIT_STATUS_WT_NEW: 0x80
             state.append( 'D' )
 
         return ''.join( state )
+
+    def isWorkingNew( self ):
+        if self.status is None:
+            return False
+
+        if self.status[1]&pygit2.GIT_STATUS_WT_NEW:
+            return True
+
+        return False
 
 def os_scandir( path ):
     if hasattr( os, 'scandir' ):

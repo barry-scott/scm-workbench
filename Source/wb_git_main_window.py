@@ -15,6 +15,7 @@
 import sys
 import os
 
+
 # On OS X the packager missing this import
 import sip
 
@@ -65,7 +66,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_sortfilter = wb_git_table_model.WbGitTableSortFilter( self.app )
         self.table_sortfilter.setSourceModel( self.table_model )
 
-        self.table_sort_column = self.table_model.col_name
+        self.table_sort_column = self.table_model.col_cache
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         # window major widgets
