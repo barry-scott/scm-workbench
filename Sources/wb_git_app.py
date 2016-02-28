@@ -29,6 +29,7 @@ from PyQt5 import QtCore
 
 import wb_git_main_window
 import wb_git_platform_specific
+import wb_shell_commands
 import wb_git_preferences
 import wb_git_exceptions
 import wb_git_debug
@@ -44,6 +45,8 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         self.main_window = None
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
+        print( 'qqq: app args %r' % (self.arguments(),) )
+
         wb_git_debug.WbGitDebugMixin.__init__( self )
 
         self.may_quit = False
@@ -52,7 +55,11 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
 
         self.startup_dir = os.getcwd()
 
+        self.all_temp_files = []
+        self.all_processes = []
+
         wb_git_platform_specific.setupPlatform()
+        #wb_shell_commands.setupCommands()
 
         # on the Mac the app's cwd is the resource folder
         if sys.platform == 'darwin':
@@ -88,10 +95,6 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
                 self.__debug = True
                 wb_git_debug.setDebug( args[2] )
                 del args[ 1 ]
-                del args[ 1 ]
-
-            elif arg == '--mock-editor':
-                self.__mock_editor = True
                 del args[ 1 ]
 
             elif arg == '--start-dir' and len(args) > 2:

@@ -29,6 +29,8 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
 
         self.all_git_projects = []
 
+        self.selected_node = None
+
         for project in self.app.prefs.getProjects().getProjectList():
             git_project = wb_git_project.GitProject( project )
             git_project.update()
@@ -46,9 +48,15 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
 
     def selectionChanged( self, selected, deselected ):
         index = selected.indexes()[0]
-        node = self.itemFromIndex( index )
-        if node is not None:
-            self.table_model.setGitProjectTreeNode( node.git_project_tree_node )
+        self.selected_node = self.itemFromIndex( index )
+        if self.selected_node is not None:
+            self.table_model.setGitProjectTreeNode( self.selected_node.git_project_tree_node )
+
+    def selectedGitProjectTreeNode( self ):
+        if self.selected_node is None:
+            return None
+
+        return self.selected_node.git_project_tree_node
 
 class ProjectTreeNode(QtGui.QStandardItem):
     def __init__( self, git_project_tree_node ):

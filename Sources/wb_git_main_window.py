@@ -32,6 +32,8 @@ import wb_git_config
 import wb_git_tree_model
 import wb_git_table_model
 
+import wb_shell_commands
+
 class WbGitMainWindow(QtWidgets.QMainWindow):
     def __init__( self, app ):
         self.app = app
@@ -48,6 +50,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         #self.setWindowIcon( wb_git_images.getIcon( 'wb_git.png' ) )
 
         self.__setupMenuBar()
+        self.__setupToolBar()
         self.__setupStatusBar()
 
         if win_prefs.getFramePosition() is not None:
@@ -138,14 +141,30 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         menu_file = mb.addMenu( T_('&File') )
         act_exit = menu_file.addAction( T_('E&xit') )
-        act_exit.triggered.connect( self.close )
+        act_exit.triggered.connect( self.appActionClose )
 
         menu_help = mb.addMenu( T_('&Help' ) )
         act = menu_help.addAction( T_("&About...") )
-        act.triggered.connect( self.onActAbout )
+        act.triggered.connect( self.appActionAbout )
 
     def __setupToolBar( self ):
-        pass
+        style = self.style()
+
+        self.tool_bar_tree = self.addToolBar( T_('tree') )
+        self.act_shell = self.tool_bar_tree.addAction( T_('Shell') )
+        self.act_shell.triggered.connect( self.treeActionShell )
+
+        self.act_file_browser = self.tool_bar_tree.addAction( 
+            style.standardIcon( QtWidgets.QStyle.SP_DirOpenIcon ),
+            T_('File Browser') )
+        self.act_file_browser.triggered.connect( self.treeActionFileBrowse )
+
+        self.tool_bar_table = self.addToolBar( T_('table') )
+        self.act_edit = self.tool_bar_table.addAction( T_('Edit') )
+        self.act_edit.triggered.connect( self.tableActionEdit )
+
+        self.act_open = self.tool_bar_table.addAction( T_('Open') )
+        self.act_open.triggered.connect( self.tableActionOpen )
 
     def __setupStatusBar( self ):
         s = self.statusBar()
@@ -179,14 +198,19 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def closeEvent( self, event ):
         self.app.writePreferences()
 
-    def onActPreferences( self ):
+    #------------------------------------------------------------
+    #
+    # app actions
+    #
+    #------------------------------------------------------------
+    def appActionPreferences( self ):
         pref_dialog = wb_git_preferences_dialog.PreferencesDialog( self, self.app )
         rc = pref_dialog.exec_()
         if rc == QtWidgets.QDialog.Accepted:
             self.app.writePreferences()
             self.newPreferences()
 
-    def onActAbout( self ):
+    def appActionAbout( self ):
         from PyQt5 import Qt
         all_about_info = []
         all_about_info.append( T_("GIT Workbench %d.%d.%d-%d") %
@@ -202,3 +226,49 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         all_about_info.append( T_('Copyright Barry Scott (c) 2016-%s. All rights reserved') % (wb_git_version.year,) )
 
         QtWidgets.QMessageBox.information( self, T_("About GIT Workbench"), '\n'.join( all_about_info ) )
+
+    def appActionClose( self ):
+        # QQQ: do shutdown actions before closing
+        self.close()
+
+    #------------------------------------------------------------
+    #
+    # tree actions
+    #
+    #------------------------------------------------------------
+    def __treeSelectedFolder( self ):
+        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
+        if git_project_tree_node is None:
+            return None
+
+        folder_path =  git_project_tree_node.path()
+
+        if not folder_path.exists():
+            return None
+
+        return folder_path
+
+    def treeActionShell( self ):
+        folder_path = self.__treeSelectedFolder()
+        if folder_path is None:
+            return
+
+        wb_shell_commands.CommandShell( self.app, folder_path )
+
+    def treeActionFileBrowse( self ):
+        folder_path = self.__treeSelectedFolder()
+        if folder_path is None:
+            return
+
+        wb_shell_commands.FileBrowser( self.app, folder_path )
+
+    #------------------------------------------------------------
+    #
+    # table actions
+    #
+    #------------------------------------------------------------
+    def tableActionOpen( self ):
+        print( 'tableActionOpen()' )
+
+    def tableActionEdit( self ):
+        print( 'tableActionEdit()' )
