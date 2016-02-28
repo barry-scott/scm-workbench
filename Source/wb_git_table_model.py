@@ -107,6 +107,9 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
         return self.all_files[ index.row() ]
 
     def data( self, index, role ):
+        if role == QtCore.Qt.UserRole:
+            return self.all_files[ index.row() ]
+
         if role == QtCore.Qt.DisplayRole:
             entry = self.all_files[ index.row() ]
 
@@ -171,6 +174,9 @@ class WbGitTableEntry:
 
     def updateFromGit( self, status ):
         self.status = status
+
+    def stat( self ):
+        return self.dirent.stat()
 
     def __lt__( self, other ):
         return self.name < other.name

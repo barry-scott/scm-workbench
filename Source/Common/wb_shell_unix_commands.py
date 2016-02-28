@@ -48,31 +48,26 @@ def getTerminalProgramList():
 def getFileBrowserProgramList():
     return gui_file_browsers[:]
 
-def EditFile( app, working_dir, filename ):
+def EditFile( app, working_dir, all_filenames ):
     p = app.prefs.getEditor()
 
     if p.editor_image:
         if p.editor_options:
             editor_image = p.editor_image
-            editor_args = shlex.split( p.editor_options ) + [filename]
+            editor_args = shlex.split( p.editor_options ) + all_filenames
         else:
             editor_image = p.editor_image
-            editor_args = [filename]
+            editor_args = all_filenames
     else:
         editor_image = 'kedit'
-        editor_args = [filename]
+        editor_args = all_filenames
 
     __run_command( app, editor_image, editor_args, working_dir )
 
-def ShellOpen( app, working_dir, filename ):
-    app.log.info( T_('Open %s') % filename )
-    cur_dir = os.getcwd()
-    try:
-        os.chdir( str( working_dir ) )
-        subprocess.call( ['xdg-open', filename] )
+def ShellOpen( app, working_dir, all_filenames ):
+    app.log.info( T_('Open %s') % (' '.join( all_filenames ),) )
 
-    finally:
-        os.chdir( cur_dir )
+    __run_command( app, 'xdg-open', all_filenames, working_dir )
 
 def GuiDiffFiles( app, args ):
     __run_command( app, app.prefs.getDiffTool().gui_diff_tool, args. os.getcwd() )

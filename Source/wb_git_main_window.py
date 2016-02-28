@@ -267,8 +267,29 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     # table actions
     #
     #------------------------------------------------------------
+    def __tableSelectedFiles( self ):
+        return [index.data( QtCore.Qt.UserRole ).name
+                    for index in self.table_view.selectedIndexes()
+                    if index.column() == 0]
+
     def tableActionOpen( self ):
-        print( 'tableActionOpen()' )
+        folder_path = self.__treeSelectedFolder()
+        if folder_path is None:
+            return
+
+        all_filenames = self.__tableSelectedFiles()
+        if len(all_filenames) == 0:
+            return
+
+        wb_shell_commands.ShellOpen( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
 
     def tableActionEdit( self ):
-        print( 'tableActionEdit()' )
+        folder_path = self.__treeSelectedFolder()
+        if folder_path is None:
+            return
+
+        all_filenames = self.__tableSelectedFiles()
+        if len(all_filenames) == 0:
+            return
+
+        wb_shell_commands.EditFile( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
