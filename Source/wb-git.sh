@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/bash -x
 export GIT_WORKBENCH_STDOUT_LOG=$(tty)
 if [ "$PYTHONPATH" = "" ]
 then
-	export PYTHONPATH=${BUILDER_TOP_DIR}/Source
+	export PYTHONPATH=${BUILDER_TOP_DIR}/Source:${BUILDER_TOP_DIR}/Source/Common
 else
-	export PYTHONPATH=${BUILDER_TOP_DIR}/Source:$PYTHONPATH
+	export PYTHONPATH=${BUILDER_TOP_DIR}/Source:${BUILDER_TOP_DIR}/Source/Common:$PYTHONPATH
 fi
 
 PYTHON=${PYTHON:-python}
