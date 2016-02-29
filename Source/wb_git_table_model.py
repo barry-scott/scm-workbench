@@ -178,7 +178,6 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
         return None
 
     def setGitProjectTreeNode( self, git_project_tree_node ):
-        print( 'qqq setGitProjectTreeNode( %s )' % (git_project_tree_node.project.path(),) )
         self.git_project_tree_node = git_project_tree_node
 
         self.beginResetModel()

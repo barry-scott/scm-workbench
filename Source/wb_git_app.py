@@ -45,8 +45,6 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         self.main_window = None
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
-        print( 'qqq: app args %r' % (self.arguments(),) )
-
         wb_git_debug.WbGitDebugMixin.__init__( self )
 
         self.may_quit = False

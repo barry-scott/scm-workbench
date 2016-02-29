@@ -46,8 +46,6 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
         return None
 
     def appActiveHandler( self ):
-        print( 'qqq: WbGitTreeModel appActiveHandler()' )
-
         if self.selected_node is not None:
             # update the project data and reset the table model
             self.selected_node.git_project_tree_node.project.update()

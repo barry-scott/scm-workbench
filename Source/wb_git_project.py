@@ -33,7 +33,6 @@ class GitProject:
         return self.prefs_project.path
 
     def update( self ):
-        print( 'qqq: GitProject( %s ).update()' % (self.path(),) )
         self.index.read( False )
 
         for entry in self.index:
