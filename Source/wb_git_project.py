@@ -24,7 +24,7 @@ class GitProject:
         self.prefs_project = prefs_project
         self.repo = pygit2.Repository( str( prefs_project.path / '.git' ) )
 
-        self.tree = GitProjectTreeNode( self, prefs_project.name, '' )
+        self.tree = GitProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
         self.index = self.repo.index
         self.status = {}
@@ -33,8 +33,8 @@ class GitProject:
         return self.prefs_project.path
 
     def update( self ):
+        print( 'qqq: GitProject( %s ).update()' % (self.path(),) )
         self.index.read( False )
-        self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
         for entry in self.index:
             self.__updateTree( entry.path )

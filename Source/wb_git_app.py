@@ -151,7 +151,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
 
         self.main_window = wb_git_main_window.WbGitMainWindow( self )
 
-        try_wrapper = wb_git_exceptions.TryWrapperFactory( self.log )
+        self.applicationStateChanged.connect( self.applicationStateChangedHandler )
 
     def event( self, event ):
         self._debugApp( 'WbGit_App.event() type() %r  %s' %
@@ -159,8 +159,9 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
 
         return QtWidgets.QApplication.event( self, event )
 
-    def eventWrapper( self, function ):
-        return EventScheduling( self, function )
+    def applicationStateChangedHandler( self, state ):
+        if state == QtCore.Qt.ApplicationActive:
+            self.main_window.appActiveHandler()
 
     def isMainThread( self ):
         # return true if the caller is running on the main thread

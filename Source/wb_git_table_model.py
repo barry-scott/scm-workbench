@@ -175,10 +175,10 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
         #if role == QtCore.Qt.BackgroupRole:
 
-
         return None
 
     def setGitProjectTreeNode( self, git_project_tree_node ):
+        print( 'qqq setGitProjectTreeNode( %s )' % (git_project_tree_node.project.path(),) )
         self.git_project_tree_node = git_project_tree_node
 
         self.beginResetModel()

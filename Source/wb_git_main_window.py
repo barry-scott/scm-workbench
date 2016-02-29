@@ -173,6 +173,11 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.status_message = QtWidgets.QLabel()
         s.addWidget( self.status_message )
 
+    #------------------------------------------------------------
+    #
+    #   Event handlers
+    #
+    #------------------------------------------------------------
     def tableContextMenu( self, pos ):
         selection_model = self.table_view.selectionModel()
         print( [(index.row(), index.column()) for index in selection_model.selectedRows()] )
@@ -198,6 +203,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def closeEvent( self, event ):
         self.app.writePreferences()
+
+    def appActiveHandler( self ):
+        # update the selected projects data
+        self.tree_model.appActiveHandler()
 
     #------------------------------------------------------------
     #
