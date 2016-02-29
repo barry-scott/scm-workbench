@@ -186,11 +186,13 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
     def setGitProjectTreeNode( self, git_project_tree_node ):
         self.git_project_tree_node = git_project_tree_node
+        self.refreshTable()
 
+    def refreshTable( self ):
         self.beginResetModel()
 
         all_files = {}
-        for dirent in os_scandir( str( git_project_tree_node.path() ) ):
+        for dirent in os_scandir( str( self.git_project_tree_node.absolutePath() ) ):
             entry = WbGitTableEntry( dirent.name )
             entry.updateFromDirEnt( dirent )
             

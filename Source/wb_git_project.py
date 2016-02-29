@@ -26,16 +26,28 @@ class GitProject:
 
         self.tree = GitProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
-        self.index = self.repo.index
         self.status = {}
+
+        self.__dirty = False
 
     def path( self ):
         return self.prefs_project.path
 
-    def update( self ):
-        self.index.read( False )
+    def add( self, filename ):
+        self.repo.index.add( str( filename ) )
+        self.__dirty = True
 
-        for entry in self.index:
+    def saveChanges( self ):
+        assert self.__dirty, 'Only call saveChanges if something was changed'
+        self.__dirty = False
+        self.repo.index.write()
+        self.updateState()
+
+    def updateState( self ):
+        assert not self.__dirty, 'repo is dirty, forgot to call sabe Changes?'
+        self.repo.index.read( False )
+
+        for entry in self.repo.index:
             self.__updateTree( entry.path )
 
         self.status = self.repo.status()
@@ -70,12 +82,15 @@ class GitProjectTreeNode:
     def __lt__( self, other ):
         return self.name < other.name
 
-    def path( self ):
+    def relativePath( self ):
+        return self.__path
+
+    def absolutePath( self ):
         return self.project.path() / self.__path
 
     def state( self, name ):
         try:
-            mode = self.project.index[ self.all_files[ name ] ].mode
+            mode = self.project.repo.index[ self.all_files[ name ] ].mode
 
         except KeyError:
             mode = 0

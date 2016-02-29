@@ -33,7 +33,7 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
 
         for project in self.app.prefs.getProjects().getProjectList():
             git_project = wb_git_project.GitProject( project )
-            git_project.update()
+            git_project.updateState()
 
             self.all_git_projects.append( git_project )
             self.appendRow( ProjectTreeNode( git_project.tree ) )
@@ -48,7 +48,7 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
     def appActiveHandler( self ):
         if self.selected_node is not None:
             # update the project data and reset the table model
-            self.selected_node.git_project_tree_node.project.update()
+            self.selected_node.git_project_tree_node.project.updateState()
             self.table_model.setGitProjectTreeNode( self.selected_node.git_project_tree_node )
 
     def selectionChanged( self, selected, deselected ):
@@ -62,7 +62,7 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
             old_project = self.selected_node.git_project_tree_node.project
             new_project = selected_node.git_project_tree_node.project
             if old_project != new_project:
-                new_project.update()
+                new_project.updateState()
 
         self.selected_node = selected_node
         self.table_model.setGitProjectTreeNode( self.selected_node.git_project_tree_node )

@@ -194,6 +194,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.act_open = self.tool_bar_table.addAction( T_('Open') )
         self.act_open.triggered.connect( self.tableActionOpen )
 
+        self.tool_bar_git = self.addToolBar( T_('git') )
+        self.act_git_add = self.tool_bar_git.addAction( T_('Add') )
+        self.act_git_add.triggered.connect( self.tableActionGitAdd )
+
     def __setupStatusBar( self ):
         s = self.statusBar()
 
@@ -277,27 +281,41 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     # tree actions
     #
     #------------------------------------------------------------
-    def __treeSelectedFolder( self ):
+    def __treeSelectedAbsoluteFolder( self ):
         git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
         if git_project_tree_node is None:
             return None
 
-        folder_path =  git_project_tree_node.path()
+        folder_path = git_project_tree_node.absolutePath()
 
         if not folder_path.exists():
             return None
 
         return folder_path
 
+    def __treeSelectedRelativeFolder( self ):
+        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
+        if git_project_tree_node is None:
+            return None
+
+        return git_project_tree_node.relativePath()
+
+    def __treeSelectedGitProject( self ):
+        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
+        if git_project_tree_node is None:
+            return None
+
+        return git_project_tree_node.project
+
     def treeActionShell( self ):
-        folder_path = self.__treeSelectedFolder()
+        folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
 
         wb_shell_commands.CommandShell( self.app, folder_path )
 
     def treeActionFileBrowse( self ):
-        folder_path = self.__treeSelectedFolder()
+        folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
 
@@ -314,7 +332,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     if index.column() == 0]
 
     def tableActionOpen( self ):
-        folder_path = self.__treeSelectedFolder()
+        folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
 
@@ -325,7 +343,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         wb_shell_commands.ShellOpen( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
 
     def tableActionEdit( self ):
-        folder_path = self.__treeSelectedFolder()
+        folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
 
@@ -334,3 +352,23 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             return
 
         wb_shell_commands.EditFile( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
+
+    def tableActionGitAdd( self ):
+        folder_path = self.__treeSelectedAbsoluteFolder()
+        if folder_path is None:
+            return
+
+        all_names = self.__tableSelectedFiles()
+        if len(all_names) == 0:
+            return
+
+        git_project = self.__treeSelectedGitProject()
+
+        relative_folder = self.__treeSelectedRelativeFolder()
+
+        for name in all_names:
+            git_project.add( relative_folder / name )
+
+        git_project.saveChanges()
+
+        self.table_model.refreshTable()
