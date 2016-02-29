@@ -24,15 +24,22 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
         self.app = app
         super().__init__( parent )
 
-    def filterAcceptsRow( self, source_row, source_parent ):
-        # simple filter to lose editor backup~ files
+        self.filter_text = ''
 
+    def setFilterText( self, text ):
+        self.filter_text = text
+        self.invalidateFilter()
+
+    def filterAcceptsRow( self, source_row, source_parent ):
         model = self.sourceModel()
         index = model.createIndex( source_row, WbGitTableModel.col_name )
 
-        name = model.data( index, QtCore.Qt.DisplayRole )
-        if name.endswith( '~' ):
+        entry = model.data( index, QtCore.Qt.UserRole )
+        if entry.ignoreFile():
             return False
+
+        if self.filter_text != '':
+            return self.filter_text.lower() in entry.name.lower()
 
         return True
 
@@ -157,7 +164,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
                 return entry.fileDate()
 
             elif col == self.col_type:
-                return entry.is_dir() and 'dir' or 'file'
+                return entry.is_dir() and 'Dir' or 'File'
 
         if role == QtCore.Qt.ForegroundRole:
             entry = self.all_files[ index.row() ]
@@ -232,7 +239,11 @@ class WbGitTableEntry:
         else:
             return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( self.dirent.stat().st_mtime ) )
 
+    def ignoreFile( self ):
+        if self.status is None:
+            return True
 
+        return (self.status[1]&pygit2.GIT_STATUS_IGNORED) != 0
 
     def cacheAsString( self ):
         '''

@@ -84,22 +84,49 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         # always select a whole row
         self.table_view.setSelectionBehavior( self.table_view.SelectRows )
 
+
+        self.filter_text = QtWidgets.QLineEdit()
+        self.filter_text.setClearButtonEnabled( True )
+        self.filter_text.setMaxLength( 256 )
+        self.filter_text.setPlaceholderText( T_('Filter list by name') )
+        #self.filter_text.setTextMargins( 3, 3, 3, 3 )
+        self.filter_text.textChanged.connect( self.table_sortfilter.setFilterText )
+
         # layout widgets in window
         self.v_split = QtWidgets.QSplitter( self )
         self.v_split.setOrientation( QtCore.Qt.Vertical )
+
         self.setCentralWidget( self.v_split )
 
         self.h_split = QtWidgets.QSplitter( self.v_split )
         self.h_split.setOrientation( QtCore.Qt.Horizontal )
 
+        self.v_split_table = QtWidgets.QSplitter( self )
+        self.v_split_table.setOrientation( QtCore.Qt.Vertical )
+
+        self.h_filter_widget = QtWidgets.QWidget( self.v_split )
+        self.h_filter_layout = QtWidgets.QHBoxLayout()
+
+        self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Filter:') ) )
+        self.h_filter_layout.addWidget( self.filter_text )
+
+        self.h_filter_widget.setLayout( self.h_filter_layout )
+
+        self.v_table_widget = QtWidgets.QWidget( self.v_split )
+        self.v_table_layout = QtWidgets.QVBoxLayout()
+        self.v_table_layout.addWidget( self.h_filter_widget )
+        self.v_table_layout.addWidget( self.table_view )
+
+        self.v_table_widget.setLayout( self.v_table_layout )
+
         self.h_split.addWidget( self.tree_view )
-        self.h_split.addWidget( self.table_view )
+        self.h_split.addWidget( self.v_table_widget )
 
         self.v_split.addWidget( self.h_split )
         self.v_split.addWidget( self.log_view )
 
         selection_model = self.tree_view.selectionModel()
-        selection_model.selectionChanged.connect( self.tree_model.selectionChanged )
+        selection_model.selectionChanged.connect( self.treeSelectionChanged )
 
         # connect up signals
         self.table_view.horizontalHeader().sectionClicked.connect( self.tableHeaderClicked )
@@ -178,6 +205,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     #   Event handlers
     #
     #------------------------------------------------------------
+    def appActiveHandler( self ):
+        # update the selected projects data
+        self.tree_model.appActiveHandler()
+
     def tableContextMenu( self, pos ):
         selection_model = self.table_view.selectionModel()
         print( [(index.row(), index.column()) for index in selection_model.selectedRows()] )
@@ -195,6 +226,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
 
+    def treeSelectionChanged( self, selected, deselected ):
+        self.filter_text.clear()
+        self.tree_model.selectionChanged( selected, deselected )
+
     def moveEvent( self, event ):
         self.app.prefs.getWindow().setFramePosition( event.pos().x(), event.pos().y() )
 
@@ -203,10 +238,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def closeEvent( self, event ):
         self.app.writePreferences()
-
-    def appActiveHandler( self ):
-        # update the selected projects data
-        self.tree_model.appActiveHandler()
 
     #------------------------------------------------------------
     #
