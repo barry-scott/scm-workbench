@@ -11,13 +11,7 @@
 
 '''
 import pathlib
-
-import warnings
-# pygit2 is emitting warning on import
-with warnings.catch_warnings():
-    warnings.simplefilter( 'ignore' )
-
-    import pygit2
+import pygit2
 
 class GitProject:
     def __init__( self, prefs_project ):
@@ -32,10 +26,6 @@ class GitProject:
 
     def path( self ):
         return self.prefs_project.path
-
-    def add( self, filename ):
-        self.repo.index.add( str( filename ) )
-        self.__dirty = True
 
     def saveChanges( self ):
         assert self.__dirty, 'Only call saveChanges if something was changed'
@@ -70,6 +60,74 @@ class GitProject:
                 node = new_node
 
         node.all_files[ path_parts[-1] ] = path
+
+
+    #------------------------------------------------------------
+    #
+    # all functions starting with "cmd" are like the git <cmd> in behavior
+    #
+    #------------------------------------------------------------
+    def cmdStage( self, filename ):
+        state = self.status[ str(filename) ]
+
+        if (pygit2.GIT_STATUS_WT_DELETED&state) != 0:
+            self.repo.index.remove( str(filename) )
+
+        elif( (pygit2.GIT_STATUS_WT_MODIFIED&state) != 0
+        or    (pygit2.GIT_STATUS_WT_NEW&state) != 0 ):
+            self.repo.index.add( str(filename) )
+
+        self.__dirty = True
+
+    def cmdUnstage( self, rev, filename, reset_type ):
+        state = self.status[ str(filename) ]
+
+        if (state&pygit2.GIT_STATUS_INDEX_NEW) != 0:
+            # new file just needs to be remove() from the index
+            self.repo.index.remove( str(filename) )
+
+        else:
+            # modified or delete file needs
+            # to be added back into index with there old value
+            commit = self.repo.revparse_single( rev )
+            tree = commit.peel( pygit2.GIT_OBJ_TREE )
+            tree_entry = self.__findFileInTree( tree, filename )
+
+            reset_entry = pygit2.IndexEntry( str(filename), tree_entry.id, tree_entry.filemode )
+            self.repo.index.add( reset_entry )
+
+        self.__dirty = True
+
+    def cmdRevert( self, rev, filename ):
+        # either a modified file or a deleted file
+        # read the blob from HEAD and wite to disk
+
+        commit = self.repo.revparse_single( rev )
+        tree = commit.peel( pygit2.GIT_OBJ_TREE )
+        tree_entry = self.__findFileInTree( tree, filename )
+
+        blob = self.repo.get( tree_entry.id )
+
+        with (self.prefs_project.path / filename).open( 'wb' ) as f:
+            f.write( blob.data )
+
+        self.__dirty = True
+
+    def __findFileInTree( self, tree, filename ):
+        # match all the folders
+        for name in filename.parts[:-1]:
+            for entry in tree:
+                if name == entry.name:
+                    if entry.filemode == pygit2.GIT_FILEMODE_TREE:
+                        tree = self.repo.get( entry.id )
+                    else:
+                        raise KeyError( 'folder not in tree' )
+
+        for entry in tree:
+            if filename.name == entry.name and entry.filemode in (pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE):
+                return entry
+
+        raise KeyError( 'file not in tree' )
 
 class GitProjectTreeNode:
     def __init__( self, project, name, path ):

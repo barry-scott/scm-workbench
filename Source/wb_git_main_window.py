@@ -15,13 +15,14 @@
 import sys
 import os
 
-
 # On OS X the packager missing this import
 import sip
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
+
+import pygit2
 
 #import be_ids
 import wb_git_version
@@ -195,8 +196,14 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.act_open.triggered.connect( self.tableActionOpen )
 
         self.tool_bar_git = self.addToolBar( T_('git') )
-        self.act_git_add = self.tool_bar_git.addAction( T_('Add') )
-        self.act_git_add.triggered.connect( self.tableActionGitAdd )
+        self.act_git_stage = self.tool_bar_git.addAction( T_('Stage') )
+        self.act_git_stage.triggered.connect( self.tableActionGitStage )
+
+        self.act_git_unstage = self.tool_bar_git.addAction( T_('Unstage') )
+        self.act_git_unstage.triggered.connect( self.tableActionGitUnstage )
+
+        self.act_git_revert = self.tool_bar_git.addAction( T_('Revert') )
+        self.act_git_revert.triggered.connect( self.tableActionGitRevert )
 
     def __setupStatusBar( self ):
         s = self.statusBar()
@@ -353,7 +360,40 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         wb_shell_commands.EditFile( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
 
-    def tableActionGitAdd( self ):
+    def tableActionGitStage( self ):
+        self.__tableActionCommonHelper( self.__areYouSureAlways, self.__actionGitStage )
+
+    def tableActionGitUnstage( self ):
+        self.__tableActionCommonHelper( self.__areYouSureAlways, self.__actionGitUnStage )
+
+    def tableActionGitRevert( self ):
+        self.__tableActionCommonHelper( self.__areYouSureRevert, self.__actionGitRevert )
+
+    def __actionGitStage( self, git_project, filename ):
+        git_project.cmdStage( filename )
+
+    def __actionGitUnStage( self, git_project, filename ):
+        git_project.cmdUnstage( 'HEAD', filename, pygit2.GIT_RESET_MIXED )
+
+    def __actionGitRevert( self, git_project, filename ):
+        git_project.cmdRevert( 'HEAD', filename )
+
+    def __areYouSureAlways( self, all_filenames ):
+        return True
+
+    def __areYouSureRevert( self, all_filenames ):
+        default_button = QtWidgets.QMessageBox.No
+
+        title = 'Confirm Revert'
+        all_parts = ['Are you sure you wish to revert:']
+        all_parts.extend( [str(filename) for filename in all_filenames] )
+
+        message = '\n'.join( all_parts )
+
+        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
+        return rc == QtWidgets.QMessageBox.Yes
+
+    def __tableActionCommonHelper( self, are_you_sure_function, execute_function ):
         folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
@@ -366,8 +406,13 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         relative_folder = self.__treeSelectedRelativeFolder()
 
-        for name in all_names:
-            git_project.add( relative_folder / name )
+        all_filenames = [relative_folder / name for name in all_names]
+
+        if not are_you_sure_function( all_filenames ):
+            return
+
+        for filename in all_filenames:
+            execute_function( git_project, filename )
 
         git_project.saveChanges()
 
