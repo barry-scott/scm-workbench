@@ -45,6 +45,10 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
     def headerData( self, section, orientation, role ):
         return None
 
+    def flags( self, index ):
+        # turn off edit as that stops double click to expand
+        return super().flags( index ) & ~QtCore.Qt.ItemIsEditable
+
     def appActiveHandler( self ):
         if self.selected_node is not None:
             # update the project data and reset the table model

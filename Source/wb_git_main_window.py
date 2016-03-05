@@ -75,8 +75,16 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.tree_view = QtWidgets.QTreeView()
         self.tree_view.setModel( self.tree_model )
+        self.tree_view.setExpandsOnDoubleClick( True )
 
-        self.table_view = QtWidgets.QTableView()
+        self.table_keys_edit = ['\r', 'e', 'E']
+        self.table_keys_open = ['o', 'O']
+
+        self.all_table_keys = []
+        self.all_table_keys.extend( self.table_keys_edit )
+        self.all_table_keys.extend( self.table_keys_open )
+
+        self.table_view = WbTableView( self.all_table_keys, self.tableKeyHandler )
         self.table_view.setModel( self.table_sortfilter )
         # set sort params
         self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
@@ -84,7 +92,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_view.setSortingEnabled( True )
         # always select a whole row
         self.table_view.setSelectionBehavior( self.table_view.SelectRows )
-
+        self.table_view.doubleClicked.connect( self.tableDoubleClicked )
 
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
@@ -220,27 +228,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         # update the selected projects data
         self.tree_model.appActiveHandler()
 
-    def tableContextMenu( self, pos ):
-        selection_model = self.table_view.selectionModel()
-        print( [(index.row(), index.column()) for index in selection_model.selectedRows()] )
-
-    def tableHeaderClicked( self, column ):
-        if column == self.table_sort_column:
-            if self.table_sort_order == QtCore.Qt.DescendingOrder:
-                self.table_sort_order = QtCore.Qt.AscendingOrder
-            else:
-                self.table_sort_order = QtCore.Qt.DescendingOrder
-
-        else:
-            self.table_sort_column = column
-            self.table_sort_order = QtCore.Qt.AscendingOrder
-
-        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
-
-    def treeSelectionChanged( self, selected, deselected ):
-        self.filter_text.clear()
-        self.tree_model.selectionChanged( selected, deselected )
-
     def moveEvent( self, event ):
         self.app.prefs.getWindow().setFramePosition( event.pos().x(), event.pos().y() )
 
@@ -314,6 +301,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         return git_project_tree_node.project
 
+    def treeSelectionChanged( self, selected, deselected ):
+        self.filter_text.clear()
+        self.tree_model.selectionChanged( selected, deselected )
+
     def treeActionShell( self ):
         folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
@@ -337,6 +328,33 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         return [index.data( QtCore.Qt.UserRole ).name
                     for index in self.table_view.selectedIndexes()
                     if index.column() == 0]
+
+    def tableKeyHandler( self, key ):
+        if key in self.table_keys_edit:
+            self.tableActionEdit()
+
+        elif key in self.table_keys_open:
+            self.tableActionOpen()
+
+    def tableContextMenu( self, pos ):
+        selection_model = self.table_view.selectionModel()
+        print( [(index.row(), index.column()) for index in selection_model.selectedRows()] )
+
+    def tableHeaderClicked( self, column ):
+        if column == self.table_sort_column:
+            if self.table_sort_order == QtCore.Qt.DescendingOrder:
+                self.table_sort_order = QtCore.Qt.AscendingOrder
+            else:
+                self.table_sort_order = QtCore.Qt.DescendingOrder
+
+        else:
+            self.table_sort_column = column
+            self.table_sort_order = QtCore.Qt.AscendingOrder
+
+        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
+
+    def tableDoubleClicked( self, index ):
+        self.tableActionEdit()
 
     def tableActionOpen( self ):
         folder_path = self.__treeSelectedAbsoluteFolder()
@@ -417,3 +435,26 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         git_project.saveChanges()
 
         self.table_model.refreshTable()
+
+class WbTableView(QtWidgets.QTableView):
+    def __init__( self, all_keys, key_handler ):
+        self.all_keys = all_keys
+        self.key_handler = key_handler
+        super().__init__()
+
+    def keyPressEvent( self, event ):
+        text = event.text()
+        if text != '' and text in self.all_keys:
+            self.key_handler( text )
+
+        else:
+            super().keyPressEvent( event )
+
+    def keyReleaseEvent( self, event ):
+        text = event.text()
+
+        if text != '' and text in self.all_keys:
+            return
+
+        else:
+            super().keyReleaseEvent( event )
