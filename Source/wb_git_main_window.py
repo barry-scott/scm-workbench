@@ -102,7 +102,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.filter_text.textChanged.connect( self.table_sortfilter.setFilterText )
 
         # layout widgets in window
-        self.v_split = QtWidgets.QSplitter( self )
+        self.v_split = QtWidgets.QSplitter()
         self.v_split.setOrientation( QtCore.Qt.Vertical )
 
         self.setCentralWidget( self.v_split )
@@ -110,7 +110,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.h_split = QtWidgets.QSplitter( self.v_split )
         self.h_split.setOrientation( QtCore.Qt.Horizontal )
 
-        self.v_split_table = QtWidgets.QSplitter( self )
+        self.v_split_table = QtWidgets.QSplitter()
         self.v_split_table.setOrientation( QtCore.Qt.Vertical )
 
         self.h_filter_widget = QtWidgets.QWidget( self.v_split )
