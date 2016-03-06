@@ -219,23 +219,31 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             T_('Open') )
         self.act_open.triggered.connect( self.tableActionOpen )
 
-        self.tool_bar_git = self.addToolBar( T_('git') )
-        self.tool_bar_git.setIconSize( icon_size )
+        self.tool_bar_git_state = self.addToolBar( T_('git state') )
+        self.tool_bar_git_state.setIconSize( icon_size )
 
-        self.act_git_stage = self.tool_bar_git.addAction(
+        self.act_git_stage = self.tool_bar_git_state.addAction(
             wb_git_images.getQIcon( 'toolbar_images/include.png' ),
             T_('Stage') )
         self.act_git_stage.triggered.connect( self.tableActionGitStage )
 
-        self.act_git_unstage = self.tool_bar_git.addAction(
+        self.act_git_unstage = self.tool_bar_git_state.addAction(
             wb_git_images.getQIcon( 'toolbar_images/exclude.png' ),
             T_('Unstage') )
         self.act_git_unstage.triggered.connect( self.tableActionGitUnstage )
 
-        self.act_git_revert = self.tool_bar_git.addAction(
+        self.act_git_revert = self.tool_bar_git_state.addAction(
             wb_git_images.getQIcon( 'toolbar_images/revert.png' ),
             T_('Revert') )
         self.act_git_revert.triggered.connect( self.tableActionGitRevert )
+
+        self.tool_bar_git_info = self.addToolBar( T_('git info') )
+        self.tool_bar_git_info.setIconSize( icon_size )
+
+        self.act_git_diff = self.tool_bar_git_info.addAction(
+            wb_git_images.getQIcon( 'toolbar_images/diff.png' ),
+            T_('Diff') )
+        self.act_git_diff.triggered.connect( self.tableActionGitDiff )
 
     def __setupStatusBar( self ):
         s = self.statusBar()
@@ -406,13 +414,16 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         wb_shell_commands.EditFile( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
 
     def tableActionGitStage( self ):
-        self.__tableActionCommonHelper( self.__areYouSureAlways, self.__actionGitStage )
+        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitStage )
 
     def tableActionGitUnstage( self ):
-        self.__tableActionCommonHelper( self.__areYouSureAlways, self.__actionGitUnStage )
+        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitUnStage )
 
     def tableActionGitRevert( self ):
-        self.__tableActionCommonHelper( self.__areYouSureRevert, self.__actionGitRevert )
+        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionGitRevert )
+
+    def tableActionGitDiff( self ):
+        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiff )
 
     def __actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )
@@ -422,6 +433,15 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def __actionGitRevert( self, git_project, filename ):
         git_project.cmdRevert( 'HEAD', filename )
+
+    def __actionGitDiff( self, git_project, filename ):
+        diff_objects = git_project.getDiffObjects( filename )
+
+        if diff_objects.canDiffWorking():
+            print( 'QQQ: diff --working %s' % (filename,) )
+
+        elif diff_objects.canDiffStaged():
+            print( 'QQQ: diff --cached %s' % (filename,) )
 
     def __areYouSureAlways( self, all_filenames ):
         return True
@@ -438,7 +458,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
         return rc == QtWidgets.QMessageBox.Yes
 
-    def __tableActionCommonHelper( self, are_you_sure_function, execute_function ):
+    def __tableActionViewRepo( self, are_you_sure_function, execute_function ):
         folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
@@ -454,14 +474,19 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         all_filenames = [relative_folder / name for name in all_names]
 
         if not are_you_sure_function( all_filenames ):
-            return
+            return False
 
         for filename in all_filenames:
             execute_function( git_project, filename )
 
-        git_project.saveChanges()
+        return True
 
-        self.table_model.refreshTable()
+    def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
+        if self.__tableActionViewRepo( are_you_sure_function, execute_function ):
+            git_project = self.__treeSelectedGitProject()
+            git_project.saveChanges()
+
+            self.table_model.refreshTable()
 
 class WbTableView(QtWidgets.QTableView):
     def __init__( self, all_keys, key_handler ):

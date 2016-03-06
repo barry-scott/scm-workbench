@@ -24,7 +24,6 @@ class GitProject:
 
         self.__dirty = False
 
-
     def __repr__( self ):
         return '<GitProject: %s>' % (self.prefs_project.name,)
 
@@ -69,6 +68,43 @@ class GitProject:
 
         node.all_files[ path_parts[-1] ] = path
 
+    #------------------------------------------------------------
+    #
+    # functions to retrive interesting info from the repo
+    #
+    #------------------------------------------------------------
+    def getStatus( self, filename ):
+        return self.status[ str(filename) ]
+
+    def getDiffObjects( self, filename ):
+        state = self.status[ str(filename) ]
+
+        # The id representing the filename contents at HEAD
+        if (state&pygit2.GIT_STATUS_INDEX_NEW) != 0:
+            head_id = None
+
+        else:
+            commit = self.repo.revparse_single( 'HEAD' )
+            tree = commit.peel( pygit2.GIT_OBJ_TREE )
+            tree_entry = self.__findFileInTree( tree, filename )
+            head_id = tree_entry.id
+
+        # The id representing the filename contents that is staging
+        if( (state&pygit2.GIT_STATUS_INDEX_NEW) != 0
+        or  (state&pygit2.GIT_STATUS_INDEX_MODIFIED) != 0 ):
+            index_entry = self.repo.index[ str( filename ) ]
+            staged_id = index_entry.id
+
+        elif (state&pygit2.GIT_STATUS_INDEX_DELETED) != 0:
+            staged_id = None
+
+        else:
+            staged_id = None
+
+        # the path to the working copy
+        working_path = self.path() / filename
+
+        return WbGitDiffObjects( filename, state, head_id, staged_id, working_path )
 
     #------------------------------------------------------------
     #
@@ -164,3 +200,17 @@ class GitProjectTreeNode:
         state = self.project.status.get( self.all_files[ name ], 0 )
 
         return (mode, state)
+
+class WbGitDiffObjects:
+    def __init__( self, filename, status, head_id, staged_id, working_path ):
+        self.filename = filename
+        self.status = status
+        self.head_id = head_id
+        self.staged_id = staged_id
+        self.working_path = working_path
+
+    def canDiffStaged( self ):
+        return (self.status&(pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_DELETED)) != 0
+
+    def canDiffWorking( self ):
+        return (self.status&(pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED)) != 0
