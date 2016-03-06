@@ -35,6 +35,7 @@ import wb_git_tree_model
 import wb_git_table_model
 
 import wb_shell_commands
+import wb_logging
 
 class WbGitMainWindow(QtWidgets.QMainWindow):
     def __init__( self, app ):
@@ -72,8 +73,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         # window major widgets
-        self.log_view = QtWidgets.QTextEdit( 'Log view: Hello World')
-        self.log_view.setReadOnly( True )
+        self.__log = wb_logging.WbLog( self.app )
 
         self.tree_view = QtWidgets.QTreeView()
         self.tree_view.setModel( self.tree_model )
@@ -134,7 +134,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.h_split.addWidget( self.v_table_widget )
 
         self.v_split.addWidget( self.h_split )
-        self.v_split.addWidget( self.log_view )
+        self.v_split.addWidget( self.__log.logWidget() )
 
         selection_model = self.tree_view.selectionModel()
         selection_model.selectionChanged.connect( self.treeSelectionChanged )
@@ -174,6 +174,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         tree_width = int( width * tree_size_ratio )
         table_width = width - tree_width
         self.h_split.setSizes( [tree_width, table_width] )
+
+        self.log.debug( 'Debug messages are enabled' )
 
     def __setupMenuBar( self ):
         mb = self.menuBar()
