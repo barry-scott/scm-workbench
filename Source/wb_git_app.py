@@ -28,7 +28,7 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_git_main_window
-import wb_git_platform_specific
+import wb_platform_specific
 import wb_shell_commands
 import wb_git_preferences
 import wb_git_exceptions
@@ -59,7 +59,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         self.all_temp_files = []
         self.all_processes = []
 
-        wb_git_platform_specific.setupPlatform( self.app_name_parts )
+        wb_platform_specific.setupPlatform( self.app_name_parts )
         #wb_shell_commands.setupCommands()
 
         # on the Mac the app's cwd is the resource folder
@@ -120,7 +120,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
 
         self.main_thread = threading.currentThread()
 
-        locale_path = wb_git_platform_specific.getLocalePath()
+        locale_path = wb_platform_specific.getLocalePath()
         self.translation = gettext.translation(
                 'git-workbench',
                 str(locale_path),
@@ -148,7 +148,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
 
         self.prefs = wb_git_preferences.Preferences(
                 self,
-                wb_git_platform_specific.getPreferencesFilename() )
+                wb_platform_specific.getPreferencesFilename() )
 
         self.main_window = wb_git_main_window.WbGitMainWindow( self )
 
@@ -183,7 +183,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
             self.log.addHandler( handler )
 
         else:
-            log_filename = wb_git_platform_specific.getLogFilename()
+            log_filename = wb_platform_specific.getLogFilename()
             # keep 10 logs of 100K each
             handler = RotatingFileHandler( log_filename, 'a', 100*1024, 10 )
             formatter = logging.Formatter( '%(asctime)s %(levelname)s %(message)s' )

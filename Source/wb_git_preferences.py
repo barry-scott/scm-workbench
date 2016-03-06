@@ -20,8 +20,6 @@ import xml.parsers.expat
 import xml.dom.minidom
 import xml.sax.saxutils
 
-import wb_git_platform_specific
-
 new_save = True
 
 class ParseError(Exception):

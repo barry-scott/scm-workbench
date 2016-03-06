@@ -18,7 +18,6 @@ import wb_shell_commands
 import wb_dialogs
 import wb_tree_panel
 import wb_toolbars
-import wb_platform_specific
 
 class PreferencesDialog( wx.Dialog ):
     def __init__( self, parent, app ):
