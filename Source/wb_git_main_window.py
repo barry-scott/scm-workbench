@@ -26,7 +26,7 @@ import pygit2
 
 #import be_ids
 import wb_git_version
-#import wb_git_images
+import wb_git_images
 #import wb_git_preferences_dialog
 
 import wb_git_config
@@ -51,7 +51,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         super().__init__()
         self.setWindowTitle( title )
-        #self.setWindowIcon( wb_git_images.getIcon( 'wb_git.png' ) )
+        self.setWindowIcon( wb_git_images.getQIcon( 'wb.png' ) )
 
         self.__setupMenuBar()
         self.__setupToolBar()
@@ -191,30 +191,50 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def __setupToolBar( self ):
         style = self.style()
 
+        icon_size = QtCore.QSize( 32, 32 )
+
         self.tool_bar_tree = self.addToolBar( T_('tree') )
-        self.act_shell = self.tool_bar_tree.addAction( T_('Shell') )
+        self.tool_bar_tree.setIconSize( icon_size )
+
+        self.act_shell = self.tool_bar_tree.addAction(
+            wb_git_images.getQIcon( 'toolbar_images/terminal.png' ),
+            T_('Command Shell') )
         self.act_shell.triggered.connect( self.treeActionShell )
 
         self.act_file_browser = self.tool_bar_tree.addAction( 
-            style.standardIcon( QtWidgets.QStyle.SP_DirOpenIcon ),
+            wb_git_images.getQIcon( 'toolbar_images/file_browser.png' ),
             T_('File Browser') )
         self.act_file_browser.triggered.connect( self.treeActionFileBrowse )
 
         self.tool_bar_table = self.addToolBar( T_('table') )
-        self.act_edit = self.tool_bar_table.addAction( T_('Edit') )
+        self.tool_bar_table.setIconSize( icon_size )
+
+        self.act_edit = self.tool_bar_table.addAction(
+            wb_git_images.getQIcon( 'toolbar_images/edit.png' ),
+            T_('Edit') )
         self.act_edit.triggered.connect( self.tableActionEdit )
 
-        self.act_open = self.tool_bar_table.addAction( T_('Open') )
+        self.act_open = self.tool_bar_table.addAction(
+            wb_git_images.getQIcon( 'toolbar_images/open.png' ),
+            T_('Open') )
         self.act_open.triggered.connect( self.tableActionOpen )
 
         self.tool_bar_git = self.addToolBar( T_('git') )
-        self.act_git_stage = self.tool_bar_git.addAction( T_('Stage') )
+        self.tool_bar_git.setIconSize( icon_size )
+
+        self.act_git_stage = self.tool_bar_git.addAction(
+            wb_git_images.getQIcon( 'toolbar_images/include.png' ),
+            T_('Stage') )
         self.act_git_stage.triggered.connect( self.tableActionGitStage )
 
-        self.act_git_unstage = self.tool_bar_git.addAction( T_('Unstage') )
+        self.act_git_unstage = self.tool_bar_git.addAction(
+            wb_git_images.getQIcon( 'toolbar_images/exclude.png' ),
+            T_('Unstage') )
         self.act_git_unstage.triggered.connect( self.tableActionGitUnstage )
 
-        self.act_git_revert = self.tool_bar_git.addAction( T_('Revert') )
+        self.act_git_revert = self.tool_bar_git.addAction(
+            wb_git_images.getQIcon( 'toolbar_images/revert.png' ),
+            T_('Revert') )
         self.act_git_revert.triggered.connect( self.tableActionGitRevert )
 
     def __setupStatusBar( self ):
