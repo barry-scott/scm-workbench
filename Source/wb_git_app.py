@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2015 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -43,6 +43,9 @@ for name in dir(QtCore.QEvent):
 class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
     def __init__( self, args ):
         self.main_window = None
+        # used to set the names of files and windows for this app
+        self.app_name_parts = ('Git', 'Workbench')
+
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
         wb_git_debug.WbGitDebugMixin.__init__( self )
@@ -56,7 +59,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         self.all_temp_files = []
         self.all_processes = []
 
-        wb_git_platform_specific.setupPlatform()
+        wb_git_platform_specific.setupPlatform( self.app_name_parts )
         #wb_shell_commands.setupCommands()
 
         # on the Mac the app's cwd is the resource folder
@@ -117,9 +120,9 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
 
         self.main_thread = threading.currentThread()
 
-        locale_path = wb_git_platform_specific.getLocalePath( self )
+        locale_path = wb_git_platform_specific.getLocalePath()
         self.translation = gettext.translation(
-                'bemacs',
+                'git-workbench',
                 str(locale_path),
                 # language defaults
                 fallback=True )
@@ -166,7 +169,7 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
         return self.main_thread is threading.currentThread()
 
     def setupLogging( self ):
-        self.log = logging.getLogger( 'bemacs' )
+        self.log = logging.getLogger( 'git-workbench' )
 
         if self.__debug:
             self.log.setLevel( logging.DEBUG )
@@ -186,8 +189,6 @@ class WbGit_App(QtWidgets.QApplication, wb_git_debug.WbGitDebugMixin):
             formatter = logging.Formatter( '%(asctime)s %(levelname)s %(message)s' )
             handler.setFormatter( formatter )
             self.log.addHandler( handler )
-
-        self.log.info( T_("Barry's Emacs starting") )
 
         self.log.debug( 'debug enabled' )
 
@@ -261,13 +262,13 @@ class RotatingFileHandler(logging.FileHandler):
 
         If maxBytes is zero, rollover never occurs.
         """
-        logging.FileHandler.__init__(self, str(filename), mode)
+        logging.FileHandler.__init__( self, str(filename), mode )
         self.maxBytes = maxBytes
         self.backupCount = backupCount
         if maxBytes > 0:
             self.mode = "a"
 
-    def doRollover(self):
+    def doRollover( self ):
         """
         Do a rollover, as described in __init__().
         """
@@ -275,20 +276,21 @@ class RotatingFileHandler(logging.FileHandler):
         self.stream.close()
         if self.backupCount > 0:
             prefix, suffix = os.path.splitext( self.baseFilename )
-            for i in range(self.backupCount - 1, 0, -1):
+            for i in range( self.backupCount - 1, 0, -1 ):
                 sfn = "%s.%d%s" % (prefix, i, suffix)
                 dfn = "%s.%d%s" % (prefix, i+1, suffix)
-                if os.path.exists(sfn):
+                if os.path.exists( sfn ):
                     #print( "%s -> %s" % (sfn, dfn) )
-                    if os.path.exists(dfn):
-                        os.remove(dfn)
-                    os.rename(sfn, dfn)
+                    if os.path.exists( dfn ):
+                        os.remove( dfn )
+                    os.rename( sfn, dfn )
             dfn = self.baseFilename + ".1"
-            if os.path.exists(dfn):
-                os.remove(dfn)
-            os.rename(self.baseFilename, dfn)
+            if os.path.exists( dfn ):
+                os.remove( dfn )
+            os.rename( self.baseFilename, dfn )
             #print( "%s -> %s" % (self.baseFilename, dfn) )
-        self.stream = open(self.baseFilename, "w")
+
+        self.stream = open( self.baseFilename, 'w' )
 
     def emit(self, record):
         """
@@ -298,9 +300,9 @@ class RotatingFileHandler(logging.FileHandler):
         in setRollover().
         """
         if self.maxBytes > 0:                   # are we rolling over?
-            msg = "%s\n" % self.format(record)
+            msg = "%s\n" % self.format( record )
             try:
-                self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
+                self.stream.seek( 0, 2 )  #due to non-posix-compliant Windows feature
                 if self.stream.tell() + len(msg) >= self.maxBytes:
                     self.doRollover()
 
@@ -309,7 +311,7 @@ class RotatingFileHandler(logging.FileHandler):
                 # when a second copy of workbench is run
                 self.doRollover()
 
-        logging.FileHandler.emit(self, record)
+        logging.FileHandler.emit( self, record )
 
 class StdoutLogHandler(logging.Handler):
     def __init__( self ):

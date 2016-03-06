@@ -15,6 +15,8 @@
 
 import sys
 
+__all_name_parts = None
+
 if sys.platform == 'win32':
     from wb_git_platform_win32_specific import *
 
@@ -25,10 +27,14 @@ else:
     from wb_git_platform_unix_specific import *
 
 def getPreferencesFilename():
-    return getApplicationDir() / 'GitWorkBench.xml'
+    name = ''.join( __all_name_parts )
+    filename = '%s.xml'   % (name,)
+    return getApplicationDir() / filename
 
 def getLogFilename():
-    return getApplicationDir() / 'GitWorkBench.log'
+    name = ''.join( __all_name_parts )
+    filename = '%s.log'   % (name,)
+    return getApplicationDir() / filename
 
 def getLastCheckinMessageFilename():
     return getApplicationDir() / 'log_message.txt'
@@ -36,7 +42,11 @@ def getLastCheckinMessageFilename():
 def getLastLockMessageFilename():
     return getApplicationDir() / 'lock_message.txt'
 
-def setupPlatform():
+def setupPlatform( all_name_parts ):
+    setupPlatformSpecific( all_name_parts )
+    global __all_name_parts
+    __all_name_parts = all_name_parts
+
     app_dir = getApplicationDir()
     if not app_dir.exists():
         app_dir.mkdir( parents=True )

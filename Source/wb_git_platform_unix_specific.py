@@ -16,11 +16,19 @@ import os
 import types
 import pathlib
 
-def getApplicationDir():
-    return pathlib.Path( os.environ['HOME'] ) / '.GitWorkBench'
+__all_name_parts = None
 
-def getLocalePath( app ):
-    return pathlib.Path( app.app_dir ) / 'locale'
+def setupPlatformSpecific( all_name_parts ):
+    global __all_name_parts
+    __all_name_parts = all_name_parts
+
+def getApplicationDir():
+    name = ''.join( __all_name_parts )
+    folder = '.%s' % (name,)
+    return pathlib.Path( os.environ['HOME'] ) / folder
+
+def getLocalePath():
+    return getApplicationDir() / 'locale'
 
 def getNullDevice():
     return pathlib.Path( '/dev/null' )

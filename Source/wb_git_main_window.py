@@ -43,7 +43,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.__all_actions = {}
 
-        title = T_("GIT Workbench")
+        # need to fix up how this gets translated
+        title = T_( ' '.join( self.app.app_name_parts ) )
 
         win_prefs = self.app.prefs.getWindow()
 
@@ -71,7 +72,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         # window major widgets
-        self.log_view = QtWidgets.QLabel( 'Log view: Hello World')
+        self.log_view = QtWidgets.QTextEdit( 'Log view: Hello World')
+        self.log_view.setReadOnly( True )
 
         self.tree_view = QtWidgets.QTreeView()
         self.tree_view.setModel( self.tree_model )
@@ -252,8 +254,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def appActionAbout( self ):
         from PyQt5 import Qt
         all_about_info = []
-        all_about_info.append( T_("GIT Workbench %d.%d.%d-%d") %
-                                (wb_git_version.major, wb_git_version.minor
+        all_about_info.append( T_("%s %d.%d.%d-%d") %
+                                (' '.join( self.app.app_name_parts )
+                                ,wb_git_version.major, wb_git_version.minor
                                 ,wb_git_version.patch, wb_git_version.build) )
         all_about_info.append( 'Python %d.%d.%d %s %d' %
                                 (sys.version_info.major
@@ -264,7 +267,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         all_about_info.append( 'PyQt %s, Qt %s' % (Qt.PYQT_VERSION_STR, QtCore.QT_VERSION_STR) )
         all_about_info.append( T_('Copyright Barry Scott (c) 2016-%s. All rights reserved') % (wb_git_version.year,) )
 
-        QtWidgets.QMessageBox.information( self, T_("About GIT Workbench"), '\n'.join( all_about_info ) )
+        QtWidgets.QMessageBox.information( self,
+            T_('About %s') % (' '.join( self.app.app_name_parts ),),
+            '\n'.join( all_about_info ) )
 
     def appActionClose( self ):
         # QQQ: do shutdown actions before closing

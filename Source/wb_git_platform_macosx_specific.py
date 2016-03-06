@@ -1,7 +1,7 @@
 '''
 
  ====================================================================
- Copyright (c) 2004-2010 Barry A Scott.  All rights reserved.
+ Copyright (c) 2004-2016 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -16,11 +16,19 @@ import os
 import types
 import pathlib
 
-def getApplicationDir():
-    return pathlib.Path( os.path.join( os.environ['HOME'] ) / 'Library/Preferences/org.tigris.git.Workbench'
+__all_name_parts = None
 
-def getLocalePath( app ):
-    return pathlib.Path( os.environ.get( 'PYTHONHOME', app.app_dir ) ) / 'locale'
+def setupPlatformSpecific( all_name_parts ):
+    global __all_name_parts = all_name_parts
+
+def getApplicationDir():
+    name = '-'.join( [part.lower() for part in __all_name_parts] )
+    folder = 'Library/Preferences/org.barrys-emacs.%s' % (name,)
+
+    return pathlib.Path( os.path.join( os.environ['HOME'] ) / folder
+
+def getLocalePath():
+    return pathlib.Path( os.environ.get( 'PYTHONHOME', getApplicationDir() ) ) / 'locale'
 
 def getNullDevice():
     return pathlib.Path( '/dev/null' )
