@@ -18,13 +18,13 @@ import sys
 __all_name_parts = None
 
 if sys.platform == 'win32':
-    from wb_git_platform_win32_specific import *
+    from wb_platform_win32_specific import *
 
 elif sys.platform == 'darwin':
-    from wb_git_platform_macosx_specific import *
+    from wb_platform_macosx_specific import *
 
 else:
-    from wb_git_platform_unix_specific import *
+    from wb_platform_unix_specific import *
 
 def getPreferencesFilename():
     name = ''.join( __all_name_parts )
