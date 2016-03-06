@@ -24,6 +24,10 @@ class GitProject:
 
         self.__dirty = False
 
+
+    def __repr__( self ):
+        return '<GitProject: %s>' % (self.prefs_project.name,)
+
     def path( self ):
         return self.prefs_project.path
 
@@ -34,7 +38,11 @@ class GitProject:
         self.updateState()
 
     def updateState( self ):
-        assert not self.__dirty, 'repo is dirty, forgot to call sabe Changes?'
+        assert not self.__dirty, 'repo is dirty, forgot to call saveChanges?'
+
+        # rebuild the tree
+        self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
+
         self.repo.index.read( False )
 
         for entry in self.repo.index:

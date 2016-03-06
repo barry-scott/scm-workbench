@@ -16,11 +16,12 @@ import time
 # wb_git_app.py
 #
 _debug_app = False
+_debug_tree_model = False
 _debug_callback = False
 
 def setDebug( str_options ):
     for option in [s.strip().lower() for s in str_options.split(',')]:
-        name = '_debug_%s' % (option,)
+        name = '_debug_%s' % (option.replace( '-', '_' ),)
         if name in globals():
             globals()[ name ] = True
         else:
@@ -52,3 +53,8 @@ class WbGitDebugMixin:
     def _debugCallback( self, msg ):
         if _debug_callback:
             self.log.debug( 'CALLBACK %s' % (msg,) )
+
+    # wb_git_tree_model
+    def _debugTreeModel( self, msg ):
+        if _debug_tree_model:
+            self.log.debug( 'TREE-MODEL %s' % (msg,) )
