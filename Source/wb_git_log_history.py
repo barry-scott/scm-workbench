@@ -20,7 +20,7 @@ from PyQt5 import QtCore
 
 
 class WbGitHistoryOptions(QtWidgets.QDialog):
-    def __init__( self, parent ):
+    def __init__( self, parent, prefs ):
         super().__init__( parent )
 
         self.radio_show_all = QtWidgets.QRadioButton( T_('Show all commits') )
@@ -68,16 +68,16 @@ class WbGitHistoryOptions(QtWidgets.QDialog):
         self.radio_show_since.toggled.connect( self.date_since.setEnabled )
 
         # set state
-        self.radio_show_all.setChecked( True )
-        self.radio_show_limit.setChecked( False )
-        self.spin_show_limit.setEnabled( False )
-        self.radio_show_since.setChecked( False )
-        self.date_since.setEnabled( False )
+        self.radio_show_all.setChecked( prefs.default_mode == 'show_all' )
+        self.radio_show_limit.setChecked( prefs.default_mode == 'show_limit' )
+        self.spin_show_limit.setEnabled( prefs.default_mode == 'show_limit' )
+        self.radio_show_since.setChecked( prefs.default_mode == 'show_since' )
+        self.date_since.setEnabled( prefs.default_mode == 'show_since' )
 
-        self.spin_show_limit.setValue( 20 )
+        self.spin_show_limit.setValue( prefs.default_limit )
 
         since = QtCore.QDate.currentDate()
-        since = since.addDays( -7 )
+        since = since.addDays( -prefs.default_since_days_interval )
 
         self.date_since.setSelectedDate( since )
 
@@ -103,9 +103,17 @@ if __name__ == '__main__':
     def T_(s):
         return s
 
+    class FakePrefs:
+        def __init__( self ):
+            self.default_mode = 'show_all'
+            self.default_limit = 20
+            self.default_since_days_interval = 7
+            self.default_include_tags = False
+
+
     app = QtWidgets.QApplication( ['foo'] )
 
-    options = WbGitHistoryOptions( None )
+    options = WbGitHistoryOptions( None, FakePrefs() )
     if options.exec_():
         print( 'mode', options.showMode() )
         if options.showMode() == 'show_limit':
