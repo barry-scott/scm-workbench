@@ -539,7 +539,7 @@ class WbTableView(QtWidgets.QTableView):
         if text != '' and text in self.all_keys:
             self.key_handler( text )
 
-        else:                                                                                                       
+        else:
             super().keyPressEvent( event )
 
     def keyReleaseEvent( self, event ):
