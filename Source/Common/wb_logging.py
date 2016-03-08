@@ -13,10 +13,9 @@
     based on code from PySVN Workbench
 
 '''
-
 import sys
+import os
 import logging
-import html
 
 import wb_platform_specific
 
