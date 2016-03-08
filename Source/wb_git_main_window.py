@@ -41,8 +41,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def __init__( self, app ):
         self.app = app
         self.log = self.app.log
-
-        self.__all_actions = {}
+        self._debug = app._debugMainWindow
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
@@ -52,6 +51,11 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.setWindowTitle( title )
         self.setWindowIcon( wb_git_images.getQIcon( 'wb.png' ) )
+
+        # list of all the WbActionEnableState for the menus and toolbars
+        self.__enable_state_manager = WbActionEnableStateManager( app )
+
+        self.icon_size = QtCore.QSize( 32, 32 )
 
         self.__setupMenuBar()
         self.__setupToolBar()
@@ -72,6 +76,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_sort_column = self.table_model.col_cache
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
+        self.table_model.dataChanged.connect( self.__qqqTableModelDataChanged )
+        self.table_sortfilter.dataChanged.connect( self.__qqqTableSortFilterDataChanged )
+
+
         # window major widgets
         self.__log = wb_logging.WbLog( self.app )
 
@@ -86,7 +94,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.all_table_keys.extend( self.table_keys_edit )
         self.all_table_keys.extend( self.table_keys_open )
 
-        self.table_view = WbTableView( self.all_table_keys, self.tableKeyHandler )
+        self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
         self.table_view.setModel( self.table_sortfilter )
         # set sort params
         self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
@@ -100,7 +108,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.filter_text.setClearButtonEnabled( True )
         self.filter_text.setMaxLength( 256 )
         self.filter_text.setPlaceholderText( T_('Filter list by name') )
-        #self.filter_text.setTextMargins( 3, 3, 3, 3 )
         self.filter_text.textChanged.connect( self.table_sortfilter.setFilterText )
 
         # layout widgets in window
@@ -167,6 +174,14 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.timer.setSingleShot( True )
         self.timer.start( 0 )
 
+    def __qqqTableModelDataChanged( self, top_left, bottom_right, roles=None ):
+        print( '__qqqTableModelDataChanged( %d-%d, %d-%d, %r )' %
+                (top_left.row(), top_left.column(), bottom_right.row(), bottom_right.column(), roles) )
+
+    def __qqqTableSortFilterDataChanged( self, top_left, bottom_right, roles=None ):
+        print( '__qqqTableSortFilterDataChanged( %d-%d, %d-%d, %r )' %
+                (top_left.row(), top_left.column(), bottom_right.row(), bottom_right.column(), roles) )
+
     def completeStatupInitialisation( self ):
         # set splitter position
         tree_size_ratio = 0.3
@@ -175,75 +190,69 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         table_width = width - tree_width
         self.h_split.setSizes( [tree_width, table_width] )
 
+        self.updateActionEnabledStates()
+
         self.log.debug( 'Debug messages are enabled' )
+
+    def updateActionEnabledStates( self ):
+        self.__enable_state_manager.update()
 
     def __setupMenuBar( self ):
         mb = self.menuBar()
 
         menu_file = mb.addMenu( T_('&File') )
-        act_exit = menu_file.addAction( T_('E&xit') )
-        act_exit.triggered.connect( self.appActionClose )
+        self.__addMenu( menu_file, T_('E&xit'), self.appActionClose, self.enablerEnabled )
+
+        menu_actions = mb.addMenu( T_('&Actions') )
+        self.__addMenu( menu_actions, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists )
+        self.__addMenu( menu_actions, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists )
+
+        menu_information = mb.addMenu( T_('&Information') )
+        self.__addMenu( menu_information, T_('Diff to HEAD'), self.tableActionGitDiff, self.enablerEnabled )
 
         menu_help = mb.addMenu( T_('&Help' ) )
-        act = menu_help.addAction( T_("&About...") )
-        act.triggered.connect( self.appActionAbout )
+        self.__addMenu( menu_help, T_("&About..."), self.appActionAbout, self.enablerEnabled )
+
+    def __addMenu( self, menu, name, handler, enabler ):
+        action = menu.addAction( name )
+        action.triggered.connect( handler )
+
+        self.__enable_state_manager.add( action, enabler )
 
     def __setupToolBar( self ):
         style = self.style()
 
-        icon_size = QtCore.QSize( 32, 32 )
+        self.tool_bar_tree = self.__addToolBar( T_('tree') )
+        self.__addTool( self.tool_bar_tree, T_('Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+        self.__addTool( self.tool_bar_tree, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
-        self.tool_bar_tree = self.addToolBar( T_('tree') )
-        self.tool_bar_tree.setIconSize( icon_size )
+        self.tool_bar_table = self.__addToolBar( T_('table') )
+        self.__addTool( self.tool_bar_table, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self.__addTool( self.tool_bar_table, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        self.act_shell = self.tool_bar_tree.addAction(
-            wb_git_images.getQIcon( 'toolbar_images/terminal.png' ),
-            T_('Command Shell') )
-        self.act_shell.triggered.connect( self.treeActionShell )
+        self.tool_bar_git_state = self.__addToolBar( T_('git state') )
+        self.__addTool( self.tool_bar_git_state, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
+        self.__addTool( self.tool_bar_git_state, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
+        self.__addTool( self.tool_bar_git_state, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
 
-        self.act_file_browser = self.tool_bar_tree.addAction( 
-            wb_git_images.getQIcon( 'toolbar_images/file_browser.png' ),
-            T_('File Browser') )
-        self.act_file_browser.triggered.connect( self.treeActionFileBrowse )
+        self.tool_bar_git_info = self.__addToolBar( T_('git info') )
+        self.__addTool( self.tool_bar_git_info, T_('Diff'), self.tableActionGitDiff, self.enablerEnabled, 'toolbar_images/diff.png' )
 
-        self.tool_bar_table = self.addToolBar( T_('table') )
-        self.tool_bar_table.setIconSize( icon_size )
+    def __addToolBar( self, name ):
+        bar = self.addToolBar( name )
+        bar.setIconSize( self.icon_size )
+        return bar
 
-        self.act_edit = self.tool_bar_table.addAction(
-            wb_git_images.getQIcon( 'toolbar_images/edit.png' ),
-            T_('Edit') )
-        self.act_edit.triggered.connect( self.tableActionEdit )
+    def __addTool( self, bar, name, handler, enabler, icon_name=None ):
+        if icon_name is None:
+            action = bar.addAction( name )
 
-        self.act_open = self.tool_bar_table.addAction(
-            wb_git_images.getQIcon( 'toolbar_images/open.png' ),
-            T_('Open') )
-        self.act_open.triggered.connect( self.tableActionOpen )
+        else:
+            icon = wb_git_images.getQIcon( icon_name )
+            action = bar.addAction( icon, name )
 
-        self.tool_bar_git_state = self.addToolBar( T_('git state') )
-        self.tool_bar_git_state.setIconSize( icon_size )
-
-        self.act_git_stage = self.tool_bar_git_state.addAction(
-            wb_git_images.getQIcon( 'toolbar_images/include.png' ),
-            T_('Stage') )
-        self.act_git_stage.triggered.connect( self.tableActionGitStage )
-
-        self.act_git_unstage = self.tool_bar_git_state.addAction(
-            wb_git_images.getQIcon( 'toolbar_images/exclude.png' ),
-            T_('Unstage') )
-        self.act_git_unstage.triggered.connect( self.tableActionGitUnstage )
-
-        self.act_git_revert = self.tool_bar_git_state.addAction(
-            wb_git_images.getQIcon( 'toolbar_images/revert.png' ),
-            T_('Revert') )
-        self.act_git_revert.triggered.connect( self.tableActionGitRevert )
-
-        self.tool_bar_git_info = self.addToolBar( T_('git info') )
-        self.tool_bar_git_info.setIconSize( icon_size )
-
-        self.act_git_diff = self.tool_bar_git_info.addAction(
-            wb_git_images.getQIcon( 'toolbar_images/diff.png' ),
-            T_('Diff') )
-        self.act_git_diff.triggered.connect( self.tableActionGitDiff )
+        action.triggered.connect( handler )
+        self.__enable_state_manager.add( action, enabler )
 
     def __setupStatusBar( self ):
         s = self.statusBar()
@@ -253,12 +262,36 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     #------------------------------------------------------------
     #
+    #   Enabler handlers
+    #
+    #------------------------------------------------------------
+    def enablerEnabled( self, cache ):
+        return True
+
+    def enablerFolderExists( self, cache ):
+        if '__treeSelectedAbsoluteFolder' not in cache:
+            cache[ '__treeSelectedAbsoluteFolder' ] = self.__treeSelectedAbsoluteFolder()
+
+        return cache[ '__treeSelectedAbsoluteFolder' ] is not None
+
+    def enablerFilesExists( self, cache ):
+        if '__tableSelectedExistingFiles' not in cache:
+            cache[ '__tableSelectedExistingFiles' ] = self.__tableSelectedExistingFiles()
+
+        return len( cache[ '__tableSelectedExistingFiles' ] ) > 0
+
+    #------------------------------------------------------------
+    #
     #   Event handlers
     #
     #------------------------------------------------------------
     def appActiveHandler( self ):
+        self._debug( 'appActiveHandler()' )
+
         # update the selected projects data
         self.tree_model.appActiveHandler()
+
+        self.updateActionEnabledStates()
 
     def moveEvent( self, event ):
         self.app.prefs.getWindow().setFramePosition( event.pos().x(), event.pos().y() )
@@ -339,6 +372,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def treeSelectionChanged( self, selected, deselected ):
         self.filter_text.clear()
         self.tree_model.selectionChanged( selected, deselected )
+        self.updateActionEnabledStates()
 
     def treeActionShell( self ):
         folder_path = self.__treeSelectedAbsoluteFolder()
@@ -364,6 +398,15 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     for index in self.table_view.selectedIndexes()
                     if index.column() == 0]
 
+    def __tableSelectedExistingFiles( self ):
+        folder_path = self.__treeSelectedAbsoluteFolder()
+        if folder_path is None:
+            return []
+
+        all_filenames = [folder_path / name for name in self.__tableSelectedFiles()]
+        all_existing_filenames = [filename for filename in all_filenames if filename.exists()]
+        return all_existing_filenames
+
     def tableKeyHandler( self, key ):
         if key in self.table_keys_edit:
             self.tableActionEdit()
@@ -373,7 +416,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def tableContextMenu( self, pos ):
         selection_model = self.table_view.selectionModel()
-        print( [(index.row(), index.column()) for index in selection_model.selectedRows()] )
+        print( 'qqq', [(index.row(), index.column()) for index in selection_model.selectedRows()] )
 
     def tableHeaderClicked( self, column ):
         if column == self.table_sort_column:
@@ -392,26 +435,14 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.tableActionEdit()
 
     def tableActionOpen( self ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return
-
-        all_filenames = self.__tableSelectedFiles()
-        if len(all_filenames) == 0:
-            return
-
-        wb_shell_commands.ShellOpen( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
+        all_filenames = self.__tableSelectedExistingFiles()
+        if len(all_filenames) > 0:
+            wb_shell_commands.ShellOpen( self.app, self.__treeSelectedAbsoluteFolder(), all_filenames )
 
     def tableActionEdit( self ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return
-
-        all_filenames = self.__tableSelectedFiles()
-        if len(all_filenames) == 0:
-            return
-
-        wb_shell_commands.EditFile( self.app, folder_path, [str(folder_path / name) for name in all_filenames] )
+        all_filenames = self.__tableSelectedExistingFiles()
+        if len(all_filenames) > 0:
+            wb_shell_commands.EditFile( self.app, self.__treeSelectedAbsoluteFolder(), all_filenames )
 
     def tableActionGitStage( self ):
         self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitStage )
@@ -489,17 +520,26 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             self.table_model.refreshTable()
 
 class WbTableView(QtWidgets.QTableView):
-    def __init__( self, all_keys, key_handler ):
+    def __init__( self, main_window, all_keys, key_handler ):
+        self.main_window = main_window
         self.all_keys = all_keys
         self.key_handler = key_handler
+
+        self._debug = main_window._debug
+
         super().__init__()
+
+    def selectionChanged( self, selected, deselected ):
+        self._debug( 'WbTableView.selectionChanged()' )
+
+        self.main_window.updateActionEnabledStates()
 
     def keyPressEvent( self, event ):
         text = event.text()
         if text != '' and text in self.all_keys:
             self.key_handler( text )
 
-        else:
+        else:                                                                                                       
             super().keyPressEvent( event )
 
     def keyReleaseEvent( self, event ):
@@ -510,3 +550,37 @@ class WbTableView(QtWidgets.QTableView):
 
         else:
             super().keyReleaseEvent( event )
+
+class WbActionEnableStateManager:
+    def __init__( self, app ):
+        self._debug = app._debugMainWindow
+
+        self.__all_action_enablers = []
+
+        self.__update_running = False
+
+    def add( self, action, enable_handler ):
+        self.__all_action_enablers.append( WbActionEnableState( action, enable_handler ) )
+
+    def update( self ):
+        if self.__update_running:
+            return
+
+        self.__update_running = True
+        self._debug( 'WbActionEnableState.update running' )
+
+        # use a cache to avoid calling state queries more then once on any one update
+        cache = {}
+        for enabler in self.__all_action_enablers:
+            enabler.setEnableState( cache )
+
+        self._debug( 'WbActionEnableState.update done' )
+        self.__update_running = False
+
+class WbActionEnableState:
+    def __init__( self, action, enable_handler ):
+        self.action = action
+        self.enable_handler = enable_handler
+
+    def setEnableState( self, cache ):
+        self.action.setEnabled( self.enable_handler( cache ) )

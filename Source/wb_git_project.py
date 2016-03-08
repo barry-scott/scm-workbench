@@ -24,6 +24,9 @@ class GitProject:
 
         self.__dirty = False
 
+    def isNotEqual( self, other ):
+        return self.prefs_project.name != other.prefs_project.name
+
     def __repr__( self ):
         return '<GitProject: %s>' % (self.prefs_project.name,)
 
@@ -180,6 +183,13 @@ class GitProjectTreeNode:
         self.__path = path
         self.all_folders = {}
         self.all_files = {}
+
+    def __repr__( self ):
+        return '<GitProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
+
+    def isNotEqual( self, other ):
+        return (self.__path != other.__path
+            or self.project.isNotEqual( other.project ))
 
     def __lt__( self, other ):
         return self.name < other.name

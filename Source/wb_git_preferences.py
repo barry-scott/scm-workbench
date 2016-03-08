@@ -51,7 +51,7 @@ class Preferences:
         self.pref_handlers['Editor'] = EditorPreferences( self.app )
         self.pref_handlers['Shell'] = ShellPreferences( self.app )
         #self.pref_handlers['DiffTool'] = DiffToolPreferences( self.app )
-        #self.pref_handlers['LogHistory'] = LogHistoryPreferences( self.app )
+        self.pref_handlers['LogHistory'] = LogHistoryPreferences( self.app )
         #qqq#self.pref_handlers['Toolbar'] = ToolbarPreferences( self.app )
         #self.pref_handlers['Advanced'] = AdvancedPreferences( self.app )
 

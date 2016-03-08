@@ -16,8 +16,10 @@ import time
 # wb_git_app.py
 #
 _debug_app = False
-_debug_tree_model = False
 _debug_callback = False
+_debug_main_window = False
+_debug_tree_model = False
+_debug_table_model = False
 
 def setDebug( str_options ):
     for option in [s.strip().lower() for s in str_options.split(',')]:
@@ -58,3 +60,13 @@ class WbGitDebugMixin:
     def _debugTreeModel( self, msg ):
         if _debug_tree_model:
             self.log.debug( 'TREE-MODEL %s' % (msg,) )
+
+    # wb_git_table_model
+    def _debugTableModel( self, msg ):
+        if _debug_table_model:
+            self.log.debug( 'TABLE-MODEL %s' % (msg,) )
+
+    # wb_git_main_window
+    def _debugMainWindow( self, msg ):
+        if _debug_main_window:
+            self.log.debug( 'MAIN-WINDOW %s' % (msg,) )

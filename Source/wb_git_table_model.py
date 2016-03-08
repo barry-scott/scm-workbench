@@ -60,7 +60,7 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
             if left != right:
                 return left > right
 
-            # then working changes
+            # then working changesabrt-CCpp.conf
             left = left_ent.workingAsString()
             right = right_ent.workingAsString()
             if left != right:
@@ -94,6 +94,21 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
 
         assert False, 'Unknown column %r' % (source_left,)
 
+    def indexListFromNameList( self, all_names ):
+        if len(all_names) == 0:
+            return []
+
+        model = self.sourceModel()
+
+        all_indices = []
+        for row in range( self.rowCount( QtCore.QModelIndex() ) ):
+            index = self.createIndex( row, 0 )
+            entry = model.data( index, QtCore.Qt.UserRole )
+            if entry.name in all_names:
+                all_indices.append( index )
+
+        return all_indices
+
 class WbGitTableModel(QtCore.QAbstractTableModel):
     col_cache = 0
     col_working = 1
@@ -105,10 +120,12 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
     def __init__( self, app ):
         self.app = app
+
+        self._debug = self.app._debugTableModel
+
         super().__init__()
 
-        self.project = None
-        self.path = None
+        self.git_project_tree_node = None
 
         self.all_files = []
 
@@ -180,44 +197,119 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
             if entry.isWorkingNew():
                 return self.__brush_working_new
 
-        #if role == QtCore.Qt.BackgroupRole:
+        #if role == QtCore.Qt.BackgroundRole:
 
         return None
 
     def setGitProjectTreeNode( self, git_project_tree_node ):
-        self.git_project_tree_node = git_project_tree_node
-        self.refreshTable()
+        self.refreshTable( git_project_tree_node )
 
-    def refreshTable( self ):
-        self.beginResetModel()
+    def refreshTable( self, git_project_tree_node=None ):
+        self._debug( 'WbGitTableModel.refreshTable( %r ) start' % (git_project_tree_node,) )
+        self._debug( 'WbGitTableModel.refreshTable() self.git_project_tree_node %r' % (self.git_project_tree_node,) )
+
+        if git_project_tree_node is None:
+            git_project_tree_node = self.git_project_tree_node
 
         all_files = {}
-        for dirent in os_scandir( str( self.git_project_tree_node.absolutePath() ) ):
+        for dirent in os_scandir( str( git_project_tree_node.absolutePath() ) ):
             entry = WbGitTableEntry( dirent.name )
             entry.updateFromDirEnt( dirent )
             
             all_files[ entry.name ] = entry
 
-        for name in self.git_project_tree_node.all_files.keys():
+        for name in git_project_tree_node.all_files.keys():
             if name not in all_files:
                 entry = WbGitTableEntry( name )
 
             else:
                 entry = all_files[ name ]
 
-            entry.updateFromGit( self.git_project_tree_node.state( name ) )
+            entry.updateFromGit( git_project_tree_node.state( name ) )
 
             all_files[ entry.name ] = entry
 
-        self.all_files = sorted( all_files.values() )
+        if( self.git_project_tree_node is None
+        or self.git_project_tree_node.isNotEqual( git_project_tree_node ) ):
+            self._debug( 'WbGitTableModel.refreshTable() resetModel' )
+            self.beginResetModel()
+            self.all_files = sorted( all_files.values() )
+            self.endResetModel()
 
-        self.endResetModel()
+        else:
+            parent = QtCore.QModelIndex()
+            self._debug( 'WbGitTableModel.refreshTable() insert/remove' )
+
+            all_new_files = sorted( all_files.values() )
+
+            all_old_names = [entry.name for entry in self.all_files]
+            all_new_names = [entry.name for entry in all_new_files]
+
+            for offset in range( len(self.all_files) ):
+                self._debug( 'old %2d %s' % (offset, all_old_names[ offset ]) )
+
+            for offset in range( len(all_new_files) ):
+                self._debug( 'new %2d %s' % (offset, all_new_names[ offset ]) )
+
+            offset = 0
+            while offset < len(all_new_files) and offset < len(self.all_files):
+                self._debug( 'WbGitTableModel.refreshTable() while offset %d %s old %s' %
+                        (offset, all_new_files[ offset ].name, self.all_files[ offset ].name) )
+                if all_new_files[ offset ].name == self.all_files[ offset ].name:
+                    if all_new_files[ offset ].isNotEqual( self.all_files[ offset ] ):
+                        self._debug( 'WbGitTableModel.refreshTable() emit dataChanged row=%d' % (offset,) )
+                        self.dataChanged.emit(
+                            self.createIndex( offset, self.col_cache ),
+                            self.createIndex( offset, self.col_type ) )
+                        self.dataChanged.emit(
+                            self.createIndex( offset, self.col_cache ),
+                            self.createIndex( offset, self.col_type ),
+                            [QtCore.Qt.DisplayRole] )
+                    offset += 1
+
+                elif all_new_files[ offset ].name < self.all_files[ offset ].name:
+                    self._debug( 'WbGitTableModel.refreshTable() insertRows row=%d %r' % (offset, all_new_names[offset]) )
+                    self.beginInsertRows( parent, offset, offset )
+                    self.all_files.insert( offset, all_new_files[ offset ] )
+                    self.endInsertRows()
+                    offset += 1
+
+                else:
+                    self._debug( 'WbGitTableModel.refreshTable() deleteRows row=%d %r' % (offset, all_old_names[ offset ]) )
+                    # delete the old
+                    self.beginRemoveRows( parent, offset, offset )
+                    del self.all_files[ offset ]
+                    del all_old_names[ offset ]
+                    self.endRemoveRows()
+
+            if offset < len(self.all_files):
+                self._debug( 'WbGitTableModel.refreshTable() removeRows at end of old row=%d %r' % (offset, all_old_names[ offset: ]) )
+
+                self.beginRemoveRows( parent, offset, len(self.all_files)-1 )
+                del self.all_files[ offset: ]
+                self.endRemoveRows()
+
+            if offset < len(all_new_files):
+                self._debug( 'WbGitTableModel.refreshTable() insertRows at end of new row=%d %r, old row %s' % (offset, all_new_names[offset:], offset) )
+
+                to_insert = len(all_new_files) - offset - 1
+                self.beginInsertRows( parent, offset, offset + to_insert )
+                self.all_files.extend( all_new_files[offset:] )
+                self.endInsertRows()
+
+        self.git_project_tree_node = git_project_tree_node
+        self._debug( 'WbGitTableModel.refreshTable() done self.git_project_tree_node %r' % (self.git_project_tree_node,) )
 
 class WbGitTableEntry:
     def __init__( self, name ):
         self.name = name
         self.dirent = None
         self.status = None
+
+    def isNotEqual( self, other ):
+        return (self.name != other.name
+            or self.status != other.status
+            or self.dirent != self.dirent)
 
     def updateFromDirEnt( self, dirent ):
         self.dirent = dirent
