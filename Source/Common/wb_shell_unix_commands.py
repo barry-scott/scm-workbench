@@ -169,13 +169,14 @@ def FileBrowser( app, working_dir ):
                 [str( working_dir )],
                 working_dir )
 
-def __run_command( app, cmd, args, working_dir ):
-    app.log.info( '%s %s' % (cmd, ' '.join( args ) ) )
+def __run_command( app, cmd, all_args, working_dir ):
+    all_args = [str(arg) for arg in all_args]
+    app.log.info( '%s %s' % (cmd, ' '.join( all_args ) ) )
     proc = QtCore.QProcess()
     proc.setStandardInputFile( proc.nullDevice() )
     proc.setStandardOutputFile( proc.nullDevice() )
     proc.setStandardErrorFile( proc.nullDevice() )
-    proc.startDetached( cmd, args, str( working_dir ) )
+    proc.startDetached( cmd, all_args, str( working_dir ) )
 
 def __run_commandQQQ( app, cmd, args ):
     app.log.info( '%s %s' % (cmd, ' '.join( args ) ) )
