@@ -160,8 +160,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
-
         self.table_view.setModel( self.table_sortfilter )
+        # allow Tab/Shift-Tab to move between tree/filter/table and log widgets
+        self.table_view.setTabKeyNavigation( False )
 
         # set sort params
         self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
@@ -206,7 +207,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( menu_actions, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists )
 
         menu_information = mb.addMenu( T_('&Information') )
-        self.__addMenu( menu_information, T_('Diff to HEAD'), self.tableActionGitDiff, self.enablerEnabled )
+        self.__addMenu( menu_information, T_('Diff Working'), self.treeTableActionGitDiffWorking, self.enablerDiffWorking )
+        self.__addMenu( menu_information, T_('Diff Staged'), self.treeTableActionGitDiffStaged, self.enablerDiffStaged )
+        self.__addMenu( menu_information, T_('Diff HEAD'), self.treeTableActionGitDiffHead, self.enablerDiffHead )
 
         menu_help = mb.addMenu( T_('&Help' ) )
         self.__addMenu( menu_help, T_("&About..."), self.appActionAbout, self.enablerEnabled )
@@ -234,7 +237,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addTool( self.tool_bar_git_state, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
 
         self.tool_bar_git_info = self.__addToolBar( T_('git info') )
-        self.__addTool( self.tool_bar_git_info, T_('Diff'), self.tableActionGitDiff, self.enablerEnabled, 'toolbar_images/diff.png' )
+        self.__addTool( self.tool_bar_git_info, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
 
     def __addToolBar( self, name ):
         bar = self.addToolBar( name )
@@ -267,16 +270,133 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         return True
 
     def enablerFolderExists( self, cache ):
-        if '__treeSelectedAbsoluteFolder' not in cache:
-            cache[ '__treeSelectedAbsoluteFolder' ] = self.__treeSelectedAbsoluteFolder()
+        key = '__treeSelectedAbsoluteFolder'
+        if key not in cache:
+            cache[ key ] = self.__treeSelectedAbsoluteFolder()
 
-        return cache[ '__treeSelectedAbsoluteFolder' ] is not None
+        return cache[ key ] is not None
 
     def enablerFilesExists( self, cache ):
-        if '__tableSelectedExistingFiles' not in cache:
-            cache[ '__tableSelectedExistingFiles' ] = self.__tableSelectedExistingFiles()
+        key = '__tableSelectedExistingFiles'
+        if key not in cache:
+            cache[ key ] = self.__tableSelectedExistingFiles()
 
-        return len( cache[ '__tableSelectedExistingFiles' ] ) > 0
+        return len( cache[ key ] ) > 0
+
+    def __enablerFocusWidget( self, cache ):
+        key = '__enablerFocusWidget'
+        if key not in cache:
+            if self.tree_view.hasFocus():
+                cache[ key ] = 'tree'
+
+            elif( self.table_view.hasFocus()
+            or self.filter_text.hasFocus() ):
+                cache[ key ] = 'table'
+
+            else:
+                cache[ key ] = None
+
+        return cache[ key ]
+
+    def __enablerTableSelectedDiffObjects( self, cache ):
+        key = '__enablerTableSelectedDiffObjects'
+        if key not in cache:
+            cache[ key ] = self.__tableSelectedDiffObjects()
+
+        return cache[ key ]
+
+    def enablerDiffWorking( self, cache ):
+        key = 'enablerDiffWorking'
+        if key not in cache:
+            focus = self.__enablerFocusWidget( cache )
+            if focus == 'tree':
+                cache[ key ] = True
+
+            elif focus == 'table':
+                # make sure all the selected entries is modified
+                all_diff_objects = self.__enablerTableSelectedDiffObjects( cache )
+                enable = True
+                for obj in all_diff_objects:
+                    if not obj.canDiffWorking():
+                        enable = False
+                        break
+
+                cache[ key ] = enable
+
+            else:
+                cache[ key ] = False
+
+        return cache[ key ]
+
+    def enablerDiffStaged( self, cache ):
+        key = 'enablerDiffStaged'
+        if key not in cache:
+            focus = self.__enablerFocusWidget( cache )
+            if focus == 'tree':
+                cache[ key ] = True
+
+            elif focus == 'table':
+                # make sure all the selected entries is modified
+                all_diff_objects = self.__enablerTableSelectedDiffObjects( cache )
+                enable = True
+                for obj in all_diff_objects:
+                    if not obj.canDiffStaged():
+                        enable = False
+                        break
+
+                cache[ key ] = enable
+
+            else:
+                cache[ key ] = False
+
+        return cache[ key ]
+
+    def enablerDiffHead( self, cache ):
+        key = 'enablerDiffHead'
+        if key not in cache:
+            focus = self.__enablerFocusWidget( cache )
+            if focus == 'tree':
+                cache[ key ] = True
+
+            elif focus == 'table':
+                # make sure all the selected entries is modified
+                all_diff_objects = self.__enablerTableSelectedDiffObjects( cache )
+                enable = True
+                for obj in all_diff_objects:
+                    if not obj.canDiffStaged() and not obj.canDiffWorking():
+                        enable = False
+                        break
+
+                cache[ key ] = enable
+
+            else:
+                cache[ key ] = False
+
+        return cache[ key ]
+
+    def enablerDiffSmart( self, cache ):
+        key = 'enablerDiffHead'
+        if key not in cache:
+            focus = self.__enablerFocusWidget( cache )
+            if focus == 'tree':
+                cache[ key ] = True
+
+            elif focus == 'table':
+                # make sure all the selected entries is modified
+                all_diff_objects = self.__enablerTableSelectedDiffObjects( cache )
+                enable = True
+                for obj in all_diff_objects:
+                    if not (obj.canDiffStaged() or obj.canDiffWorking()):
+                        enable = False
+                        break
+
+                cache[ key ] = enable
+
+            else:
+                cache[ key ] = False
+
+        return cache[ key ]
+
 
     #------------------------------------------------------------
     #
@@ -338,6 +458,33 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     #------------------------------------------------------------
     #
+    # tree or table actions depending on focus
+    #
+    #------------------------------------------------------------
+    def __callTreeOrTableFunction( self, fn_tree, fn_table ):
+        if self.tree_view.hasFocus():
+            fn_tree()
+
+        elif( self.table_view.hasFocus()
+        or self.filter_text.hasFocus() ):
+            fn_table()
+
+        # else in log so ignore
+
+    def treeTableActionGitDiffSmart( self ):
+        self.__callTreeOrTableFunction( self.treeActionGitDiffSmart, self.tableActionGitDiffSmart )
+
+    def treeTableActionGitDiffWorking( self ):
+        self.__callTreeOrTableFunction( self.treeActionGitDiffWorking, self.tableActionGitDiffWorking )
+
+    def treeTableActionGitDiffStaged( self ):
+        self.__callTreeOrTableFunction( self.treeActionGitDiffStaged, self.tableActionGitDiffStaged )
+
+    def treeTableActionGitDiffHead( self ):
+        self.__callTreeOrTableFunction( self.treeActionGitDiffHead, self.tableActionGitDiffHead )
+
+    #------------------------------------------------------------
+    #
     # tree actions
     #
     #------------------------------------------------------------
@@ -386,6 +533,18 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         wb_shell_commands.FileBrowser( self.app, folder_path )
 
+    def treeActionGitDiffSmart( self ):
+        self._debug( 'treeActionGitDiffSmart()' )
+
+    def treeActionGitDiffWorking( self ):
+        self._debug( 'treeActionGitDiffWorking()' )
+
+    def treeActionGitDiffStaged( self ):
+        self._debug( 'treeActionGitDiffStaged()' )
+
+    def treeActionGitDiffHead( self ):
+        self._debug( 'treeActionGitDiffHead()' )
+
     #------------------------------------------------------------
     #
     # table actions
@@ -404,6 +563,21 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         all_filenames = [folder_path / name for name in self.__tableSelectedFiles()]
         all_existing_filenames = [filename for filename in all_filenames if filename.exists()]
         return all_existing_filenames
+
+    def __tableSelectedDiffObjects( self ):
+        folder_path = self.__treeSelectedAbsoluteFolder()
+        if folder_path is None:
+            return []
+
+        all_names = self.__tableSelectedFiles()
+        if len(all_names) == 0:
+            return []
+
+        git_project = self.__treeSelectedGitProject()
+
+        relative_folder = self.__treeSelectedRelativeFolder()
+
+        return [git_project.getDiffObjects( relative_folder / name ) for name in all_names]
 
     def tableKeyHandler( self, key ):
         if key in self.table_keys_edit:
@@ -453,6 +627,18 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def tableActionGitDiff( self ):
         self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiff )
+
+    def tableActionGitDiffSmart( self ):
+        self._debug( 'tableActionGitDiffSmart()' )
+
+    def tableActionGitDiffWorking( self ):
+        self._debug( 'tableActionGitDiffWorking()' )
+
+    def tableActionGitDiffStaged( self ):
+        self._debug( 'tableActionGitDiffStaged()' )
+
+    def tableActionGitDiffHead( self ):
+        self._debug( 'tableActionGitDiffHead()' )
 
     def __actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )
@@ -516,6 +702,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             git_project.saveChanges()
 
             self.table_model.refreshTable()
+            self.updateActionEnabledStates()
 
 class WbTableView(QtWidgets.QTableView):
     def __init__( self, main_window, all_keys, key_handler ):
