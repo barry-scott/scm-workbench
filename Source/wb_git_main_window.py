@@ -61,6 +61,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__setupToolBar()
         self.__setupStatusBar()
 
+        self.__setupTreeContextMenu()
+        self.__setupTableContextMenu()
+
         if win_prefs.getFramePosition() is not None:
             self.move( *win_prefs.getFramePosition() )
 
@@ -200,29 +203,65 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.tree_view.setModel( self.tree_model )
         self.tree_view.setExpandsOnDoubleClick( True )
 
+        # connect up signals
+        self.tree_view.customContextMenuRequested.connect( self.treeContextMenu )
+        self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
+
     def updateActionEnabledStates( self ):
         self.__enable_state_manager.update()
 
     def __setupMenuBar( self ):
         mb = self.menuBar()
 
-        menu_file = mb.addMenu( T_('&File') )
-        self.__addMenu( menu_file, T_('E&xit'), self.appActionClose, self.enablerEnabled )
+        m = mb.addMenu( T_('&File') )
+        self.__addMenu( m, T_('E&xit'), self.close, self.enablerEnabled )
 
-        menu_actions = mb.addMenu( T_('&Actions') )
-        self.__addMenu( menu_actions, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists )
-        self.__addMenu( menu_actions, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists )
+        m = mb.addMenu( T_('F&older Actions') )
+        self.__addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+        self.__addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
-        menu_information = mb.addMenu( T_('&Information') )
-        self.__addMenu( menu_information, T_('Diff Working'), self.treeTableActionGitDiffWorking, self.enablerDiffWorking )
-        self.__addMenu( menu_information, T_('Diff Staged'), self.treeTableActionGitDiffStaged, self.enablerDiffStaged )
-        self.__addMenu( menu_information, T_('Diff HEAD'), self.treeTableActionGitDiffHead, self.enablerDiffHead )
+        m = mb.addMenu( T_('File &Actions') )
+        self.__addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self.__addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+
+        m = mb.addMenu( T_('&Information') )
+        self.__addMenu( m, T_('Diff Working'), self.treeTableActionGitDiffWorking, self.enablerDiffWorking, 'toolbar_images/diff.png' )
+        self.__addMenu( m, T_('Diff Staged'), self.treeTableActionGitDiffStaged, self.enablerDiffStaged, 'toolbar_images/diff.png' )
+        self.__addMenu( m, T_('Diff HEAD'), self.treeTableActionGitDiffHead, self.enablerDiffHead, 'toolbar_images/diff.png' )
+
+        m = mb.addMenu( T_('&Git Actions') )
+        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
+        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
+        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
 
         menu_help = mb.addMenu( T_('&Help' ) )
         self.__addMenu( menu_help, T_("&About..."), self.appActionAbout, self.enablerEnabled )
 
-    def __addMenu( self, menu, name, handler, enabler ):
-        action = menu.addAction( name )
+    def __setupTreeContextMenu( self ):
+        m = self.tree_context_menu = QtWidgets.QMenu( self )
+        m.addSection( T_('Folder Actions') )
+        self.__addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+        self.__addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
+
+    def __setupTableContextMenu( self ):
+        m = self.table_context_menu = QtWidgets.QMenu( self )
+
+        m.addSection( 'File Actions' )
+        self.__addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self.__addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+
+        m.addSection( 'Git Actions' )
+        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
+        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
+        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
+
+    def __addMenu( self, menu, name, handler, enabler, icon_name=None ):
+        if icon_name is None:
+            action = menu.addAction( name )
+        else:
+            icon = wb_git_images.getQIcon( icon_name )
+            action = menu.addAction( icon, name )
+
         action.triggered.connect( handler )
 
         self.__enable_state_manager.add( action, enabler )
@@ -230,21 +269,21 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def __setupToolBar( self ):
         style = self.style()
 
-        self.tool_bar_tree = self.__addToolBar( T_('tree') )
-        self.__addTool( self.tool_bar_tree, T_('Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
-        self.__addTool( self.tool_bar_tree, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
+        t = self.tool_bar_tree = self.__addToolBar( T_('tree') )
+        self.__addTool( t, T_('Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+        self.__addTool( t, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
-        self.tool_bar_table = self.__addToolBar( T_('table') )
-        self.__addTool( self.tool_bar_table, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self.__addTool( self.tool_bar_table, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        t = self.tool_bar_table = self.__addToolBar( T_('table') )
+        self.__addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self.__addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        self.tool_bar_git_state = self.__addToolBar( T_('git state') )
-        self.__addTool( self.tool_bar_git_state, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
-        self.__addTool( self.tool_bar_git_state, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
-        self.__addTool( self.tool_bar_git_state, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
+        t = self.tool_bar_git_state = self.__addToolBar( T_('git state') )
+        self.__addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
+        self.__addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
+        self.__addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
 
-        self.tool_bar_git_info = self.__addToolBar( T_('git info') )
-        self.__addTool( self.tool_bar_git_info, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
+        t = self.tool_bar_git_info = self.__addToolBar( T_('git info') )
+        self.__addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
 
     def __addToolBar( self, name ):
         bar = self.addToolBar( name )
@@ -537,6 +576,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         return git_project_tree_node.project
 
+    def treeContextMenu( self, pos ):
+        self._debug( 'treeContextMenu( %r )' % (pos,) )
+        global_pos = self.tree_view.viewport().mapToGlobal( pos )
+
+        self.tree_context_menu.exec_( global_pos )
+
     def treeSelectionChanged( self, selected, deselected ):
         self.filter_text.clear()
         self.tree_model.selectionChanged( selected, deselected )
@@ -610,8 +655,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             self.tableActionOpen()
 
     def tableContextMenu( self, pos ):
-        selection_model = self.table_view.selectionModel()
-        print( 'qqq', [(index.row(), index.column()) for index in selection_model.selectedRows()] )
+        self._debug( 'tableContextMenu( %r )' % (pos,) )
+        global_pos = self.table_view.viewport().mapToGlobal( pos )
+
+        self.table_context_menu.exec_( global_pos )
 
     def tableHeaderClicked( self, column ):
         if column == self.table_sort_column:
