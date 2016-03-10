@@ -86,7 +86,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
         self.filter_text.setMaxLength( 256 )
-        self.filter_text.setPlaceholderText( T_('Filter list by name') )
+        self.filter_text.setPlaceholderText( T_('Filter  by name') )
 
         self.filter_text.textChanged.connect( self.table_sortfilter.setFilterText )
 
@@ -230,9 +230,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Diff HEAD'), self.treeTableActionGitDiffHead, self.enablerDiffHead, 'toolbar_images/diff.png' )
 
         m = mb.addMenu( T_('&Git Actions') )
-        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
-        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
-        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
+        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
 
         menu_help = mb.addMenu( T_('&Help' ) )
         self.__addMenu( menu_help, T_("&About..."), self.appActionAbout, self.enablerEnabled )
@@ -251,9 +251,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         m.addSection( 'Git Actions' )
-        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
-        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
-        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
+        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
 
     def __addMenu( self, menu, name, handler, enabler, icon_name=None ):
         if icon_name is None:
@@ -278,9 +278,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         t = self.tool_bar_git_state = self.__addToolBar( T_('git state') )
-        self.__addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerEnabled, 'toolbar_images/include.png' )
-        self.__addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerEnabled, 'toolbar_images/exclude.png' )
-        self.__addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerEnabled, 'toolbar_images/revert.png' )
+        self.__addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self.__addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self.__addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
 
         t = self.tool_bar_git_info = self.__addToolBar( T_('git info') )
         self.__addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
@@ -323,11 +323,36 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         return cache[ key ] is not None
 
     def enablerFilesExists( self, cache ):
-        key = '__tableSelectedExistingFiles'
+        key = 'enablerFilesExists'
         if key not in cache:
             cache[ key ] = self.__tableSelectedExistingFiles()
 
         return len( cache[ key ] ) > 0
+
+    def enablerFilesStage( self, cache ):
+        key = 'enablerFilesStage'
+        if key not in cache:
+            with_status = pygit2.GIT_STATUS_WT_MODIFIED
+            cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
+
+        return cache[ key ]
+
+    def enablerFilesUnstage( self, cache ):
+        key = 'enablerFilesUnstage'
+        if key not in cache:
+            with_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW
+            cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
+
+        return cache[ key ]
+
+    def enablerFilesRevert( self, cache ):
+        key = 'enablerFilesRevert'
+        if key not in cache:
+            with_status = pygit2.GIT_STATUS_WT_MODIFIED
+            without_status = pygit2.GIT_STATUS_INDEX_MODIFIED
+            cache[ key ] = self.__tableSelectedWithStatus( with_status, without_status )
+
+        return cache[ key ]
 
     def __enablerFocusWidget( self, cache ):
         key = '__enablerFocusWidget'
@@ -632,6 +657,29 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         all_existing_filenames = [filename for filename in all_filenames if filename.exists()]
         return all_existing_filenames
 
+    def __tableSelectedWithStatus( self, with_status, without_status ):
+        folder_path = self.__treeSelectedAbsoluteFolder()
+        if folder_path is None:
+            return False
+
+        all_names = self.__tableSelectedFiles()
+        if len(all_names) == 0:
+            return False
+
+        git_project = self.__treeSelectedGitProject()
+
+        relative_folder = self.__treeSelectedRelativeFolder()
+
+        for name in all_names:
+            status = git_project.getStatus( relative_folder / name )
+            if (status&with_status) == 0:
+                return False
+
+            if (status&without_status) != 0:
+                return False
+
+        return True
+
     def __tableSelectedDiffObjects( self ):
         folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
@@ -838,4 +886,5 @@ class WbActionEnableState:
         self.enable_handler = enable_handler
 
     def setEnableState( self, cache ):
+        print( 'qqq calling %r' % (self.enable_handler,) )
         self.action.setEnabled( self.enable_handler( cache ) )
