@@ -66,27 +66,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.resize( *win_prefs.getFrameSize() )
 
-        # models
-        self.table_model = wb_git_table_model.WbGitTableModel( self.app )
-        self.tree_model = wb_git_tree_model.WbGitTreeModel( self.app, self.table_model )
-
-        self.table_sortfilter = wb_git_table_model.WbGitTableSortFilter( self.app )
-        self.table_sortfilter.setSourceModel( self.table_model )
-
-        self.table_sort_column = self.table_model.col_cache
-        self.table_sort_order = QtCore.Qt.AscendingOrder
-
-        self.table_model.dataChanged.connect( self.__qqqTableModelDataChanged )
-        self.table_sortfilter.dataChanged.connect( self.__qqqTableSortFilterDataChanged )
-
-
-        # window major widgets
-        self.__log = wb_logging.WbLog( self.app )
-
-        self.tree_view = QtWidgets.QTreeView()
-        self.tree_view.setModel( self.tree_model )
-        self.tree_view.setExpandsOnDoubleClick( True )
-
         self.table_keys_edit = ['\r', 'e', 'E']
         self.table_keys_open = ['o', 'O']
 
@@ -94,20 +73,18 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.all_table_keys.extend( self.table_keys_edit )
         self.all_table_keys.extend( self.table_keys_open )
 
-        self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
-        self.table_view.setModel( self.table_sortfilter )
-        # set sort params
-        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
-        # and enable to apply
-        self.table_view.setSortingEnabled( True )
-        # always select a whole row
-        self.table_view.setSelectionBehavior( self.table_view.SelectRows )
-        self.table_view.doubleClicked.connect( self.tableDoubleClicked )
+        # window major widgets
+        self.__log = wb_logging.WbLog( self.app )
+
+        # models and views
+        self.__setupTableViewAndModel()
+        self.__setupTreeViewAndModel()
 
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
         self.filter_text.setMaxLength( 256 )
         self.filter_text.setPlaceholderText( T_('Filter list by name') )
+
         self.filter_text.textChanged.connect( self.table_sortfilter.setFilterText )
 
         # layout widgets in window
@@ -143,8 +120,57 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.v_split.addWidget( self.h_split )
         self.v_split.addWidget( self.__log.logWidget() )
 
+        # setup selection on the tree
         selection_model = self.tree_view.selectionModel()
         selection_model.selectionChanged.connect( self.treeSelectionChanged )
+
+        # select the first project
+        index = self.tree_model.getFirstProjectIndex()
+
+        selection_model.select( index,
+                    selection_model.Clear |
+                    selection_model.Select |
+                    selection_model.Current )
+
+        # The rest of init has to be done after the widgets are rendered
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect( self.completeStatupInitialisation )
+        self.timer.setSingleShot( True )
+        self.timer.start( 0 )
+
+    def completeStatupInitialisation( self ):
+        # set splitter position
+        tree_size_ratio = 0.3
+        width = sum( self.h_split.sizes() )
+        tree_width = int( width * tree_size_ratio )
+        table_width = width - tree_width
+        self.h_split.setSizes( [tree_width, table_width] )
+
+        self.updateActionEnabledStates()
+
+        self.log.debug( 'Debug messages are enabled' )
+
+    def __setupTableViewAndModel( self ):
+        self.table_model = wb_git_table_model.WbGitTableModel( self.app )
+
+        self.table_sortfilter = wb_git_table_model.WbGitTableSortFilter( self.app )
+        self.table_sortfilter.setSourceModel( self.table_model )
+
+        self.table_sort_column = self.table_model.col_cache
+        self.table_sort_order = QtCore.Qt.AscendingOrder
+
+        self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
+
+        self.table_view.setModel( self.table_sortfilter )
+
+        # set sort params
+        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
+        # and enable to apply
+        self.table_view.setSortingEnabled( True )
+
+        # always select a whole row
+        self.table_view.setSelectionBehavior( self.table_view.SelectRows )
+        self.table_view.doubleClicked.connect( self.tableDoubleClicked )
 
         # connect up signals
         self.table_view.horizontalHeader().sectionClicked.connect( self.tableHeaderClicked )
@@ -159,40 +185,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
 
-        # select the first project
-        index = self.tree_model.getFirstProjectIndex()
+    def __setupTreeViewAndModel( self ):
+        self.tree_model = wb_git_tree_model.WbGitTreeModel( self.app, self.table_model )
 
-        selection_model = self.tree_view.selectionModel()
-        selection_model.select( index,
-                    selection_model.Clear |
-                    selection_model.Select |
-                    selection_model.Current )
-
-        # The rest of init has to be done after the widgets are rendered
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect( self.completeStatupInitialisation )
-        self.timer.setSingleShot( True )
-        self.timer.start( 0 )
-
-    def __qqqTableModelDataChanged( self, top_left, bottom_right, roles=None ):
-        print( '__qqqTableModelDataChanged( %d-%d, %d-%d, %r )' %
-                (top_left.row(), top_left.column(), bottom_right.row(), bottom_right.column(), roles) )
-
-    def __qqqTableSortFilterDataChanged( self, top_left, bottom_right, roles=None ):
-        print( '__qqqTableSortFilterDataChanged( %d-%d, %d-%d, %r )' %
-                (top_left.row(), top_left.column(), bottom_right.row(), bottom_right.column(), roles) )
-
-    def completeStatupInitialisation( self ):
-        # set splitter position
-        tree_size_ratio = 0.3
-        width = sum( self.h_split.sizes() )
-        tree_width = int( width * tree_size_ratio )
-        table_width = width - tree_width
-        self.h_split.setSizes( [tree_width, table_width] )
-
-        self.updateActionEnabledStates()
-
-        self.log.debug( 'Debug messages are enabled' )
+        self.tree_view = QtWidgets.QTreeView()
+        self.tree_view.setModel( self.tree_model )
+        self.tree_view.setExpandsOnDoubleClick( True )
 
     def updateActionEnabledStates( self ):
         self.__enable_state_manager.update()
