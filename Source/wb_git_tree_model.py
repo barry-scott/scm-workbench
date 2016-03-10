@@ -60,6 +60,27 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
         item = self.invisibleRootItem().child( 0 )
         return self.indexFromItem( item )
 
+    def indexFromBookmark( self, bookmark ):
+        item = self.invisibleRootItem()
+        row = 0
+
+        for name in [bookmark.project] + list( bookmark.path.parts ):
+            row = 0
+
+            while True:
+                child = item.child( row )
+
+                if child is None:
+                    return None
+
+                if child.text() == name:
+                    item = child
+                    break
+
+                row += 1
+
+        return self.indexFromItem( item )
+
     def headerData( self, section, orientation, role ):
         return None
 

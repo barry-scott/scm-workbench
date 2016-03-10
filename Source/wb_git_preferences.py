@@ -32,7 +32,6 @@ class ParseError(Exception):
     def __repr__( self ):
         return repr(self.value)
 
-
 class Preferences:
     def __init__( self, app, pref_filename ):
         self.app = app
@@ -45,7 +44,7 @@ class Preferences:
         self.pref_handlers['Window'] = WindowPreferences( self.app )
         self.pref_handlers['Projects'] = ProjectsPreferences( self.app )
 
-        #self.pref_handlers['Bookmarks'] = BookmarksPreferences( self.app )
+        self.pref_handlers['Bookmarks'] = BookmarksPreferences( self.app )
         #self.pref_handlers['DiffWindow'] = DiffWindowPreferences( self.app )
         #self.pref_handlers['View'] = ViewPreferences( self.app )
         self.pref_handlers['Editor'] = EditorPreferences( self.app )
@@ -378,145 +377,59 @@ class ProjectsPreferences(PreferenceSection):
     def delProject( self, project ):
         del self.all_projects[ project.name ]
 
+class Bookmark:
+    def __init__( self, name, project, path ):
+        self.name = name
+        self.project = project
+        self.path = path
+
+    def __lt__( self, other ):
+        return self.name.lower() < other.name.lower()
+
 class BookmarksPreferences(PreferenceSection):
+    name_last_position = '__last_position'
+
     def __init__( self, app ):
         PreferenceSection.__init__( self, 'Bookmarks' )
         self.app = app
 
         self.all_bookmarks = {}
-        # no longer support menu style -
-        # self.menu_style = 'leaf_only'
-        # self.leaf_names_to_ignore = ['main','source','src', 'inc','include']
-        self.menu_style = None
-        self.leaf_names_to_ignore = []
 
     def readPreferences( self, pref_data ):
         if not pref_data.has_section( self.section_name ):
             return
 
-        get_option = GetOption( pref_data, self.section_name )
-        # look for menu_style and leaf_names_to_ignore to
-        # allow for preference file update
-        if get_option.has( 'menu_style' ):
-            self.menu_style = get_option.getstr( 'menu_style' )
-
-        if get_option.has( 'leaf_names_to_ignore' ):
-            self.leaf_names_to_ignore = get_option.getstrlist( 'leaf_names_to_ignore', ',' )
-
         num_bookmarks = pref_data.len_section( self.section_name, 'bookmark' )
         for index in range( num_bookmarks ):
             get_option = GetIndexedOption( pref_data, self.section_name, index, 'bookmark' )
-            bookmark_name = get_option.getstr( 'bookmark_name' )
+            name = get_option.getstr( 'name' )
+            project = get_option.getstr( 'project' )
+            path = pathlib.Path( get_option.getstr( 'path' ) )
 
-            provider = get_option.getstr( 'provider' )
-            if wb_source_control_providers.hasProvider( provider ):
-                provider = wb_source_control_providers.getProvider( provider )
-                pi = provider.getProjectInfo( self.app )
-                pi.readPreferences( get_option )
-                # default the menu name if required
-                if pi.menu_name is None:
-                    # see if update required
-                    if self.menu_style is not None:
-                        # default the name as if used to be done
-                        pi.menu_name = self.__getMenuName( pi.wc_path )
-                    else:
-                        self.__defaultMenuName( pi )
-
-                self.all_bookmarks[ bookmark_name ] = pi
+            self.all_bookmarks[ name ] = Bookmark( name, project, path )
 
     def writePreferences( self, pref_data ):
         pref_data.remove_section( self.section_name )
         pref_data.add_section( self.section_name )
 
-        set_option = SetOption( pref_data, self.section_name )
-
-        all_bookmarks = list( self.all_bookmarks.items() )
-        all_bookmarks.sort( key=self.__keyBookmarksMenuAndName )
-
-        for bookmark_name, bookmark in all_bookmarks:
-            pref_dict = {}
-            pref_dict[ 'bookmark_name' ] = bookmark_name
-
-            bookmark.writePreferences( pref_dict )
-
+        for bookmark in self.all_bookmarks.values():
+            pref_dict = {'name': bookmark.name
+                        ,'project': bookmark.project
+                        ,'path': bookmark.path
+                        }
             pref_data.append_dict( self.section_name, 'bookmark', pref_dict )
 
-    def __keyBookmarksMenuAndName( self, a_kv ):
-        a = a_kv[1]
-        k = []
-        if a.menu_folder != '':
-            k.append( a.menu_folder )
+    def getLastPosition( self ):
+        return self.all_bookmarks.get( self.name_last_position, None )
 
-        if a.menu_folder2 != '':
-            k.append( a.menu_folder2 )
+    def getBookmarkList( self ):
+        return sorted( self.all_bookmarks.values() )
 
-        if a.menu_folder3 != '':
-            k.append( a.menu_folder3 )
+    def addBookmark( self, bookmark ):
+        self.all_bookmarks[ bookmark.name ] = bookmark
 
-        k.append( a.menu_name )
-
-        return k
-
-    def addBookmark( self, pi, name=None ):
-        if name is None:
-            name = pi.wc_path
-
-        self.all_bookmarks[ name ] = pi
-        self.__defaultMenuName( pi )
-
-    def delBookmark( self, bookmark_name ):
-        del self.all_bookmarks[ bookmark_name ]
-
-    def delAllBookmarks( self, name ):
-        self.all_bookmarks = {}
-
-    def getBookmarkNames( self ):
-        names = self.all_bookmarks.keys()
-        names.sort()
-        return names
-
-    def __defaultMenuName( self, pi ):
-        if 'HOME' in os.environ:
-            home_dir = os.environ[ 'HOME' ] + '/'
-
-            if pi.wc_path.startswith( home_dir ):
-                pi.menu_name = pi.wc_path[len(home_dir):]
-
-            else:
-                pi.menu_name = pi.wc_path
-
-        else:
-            pi.menu_name = pi.wc_path
-
-    # only used to update pref file now
-    def __getMenuName( self, wc_path, menu_style=None, leaf_names_to_ignore=None ):
-        if menu_style is None:
-            menu_style = self.menu_style
-        if leaf_names_to_ignore is None:
-            leaf_names_to_ignore = self.leaf_names_to_ignore
-
-        if menu_style in ['leaf_in_parent', 'leaf_only']:
-            path_parts = wc_path.split( os.path.sep )
-            for leaf_index in range( len(path_parts)-1, 1, -1 ):
-                if path_parts[ leaf_index ].lower() not in leaf_names_to_ignore:
-                    if menu_style == 'leaf_in_parent':
-                        return '%s   in %s' % (os.path.sep.join( path_parts[leaf_index:] )
-                                              ,os.path.sep.join( path_parts[:leaf_index] ))
-                    else:
-                        return os.path.sep.join( path_parts[leaf_index:] )
-
-            # cannot reach here?
-            return wc_path
-
-        else:
-            return wc_path
-
-    def hasBookmark( self, name ):
-        return self.all_bookmarks.has_key( name )
-
-    def getBookmark( self, name ):
-        return self.all_bookmarks[ name ]
-
+    def delBookmark( self, bookmark ):
+        del self.all_bookmarks[ bookmark.name ]
 
 class WindowPreferences(PreferenceSection):
     def __init__( self, app ):

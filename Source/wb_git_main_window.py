@@ -24,9 +24,9 @@ from PyQt5 import QtCore
 
 import pygit2
 
-#import be_ids
 import wb_git_version
 import wb_git_images
+import wb_git_preferences
 #import wb_git_preferences_dialog
 
 import wb_git_config
@@ -125,12 +125,19 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         selection_model.selectionChanged.connect( self.treeSelectionChanged )
 
         # select the first project
-        index = self.tree_model.getFirstProjectIndex()
+        bookmark = self.app.prefs.getBookmarks().getLastPosition()
+        if bookmark is not None:
+            index = self.tree_model.indexFromBookmark( bookmark )
+
+        else:
+            index = self.tree_model.getFirstProjectIndex()
 
         selection_model.select( index,
                     selection_model.Clear |
                     selection_model.Select |
                     selection_model.Current )
+
+        self.tree_view.scrollTo( index )
 
         # The rest of init has to be done after the widgets are rendered
         self.timer = QtCore.QTimer()
@@ -452,9 +459,25 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             T_('About %s') % (' '.join( self.app.app_name_parts ),),
             '\n'.join( all_about_info ) )
 
-    def appActionClose( self ):
-        # QQQ: do shutdown actions before closing
-        self.close()
+    def closeEvent( self, event ):
+        self.appActionClose( close=False )
+
+    def appActionClose( self, close=True ):
+        self._debug( 'appActionClose()' )
+        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
+
+        if git_project_tree_node is not None:
+            prefs = self.app.prefs.getBookmarks()
+            bookmark = wb_git_preferences.Bookmark(
+                        prefs.name_last_position,
+                        git_project_tree_node.project.prefs_project.name,
+                        git_project_tree_node.relativePath() )
+
+            prefs.addBookmark( bookmark )
+            self.app.writePreferences()
+
+        if close:
+            self.close()
 
     #------------------------------------------------------------
     #
