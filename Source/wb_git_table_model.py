@@ -183,7 +183,9 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
             elif col == self.col_type:
                 return entry.is_dir() and 'Dir' or 'File'
 
-        if role == QtCore.Qt.ForegroundRole:
+            assert False
+
+        elif role == QtCore.Qt.ForegroundRole:
             entry = self.all_files[ index.row() ]
             cached = entry.cacheAsString()
             working = entry.workingAsString()
@@ -196,6 +198,8 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
             if entry.isWorkingNew():
                 return self.__brush_working_new
+
+            return None
 
         #if role == QtCore.Qt.BackgroundRole:
 
@@ -261,10 +265,6 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
                         self.dataChanged.emit(
                             self.createIndex( offset, self.col_cache ),
                             self.createIndex( offset, self.col_type ) )
-                        self.dataChanged.emit(
-                            self.createIndex( offset, self.col_cache ),
-                            self.createIndex( offset, self.col_type ),
-                            [QtCore.Qt.DisplayRole] )
                     offset += 1
 
                 elif all_new_files[ offset ].name < self.all_files[ offset ].name:
@@ -296,6 +296,8 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
                 self.beginInsertRows( parent, offset, offset + to_insert )
                 self.all_files.extend( all_new_files[offset:] )
                 self.endInsertRows()
+
+            self.all_files = sorted( all_files.values() )
 
         self.git_project_tree_node = git_project_tree_node
         self._debug( 'WbGitTableModel.refreshTable() done self.git_project_tree_node %r' % (self.git_project_tree_node,) )
