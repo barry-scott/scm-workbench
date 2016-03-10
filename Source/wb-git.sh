@@ -7,7 +7,7 @@ else
 	export PYTHONPATH=${BUILDER_TOP_DIR}/Source:${BUILDER_TOP_DIR}/Source/Common:$PYTHONPATH
 fi
 
-PYTHON=${PYTHON:-python}
+PYTHON=${PYTHON:-python3}
 BASENAME=$( basename ${PYTHON} )
 SUFFIX=${BASENAME#python*}
 DIRNAME=$( dirname ${PYTHON} )
@@ -18,9 +18,19 @@ then
 fi
 PYTHONW=${DIRNAME}pythonw${SUFFIX}
 
-if [ -e ${PYTHONW} ]
+if [ "$1" = "--gdb" ]
 then
-    ${PYTHONW} wb_git_main.py $*
+    shift
+
+    echo "set args wb_git_main.py $*" >.gdbinit
+    echo "echo gdbinit loaded\\n" >>.gdbinit
+    gdb -x .gdbinit ${PYTHON}
+
 else
-    ${PYTHON} wb_git_main.py $*
+    if [ -e ${PYTHONW} ]
+    then
+        ${PYTHONW} wb_git_main.py $*
+    else
+        ${PYTHON} wb_git_main.py $*
+    fi
 fi
