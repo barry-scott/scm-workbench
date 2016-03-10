@@ -20,6 +20,7 @@ _debug_callback = False
 _debug_main_window = False
 _debug_tree_model = False
 _debug_table_model = False
+_debug_git_project = False
 
 def setDebug( str_options ):
     for option in [s.strip().lower() for s in str_options.split(',')]:
@@ -70,3 +71,8 @@ class WbGitDebugMixin:
     def _debugMainWindow( self, msg ):
         if _debug_main_window:
             self.log.debug( 'MAIN-WINDOW %s' % (msg,) )
+
+    # wb_git_project
+    def _debugGitProject( self, msg ):
+        if _debug_git_project:
+            self.log.debug( 'GIT-PROJECT %s' % (msg,) )

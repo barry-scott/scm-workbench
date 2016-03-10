@@ -14,7 +14,10 @@ import pathlib
 import pygit2
 
 class GitProject:
-    def __init__( self, prefs_project ):
+    def __init__( self, app, prefs_project ):
+        self.app = app
+        self._debug = self.app._debugGitProject
+
         self.prefs_project = prefs_project
         self.repo = pygit2.Repository( str( prefs_project.path / '.git' ) )
 
@@ -34,12 +37,14 @@ class GitProject:
         return self.prefs_project.path
 
     def saveChanges( self ):
+        self._debug( 'saveChanges()' )
         assert self.__dirty, 'Only call saveChanges if something was changed'
         self.__dirty = False
         self.repo.index.write()
         self.updateState()
 
     def updateState( self ):
+        self._debug( 'updateState()' )
         assert not self.__dirty, 'repo is dirty, forgot to call saveChanges?'
 
         # rebuild the tree
@@ -77,13 +82,17 @@ class GitProject:
     #
     #------------------------------------------------------------
     def getStatus( self, filename ):
-        return self.status[ str(filename) ]
+        # status only has enties for none CURRENT status files
+        return self.status.get( str(filename), pygit2.GIT_STATUS_CURRENT )
 
     def getDiffObjects( self, filename ):
-        state = self.status[ str(filename) ]
+        state = self.getStatus( filename )
+
+        self._debug( 'getDiffObjects( %r ) state=0x%x pygit2.GIT_STATUS_INDEX_NEW 0x%x' % (filename, state, pygit2.GIT_STATUS_INDEX_NEW) )
 
         # The id representing the filename contents at HEAD
-        if (state&pygit2.GIT_STATUS_INDEX_NEW) != 0:
+        if( (state&pygit2.GIT_STATUS_INDEX_NEW) != 0
+        or  (state&pygit2.GIT_STATUS_WT_NEW) != 0 ):
             head_id = None
 
         else:
@@ -115,6 +124,8 @@ class GitProject:
     #
     #------------------------------------------------------------
     def cmdStage( self, filename ):
+        self._debug( 'cmdStage( %r )' % (filename,) )
+
         state = self.status[ str(filename) ]
 
         if (pygit2.GIT_STATUS_WT_DELETED&state) != 0:
@@ -127,6 +138,8 @@ class GitProject:
         self.__dirty = True
 
     def cmdUnstage( self, rev, filename, reset_type ):
+        self._debug( 'cmdUnstage( %r )' % (filename,) )
+
         state = self.status[ str(filename) ]
 
         if (state&pygit2.GIT_STATUS_INDEX_NEW) != 0:
@@ -146,6 +159,8 @@ class GitProject:
         self.__dirty = True
 
     def cmdRevert( self, rev, filename ):
+        self._debug( 'cmdRevert( %r )' % (filename,) )
+
         # either a modified file or a deleted file
         # read the blob from HEAD and wite to disk
 
@@ -161,6 +176,7 @@ class GitProject:
         self.__dirty = True
 
     def __findFileInTree( self, tree, filename ):
+        self._debug( '__findFileInTree( %r, %r )' % (tree, filename) )
         # match all the folders
         for name in filename.parts[:-1]:
             for entry in tree:
