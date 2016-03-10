@@ -33,7 +33,7 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
         self.selected_node = None
 
         for project in self.app.prefs.getProjects().getProjectList():
-            git_project = wb_git_project.GitProject( project )
+            git_project = wb_git_project.GitProject( self.app, project )
             git_project.updateState()
 
             tree_node = ProjectTreeNode( self, git_project.tree )
