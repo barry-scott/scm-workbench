@@ -65,9 +65,11 @@ def EditFile( app, working_dir, all_filenames ):
     __run_command( app, editor_image, editor_args, working_dir )
 
 def ShellOpen( app, working_dir, all_filenames ):
-    app.log.info( T_('Open %s') % (' '.join( all_filenames ),) )
+    app.log.info( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
 
-    __run_command( app, 'xdg-open', all_filenames, working_dir )
+    for filename in all_filenames:
+        # xdg-open only accepts 1 filename at a time
+        __run_command( app, '/usr/bin/xdg-open', [filename], working_dir )
 
 def GuiDiffFiles( app, args ):
     __run_command( app, app.prefs.getDiffTool().gui_diff_tool, args. os.getcwd() )
@@ -123,12 +125,12 @@ def CommandShell( app, working_dir ):
     try:
         if terminal_program == 'konsole':
             __run_command( app, terminal_program,
-                ['--title',  title, '--workdir', str( working_dir ), '-e', '/bin/bash', f.name],
+                ['--title',  title, '--workdir', working_dir, '-e', '/bin/bash', f.name],
                 working_dir )
 
         elif terminal_program in ('gnome-terminal', 'xfce4-terminal'):
             __run_command( app, terminal_program,
-                ['--title',  title, '--working-directory', str( working_dir ), '-x', f.name],
+                ['--title',  title, '--working-directory', working_dir, '-x', f.name],
                 working_dir )
 
         elif terminal_program == 'xterm':
@@ -160,13 +162,13 @@ def FileBrowser( app, working_dir ):
     if browser_program == 'konqueror':
         __run_command( app,
                 browser_program,
-                ['--mimetype', 'inode/directory', str( working_dir )],
+                ['--mimetype', 'inode/directory', working_dir],
                 working_dir )
 
     elif browser_program in ('nautilus', 'thunar', 'dolphin'):
         __run_command( app,
                 browser_program,
-                [str( working_dir )],
+                [working_dir],
                 working_dir )
 
 def __run_command( app, cmd, all_args, working_dir ):
