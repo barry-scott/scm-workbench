@@ -665,7 +665,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             git_project.cmdCommit( dialog.getMessage() )
 
             # take account of the change
-            self.table_model.refreshTable()
+            self.tree_model.refreshTree()
 
             # sort filter is now invalid
             self.table_sortfilter.invalidate()
