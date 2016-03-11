@@ -1,3 +1,4 @@
 *.pyc
 *~
 .bash_history
+.directory
