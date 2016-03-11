@@ -357,18 +357,18 @@ GIT_STATUS_WT_NEW: 0x80
             return ''
 
         status = self.status[1]
-        state = []
 
         if status&pygit2.GIT_STATUS_INDEX_NEW:
-            state.append( 'A' )
+            return 'A'
 
         elif status&pygit2.GIT_STATUS_INDEX_MODIFIED:
-            state.append( 'M' )
+            return 'M'
 
         elif status&pygit2.GIT_STATUS_INDEX_DELETED:
-            state.append( 'D' )
+            return 'D'
 
-        return ''.join( state )
+        else:
+            return ''
 
     def workingAsString( self ):
         if self.status is None:

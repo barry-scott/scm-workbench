@@ -11,6 +11,7 @@
 
 '''
 import pathlib
+import difflib
 import pygit2
 
 class GitProject:
@@ -116,7 +117,7 @@ class GitProject:
         # the path to the working copy
         working_path = self.path() / filename
 
-        return WbGitDiffObjects( filename, state, head_id, staged_id, working_path )
+        return WbGitDiffObjects( self, filename, state, head_id, staged_id, working_path )
 
     #------------------------------------------------------------
     #
@@ -228,15 +229,56 @@ class GitProjectTreeNode:
         return (mode, state)
 
 class WbGitDiffObjects:
-    def __init__( self, filename, status, head_id, staged_id, working_path ):
+    diff_head = 1
+    diff_staged = 2
+    diff_working = 3
+
+    status_staged = pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_DELETED
+    status_modified = pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED
+
+    def __init__( self, git_project, filename, status, head_id, staged_id, working_path ):
+        self.git_project = git_project
+
         self.filename = filename
         self.status = status
         self.head_id = head_id
         self.staged_id = staged_id
         self.working_path = working_path
 
-    def canDiffStaged( self ):
-        return (self.status&(pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_DELETED)) != 0
+    def __repr__( self ):
+        return ('<WbGitDiffObjects: %s HEAD %r Staged %r Working %r>' %
+                    (self.filename, self.head_id, self.staged_id, self.working_path))
 
-    def canDiffWorking( self ):
-        return (self.status&(pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED)) != 0
+    def canDiffHeadVsStaged( self ):
+        return (self.status&(self.status_staged)) != 0
+
+    def canDiffStagedVsWorking( self ):
+        return ((self.status&self.status_staged) != 0
+            and (self.status&self.status_modified) != 0 )
+
+    def canDiffHeadVsWorking( self ):
+        return (self.status&self.status_modified) != 0
+
+    def diffUnified( self, old, new ):
+        old_lines = self.getTextLines( old )
+        new_lines = self.getTextLines( new )
+
+        return list( difflib.unified_diff( old_lines, new_lines ) )
+
+    def getTextLines( self, source ):
+        # qqq need to handle encoding and line endings
+        if source == self.diff_head:
+            blob = self.git_project.repo.get( self.head_id )
+            text = blob.data.decode( 'utf-8' )
+            return text.split('\n')
+
+        if source == self.diff_staged:
+            blob = self.git_project.repo.get( self.staged_id )
+            text = blob.data.decode( 'utf-8' )
+            return text.split('\n')
+
+        if source == self.diff_working:
+            with self.working_path.open( encoding='utf-8' ) as f:
+                return f.read().split( '\n' )
+
+        assert False, 'unknown source type %r' % (source,)
