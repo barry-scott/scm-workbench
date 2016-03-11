@@ -14,8 +14,9 @@ import sys
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
+from PyQt5 import QtCore
 
-class WbDiffView(QtWidgets.QDialog):
+class WbDiffView(QtWidgets.QWidget):
     style_header = 0
     style_normal = 1
     style_add = 2
@@ -28,10 +29,19 @@ class WbDiffView(QtWidgets.QDialog):
         (style_delete,  '#1919c0', '#ffffff'),
         )
 
+    uid = 0
+    all_diff_views = {}
+
     def __init__( self, app, parent, title, icon ):
         self.app = app
 
-        super().__init__( parent )
+        WbDiffView.uid += 1
+        self.window_uid = WbDiffView.uid
+
+        # remeber this window to keep the object alive
+        WbDiffView.all_diff_views[ self.window_uid ] = self
+
+        super().__init__( None )
 
         self.setWindowTitle( title )
         self.setWindowIcon( icon )
@@ -56,7 +66,7 @@ class WbDiffView(QtWidgets.QDialog):
         self.buttons = QtWidgets.QDialogButtonBox()
         self.buttons.addButton( self.buttons.Ok )
 
-        self.buttons.accepted.connect( self.accept )
+        self.buttons.accepted.connect( self.close )
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget( self.text_edit )
@@ -75,6 +85,11 @@ class WbDiffView(QtWidgets.QDialog):
         self.text_edit.setReadOnly( True )
 
         self.resize( 1100, 700 )
+
+    def closeEvent( self, event ):
+        del WbDiffView.all_diff_views[ self.window_uid ]
+
+        super().closeEvent( event )
 
     def setUnifiedDiffText( self, all_lines ):
         for line in all_lines:
