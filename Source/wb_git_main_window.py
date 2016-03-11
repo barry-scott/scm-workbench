@@ -174,6 +174,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.table_sortfilter = wb_git_table_model.WbGitTableSortFilter( self.app )
         self.table_sortfilter.setSourceModel( self.table_model )
+        self.table_sortfilter.setDynamicSortFilter( False )
 
         self.table_sort_column = self.table_model.col_cache
         self.table_sort_order = QtCore.Qt.AscendingOrder
@@ -458,6 +459,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         # update the selected projects data
         self.tree_model.appActiveHandler()
 
+        # sort filter is now invalid
+        self.table_sortfilter.invalidate()
+
+        # enabled states will have changed
         self.timer_update_enable_states.start( 0 )
 
     def moveEvent( self, event ):
@@ -831,7 +836,13 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             git_project = self.__treeSelectedGitProject()
             git_project.saveChanges()
 
+            # take account of the change
             self.table_model.refreshTable()
+
+            # sort filter is now invalid
+            self.table_sortfilter.invalidate()
+
+            # enabled states will have changed
             self.updateActionEnabledStates()
 
 class WbTableView(QtWidgets.QTableView):
