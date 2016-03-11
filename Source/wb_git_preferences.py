@@ -439,8 +439,9 @@ class WindowPreferences(PreferenceSection):
         self.h_sash_ratio = 0.7
         self.v_sash_ratio = 0.2
 
-        self.__frame_size = ( 700, 500 )
+        self.__frame_size = (700, 500)
         self.__frame_position = None
+        self.__frame_position_error = (0,0)
         self.maximized = False
         self.zoom = 0
 
@@ -453,10 +454,13 @@ class WindowPreferences(PreferenceSection):
         if y < 0:
             y = 0
         self.__frame_position = ( x, y )
+        if get_option.has( 'pos_x_error' ) and get_option.has( 'pos_y_error' ):
+            self.__frame_position_error = (get_option.getint( 'pos_x_error' ), get_option.getint( 'pos_y_error' ))
 
         w = get_option.getint( 'width' )
         h = get_option.getint( 'height' )
         self.__frame_size = ( w, h )
+
 
         self.maximized = get_option.getbool( 'maximized' )
         if get_option.has( 'zoom' ):
@@ -472,6 +476,8 @@ class WindowPreferences(PreferenceSection):
         if self.__frame_position is not None:
             set_option.set( 'pos_x', self.__frame_position[0] )
             set_option.set( 'pos_y', self.__frame_position[1] )
+        set_option.set( 'pos_x_error', self.__frame_position_error[0] )
+        set_option.set( 'pos_y_error', self.__frame_position_error[1] )
         set_option.set( 'width', self.__frame_size[0] )
         set_option.set( 'height', self.__frame_size[1] )
         set_option.set( 'maximized', self.maximized )
@@ -484,6 +490,12 @@ class WindowPreferences(PreferenceSection):
 
     def setFramePosition( self, x, y ):
         self.__frame_position = (x, y)
+
+    def getFramePositionError( self ):
+        return self.__frame_position_error
+
+    def setFramePositionError( self, x, y ):
+        self.__frame_position_error = (x, y)
 
     def getFrameSize( self ):
         return self.__frame_size

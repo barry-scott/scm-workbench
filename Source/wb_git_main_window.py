@@ -14,6 +14,7 @@
 '''
 import sys
 import os
+import time
 
 # On OS X the packager missing this import
 import sip
@@ -66,10 +67,14 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__setupTreeContextMenu()
         self.__setupTableContextMenu()
 
-        if win_prefs.getFramePosition() is not None:
-            self.move( *win_prefs.getFramePosition() )
 
+        # Qt requires that resize() is called before move()
         self.resize( *win_prefs.getFrameSize() )
+
+        if win_prefs.getFramePosition() is not None:
+            x, y = win_prefs.getFramePosition()
+            x_err, y_err = win_prefs.getFramePositionError()
+            self.move( x-x_err, y-y_err )
 
         self.table_keys_edit = ['\r', 'e', 'E']
         self.table_keys_open = ['o', 'O']
@@ -155,7 +160,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.timer_init.setSingleShot( True )
         self.timer_init.start( 0 )
 
+        self.may_set_position_error = True
+        self.main_window_start_time = time.time()
+
     def completeStatupInitialisation( self ):
+        print( 'completeStatupInitialisation()' )
+
         # set splitter position
         tree_size_ratio = 0.3
         width = sum( self.h_split.sizes() )
@@ -167,7 +177,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.log.debug( 'Debug messages are enabled' )
 
-        self.timer = None
+        self.timer_init = None
 
     def __setupTableViewAndModel( self ):
         self.table_model = wb_git_table_model.WbGitTableModel( self.app )
@@ -487,7 +497,34 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.timer_update_enable_states.start( 0 )
 
     def moveEvent( self, event ):
-        self.app.prefs.getWindow().setFramePosition( event.pos().x(), event.pos().y() )
+        #
+        # KDE places the Window down and to the left
+        # preventing restore of window position
+        #
+        # Try to determine the X and Y error and save in preferences
+        #
+        # first move is to the prefs location
+        # second move is the adjustment for the decoration of the window
+        #
+        print( 'moveEvent event.pos().x() %r event.pos().y() %r' % (event.pos().x(), event.pos().y()) )
+
+        win_prefs = self.app.prefs.getWindow()
+        if win_prefs.getFramePosition() is not None:
+            time_since_start = time.time() - self.main_window_start_time
+            if time_since_start < 0.5:
+                if (event.pos().x(), event.pos().y()) != win_prefs.getFramePosition():
+                    x_err = win_prefs.getFramePosition()[0] - event.pos().x()
+                    y_err = win_prefs.getFramePosition()[1] - event.pos().y()
+
+                    if self.may_set_position_error:
+                        print( 'moveEvent setFramePositionError( %d, %d )' % (x_err, y_err) )
+                        win_prefs.setFramePositionError( x_err, y_err )
+
+                        self.may_set_position_error = False
+
+                    return
+
+        win_prefs.setFramePosition( event.pos().x(), event.pos().y() )
 
     def resizeEvent( self, event ):
         self.app.prefs.getWindow().setFrameSize( event.size().width(), event.size().height() )
