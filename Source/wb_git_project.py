@@ -34,6 +34,9 @@ class GitProject:
     def __repr__( self ):
         return '<GitProject: %s>' % (self.prefs_project.name,)
 
+    def projectName( self ):
+        return self.prefs_project.name
+
     def path( self ):
         return self.prefs_project.path
 
@@ -175,6 +178,24 @@ class GitProject:
             f.write( blob.data )
 
         self.__dirty = True
+
+    def cmdCommit( self, message ):
+        author = self.repo.default_signature
+        comitter = self.repo.default_signature
+
+        tree = self.repo.index.write_tree()
+
+        last_commit = self.repo.revparse_single( 'HEAD' )
+
+
+        self.repo.create_commit(
+            'refs/heads/master',            # branch to comimit to
+            author,
+            comitter,
+            message,
+            tree,                           # tree in the new state
+            [last_commit.id]   # the previous commit in the history
+            )
 
     def __findFileInTree( self, tree, filename ):
         self._debug( '__findFileInTree( %r, %r )' % (tree, filename) )

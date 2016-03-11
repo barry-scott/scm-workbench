@@ -28,7 +28,7 @@ import wb_git_version
 import wb_git_images
 import wb_git_preferences
 #import wb_git_preferences_dialog
-
+import wb_git_commit_dialog
 import wb_git_config
 
 import wb_git_tree_model
@@ -243,6 +243,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
         self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
         self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        m.addSeparator()
+        self.__addMenu( m, T_('Commit'), self.treeActionCommit, self.enablerCommit )
 
         menu_help = mb.addMenu( T_('&Help' ) )
         self.__addMenu( menu_help, T_("&About..."), self.appActionAbout, self.enablerEnabled )
@@ -260,7 +262,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
         self.__addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        m.addSection( T_('Diff') )        
+        m.addSection( T_('Diff') )
         self.__addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
         self.__addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
         self.__addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
@@ -296,6 +298,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
         self.__addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
         self.__addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        t.addSeparator()
+        self.__addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit )
 
         t = self.tool_bar_git_info = self.__addToolBar( T_('git info') )
         self.__addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
@@ -363,7 +367,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def enablerFilesRevert( self, cache ):
         key = 'enablerFilesRevert'
         if key not in cache:
-            with_status = pygit2.GIT_STATUS_WT_MODIFIED
+            with_status = pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED
             without_status = pygit2.GIT_STATUS_INDEX_MODIFIED
             cache[ key ] = self.__tableSelectedWithStatus( with_status, without_status )
 
@@ -447,6 +451,23 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         return cache[ key ]
 
+    def enablerCommit( self, cache ):
+        key = 'enablerCommit'
+        if key not in cache:
+            # enable if any files staged
+            git_project = self.__treeSelectedGitProject()
+
+            staged_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
+
+            can_commit = False
+            for status in git_project.status.values():
+                if (status&staged_status) != 0:
+                    can_commit = True
+                    break
+
+            cache[ key ] = can_commit
+
+        return cache[ key ]
 
     #------------------------------------------------------------
     #
@@ -517,7 +538,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             prefs = self.app.prefs.getBookmarks()
             bookmark = wb_git_preferences.Bookmark(
                         prefs.name_last_position,
-                        git_project_tree_node.project.prefs_project.name,
+                        git_project_tree_node.project.projectName(),
                         git_project_tree_node.relativePath() )
 
             prefs.addBookmark( bookmark )
@@ -620,6 +641,37 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def treeActionGitDiffHeadVsWorking( self ):
         self._debug( 'treeActionGitDiffHeadVsWorking()' )
+
+    def treeActionCommit( self ):
+        git_project = self.__treeSelectedGitProject()
+
+        all_staged_files = []
+        can_commit = False
+        for filename, status in git_project.status.items():
+            if (status&pygit2.GIT_STATUS_INDEX_NEW) != 0:
+                all_staged_files.append( (T_('new file'), filename) )
+
+            elif (status&pygit2.GIT_STATUS_INDEX_MODIFIED) != 0:
+                all_staged_files.append( (T_('modified'), filename) )
+
+            elif (status&pygit2.GIT_STATUS_INDEX_DELETED) != 0:
+                all_staged_files.append( (T_('deleted'), filename) )
+
+        dialog = wb_git_commit_dialog.WbGitCommitDialog(
+                    self.app, self,
+                    all_staged_files,
+                    T_('Commit %s') % (git_project.projectName(),) )
+        if dialog.exec_():
+            git_project.cmdCommit( dialog.getMessage() )
+
+            # take account of the change
+            self.table_model.refreshTable()
+
+            # sort filter is now invalid
+            self.table_sortfilter.invalidate()
+
+            # enabled states will have changed
+            self.updateActionEnabledStates()
 
     #------------------------------------------------------------
     #
@@ -782,6 +834,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         window = wb_diff_view.WbDiffView( self.app, self, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
+
+        self.all_diff_windows.append( window )
 
     def __actionGitDiffHeadVsStaged( self, git_project, filename ):
         diff_objects = git_project.getDiffObjects( filename )
