@@ -21,12 +21,14 @@ _debug_main_window = False
 _debug_tree_model = False
 _debug_table_model = False
 _debug_git_project = False
+_debug_log_history = False
 
 def setDebug( str_options ):
     for option in [s.strip().lower() for s in str_options.split(',')]:
         name = '_debug_%s' % (option.replace( '-', '_' ),)
         if name in globals():
             globals()[ name ] = True
+
         else:
             print( 'Unknown debug option %s - see wb_git_debug.py for available options' % (option,) )
 
@@ -76,3 +78,7 @@ class WbGitDebugMixin:
     def _debugGitProject( self, msg ):
         if _debug_git_project:
             self.log.debug( 'GIT-PROJECT %s' % (msg,) )
+
+    def _debugLogHistory( self, msg ):
+        if _debug_log_history:
+            self.log.debug( 'LOG-HISTORY %s' % (msg,) )

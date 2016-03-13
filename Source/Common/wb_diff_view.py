@@ -32,13 +32,13 @@ class WbDiffView(QtWidgets.QWidget):
     uid = 0
     all_diff_views = {}
 
-    def __init__( self, app, parent, title, icon ):
+    def __init__( self, app, title, icon ):
         self.app = app
 
         WbDiffView.uid += 1
         self.window_uid = WbDiffView.uid
 
-        # remeber this window to keep the object alive
+        # remember this window to keep the object alive
         WbDiffView.all_diff_views[ self.window_uid ] = self
 
         super().__init__( None )
@@ -63,14 +63,8 @@ class WbDiffView(QtWidgets.QWidget):
 
         self.text_edit = QtWidgets.QTextEdit()
 
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.buttons.addButton( self.buttons.Ok )
-
-        self.buttons.accepted.connect( self.close )
-
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget( self.text_edit )
-        self.layout.addWidget( self.buttons )
 
         self.setLayout( self.layout )
 

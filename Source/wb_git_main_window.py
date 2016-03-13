@@ -35,6 +35,7 @@ import wb_git_config
 import wb_git_tree_model
 import wb_git_table_model
 import wb_git_project
+import wb_git_log_history
 
 import wb_shell_commands
 import wb_logging
@@ -164,7 +165,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.main_window_start_time = time.time()
 
     def completeStatupInitialisation( self ):
-        print( 'completeStatupInitialisation()' )
+        self._debug( 'completeStatupInitialisation()' )
 
         # set splitter position
         tree_size_ratio = 0.3
@@ -313,6 +314,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         t = self.tool_bar_git_info = self.__addToolBar( T_('git info') )
         self.__addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
+        self.__addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
 
     def __addToolBar( self, name ):
         bar = self.addToolBar( name )
@@ -479,6 +481,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         return cache[ key ]
 
+    def enablerLogHistory( self, cache ):
+        return True
+
     #------------------------------------------------------------
     #
     #   Event handlers
@@ -612,6 +617,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def treeTableActionGitDiffHeadVsWorking( self ):
         self.__callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
 
+    def treeTableActionGitLogHistory( self ):
+        self.__callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
+
     #------------------------------------------------------------
     #
     # tree actions
@@ -710,6 +718,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
             # enabled states will have changed
             self.updateActionEnabledStates()
+
+    def treeActionGitLogHistory( self ):
+        pass
+
 
     #------------------------------------------------------------
     #
@@ -832,6 +844,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self._debug( 'tableActionGitDiffHeadVsWorking()' )
         self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsWorking )
 
+    def tableActionGitLogHistory( self ):
+        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitLogHistory )
+
     def __actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )
 
@@ -857,9 +872,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         diff_objects = git_project.getDiffObjects( filename )
 
         text = diff_objects.diffUnified( diff_objects.diff_head, diff_objects.diff_working )
-        title = 'Diff HEAD vs. Work %s' % (filename,)
+        title = T_('Diff HEAD vs. Work %s') % (filename,)
 
-        window = wb_diff_view.WbDiffView( self.app, self, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -867,9 +882,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         diff_objects = git_project.getDiffObjects( filename )
 
         text = diff_objects.diffUnified( diff_objects.diff_staged, diff_objects.diff_working )
-        title = 'Diff Staged vs. Work %s' % (filename,)
+        title = T_('Diff Staged vs. Work %s') % (filename,)
 
-        window = wb_diff_view.WbDiffView( self.app, self, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -879,20 +894,30 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         diff_objects = git_project.getDiffObjects( filename )
 
         text = diff_objects.diffUnified( diff_objects.diff_head, diff_objects.diff_staged )
-        title = 'Diff HEAD vs. Staged %s' % (filename,)
+        title = T_('Diff HEAD vs. Staged %s') % (filename,)
 
-        window = wb_diff_view.WbDiffView( self.app, self, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
+    def __actionGitLogHistory( self, git_project, filename ):
+        options = wb_git_log_history.WbGitLogHistoryOptions( self, self.app.prefs.getLogHistory() )
+
+        if options.exec_():
+            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+                    self.app, T_('Commit Log for %s') % (filename,), wb_git_images.getQIcon( 'wb.png' ) )
+            commit_log_view.showCommitLogForFile( git_project, filename, options )
+            commit_log_view.show()
+
+    #------------------------------------------------------------
     def __areYouSureAlways( self, all_filenames ):
         return True
 
     def __areYouSureRevert( self, all_filenames ):
         default_button = QtWidgets.QMessageBox.No
 
-        title = 'Confirm Revert'
-        all_parts = ['Are you sure you wish to revert:']
+        title = T_('Confirm Revert')
+        all_parts = [T_('Are you sure you wish to revert:')]
         all_parts.extend( [str(filename) for filename in all_filenames] )
 
         message = '\n'.join( all_parts )

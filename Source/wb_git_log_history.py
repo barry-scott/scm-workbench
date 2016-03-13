@@ -12,14 +12,19 @@
 
 '''
 import sys
+import time
 import datetime
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-
-class WbGitHistoryOptions(QtWidgets.QDialog):
+#------------------------------------------------------------
+#
+#   WbGitLogHistoryOptions - option to control which commit logs to show
+#
+#------------------------------------------------------------
+class WbGitLogHistoryOptions(QtWidgets.QDialog):
     def __init__( self, parent, prefs ):
         super().__init__( parent )
 
@@ -99,6 +104,194 @@ class WbGitHistoryOptions(QtWidgets.QDialog):
         assert self.showMode() == 'show_since'
         return self.date_since.selectedDate()
 
+#------------------------------------------------------------
+#
+#   WbGitLogHistoryView - show the commits from the log model
+#
+#------------------------------------------------------------
+class WbGitLogHistoryView(QtWidgets.QWidget):
+    uid = 0
+    all_log_views = {}
+
+    def __init__( self, app, title, icon ):
+        self.app = app
+        self._debug = self.app._debugLogHistory
+
+        WbGitLogHistoryView.uid += 1
+        self.window_uid = WbGitLogHistoryView.uid
+
+        # remember this window to keep the object alive
+        WbGitLogHistoryView.all_log_views[ self.window_uid ] = self
+
+        super().__init__( None )
+
+        self.log_model = WbGitLogHistoryModel( self.app )
+
+        self.setWindowTitle( title )
+        self.setWindowIcon( icon )
+
+        self.point_size = 14
+        # point size and face need to chosen for platform
+        if sys.platform.startswith( 'win' ):
+            self.face = 'Courier New'
+
+        elif sys.platform == 'darwin':
+            self.face = 'Monaco'
+
+        else:
+            # Assuming linux/xxxBSD
+            self.face = 'Liberation Mono'
+            self.point_size = 11
+
+        self.font = QtGui.QFont( self.face, self.point_size )
+
+        self.table_view = WbLogTableView( self )
+        self.table_view.setSelectionBehavior( self.table_view.SelectRows )
+        self.table_view.setSelectionMode( self.table_view.SingleSelection )
+        self.table_view.setModel( self.log_model )
+
+        # size columns
+        char_width = 10
+        self.table_view.setColumnWidth( self.log_model.col_author, char_width*16 )
+        self.table_view.setColumnWidth( self.log_model.col_date, char_width*16 )
+        self.table_view.setColumnWidth( self.log_model.col_message, char_width*40 )
+
+        self.commit_message = QtWidgets.QTextEdit()
+        self.commit_message.setReadOnly( True )
+        self.commit_message.setCurrentFont( self.font )
+
+        self.commit_id = QtWidgets.QLineEdit()
+        self.commit_id.setReadOnly( True )
+        self.commit_id.setFont( self.font )
+
+        self.commit_changes = QtWidgets.QTextEdit()
+        self.commit_changes.setReadOnly( True )
+        self.commit_changes.setCurrentFont( self.font )
+
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.addWidget( self.table_view )
+        self.layout.addWidget( QtWidgets.QLabel( T_('Commit ID') ) )
+        self.layout.addWidget( self.commit_id )
+        self.layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
+        self.layout.addWidget( self.commit_message )
+        self.layout.addWidget( QtWidgets.QLabel( T_('Changed Files') ) )
+        self.layout.addWidget( self.commit_changes )
+
+        self.setLayout( self.layout )
+
+        self.resize( 800, 600 )
+
+    def showCommitLogForFile( self, git_project, filename, options ):
+        if options.showMode() == 'show_all':
+            since = None
+            limit = None
+
+        elif options.showMode() == 'show_since':
+            since = options.showSince()
+            limit = None
+
+        elif options.showMode() == 'show_limit':
+            since = None
+            limit = options.showLimit()
+
+        self.log_model.loadCommitLogForFile( git_project, filename, since, limit )
+
+    def selectionChanged( self ):
+        index = self.table_view.selectedIndexes()[0]
+
+        node = self.log_model.commitNode( index )
+        self.commit_id.clear()
+        self.commit_id.setText( node.commitIdString() )
+
+        self.commit_message.clear()
+        self.commit_message.insertPlainText( node.commitMessage() )
+
+        self.commit_changes.clear()
+        self.commit_changes.insertPlainText( ''.join( '%s %s\n' % (type_, filename) for type_, filename in node.commitFileChanges() ) )
+
+    def closeEvent( self, event ):
+        del WbGitLogHistoryView.all_log_views[ self.window_uid ]
+
+        super().closeEvent( event )
+
+class WbLogTableView(QtWidgets.QTableView):
+    def __init__( self, log_view ):
+        self.log_view = log_view
+
+        self._debug = log_view._debug
+
+        super().__init__()
+
+    def selectionChanged( self, selected, deselected ):
+        self._debug( 'WbLogTableView.selectionChanged()' )
+
+        self.log_view.selectionChanged()
+
+class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
+    col_author = 0
+    col_date = 1
+    col_message = 2
+
+    column_titles = (U_('Author'), U_('Date'), U_('Message'))
+
+    def __init__( self, app ):
+        self.app = app
+
+        self._debug = self.app._debugLogHistory
+
+        super().__init__()
+
+        self.all_commit_nodes  = []
+
+    def loadCommitLogForFile( self, git_project, filename, since, limit ):
+        self.beginResetModel()
+        self.all_commit_nodes = git_project.cmdCommitLogForFile( filename, since, limit )
+        self.endResetModel()
+
+    def rowCount( self, parent ):
+        return len( self.all_commit_nodes )
+
+    def columnCount( self, parent ):
+        return len( self.column_titles )
+
+    def headerData( self, section, orientation, role ):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return T_( self.column_titles[section] )
+
+            if orientation == QtCore.Qt.Vertical:
+                return ''
+
+        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
+            return QtCore.Qt.AlignLeft
+
+        return None
+
+    def commitNode( self, index ):
+        return self.all_commit_nodes[ index.row() ]
+
+    def data( self, index, role ):
+        if role == QtCore.Qt.UserRole:
+            return self.all_commit_nodes[ index.row() ]
+
+        if role == QtCore.Qt.DisplayRole:
+            node = self.all_commit_nodes[ index.row() ]
+
+            col = index.column()
+
+            if col == self.col_author:
+                return '%s <%s>' % (node.commitAuthor(), node.commitAuthorEmail())
+
+            elif col == self.col_date:
+                return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( node.commitDate() ) )
+
+            elif col == self.col_message:
+                return node.commitMessage().split('\n')[0]
+
+            assert False
+
+        return None
+
 if __name__ == '__main__':
     def T_(s):
         return s
@@ -109,7 +302,6 @@ if __name__ == '__main__':
             self.default_limit = 20
             self.default_since_days_interval = 7
             self.default_include_tags = False
-
 
     app = QtWidgets.QApplication( ['foo'] )
 

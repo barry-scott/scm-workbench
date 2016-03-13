@@ -12,6 +12,7 @@
 '''
 import pathlib
 import difflib
+
 import pygit2
 
 class GitProject:
@@ -194,8 +195,75 @@ class GitProject:
             comitter,
             message,
             tree,                           # tree in the new state
-            [last_commit.id]   # the previous commit in the history
+            [last_commit.id]                # the previous commit in the history
             )
+
+    def cmdCommitLogForFile( self, filename, since=None, limit=None ):
+        offset = 0
+        all_commit_logs = []
+
+        commit = self.repo.revparse_single( 'HEAD' )
+        while True:
+            tree = commit.peel( pygit2.GIT_OBJ_TREE )
+            try:
+                entry = self.__findFileInTree( tree, filename )
+
+            except KeyError:
+                break
+
+            if( since is not None
+            and commit.commit_time < since ):
+                break
+
+            new_node = GitCommitLogNode( commit, entry )
+
+            if( len( all_commit_logs) > offset
+            and all_commit_logs[ offset ].isEntryEqual( new_node ) ):
+                all_commit_logs[ offset ] = new_node
+                
+                if( limit is not None
+                and len( all_commit_logs ) <= limit ):
+                    break
+
+            else:
+                all_commit_logs.append( new_node )
+
+            if len( commit.parents ) == 0:
+                break
+
+            commit = commit.parents[0]
+
+        # now calculate what was added, deleted and modified in each commit
+        for offset in range( len(all_commit_logs) ):
+            new_tree = all_commit_logs[ offset ].commitTree()
+            old_tree = all_commit_logs[ offset ].commitPreviousTree()
+
+            all_new = {}
+            self.__treeToDict( new_tree, [], all_new )
+            new_set = set(all_new)
+
+            if old_tree is None:
+                all_commit_logs[ offset ]._addChanges( new_set, set(), set() )
+
+            else:
+                all_old = {}
+                self.__treeToDict( old_tree, [], all_old )
+
+                old_set = set(all_old)
+
+                all_added = new_set - old_set
+                all_deleted = old_set - new_set
+
+                all_modified = set()
+
+                for key in all_new:
+                    if( key in all_old
+                    and all_new[ key ] != all_old[ key ] ):
+                        all_modified.add( key )
+
+                all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_modified )
+
+        return all_commit_logs
 
     def __findFileInTree( self, tree, filename ):
         self._debug( '__findFileInTree( %r, %r )' % (tree, filename) )
@@ -213,6 +281,77 @@ class GitProject:
                 return entry
 
         raise KeyError( 'file not in tree' )
+
+    def __treeToDict( self, tree, parents, all_entries ):
+        for entry in tree:
+            if entry.filemode == pygit2.GIT_FILEMODE_TREE:
+                self.__treeToDict( self.repo.get( entry.id ), parents + [entry.name], all_entries )
+
+            elif entry.filemode in (pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE):
+                filename_parts = parents + [entry.name]
+                filename = '/'.join( filename_parts )
+                all_entries[ filename ] = entry.id
+
+class GitCommitLogNode:
+    def __init__( self, commit, entry ):
+        self.__commit = commit
+        self._entry = entry
+        self.__all_changes = []
+
+    def _addChanges( self, all_added, all_deleted, all_modified ):
+        for name in all_added:
+            self.__all_changes.append( ('A', name ) )
+
+        for name in all_deleted:
+            self.__all_changes.append( ('D', name ) )
+
+        for name in all_modified:
+            self.__all_changes.append( ('M', name ) )
+
+    def commitTree( self ):
+        return self.__commit.peel( pygit2.GIT_OBJ_TREE )
+
+    def commitPreviousTree( self ):
+        if len(self.__commit.parents) == 0:
+            return None
+
+        previous_commit = self.__commit.parents[0]
+        return previous_commit.peel( pygit2.GIT_OBJ_TREE )
+
+    def commitTreeDict( self ):
+        all_entries = {}
+        self.__treeToDict( self.commitTree(), [], all_entries )
+        return all_entries
+
+    def commitPreviousTreeDict( self ):
+        all_entries = {}
+
+        tree = self.commitPreviousTree()
+        if tree is not None:
+            self.__treeToDict( tree, [], all_entries )
+
+        return all_entries
+
+    def commitIdString( self ):
+        return self.__commit.hex
+
+    def commitAuthor( self ):
+        return self.__commit.author.name
+
+    def commitAuthorEmail( self ):
+        return self.__commit.author.email
+
+    def commitDate( self ):
+        return self.__commit.commit_time
+
+    def commitMessage( self ):
+        return self.__commit.message
+
+    def commitFileChanges( self ):
+        return self.__all_changes
+
+    def isEntryEqual( self, other ):
+        return self._entry.id == other._entry.id
 
 class GitProjectTreeNode:
     def __init__( self, project, name, path ):
