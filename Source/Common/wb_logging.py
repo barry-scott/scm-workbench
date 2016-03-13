@@ -86,7 +86,7 @@ class WbLog:
 
         # Redirect the console IO to this panel
         sys.stdin = wb_platform_specific.getNullDevice().open( 'r' )
-        if self.app.stdIoRedirect():
+        if self.app.stdIoRedirected():
             sys.stdout = self
             sys.stderr = self
 
@@ -107,7 +107,7 @@ class WbLog:
             self.app.foregroundProcess( self.write, (string,) )
             return
 
-        if string.startwith( 'Error:' ):
+        if string.startswith( 'Error:' ):
             self.__log_widget.writeError( string )
 
         elif string.startswith( 'Info:' ):
@@ -122,7 +122,7 @@ class WbLog:
         else:
             self.__log_widget.writeNormal( string )
 
-        if not self.app.isStdIoRedirect():
+        if not self.app.stdIoRedirected():
             sys.__stdout__.write(  string  )
 
     def close( self ):

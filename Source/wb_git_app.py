@@ -157,13 +157,19 @@ class WbGit_App(QtWidgets.QApplication,
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
 
+        try:
+            print( 'Hello' )
+        except:
+            self.log.exception('hello')
+
+
     def debugEnabled( self ):
         return self.__debug
 
     def traceEnabled( self ):
         return self.__trace
 
-    def stdIoRedirect( self ):
+    def stdIoRedirected( self ):
         return not self.__debug_noredirect
 
     def logToStdOut( self ):
