@@ -160,7 +160,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.timer_init.setSingleShot( True )
         self.timer_init.start( 0 )
 
-        self.may_set_position_error = True
+        self.move_event_count = 0
         self.main_window_start_time = time.time()
 
     def completeStatupInitialisation( self ):
@@ -506,25 +506,25 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         # first move is to the prefs location
         # second move is the adjustment for the decoration of the window
         #
-        print( 'moveEvent event.pos().x() %r event.pos().y() %r' % (event.pos().x(), event.pos().y()) )
-
+        self.move_event_count += 1
         win_prefs = self.app.prefs.getWindow()
-        if win_prefs.getFramePosition() is not None:
+        self._debug( 'x %r y %r' % (event.pos().x(), event.pos().y()) )
+
+        if win_prefs.getFramePosition() is not None and self.move_event_count == 2:
+            self._debug( 'moveEvent()  frame x %r, frame y %r' %
+                    (win_prefs.getFramePosition()[0], win_prefs.getFramePosition()[1]) )
             time_since_start = time.time() - self.main_window_start_time
             if time_since_start < 0.5:
                 if (event.pos().x(), event.pos().y()) != win_prefs.getFramePosition():
-                    x_err = win_prefs.getFramePosition()[0] - event.pos().x()
-                    y_err = win_prefs.getFramePosition()[1] - event.pos().y()
+                    x_err = event.pos().x() - win_prefs.getFramePosition()[0]
+                    y_err = event.pos().y() - win_prefs.getFramePosition()[1]
 
-                    if self.may_set_position_error:
-                        print( 'moveEvent setFramePositionError( %d, %d )' % (x_err, y_err) )
-                        win_prefs.setFramePositionError( x_err, y_err )
-
-                        self.may_set_position_error = False
-
+                    self._debug( 'moveEvent setFramePositionError( %d, %d )' % (x_err, y_err) )
+                    win_prefs.setFramePositionError( x_err, y_err )
                     return
 
-        win_prefs.setFramePosition( event.pos().x(), event.pos().y() )
+        if self.move_event_count >= 2:
+            win_prefs.setFramePosition( event.pos().x(), event.pos().y() )
 
     def resizeEvent( self, event ):
         self.app.prefs.getWindow().setFrameSize( event.size().width(), event.size().height() )
