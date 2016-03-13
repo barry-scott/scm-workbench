@@ -708,7 +708,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     all_staged_files,
                     T_('Commit %s') % (git_project.projectName(),) )
         if dialog.exec_():
-            git_project.cmdCommit( dialog.getMessage() )
+            commit_id = git_project.cmdCommit( dialog.getMessage() )
 
             # take account of the change
             self.tree_model.refreshTree()
@@ -718,6 +718,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
             # enabled states will have changed
             self.updateActionEnabledStates()
+
+            self.log.info( T_('Committed %s') % (commit_id,) )
 
     def treeActionGitLogHistory( self ):
         pass

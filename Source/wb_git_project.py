@@ -189,7 +189,7 @@ class GitProject:
         last_commit = self.repo.revparse_single( 'HEAD' )
 
 
-        self.repo.create_commit(
+        commit_id = self.repo.create_commit(
             'refs/heads/master',            # branch to comimit to
             author,
             comitter,
@@ -197,6 +197,8 @@ class GitProject:
             tree,                           # tree in the new state
             [last_commit.id]                # the previous commit in the history
             )
+
+        return commit_id
 
     def cmdCommitLogForFile( self, filename, since=None, limit=None ):
         offset = 0
