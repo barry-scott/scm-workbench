@@ -14,7 +14,7 @@
 '''
 import sys
 
-# point size and face need to choosen for platform
+# point size and face need to chosen for platform
 if sys.platform.startswith( 'win' ):
     face = 'Courier New'
     point_size = 8
