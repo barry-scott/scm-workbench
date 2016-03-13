@@ -116,7 +116,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
     col_date = 3
     col_type = 4
 
-    column_titles = ['Cache', 'Working', 'Name', 'Date', 'Type']
+    column_titles = [U_('Cache'), U_('Working'), U_('Name'), U_('Date'), U_('Type')]
 
     def __init__( self, app ):
         self.app = app
@@ -142,7 +142,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
     def headerData( self, section, orientation, role ):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                return self.column_titles[section]
+                return T_( self.column_titles[section] )
 
             if orientation == QtCore.Qt.Vertical:
                 return ''

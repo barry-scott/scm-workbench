@@ -135,7 +135,7 @@ class WbGit_App(QtWidgets.QApplication,
         # S_( 'singular', 'plural', n )
         builtins.__dict__['S_'] = self.translation.ngettext
         # U_( 'static string' )
-        builtins.__dict__['U_'] = lambda s: s
+        # already setup in wb_git_main
 
         # Debug settings
         self.__last_client_error = []
