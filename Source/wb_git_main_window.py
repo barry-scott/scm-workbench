@@ -510,10 +510,11 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         win_prefs = self.app.prefs.getWindow()
         self._debug( 'x %r y %r' % (event.pos().x(), event.pos().y()) )
 
+        time_since_start = time.time() - self.main_window_start_time
+
         if win_prefs.getFramePosition() is not None and self.move_event_count == 2:
             self._debug( 'moveEvent()  frame x %r, frame y %r' %
                     (win_prefs.getFramePosition()[0], win_prefs.getFramePosition()[1]) )
-            time_since_start = time.time() - self.main_window_start_time
             if time_since_start < 0.5:
                 if (event.pos().x(), event.pos().y()) != win_prefs.getFramePosition():
                     x_err = event.pos().x() - win_prefs.getFramePosition()[0]
@@ -523,7 +524,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     win_prefs.setFramePositionError( x_err, y_err )
                     return
 
-        if self.move_event_count >= 2:
+        if self.move_event_count >= 2 or time_since_start >= 0.5:
             win_prefs.setFramePosition( event.pos().x(), event.pos().y() )
 
     def resizeEvent( self, event ):
