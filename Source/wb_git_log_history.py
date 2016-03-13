@@ -207,7 +207,12 @@ class WbGitLogHistoryView(QtWidgets.QWidget):
         self.commit_message.insertPlainText( node.commitMessage() )
 
         self.commit_changes.clear()
-        self.commit_changes.insertPlainText( ''.join( '%s %s\n' % (type_, filename) for type_, filename in node.commitFileChanges() ) )
+        for type_, filename, old_filename in node.commitFileChanges():
+            if type_ in ('A', 'D', 'M'):
+                self.commit_changes.insertPlainText( '%s %s\n' % (type_, filename) )
+
+            else:
+                self.commit_changes.insertPlainText( '%s %s from %s\n' % (type_, filename, old_filename) )
 
     def closeEvent( self, event ):
         del WbGitLogHistoryView.all_log_views[ self.window_uid ]

@@ -204,14 +204,26 @@ class GitProject:
         offset = 0
         all_commit_logs = []
 
+        last_file_id = None
+
         commit = self.repo.revparse_single( 'HEAD' )
         while True:
+            file_was_renamed = False
+
             tree = commit.peel( pygit2.GIT_OBJ_TREE )
             try:
                 entry = self.__findFileInTree( tree, filename )
+                last_file_id = entry.id
 
             except KeyError:
-                break
+                # was the file renamed?
+                filename = self.__filenameFromIdInTree( tree, last_file_id, [] )
+                if filename is None:
+                    # no rename we are done
+                    break
+
+                entry = self.__findFileInTree( tree, filename )
+                file_was_renamed = True
 
             if( since is not None
             and commit.commit_time < since ):
@@ -220,14 +232,16 @@ class GitProject:
             new_node = GitCommitLogNode( commit, entry )
 
             if( len( all_commit_logs) > offset
-            and all_commit_logs[ offset ].isEntryEqual( new_node ) ):
+            and all_commit_logs[ offset ].isEntryEqual( new_node )
+            and not file_was_renamed ):
                 all_commit_logs[ offset ] = new_node
-                
+
                 if( limit is not None
                 and len( all_commit_logs ) <= limit ):
                     break
 
             else:
+                offset = len( all_commit_logs )
                 all_commit_logs.append( new_node )
 
             if len( commit.parents ) == 0:
@@ -245,7 +259,7 @@ class GitProject:
             new_set = set(all_new)
 
             if old_tree is None:
-                all_commit_logs[ offset ]._addChanges( new_set, set(), set() )
+                all_commit_logs[ offset ]._addChanges( new_set, set(), [], set() )
 
             else:
                 all_old = {}
@@ -256,6 +270,21 @@ class GitProject:
                 all_added = new_set - old_set
                 all_deleted = old_set - new_set
 
+                all_renamed = []
+
+                if len(all_added) > 0:
+                    all_old_id_to_name = {}
+                    for name, id_ in all_old.items():
+                        all_old_id_to_name[ id_ ] = name
+
+                    for name in list(all_added):
+                        id_ = all_new[ name ]
+
+                        if id_ in all_old_id_to_name:
+                            all_added.remove( name )
+                            all_deleted.remove( all_old_id_to_name[ id_ ] )
+                            all_renamed.append( (name, all_old_id_to_name[ id_ ]) )
+
                 all_modified = set()
 
                 for key in all_new:
@@ -263,7 +292,7 @@ class GitProject:
                     and all_new[ key ] != all_old[ key ] ):
                         all_modified.add( key )
 
-                all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_modified )
+                all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_renamed, all_modified )
 
         return all_commit_logs
 
@@ -284,6 +313,21 @@ class GitProject:
 
         raise KeyError( 'file not in tree' )
 
+    def __filenameFromIdInTree( self, tree, file_id, parents ):
+        for entry in tree:
+            if entry.filemode == pygit2.GIT_FILEMODE_TREE:
+                filename = self.__filenameFromIdInTree( self.repo.get( entry.id ), file_id, parents + [entry.name] )
+                if filename is not None:
+                    return filename
+
+            elif( entry.filemode in (pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE)
+            and entry.id == file_id ):
+                filename_parts = parents + [entry.name]
+                filename = '/'.join( filename_parts )
+                return pathlib.Path( filename )
+
+        return None
+
     def __treeToDict( self, tree, parents, all_entries ):
         for entry in tree:
             if entry.filemode == pygit2.GIT_FILEMODE_TREE:
@@ -300,15 +344,18 @@ class GitCommitLogNode:
         self._entry = entry
         self.__all_changes = []
 
-    def _addChanges( self, all_added, all_deleted, all_modified ):
+    def _addChanges( self, all_added, all_deleted, all_renamed, all_modified ):
         for name in all_added:
-            self.__all_changes.append( ('A', name ) )
+            self.__all_changes.append( ('A', name, '' ) )
 
         for name in all_deleted:
-            self.__all_changes.append( ('D', name ) )
+            self.__all_changes.append( ('D', name, '' ) )
+
+        for name, old_name in all_renamed:
+            self.__all_changes.append( ('R', name, old_name ) )
 
         for name in all_modified:
-            self.__all_changes.append( ('M', name ) )
+            self.__all_changes.append( ('M', name, '' ) )
 
     def commitTree( self ):
         return self.__commit.peel( pygit2.GIT_OBJ_TREE )
