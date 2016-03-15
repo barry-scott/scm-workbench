@@ -68,14 +68,13 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__setupTreeContextMenu()
         self.__setupTableContextMenu()
 
+        geometry = win_prefs.getFrameGeometry()
+        if geometry is not None:
+            geometry = QtCore.QByteArray( geometry.encode('utf-8') )
+            self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
 
-        # Qt requires that resize() is called before move()
-        self.resize( *win_prefs.getFrameSize() )
-
-        if win_prefs.getFramePosition() is not None:
-            x, y = win_prefs.getFramePosition()
-            x_err, y_err = win_prefs.getFramePositionError()
-            self.move( x-x_err, y-y_err )
+        else:
+            self.resize( 800, 600 )
 
         self.table_keys_edit = ['\r', 'e', 'E']
         self.table_keys_open = ['o', 'O']
@@ -160,9 +159,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.timer_init.timeout.connect( self.completeStatupInitialisation )
         self.timer_init.setSingleShot( True )
         self.timer_init.start( 0 )
-
-        self.move_event_count = 0
-        self.main_window_start_time = time.time()
 
     def completeStatupInitialisation( self ):
         self._debug( 'completeStatupInitialisation()' )
@@ -501,43 +497,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         # enabled states will have changed
         self.timer_update_enable_states.start( 0 )
 
-    def moveEvent( self, event ):
-        #
-        # KDE places the Window down and to the left
-        # preventing restore of window position
-        #
-        # Try to determine the X and Y error and save in preferences
-        #
-        # first move is to the prefs location
-        # second move is the adjustment for the decoration of the window
-        #
-        self.move_event_count += 1
-        win_prefs = self.app.prefs.getWindow()
-        self._debug( 'x %r y %r' % (event.pos().x(), event.pos().y()) )
-
-        time_since_start = time.time() - self.main_window_start_time
-
-        if win_prefs.getFramePosition() is not None and self.move_event_count == 2:
-            self._debug( 'moveEvent()  frame x %r, frame y %r' %
-                    (win_prefs.getFramePosition()[0], win_prefs.getFramePosition()[1]) )
-            if time_since_start < 0.5:
-                if (event.pos().x(), event.pos().y()) != win_prefs.getFramePosition():
-                    x_err = event.pos().x() - win_prefs.getFramePosition()[0]
-                    y_err = event.pos().y() - win_prefs.getFramePosition()[1]
-
-                    self._debug( 'moveEvent setFramePositionError( %d, %d )' % (x_err, y_err) )
-                    win_prefs.setFramePositionError( x_err, y_err )
-                    return
-
-        if self.move_event_count >= 2 or time_since_start >= 0.5:
-            win_prefs.setFramePosition( event.pos().x(), event.pos().y() )
-
-    def resizeEvent( self, event ):
-        self.app.prefs.getWindow().setFrameSize( event.size().width(), event.size().height() )
-
-    def closeEvent( self, event ):
-        self.app.writePreferences()
-
     #------------------------------------------------------------
     #
     # app actions
@@ -585,7 +544,11 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                         git_project_tree_node.relativePath() )
 
             prefs.addBookmark( bookmark )
-            self.app.writePreferences()
+
+        win_prefs = self.app.prefs.getWindow()
+        win_prefs.setFrameGeometry( self.saveGeometry().toHex().data() )
+
+        self.app.writePreferences()
 
         if close:
             self.close()
