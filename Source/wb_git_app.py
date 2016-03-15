@@ -157,12 +157,6 @@ class WbGit_App(QtWidgets.QApplication,
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
 
-        try:
-            print( 'Hello' )
-        except:
-            self.log.exception('hello')
-
-
     def debugEnabled( self ):
         return self.__debug
 
