@@ -95,7 +95,9 @@ class Preferences:
             self.pref_data.write( f )
             f.close()
 
-            self.pref_filename.replace( old_name )
+            if self.pref_filename.exists():
+                self.pref_filename.replace( old_name )
+
             new_name.rename( self.pref_filename )
 
             self.app.log.info( T_('Wrote preferences to %s') % self.pref_filename )
