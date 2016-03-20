@@ -82,7 +82,10 @@ class StdoutLogHandler(logging.Handler):
 class WbLog:
     def __init__( self, app ):
         self.app = app
+        self.log = app.log
         self.__log_widget = WbLogTextWidget( self.app )
+
+        self.__line = ''
 
         # Redirect the console IO to this panel
         sys.stdin = wb_platform_specific.getNullDevice().open( 'r' )
@@ -101,37 +104,25 @@ class WbLog:
         self.__log_widget.clear()
 
     #---------- look like a file object -------------------------
-    def write( self, string ):
+    def write( self, msg ):
         # only allowed to use GUI objects on the foreground thread
         if not self.app.isMainThread():
-            self.app.foregroundProcess( self.write, (string,) )
+            self.app.foregroundProcess( self.write, (msg,) )
             return
 
-        if string.startswith( 'Error:' ):
-            self.__log_widget.writeError( string )
-
-        elif string.startswith( 'Info:' ):
-            self.__log_widget.writeInfo( string )
-
-        elif string.startswith( 'Warning:' ):
-            self.__log_widget.writeWarning( string )
-
-        elif string.startswith( 'Crit:' ):
-            self.__log_widget.writeCritical( string )
-
-        else:
-            self.__log_widget.writeNormal( string )
-
-        if not self.app.stdIoRedirected():
-            sys.__stdout__.write(  string  )
+        self.__line = self.__line + msg
+        while '\n' in self.__line:
+            msg, self.__line = self.__line.split( '\n', 1 )
+            self.log.error( msg )
 
     def close( self ):
-        pass
+        if self.__line != '':
+            sys.stdout.write( '\n' )
 
 #--------------------------------------------------------------------------------
 class LogHandler(logging.Handler):
-    def __init__( self, log_ctrl ):
-        self.log_ctrl = log_ctrl
+    def __init__( self, log_widget ):
+        self.log_widget = log_widget
         logging.Handler.__init__( self )
 
     def emit( self, record ):
@@ -139,22 +130,22 @@ class LogHandler(logging.Handler):
         level = record.levelno
 
         if level >= logging.CRITICAL:
-            self.log_ctrl.writeCritical( msg )
+            self.log_widget.writeCritical( msg )
 
         elif level >= logging.ERROR:
-            self.log_ctrl.writeError( msg )
+            self.log_widget.writeError( msg )
 
         elif level >= logging.WARNING:
-            self.log_ctrl.writeWarning( msg )
+            self.log_widget.writeWarning( msg )
 
         elif level >= logging.INFO:
-            self.log_ctrl.writeInfo( msg )
+            self.log_widget.writeInfo( msg )
 
         elif level >= logging.DEBUG:
-            self.log_ctrl.writeDebug( msg )
+            self.log_widget.writeDebug( msg )
 
         else:
-            self.log_ctrl.writeError( msg )
+            self.log_widget.writeError( msg )
 
 #--------------------------------------------------------------------------------
 class WbLogTextWidget(QtWidgets.QTextEdit):

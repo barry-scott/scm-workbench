@@ -22,7 +22,6 @@ import builtins
 # U_( 'static string' )
 builtins.__dict__['U_'] = lambda s: s
 
-
 import wb_git_app
 
 def prerequesitChecks():
@@ -57,7 +56,14 @@ def main( argv ):
         return 1
 
     app.main_window.show()
-    return app.exec_()
+    rc = app.exec_()
+    # force clean up of objects to avoid segv on exit
+    del app
+    # prevent exit handlers from running as this allows for a segv
+    # My guess is that there are some Qt objects that are not owned
+    # but I have no way to trake them down
+    #os._exit( rc )
+    return rc
 
 if __name__ == '__main__':
     sys.exit( main( sys.argv ) )

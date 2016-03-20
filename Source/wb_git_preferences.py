@@ -376,11 +376,14 @@ class ProjectsPreferences(PreferenceSection):
     def getProjectList( self ):
         return sorted( self.all_projects.values() )
 
+    def getProject( self, project_name ):
+        return self.all_projects[ project_name ]
+
     def addProject( self, project ):
         self.all_projects[ project.name ] = project
 
-    def delProject( self, project ):
-        del self.all_projects[ project.name ]
+    def delProject( self, project_name ):
+        del self.all_projects[ project_name ]
 
 class Bookmark:
     def __init__( self, name, project, path ):

@@ -32,6 +32,11 @@ class WbDiffView(QtWidgets.QWidget):
     uid = 0
     all_diff_views = {}
 
+    @staticmethod
+    def closeAllWindows():
+        for window in list( WbDiffView.all_diff_views.values() ):
+            window.close()
+
     def __init__( self, app, title, icon ):
         self.app = app
 

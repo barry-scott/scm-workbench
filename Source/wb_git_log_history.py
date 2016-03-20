@@ -113,6 +113,11 @@ class WbGitLogHistoryView(QtWidgets.QWidget):
     uid = 0
     all_log_views = {}
 
+    @staticmethod
+    def closeAllWindows():
+        for window in list( WbGitLogHistoryView.all_log_views.values() ):
+            window.close()
+
     def __init__( self, app, title, icon ):
         self.app = app
         self._debug = self.app._debugLogHistory

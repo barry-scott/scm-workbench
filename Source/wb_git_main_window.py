@@ -15,6 +15,7 @@
 import sys
 import os
 import time
+import pathlib
 
 # On OS X the packager missing this import
 import sip
@@ -36,6 +37,7 @@ import wb_git_tree_model
 import wb_git_table_model
 import wb_git_project
 import wb_git_log_history
+import wb_git_project_dialogs
 
 import wb_shell_commands
 import wb_logging
@@ -142,12 +144,13 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         else:
             index = self.tree_model.getFirstProjectIndex()
 
-        selection_model.select( index,
-                    selection_model.Clear |
-                    selection_model.Select |
-                    selection_model.Current )
+        if index is not None:
+            selection_model.select( index,
+                        selection_model.Clear |
+                        selection_model.Select |
+                        selection_model.Current )
 
-        self.tree_view.scrollTo( index )
+            self.tree_view.scrollTo( index )
 
         # timer used to wait for focus to be set after app is activated
         self.timer_update_enable_states = QtCore.QTimer()
@@ -231,7 +234,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         mb = self.menuBar()
 
         m = mb.addMenu( T_('&File') )
-        self.__addMenu( m, T_('E&xit'), self.close, self.enablerEnabled )
+        self.__addMenu( m, T_('E&xit'), self.close )
 
         m = mb.addMenu( T_('F&older Actions') )
         self.__addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
@@ -251,10 +254,15 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
         self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        self.__addMenu( m, T_('Commit'), self.treeActionCommit, self.enablerCommit )
+        self.__addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit )
 
-        menu_help = mb.addMenu( T_('&Help' ) )
-        self.__addMenu( menu_help, T_("&About..."), self.appActionAbout, self.enablerEnabled )
+        m = mb.addMenu( T_('&Project') )
+        self.__addMenu( m, T_('Add…'), self.projectActionAdd )
+        self.__addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
+        self.__addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
+
+        m = mb.addMenu( T_('&Help' ) )
+        self.__addMenu( m, T_("&About…"), self.appActionAbout )
 
     def __setupTreeContextMenu( self ):
         m = self.tree_context_menu = QtWidgets.QMenu( self )
@@ -279,7 +287,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
         self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
 
-    def __addMenu( self, menu, name, handler, enabler, icon_name=None ):
+    def __addMenu( self, menu, name, handler, enabler=None, icon_name=None ):
         if icon_name is None:
             action = menu.addAction( name )
         else:
@@ -288,7 +296,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         action.triggered.connect( handler )
 
-        self.__enable_state_manager.add( action, enabler )
+        if enabler is not None:
+            self.__enable_state_manager.add( action, enabler )
 
     def __setupToolBar( self ):
         style = self.style()
@@ -339,15 +348,19 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     #   Enabler handlers
     #
     #------------------------------------------------------------
-    def enablerEnabled( self, cache ):
-        return True
-
     def enablerFolderExists( self, cache ):
-        key = '__treeSelectedAbsoluteFolder'
+        key = 'enablerFolderExists'
         if key not in cache:
             cache[ key ] = self.__treeSelectedAbsoluteFolder()
 
         return cache[ key ] is not None
+
+    def enablerIsProject( self, cache ):
+        key = 'enablerIsProject'
+        if key not in cache:
+            cache[ key ] = self.__treeSelectedRelativeFolder() == pathlib.Path( '.' )
+
+        return cache[ key ]
 
     def enablerFilesExists( self, cache ):
         key = 'enablerFilesExists'
@@ -465,13 +478,14 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             # enable if any files staged
             git_project = self.__treeSelectedGitProject()
 
-            staged_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
-
             can_commit = False
-            for status in git_project.status.values():
-                if (status&staged_status) != 0:
-                    can_commit = True
-                    break
+            if git_project is not None:
+                staged_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
+
+                for status in git_project.status.values():
+                    if (status&staged_status) != 0:
+                        can_commit = True
+                        break
 
             cache[ key ] = can_commit
 
@@ -550,8 +564,72 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.app.writePreferences()
 
+        # close all open mode less windows
+        wb_diff_view.WbDiffView.closeAllWindows()
+        wb_git_log_history.WbGitLogHistoryView.closeAllWindows()
+
         if close:
             self.close()
+
+
+    #------------------------------------------------------------
+    #
+    # project actions
+    #
+    #------------------------------------------------------------
+    def projectActionAdd( self ):
+        wiz = wb_git_project_dialogs.WbGitAddProjectWizard( self.app )
+        if wiz.exec_():
+            if wiz.git_url is None:
+                prefs = self.app.prefs.getProjects()
+                project = wb_git_preferences.Project( wiz.name, wiz.wc_path )
+                prefs.addProject( project )
+
+                self.app.writePreferences()
+
+                self.tree_model.addProject( project )
+                index = self.tree_model.indexFromProject( project )
+
+                selection_model = self.tree_view.selectionModel()
+                selection_model.select( index,
+                            selection_model.Clear |
+                            selection_model.Select |
+                            selection_model.Current )
+
+                self.tree_view.scrollTo( index )
+
+    def projectActionDelete( self ):
+        project_name = self.__treeSelectedProjectName()
+
+        default_button = QtWidgets.QMessageBox.No
+
+        title = T_('Confirm Delete Project')
+        message = T_('Are you sure you wish to delete project %s') % (project_name,)
+
+        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
+        if rc == QtWidgets.QMessageBox.Yes:
+            prefs = self.app.prefs.getProjects()
+            # remove from preferences
+            prefs.delProject( project_name )
+            self.app.writePreferences()
+
+            # remove from the tree model
+            self.tree_model.delProject( project_name )
+
+            # setup on a new selection
+            index = self.tree_model.getFirstProjectIndex()
+
+            if index is not None:
+                selection_model = self.tree_view.selectionModel()
+                selection_model.select( index,
+                            selection_model.Clear |
+                            selection_model.Select |
+                            selection_model.Current )
+
+            self.tree_view.scrollTo( index )
+
+    def projectActionSettings( self ):
+        pass
 
     #------------------------------------------------------------
     #
@@ -588,6 +666,15 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     # tree actions
     #
     #------------------------------------------------------------
+    def __treeSelectedProjectName( self ):
+        # only correct is called with the top of the tree is selected
+        # which is ensured by the enablers
+        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
+        if git_project_tree_node is None:
+            return None
+
+        return git_project_tree_node.name
+
     def __treeSelectedAbsoluteFolder( self ):
         git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
         if git_project_tree_node is None:
@@ -852,8 +939,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
-
-        self.all_diff_windows.append( window )
 
     def __actionGitDiffHeadVsStaged( self, git_project, filename ):
         diff_objects = git_project.getDiffObjects( filename )

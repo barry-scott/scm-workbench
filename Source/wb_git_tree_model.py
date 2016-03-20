@@ -33,12 +33,33 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
         self.selected_node = None
 
         for project in self.app.prefs.getProjects().getProjectList():
-            git_project = wb_git_project.GitProject( self.app, project )
-            git_project.updateState()
+            self.addProject( project )
 
-            tree_node = ProjectTreeNode( self, git_project.tree )
-            self.all_git_projects[ git_project.tree.name ] = (git_project, tree_node)
-            self.appendRow( tree_node )
+    def addProject( self, project ):
+        git_project = wb_git_project.GitProject( self.app, project )
+        git_project.updateState()
+
+        tree_node = ProjectTreeNode( self, git_project.tree )
+        self.all_git_projects[ git_project.tree.name ] = (git_project, tree_node)
+        self.appendRow( tree_node )
+
+    def delProject( self, project_name ):
+        item = self.invisibleRootItem()
+
+        row = 0
+        while True:
+            child = item.child( row )
+
+            if child is None:
+                # not found
+                return
+
+            if child.text() == project_name:
+                break
+
+            row += 1
+
+        self.removeRow( row, QtCore.QModelIndex() )
 
     def refreshTree( self ):
         self._debug( 'WbGitTreeModel.refreshTree()' )
@@ -57,16 +78,36 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
         self.table_model.setGitProjectTreeNode( self.selected_node.git_project_tree_node )
 
     def getFirstProjectIndex( self ):
+        if self.invisibleRootItem().rowCount() == 0:
+            return None
+
         item = self.invisibleRootItem().child( 0 )
+        return self.indexFromItem( item )
+
+    def indexFromProject( self, project ):
+        item = self.invisibleRootItem()
+
+        row = 0
+        while True:
+            child = item.child( row )
+
+            if child is None:
+                return None
+
+            if child.text() == project.name:
+                item = child
+                break
+
+            row += 1
+
         return self.indexFromItem( item )
 
     def indexFromBookmark( self, bookmark ):
         item = self.invisibleRootItem()
-        row = 0
 
         for name in [bookmark.project] + list( bookmark.path.parts ):
-            row = 0
 
+            row = 0
             while True:
                 child = item.child( row )
 
@@ -93,6 +134,11 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
 
     def selectionChanged( self, selected, deselected ):
         self._debug( 'selectChanged()' )
+        all_selected = selected.indexes()
+        if len( all_selected ) == 0:
+            self.selected_node = None
+            return
+
         index = selected.indexes()[0]
         selected_node = self.itemFromIndex( index )
 
