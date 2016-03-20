@@ -1,5 +1,10 @@
 #!/bin/bash -x
 export GIT_WORKBENCH_STDOUT_LOG=$(tty)
+
+if [ "${BUILDER_TOP_DIR}" = "" ]
+then
+    BUILDER_TOP_DIR=.
+fi
 if [ "$PYTHONPATH" = "" ]
 then
 	export PYTHONPATH=${BUILDER_TOP_DIR}/Source:${BUILDER_TOP_DIR}/Source/Common
