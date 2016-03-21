@@ -100,6 +100,8 @@ class WbGitAddProjectWizard(QtWidgets.QWizard):
         file_browser.setOption( file_browser.ShowDirsOnly, False )
         file_browser.setOption( file_browser.ReadOnly, True )
         file_browser.setViewMode( file_browser.Detail )
+        file_browser.setFilter( QtCore.QDir.Hidden | QtCore.QDir.Dirs )
+
         file_browser.setDirectory( str( path ) )
         file_browser.selectFile( str( path ) )
 

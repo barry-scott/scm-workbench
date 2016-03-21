@@ -597,53 +597,83 @@ class EditorPreferences(PreferenceSection):
         PreferenceSection.__init__( self, 'Editor' )
         self.app = app
 
-        self.editor_image = ''
-        self.editor_options = ''
+        self.__editor_program = ''
+        self.__editor_options = ''
 
     def readPreferences( self, pref_data ):
         get_option = GetOption( pref_data, self.section_name )
 
         if get_option.has( 'editor' ):
-            self.editor_image = get_option.getstr( 'editor' )
+            self.__editor_program = get_option.getstr( 'editor' )
         if get_option.has( 'editor_options' ):
-            self.editor_options = get_option.getstr( 'editor_options' )
+            self.__editor_options = get_option.getstr( 'editor_options' )
 
     def writePreferences( self, pref_data ):
         set_option = SetOption( pref_data, self.section_name )
 
-        if self.editor_image:
-            set_option.set( 'editor', self.editor_image )
-        if self.editor_options:
-            set_option.set( 'editor_options', self.editor_options )
+        if self.__editor_program != '':
+            set_option.set( 'editor', self.__editor_program )
+        if self.__editor_options != '':
+            set_option.set( 'editor_options', self.__editor_options )
+
+    def getEditorProgram( self ):
+        return self.__editor_program
+
+    def setEditorProgram( self, program ):
+        self.__editor_program = program
+
+    def getEditorOptions( self ):
+        return self.__editor_options
+
+    def setEditorOptions( self, options ):
+        self.__editor_options = options
 
 class ShellPreferences(PreferenceSection):
     def __init__( self, app ):
         PreferenceSection.__init__( self, 'Shell' )
         self.app = app
 
-        self.shell_init_command = ''
-        self.shell_terminal = ''
-        self.shell_file_browser = ''
+        self.__terminal_init_command = ''
+        self.__terminal_program = ''
+        self.__file_browser_program = ''
 
     def readPreferences( self, pref_data ):
         get_option = GetOption( pref_data, self.section_name )
 
         if get_option.has( 'init_command' ):
-            self.shell_init_command = get_option.getstr( 'init_command' )
+            self.__terminal_init_command = get_option.getstr( 'init_command' )
         if get_option.has( 'terminal' ):
-            self.shell_terminal = get_option.getstr( 'terminal' )
+            self.__terminal_program = get_option.getstr( 'terminal' )
         if get_option.has( 'file_browser' ):
-            self.shell_file_browser = get_option.getstr( 'file_browser' )
+            self.__file_browser_program = get_option.getstr( 'file_browser' )
 
     def writePreferences( self, pref_data ):
         set_option = SetOption( pref_data, self.section_name )
 
-        if self.shell_init_command:
-            set_option.set( 'init_command', self.shell_init_command )
-        if self.shell_terminal:
-            set_option.set( 'terminal', self.shell_terminal )
-        if self.shell_file_browser:
-            set_option.set( 'file_browser', self.shell_file_browser )
+        if self.__terminal_init_command != '':
+            set_option.set( 'init_command', self.__terminal_init_command )
+        if self.__terminal_program != '':
+            set_option.set( 'terminal', self.__terminal_program )
+        if self.__file_browser_program != '':
+            set_option.set( 'file_browser', self.__file_browser_program )
+
+    def getTerminalProgram( self ):
+        return self.__terminal_program
+
+    def setTerminalProgram( self, program ):
+        self.__terminal_program = program
+
+    def getTerminalInitCommand( self ):
+        return self.__terminal_init_command
+
+    def setTerminalInitCommand( self, init_command ):
+        self.__terminal_init_command = init_command
+
+    def getFileBrowserProgram( self ):
+        return self.__file_browser_program
+
+    def setFileBrowserProgram( self, program ):
+        self.__file_browser_program = program
 
 class DiffToolPreferences(PreferenceSection):
     def __init__( self, app ):
@@ -689,30 +719,76 @@ class LogHistoryPreferences(PreferenceSection):
         PreferenceSection.__init__( self, 'LogHistory' )
         self.app = app
 
-        self.default_mode = 'show_all'
-        self.default_limit = 20
-        self.default_since_days_interval = 7
-        self.default_include_tags = False
+        self.__default_limit = 20
+        self.__use_default_limit = False
+        self.__default_until_days_interval = 0
+        self.__use_default_until_days_interval = False
+        self.__default_since_days_interval = 7
+        self.__use_default_since_days_interval = False
 
     def readPreferences( self, pref_data ):
         get_option = GetOption( pref_data, self.section_name )
 
-        if get_option.has( 'default_mode' ):
-            self.default_mode = get_option.getstr( 'default_mode' )
         if get_option.has( 'default_limit' ):
-            self.default_limit = get_option.getint( 'default_limit' )
+            self.__default_limit = get_option.getint( 'default_limit' )
+        if get_option.has( 'use_default_limit' ):
+            self.__use_default_limit = get_option.getbool( 'use_default_limit' )
+
+        if get_option.has( 'default_until_days_interval' ):
+            self.__default_until_days_interval = get_option.getint( 'default_until_days_interval' )
+        if get_option.has( 'use_default_until_days_interval' ):
+            self.__use_default_until_days_interval = get_option.getbool( 'use_default_until_days_interval' )
+
         if get_option.has( 'default_since_days_interval' ):
-            self.default_since_days_interval = get_option.getint( 'default_since_days_interval' )
-        if get_option.has( 'default_include_tags' ):
-            self.default_include_tags = get_option.getbool( 'default_include_tags' )
+            self.__default_since_days_interval = get_option.getint( 'default_since_days_interval' )
+        if get_option.has( 'use_default_since_days_interval' ):
+            self.__use_default_since_days_interval = get_option.getbool( 'use_default_since_days_interval' )
 
     def writePreferences( self, pref_data ):
         set_option = SetOption( pref_data, self.section_name )
 
-        set_option.set( 'default_mode', self.default_mode )
-        set_option.set( 'default_limit', self.default_limit )
-        set_option.set( 'default_since_days_interval', self.default_since_days_interval )
-        set_option.set( 'default_include_tags', self.default_include_tags )
+        set_option.set( 'default_limit', self.__default_limit )
+        set_option.set( 'use_default_limit', self.__use_default_limit )
+        set_option.set( 'default_until_days_interval', self.__default_until_days_interval )
+        set_option.set( 'use_default_until_days_interval', self.__use_default_until_days_interval )
+        set_option.set( 'default_since_days_interval', self.__default_since_days_interval )
+        set_option.set( 'use_default_since_days_interval', self.__use_default_since_days_interval )
+
+    def getDefaultLimit( self ):
+        return self.__default_limit
+
+    def setDefaultLimit( self, limit ):
+        self.__default_limit = limit
+
+    def getUseDefaultLimit( self ):
+        return self.__use_default_limit
+
+    def setUseDefaultLimit( self, use ):
+        self.__use_default_limit = use
+
+    def getDefaultUntilDaysInterval( self ):
+        return self.__default_until_days_interval
+
+    def setDefaultUntilDaysInterval( self, days ):
+        self.__default_until_days_interval = days
+
+    def getUseDefaultUntilDaysInterval( self ):
+        return self.__use_default_until_days_interval
+
+    def setUseDefaultUntilDaysInterval( self, use ):
+        self.__use_default_until_days_interval = use
+
+    def getDefaultSinceDaysInterval( self ):
+        return self.__default_since_days_interval
+
+    def setDefaultSinceDaysInterval( self, days ):
+        self.__default_since_days_interval = days
+
+    def getUseDefaultSinceDaysInterval( self ):
+        return self.__use_default_since_days_interval
+
+    def setUseDefaultSinceDaysInterval( self, use ):
+        self.__use_default_since_days_interval = use
 
 class ToolbarPreferences(PreferenceSection):
     def __init__( self, app ):

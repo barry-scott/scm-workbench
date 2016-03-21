@@ -200,7 +200,7 @@ class GitProject:
 
         return commit_id
 
-    def cmdCommitLogForFile( self, filename, since=None, limit=None ):
+    def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
         offset = 0
         all_commit_logs = []
 
@@ -225,26 +225,35 @@ class GitProject:
                 entry = self.__findFileInTree( tree, filename )
                 file_was_renamed = True
 
-            if( since is not None
-            and commit.commit_time < since ):
-                break
-
-            new_node = GitCommitLogNode( commit, entry )
-
-            if( len( all_commit_logs) > offset
-            and all_commit_logs[ offset ].isEntryEqual( new_node )
-            and not file_was_renamed ):
-                all_commit_logs[ offset ] = new_node
-
-                if( limit is not None
-                and len( all_commit_logs ) <= limit ):
-                    break
+            if( until is not None
+            and commit.commit_time > until ):
+                # skip commits until the until date is found
+                pass
 
             else:
-                offset = len( all_commit_logs )
-                all_commit_logs.append( new_node )
+                if( since is not None
+                and commit.commit_time < since ):
+                    # can stop after the since date is exceeded
+                    break
+
+                new_node = GitCommitLogNode( commit, entry )
+
+                if( len( all_commit_logs) > offset
+                and all_commit_logs[ offset ].isEntryEqual( new_node )
+                and not file_was_renamed ):
+                    all_commit_logs[ offset ] = new_node
+
+                    if( limit is not None
+                    and len( all_commit_logs ) <= limit ):
+                        # only show limit logs
+                        break
+
+                else:
+                    offset = len( all_commit_logs )
+                    all_commit_logs.append( new_node )
 
             if len( commit.parents ) == 0:
+                # end of the commmit chain - all done
                 break
 
             commit = commit.parents[0]

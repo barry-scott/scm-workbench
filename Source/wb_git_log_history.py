@@ -25,31 +25,36 @@ from PyQt5 import QtCore
 #
 #------------------------------------------------------------
 class WbGitLogHistoryOptions(QtWidgets.QDialog):
-    def __init__( self, parent, prefs ):
+    def __init__( self, app, parent ):
+        self.app = app
+        prefs = self.app.prefs.getLogHistory()
+
         super().__init__( parent )
 
-        self.radio_show_all = QtWidgets.QRadioButton( T_('Show all commits') )
-        self.radio_show_limit = QtWidgets.QRadioButton( T_('Show Only') )
-        self.radio_show_since = QtWidgets.QRadioButton( T_('Show commits since') )
+        self.use_limit = QtWidgets.QCheckBox( T_('Show only') )
+        self.use_until = QtWidgets.QCheckBox( T_('Show Until') )
+        self.use_since = QtWidgets.QCheckBox( T_('Show Since') )
 
-        self.grp_show = QtWidgets.QButtonGroup()
-        self.grp_show.addButton( self.radio_show_all )
-        self.grp_show.addButton( self.radio_show_limit )
-        self.grp_show.addButton( self.radio_show_since )
-
-        self.spin_show_limit = QtWidgets.QSpinBox()
-        self.spin_show_limit.setRange( 1, 1000000 )
-        self.spin_show_limit.setSuffix( T_(' Commits') )
+        self.limit = QtWidgets.QSpinBox()
+        self.limit.setRange( 1, 1000000 )
+        self.limit.setSuffix( T_(' Commits') )
 
         today = QtCore.QDate.currentDate()
         the_past = QtCore.QDate( 1990, 1, 1 )
 
-        self.date_since = QtWidgets.QCalendarWidget()
-        self.date_since.setDateRange( today, the_past )
-        self.date_since.setHorizontalHeaderFormat( self.date_since.SingleLetterDayNames )
-        self.date_since.setGridVisible( True )
-        self.date_since.setDateEditEnabled( True )
-        self.date_since.setVerticalHeaderFormat( self.date_since.NoVerticalHeader )
+        self.until = QtWidgets.QCalendarWidget()
+        self.until.setDateRange( today, the_past )
+        self.until.setHorizontalHeaderFormat( self.until.SingleLetterDayNames )
+        self.until.setGridVisible( True )
+        self.until.setDateEditEnabled( True )
+        self.until.setVerticalHeaderFormat( self.until.NoVerticalHeader )
+
+        self.since = QtWidgets.QCalendarWidget()
+        self.since.setDateRange( today, the_past )
+        self.since.setHorizontalHeaderFormat( self.since.SingleLetterDayNames )
+        self.since.setGridVisible( True )
+        self.since.setDateEditEnabled( True )
+        self.since.setVerticalHeaderFormat( self.since.NoVerticalHeader )
 
         self.buttons = QtWidgets.QDialogButtonBox()
         self.buttons.addButton( self.buttons.Ok )
@@ -59,50 +64,88 @@ class WbGitLogHistoryOptions(QtWidgets.QDialog):
         self.buttons.rejected.connect( self.reject )
 
         layout = QtWidgets.QGridLayout()
-        layout.addWidget( self.radio_show_all, 0, 0 )
-        layout.addWidget( self.radio_show_limit, 1, 0 )
-        layout.addWidget( self.spin_show_limit, 1, 1 )
-        layout.addWidget( self.radio_show_since, 2, 0 )
-        layout.addWidget( self.date_since, 2, 1 )
+        layout.addWidget( self.use_limit, 0, 0 )
+        layout.addWidget( self.limit, 0, 1 )
+        layout.addWidget( self.use_since, 1, 0 )
+        layout.addWidget( self.since, 1, 1 )
+        layout.addWidget( self.use_until, 2, 0 )
+        layout.addWidget( self.until, 2, 1 )
         layout.addWidget( self.buttons, 3, 0, 1, 2 )
 
         self.setLayout( layout )
 
-        # wire up signals
-        self.radio_show_limit.toggled.connect( self.spin_show_limit.setEnabled )
-        self.radio_show_since.toggled.connect( self.date_since.setEnabled )
+        # --- limit
+        self.use_limit.setChecked( prefs.getUseDefaultLimit() )
+        self.limit.setValue( prefs.getDefaultLimit() )
+        self.limit.setEnabled( prefs.getUseDefaultLimit() )
 
-        # set state
-        self.radio_show_all.setChecked( prefs.default_mode == 'show_all' )
-        self.radio_show_limit.setChecked( prefs.default_mode == 'show_limit' )
-        self.spin_show_limit.setEnabled( prefs.default_mode == 'show_limit' )
-        self.radio_show_since.setChecked( prefs.default_mode == 'show_since' )
-        self.date_since.setEnabled( prefs.default_mode == 'show_since' )
+        # --- until
+        self.use_until.setChecked( prefs.getUseDefaultUntilDaysInterval() )
+        until = QtCore.QDate.currentDate()
+        until = until.addDays( -prefs.getDefaultUntilDaysInterval() )
 
-        self.spin_show_limit.setValue( prefs.default_limit )
+        self.until.setSelectedDate( until )
+        self.until.setEnabled( prefs.getUseDefaultUntilDaysInterval() )
+
+        # --- since
+        self.use_since.setChecked( prefs.getUseDefaultSinceDaysInterval() )
 
         since = QtCore.QDate.currentDate()
-        since = since.addDays( -prefs.default_since_days_interval )
+        since = since.addDays( -prefs.getDefaultSinceDaysInterval() )
 
-        self.date_since.setSelectedDate( since )
+        self.since.setSelectedDate( since )
+        self.since.setEnabled( prefs.getUseDefaultSinceDaysInterval() )
 
-    def showMode( self ):
-        if self.radio_show_all.isChecked():
-            return 'show_all'
+        # --- connect up behavior
+        self.use_limit.stateChanged.connect( self.limit.setEnabled )
+        self.use_until.stateChanged.connect( self.until.setEnabled )
+        self.use_since.stateChanged.connect( self.since.setEnabled )
 
-        elif self.radio_show_limit.isChecked():
-            return 'show_limit'
+        self.since.selectionChanged.connect( self.__sinceChanged )
+        self.until.selectionChanged.connect( self.__untilChanged )
 
-        elif self.radio_show_since.isChecked():
-            return 'show_since'
+    def __sinceChanged( self ):
+        # since must be less then until
+        since = self.since.selectedDate()
+        until = self.until.selectedDate()
 
-    def showLimit( self ):
-        assert self.showMode() == 'show_limit'
-        return self.spin_show_limit.value()
+        if since >= until:
+            until = since.addDays( 1 )
+            self.until.setSelectedDate( until )
 
-    def showSince( self ):
-        assert self.showMode() == 'show_since'
-        return self.date_since.selectedDate()
+    def __untilChanged( self ):
+        # since must be less then until
+        since = self.since.selectedDate()
+        until = self.until.selectedDate()
+
+        if since >= until:
+            since = until.addDays( -1 )
+            self.since.setSelectedDate( since )
+
+    def getLimit( self ):
+        if self.use_limit.isChecked():
+            return self.limit.value()
+
+        else:
+            return None
+
+    def getUntil( self ):
+        if self.use_until.isChecked():
+            qt_until = self.until.selectedDate()
+            until = datetime.date( qt_until.year(), qt_until.month(), qt_until.day() )
+            return time.mktime( until.timetuple() )
+
+        else:
+            return None
+
+    def getSince( self ):
+        if self.use_since.isChecked():
+            qt_since = self.since.selectedDate()
+            since = datetime.date( qt_since.year(), qt_since.month(), qt_since.day() )
+            return time.mktime( since.timetuple() )
+
+        else:
+            return None
 
 #------------------------------------------------------------
 #
@@ -187,19 +230,7 @@ class WbGitLogHistoryView(QtWidgets.QWidget):
         self.resize( 800, 600 )
 
     def showCommitLogForFile( self, git_project, filename, options ):
-        if options.showMode() == 'show_all':
-            since = None
-            limit = None
-
-        elif options.showMode() == 'show_since':
-            since = options.showSince()
-            limit = None
-
-        elif options.showMode() == 'show_limit':
-            since = None
-            limit = options.showLimit()
-
-        self.log_model.loadCommitLogForFile( git_project, filename, since, limit )
+        self.log_model.loadCommitLogForFile( git_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
 
     def selectionChanged( self ):
         index = self.table_view.selectedIndexes()[0]
@@ -253,9 +284,9 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
         self.all_commit_nodes  = []
 
-    def loadCommitLogForFile( self, git_project, filename, since, limit ):
+    def loadCommitLogForFile( self, git_project, filename, limit, since, until ):
         self.beginResetModel()
-        self.all_commit_nodes = git_project.cmdCommitLogForFile( filename, since, limit )
+        self.all_commit_nodes = git_project.cmdCommitLogForFile( filename, limit, since, until )
         self.endResetModel()
 
     def rowCount( self, parent ):

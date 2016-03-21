@@ -29,7 +29,7 @@ import pygit2
 import wb_git_version
 import wb_git_images
 import wb_git_preferences
-#import wb_git_preferences_dialog
+import wb_git_preferences_dialog
 import wb_git_commit_dialog
 import wb_git_config
 
@@ -234,6 +234,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         mb = self.menuBar()
 
         m = mb.addMenu( T_('&File') )
+        self.__addMenu( m, T_('&Preferences…'), self.appActionPreferences )
         self.__addMenu( m, T_('E&xit'), self.close )
 
         m = mb.addMenu( T_('F&older Actions') )
@@ -517,11 +518,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     #
     #------------------------------------------------------------
     def appActionPreferences( self ):
-        pref_dialog = wb_git_preferences_dialog.PreferencesDialog( self, self.app )
-        rc = pref_dialog.exec_()
-        if rc == QtWidgets.QDialog.Accepted:
+        pref_dialog = wb_git_preferences_dialog.WbGitPreferencesDialog( self.app, self )
+        if pref_dialog.exec_():
+            pref_dialog.savePreferences()
             self.app.writePreferences()
-            self.newPreferences()
 
     def appActionAbout( self ):
         from PyQt5 import Qt
@@ -951,7 +951,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         window.show()
 
     def __actionGitLogHistory( self, git_project, filename ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self, self.app.prefs.getLogHistory() )
+        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
 
         if options.exec_():
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(
