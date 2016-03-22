@@ -229,6 +229,9 @@ class WbGitLogHistoryView(QtWidgets.QWidget):
 
         self.resize( 800, 600 )
 
+    def showCommitLogForRepository( self, git_project, options ):
+        self.log_model.loadCommitLogForRepository( git_project, options.getLimit(), options.getSince(), options.getUntil() )
+
     def showCommitLogForFile( self, git_project, filename, options ):
         self.log_model.loadCommitLogForFile( git_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
 
@@ -283,6 +286,11 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
         super().__init__()
 
         self.all_commit_nodes  = []
+
+    def loadCommitLogForRepository( self, git_project, limit, since, until ):
+        self.beginResetModel()
+        self.all_commit_nodes = git_project.cmdCommitLogForRepository( limit, since, until )
+        self.endResetModel()
 
     def loadCommitLogForFile( self, git_project, filename, limit, since, until ):
         self.beginResetModel()

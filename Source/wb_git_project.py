@@ -200,6 +200,42 @@ class GitProject:
 
         return commit_id
 
+    def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
+        all_commit_logs = []
+
+        last_file_id = None
+
+        commit = self.repo.revparse_single( 'HEAD' )
+        while True:
+            if( until is not None
+            and commit.commit_time > until ):
+                # skip commits until the until date is found
+                pass
+
+            else:
+                if( since is not None
+                and commit.commit_time < since ):
+                    # can stop after the since date is exceeded
+                    break
+
+                new_node = GitCommitLogNode( commit )
+
+                all_commit_logs.append( new_node )
+
+                if( limit is not None
+                and len( all_commit_logs ) >= limit ):
+                    # only show limit logs
+                    break
+
+            if len( commit.parents ) == 0:
+                # end of the commmit chain - all done
+                break
+
+            commit = commit.parents[0]
+
+        self.__addCommitChangeInformation( all_commit_logs )
+        return all_commit_logs
+
     def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
         offset = 0
         all_commit_logs = []
@@ -236,7 +272,7 @@ class GitProject:
                     # can stop after the since date is exceeded
                     break
 
-                new_node = GitCommitLogNode( commit, entry )
+                new_node = GitCommitLogFileNode( commit, entry )
 
                 if( len( all_commit_logs) > offset
                 and all_commit_logs[ offset ].isEntryEqual( new_node )
@@ -244,7 +280,7 @@ class GitProject:
                     all_commit_logs[ offset ] = new_node
 
                     if( limit is not None
-                    and len( all_commit_logs ) <= limit ):
+                    and len( all_commit_logs ) >= limit ):
                         # only show limit logs
                         break
 
@@ -258,6 +294,11 @@ class GitProject:
 
             commit = commit.parents[0]
 
+        self.__addCommitChangeInformation( all_commit_logs )
+
+        return all_commit_logs
+
+    def __addCommitChangeInformation( self, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
         for offset in range( len(all_commit_logs) ):
             new_tree = all_commit_logs[ offset ].commitTree()
@@ -303,8 +344,6 @@ class GitProject:
 
                 all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_renamed, all_modified )
 
-        return all_commit_logs
-
     def __findFileInTree( self, tree, filename ):
         self._debug( '__findFileInTree( %r, %r )' % (tree, filename) )
         # match all the folders
@@ -348,9 +387,8 @@ class GitProject:
                 all_entries[ filename ] = entry.id
 
 class GitCommitLogNode:
-    def __init__( self, commit, entry ):
+    def __init__( self, commit ):
         self.__commit = commit
-        self._entry = entry
         self.__all_changes = []
 
     def _addChanges( self, all_added, all_deleted, all_renamed, all_modified ):
@@ -407,6 +445,12 @@ class GitCommitLogNode:
 
     def commitFileChanges( self ):
         return self.__all_changes
+
+class GitCommitLogFileNode:
+    def __init__( self, commit, entry ):
+        self._entry = entry
+
+        super().__init__( commit )
 
     def isEntryEqual( self, other ):
         return self._entry.id == other._entry.id

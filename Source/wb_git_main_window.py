@@ -772,8 +772,17 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             self.log.info( T_('Committed %s') % (commit_id,) )
 
     def treeActionGitLogHistory( self ):
-        pass
+        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
 
+        if options.exec_():
+            git_project = self.__treeSelectedGitProject()
+
+            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+                    self.app,
+                    T_('Commit Log for %s') % (git_project.projectName(),),
+                    wb_git_images.getQIcon( 'wb.png' ) )
+            commit_log_view.showCommitLogForRepository( git_project, options )
+            commit_log_view.show()
 
     #------------------------------------------------------------
     #
