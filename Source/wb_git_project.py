@@ -123,6 +123,35 @@ class GitProject:
 
         return WbGitDiffObjects( self, filename, state, head_id, staged_id, working_path )
 
+    def getReportStagedFiles( self ):
+        all_staged_files = []
+        for filename, status in self.status.items():
+            if (status&pygit2.GIT_STATUS_INDEX_NEW) != 0:
+                all_staged_files.append( (T_('new file'), filename) )
+
+            elif (status&pygit2.GIT_STATUS_INDEX_MODIFIED) != 0:
+                all_staged_files.append( (T_('modified'), filename) )
+
+            elif (status&pygit2.GIT_STATUS_INDEX_DELETED) != 0:
+                all_staged_files.append( (T_('deleted'), filename) )
+
+        return all_staged_files
+
+    def getReportUntrackedFiles( self ):
+        all_ubntracked_files = []
+        for filename, status in self.status.items():
+            if (status&pygit2.GIT_STATUS_WT_NEW) != 0:
+                all_ubntracked_files.append( (T_('new file'), filename) )
+
+            elif (status&pygit2.GIT_STATUS_WT_MODIFIED) != 0:
+                all_ubntracked_files.append( (T_('modified'), filename) )
+
+            elif (status&pygit2.GIT_STATUS_WT_DELETED) != 0:
+                all_ubntracked_files.append( (T_('deleted'), filename) )
+
+        return all_ubntracked_files
+
+
     #------------------------------------------------------------
     #
     # all functions starting with "cmd" are like the git <cmd> in behavior

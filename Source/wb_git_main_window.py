@@ -233,6 +233,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def updateActionEnabledStates( self ):
         self.__enable_state_manager.update()
 
+        if self.commit_dialog is not None:
+            git_project = self.__treeSelectedGitProject()
+            self.commit_dialog.setStatus(
+                    git_project.getReportStagedFiles(),
+                    git_project.getReportUntrackedFiles() )
+
     def __setupMenuBar( self ):
         mb = self.menuBar()
 
@@ -745,22 +751,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def treeActionCommit( self ):
         git_project = self.__treeSelectedGitProject()
 
-        all_staged_files = []
-        for filename, status in git_project.status.items():
-            if (status&pygit2.GIT_STATUS_INDEX_NEW) != 0:
-                all_staged_files.append( (T_('new file'), filename) )
-
-            elif (status&pygit2.GIT_STATUS_INDEX_MODIFIED) != 0:
-                all_staged_files.append( (T_('modified'), filename) )
-
-            elif (status&pygit2.GIT_STATUS_INDEX_DELETED) != 0:
-                all_staged_files.append( (T_('deleted'), filename) )
-
         self.commit_dialog = wb_git_commit_dialog.WbGitCommitDialog(
                     self.app, self,
-                    all_staged_files,
                     T_('Commit %s') % (git_project.projectName(),) )
-
+        self.commit_dialog.setStatus(
+                    git_project.getReportStagedFiles(),
+                    git_project.getReportUntrackedFiles() )
         self.commit_dialog.finished.connect( self.__commitDialogFinished )
 
         # enabled states has have changed
