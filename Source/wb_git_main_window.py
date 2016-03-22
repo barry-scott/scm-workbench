@@ -78,6 +78,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         else:
             self.resize( 800, 600 )
 
+        # the singleton commit dialog
+        self.commit_dialog = None
+
         self.table_keys_edit = ['\r', 'e', 'E']
         self.table_keys_open = ['o', 'O']
 
@@ -480,7 +483,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             git_project = self.__treeSelectedGitProject()
 
             can_commit = False
-            if git_project is not None:
+            if( git_project is not None
+            and self.commit_dialog is None ):
                 staged_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
 
                 for status in git_project.status.values():
@@ -742,7 +746,6 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         git_project = self.__treeSelectedGitProject()
 
         all_staged_files = []
-        can_commit = False
         for filename, status in git_project.status.items():
             if (status&pygit2.GIT_STATUS_INDEX_NEW) != 0:
                 all_staged_files.append( (T_('new file'), filename) )
@@ -753,12 +756,23 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             elif (status&pygit2.GIT_STATUS_INDEX_DELETED) != 0:
                 all_staged_files.append( (T_('deleted'), filename) )
 
-        dialog = wb_git_commit_dialog.WbGitCommitDialog(
+        self.commit_dialog = wb_git_commit_dialog.WbGitCommitDialog(
                     self.app, self,
                     all_staged_files,
                     T_('Commit %s') % (git_project.projectName(),) )
-        if dialog.exec_():
-            commit_id = git_project.cmdCommit( dialog.getMessage() )
+
+        self.commit_dialog.finished.connect( self.__commitDialogFinished )
+
+        # enabled states has have changed
+        self.updateActionEnabledStates()
+
+        # show to the user
+        self.commit_dialog.show()
+
+    def __commitDialogFinished( self, result ):
+        if result:
+            git_project = self.__treeSelectedGitProject()
+            commit_id = git_project.cmdCommit( self.commit_dialog.getMessage() )
 
             # take account of the change
             self.tree_model.refreshTree()
@@ -770,6 +784,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             self.updateActionEnabledStates()
 
             self.log.info( T_('Committed %s') % (commit_id,) )
+
+        self.commit_dialog = None
 
     def treeActionGitLogHistory( self ):
         options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
