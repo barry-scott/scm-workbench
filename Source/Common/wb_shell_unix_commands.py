@@ -51,18 +51,20 @@ def getFileBrowserProgramList():
 def EditFile( app, working_dir, all_filenames ):
     p = app.prefs.getEditor()
 
-    if p.editor_image:
-        if p.editor_options:
-            editor_image = p.editor_image
-            editor_args = shlex.split( p.editor_options ) + all_filenames
-        else:
-            editor_image = p.editor_image
-            editor_args = all_filenames
-    else:
-        editor_image = 'kedit'
-        editor_args = all_filenames
+    editor = p.getEditorProgram()
+    if editor == '':
+        app.log.warning( T_('Please configure the editor in the Preferences Editor tab') )
+        return
+    
+    options = p.getEditorOptions()
 
-    __run_command( app, editor_image, editor_args, working_dir )
+    editor_args = []
+    if options != '':
+        editor_args = shlex.split( options )
+
+    editor_args.extend( all_filenames )
+
+    __run_command( app, editor, editor_args, working_dir )
 
 def ShellOpen( app, working_dir, all_filenames ):
     app.log.info( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
@@ -99,26 +101,30 @@ def CommandShell( app, working_dir ):
 
     with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.sh' ) as f:
         app.all_temp_files.append( f.name )
-        if len( p.shell_init_command ) > 0:
-            f.write( ". '%s'\n" % (p.shell_init_command,) )
+        
+        if len( p.getTerminalInitCommand() ) > 0:
+            f.write( ". '%s'\n" % (p.getTerminalInitCommand(),) )
         f.write( 'exec "$SHELL" -i\n' )
         f.close()
         # chmod +x
         os.chmod( f.name, 0o700 )
 
     path = os.environ.get( 'PATH' )
+    terminal_program = p.getTerminalProgram()
+    if terminal_program == '':
+        app.log.warning( T_('Please configure the Terminal in the Preferences Shell tab') )
+        return
+
     found = False
-    for terminal_program in gui_terminals:
-        if p.shell_terminal in ['',terminal_program]:
-            for folder in path.split( os.pathsep ):
-                exe = os.path.join( folder, terminal_program )
-                if os.path.isfile( exe ):
-                    found = True
-                    break
-        if found:
+    for folder in path.split( os.pathsep ):
+        exe = os.path.join( folder, terminal_program )
+        if os.path.isfile( exe ):
+            found = True
             break
 
     if not found:
+        app.log.warning( T_('Cannot find the Terminal program %s.') % (terminal_program,) )
+        app.log.warning( T_('Please configure a terminal program that is installed on the system in the Preferences Shell tab') )
         return
 
     os.environ['WB_WD'] = str( working_dir )
@@ -146,17 +152,21 @@ def FileBrowser( app, working_dir ):
 
     path = os.environ.get("PATH")
     found = False
-    for browser_program in gui_file_browsers:
-        if p.shell_file_browser in ['',browser_program]:
-            for folder in path.split( os.pathsep ):
-                exe = os.path.join( folder, browser_program )
-                if os.path.isfile(exe):
-                    found = True
-                    break
-        if found:
+
+    browser_program = p.getFileBrowserProgram()
+    if browser_program == '':
+        app.log.warning( T_('Please configure the File Browser in the Preferences Shell tab') )
+        return
+
+    for folder in path.split( os.pathsep ):
+        exe = os.path.join( folder, browser_program )
+        if os.path.isfile(exe):
+            found = True
             break
 
     if not found:
+        app.log.warning( T_('Cannot find the File Browser program %s.') % (browser_program,) )
+        app.log.warning( T_('Please configure a File Browser program that is installed on the system in the Preferences Shell tab') )
         return
 
     if browser_program == 'konqueror':
