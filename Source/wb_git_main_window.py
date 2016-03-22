@@ -264,6 +264,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
         self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
+        self.__addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
+        m.addSeparator()
         self.__addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit )
 
         m = mb.addMenu( T_('&Project') )
@@ -296,6 +298,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
         self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
         self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        m.addSeparator()
+        self.__addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
 
     def __addMenu( self, menu, name, handler, enabler=None, icon_name=None ):
         if icon_name is None:
@@ -901,6 +905,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def tableActionGitRevert( self ):
         self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionGitRevert )
 
+    def tableActionGitDelete( self ):
+        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionGitDelete )
+
     def tableActionGitDiffSmart( self ):
         self._debug( 'tableActionGitDiffSmart()' )
         self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffSmart )
@@ -928,6 +935,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def __actionGitRevert( self, git_project, filename ):
         git_project.cmdRevert( 'HEAD', filename )
+
+    def __actionGitDelete( self, git_project, filename ):
+        git_project.cmdDelete( filename )
 
     def __actionGitDiffSmart( self, git_project, filename ):
         diff_objects = git_project.getDiffObjects( filename )
@@ -989,6 +999,18 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         title = T_('Confirm Revert')
         all_parts = [T_('Are you sure you wish to revert:')]
+        all_parts.extend( [str(filename) for filename in all_filenames] )
+
+        message = '\n'.join( all_parts )
+
+        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
+        return rc == QtWidgets.QMessageBox.Yes
+
+    def __areYouSureDelete( self, all_filenames ):
+        default_button = QtWidgets.QMessageBox.No
+
+        title = T_('Confirm Delete')
+        all_parts = [T_('Are you sure you wish to delete:')]
         all_parts.extend( [str(filename) for filename in all_filenames] )
 
         message = '\n'.join( all_parts )

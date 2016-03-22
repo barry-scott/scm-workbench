@@ -209,6 +209,10 @@ class GitProject:
 
         self.__dirty = True
 
+    def cmdDelete( self, filename ):
+        (self.prefs_project.path / filename).unlink()
+        self.__dirty = True
+
     def cmdCommit( self, message ):
         author = self.repo.default_signature
         comitter = self.repo.default_signature
@@ -216,7 +220,6 @@ class GitProject:
         tree = self.repo.index.write_tree()
 
         last_commit = self.repo.revparse_single( 'HEAD' )
-
 
         commit_id = self.repo.create_commit(
             'refs/heads/master',            # branch to comimit to
