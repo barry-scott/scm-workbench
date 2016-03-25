@@ -102,6 +102,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.filter_text.textChanged.connect( self.table_sortfilter.setFilterText )
 
+        self.branch_text = QtWidgets.QLineEdit()
+        self.branch_text.setReadOnly( True )
+
+        self.folder_text = QtWidgets.QLineEdit()
+        self.folder_text.setReadOnly( True )
+
         # layout widgets in window
         self.v_split = QtWidgets.QSplitter()
         self.v_split.setOrientation( QtCore.Qt.Vertical )
@@ -115,10 +121,21 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.v_split_table.setOrientation( QtCore.Qt.Vertical )
 
         self.h_filter_widget = QtWidgets.QWidget( self.v_split )
-        self.h_filter_layout = QtWidgets.QHBoxLayout()
+        self.h_filter_layout = QtWidgets.QGridLayout()
 
-        self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Filter:') ) )
-        self.h_filter_layout.addWidget( self.filter_text )
+        row = 0
+        self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Filter:') ), row, 0 )
+        self.h_filter_layout.addWidget( self.filter_text, row, 1, 1, 3 )
+
+        row += 1
+        self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Branch:') ), row, 0 )
+        self.h_filter_layout.addWidget( self.branch_text, row, 1 )
+
+        self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Path:') ), row, 2 )
+        self.h_filter_layout.addWidget( self.folder_text, row, 3 )
+
+        self.h_filter_layout.setColumnStretch( 1, 1 )
+        self.h_filter_layout.setColumnStretch( 3, 2 )
 
         self.h_filter_widget.setLayout( self.h_filter_layout )
 
@@ -324,6 +341,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
         self.__addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
+        t = self.tool_bar_git_info = self.__addToolBar( T_('git info') )
+        self.__addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
+        self.__addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
+
         t = self.tool_bar_git_state = self.__addToolBar( T_('git state') )
         self.__addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
         self.__addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
@@ -331,16 +352,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         t.addSeparator()
         self.__addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit )
 
-        t = self.tool_bar_git_info = self.__addToolBar( T_('git info') )
-        self.__addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
-        self.__addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
-
     def __addToolBar( self, name ):
         bar = self.addToolBar( name )
         bar.setIconSize( self.icon_size )
         return bar
 
-    def __addTool( self, bar, name, handler, enabler, icon_name=None ):
+    def __addTool( self, bar, name, handler, enabler=None, icon_name=None ):
         if icon_name is None:
             action = bar.addAction( name )
 
@@ -349,7 +366,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             action = bar.addAction( icon, name )
 
         action.triggered.connect( handler )
-        self.__enable_state_manager.add( action, enabler )
+        if enabler is not None:
+            self.__enable_state_manager.add( action, enabler )
 
     def __setupStatusBar( self ):
         s = self.statusBar()
@@ -725,6 +743,28 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.filter_text.clear()
         self.tree_model.selectionChanged( selected, deselected )
         self.updateActionEnabledStates()
+
+        git_project = self.__treeSelectedGitProject()
+        if git_project is None:
+            self.branch_text.clear()
+
+        else:
+            self.branch_text.setText( git_project.headRefName() )
+
+        folder = self.__treeSelectedAbsoluteFolder()
+        if folder is None:                                                          
+             self.folder_text.clear()
+
+        else:
+            try:
+                # try to convert to ~ form
+                folder = folder.relative_to( pathlib.Path( os.environ['HOME'] ) )
+                folder = '~/%s' % (folder,)
+
+            except ValueError:
+                folder = str( folder )
+
+            self.folder_text.setText( folder )
 
     def treeActionShell( self ):
         folder_path = self.__treeSelectedAbsoluteFolder()

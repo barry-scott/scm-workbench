@@ -41,6 +41,13 @@ class GitProject:
     def path( self ):
         return self.prefs_project.path
 
+    def headRefName( self ):
+        try:
+            return self.repo.head.name
+
+        except _pygit2.GitError:
+            return ''
+
     def saveChanges( self ):
         self._debug( 'saveChanges()' )
         assert self.__dirty, 'Only call saveChanges if something was changed'
@@ -222,7 +229,7 @@ class GitProject:
         last_commit = self.repo.revparse_single( 'HEAD' )
 
         commit_id = self.repo.create_commit(
-            'refs/heads/master',            # branch to comimit to
+            self.repo.head.name,            # branch to commit to
             author,
             comitter,
             message,
