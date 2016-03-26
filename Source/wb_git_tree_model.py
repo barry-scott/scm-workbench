@@ -26,8 +26,6 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
 
         super().__init__()
 
-        root = self.invisibleRootItem()
-
         self.all_git_projects = {}
 
         self.selected_node = None

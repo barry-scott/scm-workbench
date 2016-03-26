@@ -61,7 +61,7 @@ def main( argv ):
     del app
     # prevent exit handlers from running as this allows for a segv
     # My guess is that there are some Qt objects that are not owned
-    # but I have no way to trake them down
+    # but I have no way to take them down
     #os._exit( rc )
     return rc
 
