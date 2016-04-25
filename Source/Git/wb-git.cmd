@@ -1,5 +1,5 @@
 setlocal 
-set PYTHONPATH=%BUILDER_TOP_DIR%\Source;%BUILDER_TOP_DIR%\Source\Common
+set PYTHONPATH=%BUILDER_TOP_DIR%\Source\Git;%BUILDER_TOP_DIR%\Source\Common
 
 set BUILDER_START_DIR=
 set BUILDER_TOP_DIR=
