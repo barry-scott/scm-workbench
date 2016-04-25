@@ -54,15 +54,16 @@ def ShellDiffFiles( app, options ):
     app.log.info( cmd_line )
     return __run_command_with_output( cmd_line )
 
-def ShellOpen( app, project_info, filename ):
+def ShellOpen( app, working_dir, filename ):
     app.log.info( T_('Open %s') % filename )
+
+    SW_SHOWNORMAL = 1
+
     try:
-        # QQQ use ctypes to do ShellExecute
-        win32api.ShellExecute( 0, 'open',
-                    filename, '',
-                    project_info.getWorkingDir(),
-                    win32con.SW_SHOWNORMAL )
-    except win32api.error, e:
+        ShellExecuteW = ctypes.windll.shell32.ShellExecuteA
+        ShellExecuteW( None, 'open', str(filename), None, str( working_dir ), SW_SHOWNORMAL )
+
+    except RuntimeError as e:
         if e[0] == 31:
             app.log.error( T_('Unable to shell open %s\n'
                  'Is an application associated with this file type?') % filename )
@@ -137,11 +138,12 @@ def CreateProcess( app, command_line, current_dir ):
 
         try:
             ctypes.windll.kernel32.Wow64RevertWow64FsRedirection( old_value )
+
         except:
             pass
 
 
-    except win32process.error, detail:
+    except win32process.error as detail:
         app.log.error( T_('Create process failed for command - %(command)s\n'
                         'Reason %(reason)s') %
                             {'command': command_line
@@ -153,7 +155,7 @@ def ensureDirectory( app, current_dir ):
             current_dir.mkdir( parents=True )
             app.log.info( T_('Created directory %s') % (current_dir,) )
 
-        except IOError, e:
+        except IOError as e:
             app.log.error( T_('Create directory %(dir)s - %(error)s') %
                             {'dir': current_dir
                             ,'error': e} )
@@ -180,5 +182,5 @@ def __run_command_with_output( command_line ):
 
         return all_output
 
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         return '%s - %s' % (err_prefix, str(e))
