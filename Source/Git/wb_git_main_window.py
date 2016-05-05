@@ -558,7 +558,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def appActionAbout( self ):
         from PyQt5 import Qt
         all_about_info = []
-        all_about_info.append( T_("%s %d.%d.%d-%d") %
+        all_about_info.append( "%s %d.%d.%d-%d" %
                                 (' '.join( self.app.app_name_parts )
                                 ,wb_git_version.major, wb_git_version.minor
                                 ,wb_git_version.patch, wb_git_version.build) )

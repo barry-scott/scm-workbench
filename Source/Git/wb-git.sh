@@ -7,9 +7,9 @@ then
 fi
 if [ "$PYTHONPATH" = "" ]
 then
-	export PYTHONPATH=${BUILDER_TOP_DIR}/Source:${BUILDER_TOP_DIR}/Source/Common
+	export PYTHONPATH=${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Common
 else
-	export PYTHONPATH=${BUILDER_TOP_DIR}/Source:${BUILDER_TOP_DIR}/Source/Common:$PYTHONPATH
+	export PYTHONPATH=${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Common:$PYTHONPATH
 fi
 
 PYTHON=${PYTHON:-python3}

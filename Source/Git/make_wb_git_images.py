@@ -19,25 +19,25 @@ argv = [
         sys.argv[0],
         'wb_git_images.py',
 
-	'wb.png',
+	'../wb.png',
 
-	'toolbar_images/editcopy.png',
-	'toolbar_images/editcut.png',
-	'toolbar_images/editpaste.png',
+	'../toolbar_images/editcopy.png',
+	'../toolbar_images/editcut.png',
+	'../toolbar_images/editpaste.png',
 
-	'toolbar_images/terminal.png',
-	'toolbar_images/file_browser.png',
+	'../toolbar_images/terminal.png',
+	'../toolbar_images/file_browser.png',
 
-	'toolbar_images/edit.png',
-	'toolbar_images/open.png',
+	'../toolbar_images/edit.png',
+	'../toolbar_images/open.png',
 
-	'toolbar_images/include.png',
-	'toolbar_images/exclude.png',
+	'../toolbar_images/include.png',
+	'../toolbar_images/exclude.png',
 
-	'toolbar_images/revert.png',
+	'../toolbar_images/revert.png',
 
-	'toolbar_images/diff.png',
-	'toolbar_images/history.png',
+	'../toolbar_images/diff.png',
+	'../toolbar_images/history.png',
 
         ]
 
@@ -46,7 +46,12 @@ def main( argv ):
         f.write( header )
 
         for filename in argv[2:]:
-            f.write( 'images_by_filename["%s"] = (\n' % (filename,) )
+            if filename.startswith( '../' ):
+                image_name = filename[len('../'):]
+            else:
+                image_name = filename
+
+            f.write( 'images_by_filename["%s"] = (\n' % (image_name,) )
             with open( filename, 'rb' ) as image:
                 data = image.read()
 
