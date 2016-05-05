@@ -1,14 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 import os
 
 localedir = sys.argv[1]
 
-all_lang = ['en', 'de', 'hu']
+all_lang = ['en']
 
 for lang in all_lang:
     mo_output_dir = '%s/%s/LC_MESSAGES' % (localedir, lang)
-    os.makedirs( mo_output_dir )
+    if not os.path.exists( mo_output_dir ):
+        os.makedirs( mo_output_dir )
 
     if lang == 'en':
         po_file = 'I18N/git_workbench_en.current.po'
@@ -23,5 +24,5 @@ for lang in all_lang:
     if rc != 0:
         sys.exit( rc )
 
-    print 'Info: %s/git_workbench.mo' % mo_output_dir
+    print( 'Info: %s/git_workbench.mo' % (mo_output_dir,) )
 sys.exit( 0 )

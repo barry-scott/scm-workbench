@@ -2,13 +2,13 @@
 import sys
 import os
 
-import wb_version
+import wb_git_version
 import datetime
 
 args = {'WB_LOCALE': sys.argv[1]}
 
 if os.path.exists( 'I18N/git_workbench_%(WB_LOCALE)s.po' % args ):
-    print 'Info: Update %(WB_LOCALE)s from I18N/git_workbench.current.pot' % args
+    print( 'Info: Update %(WB_LOCALE)s from I18N/git_workbench.current.pot' % args )
     rc = os.system( 'msginit '
         '--input=I18N/git_workbench.current.pot '
         '--locale=${WB_LOCALE} '
@@ -28,7 +28,7 @@ if os.path.exists( 'I18N/git_workbench_%(WB_LOCALE)s.po' % args ):
         sys.exit( rc )
 
 else:
-    print 'Info: Create %(WB_LOCALE)s from I18N/git_workbench.current.pot' % args
+    print( 'Info: Create %(WB_LOCALE)s from I18N/git_workbench.current.pot' % args )
     rc = os.system( 'msginit '
         '--input=I18N/git_workbench.current.pot '
         '--locale=%(WB_LOCALE)s.UTF-8 '
@@ -38,17 +38,17 @@ else:
     if rc != 0:
         sys.exit( rc )
 
-print 'Info: Version brand %(WB_LOCALE)s from I18N/git_workbench.current.pot' % args
+print( 'Info: Version brand %(WB_LOCALE)s from I18N/git_workbench.current.pot' % args )
 po_filename = 'I18N/git_workbench_%(WB_LOCALE)s.current.po' % args
-all_po_lines = open( po_filename, 'r' ).readlines()
+all_po_lines = open( po_filename, 'r', encoding='utf-8' ).readlines()
 
 for index, line in enumerate( all_po_lines ):
     if line.startswith( '"Project-Id-Version:' ):
-        all_po_lines[ index ] = ('"Project-Id-Version: WorkBench %d.%d.%d.%d\\n"\n' % 
-            (wb_version.major
-            ,wb_version.minor
-            ,wb_version.patch
-            ,wb_version.build))
+        all_po_lines[ index ] = ('"Project-Id-Version: Git WorkBench %d.%d.%d.%d\\n"\n' % 
+            (wb_git_version.major
+            ,wb_git_version.minor
+            ,wb_git_version.patch
+            ,wb_git_version.build))
 
     elif line.startswith( '"PO-Revision-Date:' ):
         all_po_lines[ index ] = '"PO-Revision-Date: %s\\n"\n' % (datetime.datetime.now().isoformat(' '),)
@@ -56,5 +56,7 @@ for index, line in enumerate( all_po_lines ):
     elif line.startswith( '"Content-Type: text/plain; charset=' ):
         all_po_lines[ index ] = '"Content-Type: text/plain; charset=UTF-8\\n"\n'
 
-open( po_filename, 'w' ).write( ''.join( all_po_lines ) )
+with open( po_filename, 'w', encoding='utf-8' ) as f:
+    f.write( ''.join( all_po_lines ) )
+
 sys.exit( 0 )
