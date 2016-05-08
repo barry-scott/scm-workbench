@@ -428,6 +428,9 @@ class WbGitFileState:
         # from the above calculate the following
         self.__state_calculated = False
 
+        self.__staged_is_modified = False
+        self.__unstaged_is_modified = False
+
         self.__staged_abbrev = None
         self.__unstaged_abbrev = None
 
@@ -464,6 +467,7 @@ class WbGitFileState:
 
             else:
                 self.__staged_abbrev = 'M'
+                self.__staged_is_modified = True
                 self.__head_blob = self.staged_diff.b_blob
                 self.__staged_blob = self.staged_diff.a_blob
 
@@ -479,10 +483,11 @@ class WbGitFileState:
 
             else:
                 self.__unstaged_abbrev = 'M'
-                self.__head_blob = self.unstaged_diff.a_blob
+                self.__unstaged_is_modified = True
+                if self.__head_blob is None:
+                    self.__head_blob = self.unstaged_diff.a_blob
 
         self.__state_calculated = True
-        
 
     def getStagedAbbreviatedStatus( self ):
         self.__calculateState()
@@ -497,16 +502,13 @@ class WbGitFileState:
         return self.untracked
 
     def canDiffHeadVsStaged( self ):
-        return (self.__head_blob is not None        # have HEAD
-            and self.__staged_blob is not None)     # is STAGED
+        return self.__staged_is_modified
 
     def canDiffStagedVsWorking( self ):
-        return (self.__head_blob is None            # no HEAD
-            and self.__staged_blob is not None )    # is STAGED
+        return self.__unstaged_is_modified and self.__staged_is_modified
 
     def canDiffHeadVsWorking( self ):
-        return (self.__head_blob is not None        # have HEAD
-            and self.__staged_blob is None)         # no STAGED
+        return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
         path = pathlib.Path( self.repo.working_tree_dir ) / self.unstaged_diff.a_path
