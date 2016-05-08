@@ -1,42 +1,59 @@
 #!/bin/bash
+set -x
+set -e
+
+SCRIPT_DIR=${PWD}
+
 REPO=${TMPDIR:? set TMPDIR}/test-repo-status
 
 rm -rf ${TMPDIR:? set TMPDIR}/test-repo-status
 
 mkdir ${REPO}
-git init ${REPO}
-mkdir ${REPO}/Folder1
-mkdir ${REPO}/Folder2
 
-echo deleted-sh-rm.txt >${REPO}/Folder1/deleted-sh-rm.txt
-echo deleted-git-rm.txt >${REPO}/Folder1/deleted-git-rm.txt
-echo renamed.txt >${REPO}/Folder1/renamed.txt
-echo changed-staged.txt >${REPO}/Folder1/changed-staged.txt
-echo changed-working.txt >${REPO}/Folder1/changed-working.txt
+git init ${REPO}
+cd ${REPO}
+
+git branch
+git status
+
+mkdir Folder1
+mkdir Folder2
+
+echo deleted-sh-rm.txt >Folder1/deleted-sh-rm.txt
+echo deleted-git-rm.txt >Folder1/deleted-git-rm.txt
+echo renamed.txt >Folder1/renamed.txt
+echo changed-staged.txt >Folder1/changed-staged.txt
+echo changed-working.txt >Folder1/changed-working.txt
 
 git add \
-    ${REPO}/Folder1/deleted-sh-rm.txt \
-    ${REPO}/Folder1/deleted-git-rm.txt \
-    ${REPO}/Folder1/renamed.txt \
-    ${REPO}/Folder1/changed-staged.txt \
-    ${REPO}/Folder1/changed-working.txt \
+    Folder1/deleted-sh-rm.txt \
+    Folder1/deleted-git-rm.txt \
+    Folder1/renamed.txt \
+    Folder1/changed-staged.txt \
+    Folder1/changed-working.txt \
     ;
 
 git commit -m "commit 1"
 
-rm ${REPO}/Folder1/deleted-sh-rm.txt
-git rm ${REPO}/Folder1/deleted-git-rm.txt
-git mv ${REPO}/Folder1/renamed.txt ${REPO}/Folder2/renamed2.txt
+# delete file
+rm Folder1/deleted-sh-rm.txt
+git rm Folder1/deleted-git-rm.txt
 
-echo staged change >> ${REPO}/Folder1/changed-staged.txt
-git add ${REPO}/Folder1/changed-staged.txt 
-echo working chage >> ${REPO}/Folder1/changed-working.txt
+# rename file
+git mv Folder1/renamed.txt Folder2/renamed2.txt
 
-rm ${REPO}/Folder1/deleted-sh-rm.txt
-git rm ${REPO}/Folder1/deleted-git-rm.txt
+# modify files
+echo staged change >> Folder1/changed-staged.txt
+git add Folder1/changed-staged.txt 
+echo working chage >> Folder1/changed-working.txt
 
-echo new-working.txt > ${REPO}/Folder1/new-working.txt
-echo new-staged.txt > ${REPO}/Folder1/new-staged.txt
-git add ${REPO}/Folder1/new-staged.txt
+# new files
+echo new-working.txt > Folder1/new-working.txt
+echo new-staged.txt > Folder1/new-staged.txt
+git add Folder1/new-staged.txt
 
-git status ${REPO}
+# status
+git status
+
+python3 ${SCRIPT_DIR}/git_python_status.py ${REPO} $1
+python3 ${SCRIPT_DIR}/git_wb_project_status.py ${REPO} $1
