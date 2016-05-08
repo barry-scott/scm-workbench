@@ -16,6 +16,7 @@ import sys
 import os
 import time
 import pathlib
+import difflib
 
 # On OS X the packager missing this import
 import sip
@@ -23,8 +24,6 @@ import sip
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
-
-import pygit2
 
 import wb_git_version
 import wb_git_images
@@ -404,25 +403,28 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def enablerFilesStage( self, cache ):
         key = 'enablerFilesStage'
         if key not in cache:
-            with_status = (pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_NEW|pygit2.GIT_STATUS_WT_DELETED)
-            cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
+            #with_status = (pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_NEW|pygit2.GIT_STATUS_WT_DELETED)
+            #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
+            cache[ key ] = True
 
         return cache[ key ]
 
     def enablerFilesUnstage( self, cache ):
         key = 'enablerFilesUnstage'
         if key not in cache:
-            with_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
-            cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
+            #with_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
+            #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
+            cache[ key ] = True
 
         return cache[ key ]
 
     def enablerFilesRevert( self, cache ):
         key = 'enablerFilesRevert'
         if key not in cache:
-            with_status = pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED
-            without_status = pygit2.GIT_STATUS_INDEX_MODIFIED
-            cache[ key ] = self.__tableSelectedWithStatus( with_status, without_status )
+            #with_status = pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED
+            #without_status = pygit2.GIT_STATUS_INDEX_MODIFIED
+            #cache[ key ] = self.__tableSelectedWithStatus( with_status, without_status )
+            cache[ key ] = True
 
         return cache[ key ]
 
@@ -441,10 +443,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         return cache[ key ]
 
-    def __enablerTableSelectedDiffObjects( self, cache ):
-        key = '__enablerTableSelectedDiffObjects'
+    def __enablerTableSelectedStatus( self, cache ):
+        key = '__enablerTableSelectedStatus'
         if key not in cache:
-            cache[ key ] = self.__tableSelectedDiffObjects()
+            cache[ key ] = self.__tableSelectedStatus()
 
         return cache[ key ]
 
@@ -456,9 +458,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
             elif focus == 'table':
                 # make sure all the selected entries is modified
-                all_diff_objects = self.__enablerTableSelectedDiffObjects( cache )
+                all_file_states = self.__enablerTableSelectedStatus( cache )
                 enable = True
-                for obj in all_diff_objects:
+                for obj in all_file_states:
                     if not predicate( obj ):
                         enable = False
                         break
@@ -471,13 +473,13 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         return cache[ key ]
 
     def enablerDiffHeadVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsWorking', wb_git_project.WbGitDiffObjects.canDiffHeadVsWorking )
+        return self.__enablerDiff( cache, 'enablerDiffHeadVsWorking', wb_git_project.WbGitFileState.canDiffHeadVsWorking )
 
     def enablerDiffStagedVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffStagedVsWorking', wb_git_project.WbGitDiffObjects.canDiffStagedVsWorking )
+        return self.__enablerDiff( cache, 'enablerDiffStagedVsWorking', wb_git_project.WbGitFileState.canDiffStagedVsWorking )
 
     def enablerDiffHeadVsStaged( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsStaged', wb_git_project.WbGitDiffObjects.canDiffHeadVsStaged )
+        return self.__enablerDiff( cache, 'enablerDiffHeadVsStaged', wb_git_project.WbGitFileState.canDiffHeadVsStaged )
 
     def enablerDiffSmart( self, cache ):
         key = 'enablerDiffSmart'
@@ -488,9 +490,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
             elif focus == 'table':
                 # make sure all the selected entries is modified
-                all_diff_objects = self.__enablerTableSelectedDiffObjects( cache )
+                all_file_states = self.__enablerTableSelectedStatus( cache )
                 enable = True
-                for obj in all_diff_objects:
+                for obj in all_file_states:
                     if not (obj.canDiffStagedVsWorking()
                             or obj.canDiffHeadVsWorking()
                             or obj.canDiffHeadVsStaged()):
@@ -513,12 +515,13 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             can_commit = False
             if( git_project is not None
             and self.commit_dialog is None ):
-                staged_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
+                #staged_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
 
-                for status in git_project.status.values():
-                    if (status&staged_status) != 0:
-                        can_commit = True
-                        break
+                #for status in git_project.status.values():
+                #    if (status&staged_status) != 0:
+                #        can_commit = True
+                #        break
+                pass
 
             cache[ key ] = can_commit
 
@@ -882,7 +885,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         return True
 
-    def __tableSelectedDiffObjects( self ):
+    def __tableSelectedStatus( self ):
         folder_path = self.__treeSelectedAbsoluteFolder()
         if folder_path is None:
             return []
@@ -895,7 +898,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         relative_folder = self.__treeSelectedRelativeFolder()
 
-        return [git_project.getDiffObjects( relative_folder / name ) for name in all_names]
+        return [git_project.getFileState( relative_folder / name ) for name in all_names]
 
     def tableKeyHandler( self, key ):
         if key in self.table_keys_edit:
@@ -971,7 +974,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         git_project.cmdStage( filename )
 
     def __actionGitUnStage( self, git_project, filename ):
-        git_project.cmdUnstage( 'HEAD', filename, pygit2.GIT_RESET_MIXED )
+        #git_project.cmdUnstage( 'HEAD', filename, pygit2.GIT_RESET_MIXED )
+        pass
 
     def __actionGitRevert( self, git_project, filename ):
         git_project.cmdRevert( 'HEAD', filename )
@@ -980,21 +984,27 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         git_project.cmdDelete( filename )
 
     def __actionGitDiffSmart( self, git_project, filename ):
-        diff_objects = git_project.getDiffObjects( filename )
+        file_state = git_project.getFileState( filename )
 
-        if diff_objects.canDiffStagedVsWorking():
+        if file_state.canDiffStagedVsWorking():
             self.__actionGitDiffStagedVsWorking( git_project, filename )
 
-        elif diff_objects.canDiffHeadVsStaged():
+        elif file_state.canDiffHeadVsStaged():
             self.__actionGitDiffHeadVsStaged( git_project, filename )
 
-        elif diff_objects.canDiffHeadVsWorking():
+        elif file_state.canDiffHeadVsWorking():
             self.__actionGitDiffHeadVsWorking( git_project, filename )
 
-    def __actionGitDiffHeadVsWorking( self, git_project, filename ):
-        diff_objects = git_project.getDiffObjects( filename )
+    def __diffUnified( self, old_lines, new_lines ):
+        return list( difflib.unified_diff( old_lines, new_lines ) )
 
-        text = diff_objects.diffUnified( diff_objects.diff_head, diff_objects.diff_working )
+    def __actionGitDiffHeadVsWorking( self, git_project, filename ):
+        file_state = git_project.getFileState( filename )
+
+        old_lines = file_state.getTextLinesHead()
+        new_lines = file_state.getTextLinesWorking()
+
+        text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Work %s') % (filename,)
 
         window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
@@ -1002,9 +1012,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         window.show()
 
     def __actionGitDiffStagedVsWorking( self, git_project, filename ):
-        diff_objects = git_project.getDiffObjects( filename )
+        file_state = git_project.getFileState( filename )
 
-        text = diff_objects.diffUnified( diff_objects.diff_staged, diff_objects.diff_working )
+        old_lines = file_state.getTextLinesStaged()
+        new_lines = file_state.getTextLinesWorking()
+
+        text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff Staged vs. Work %s') % (filename,)
 
         window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
@@ -1012,9 +1025,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         window.show()
 
     def __actionGitDiffHeadVsStaged( self, git_project, filename ):
-        diff_objects = git_project.getDiffObjects( filename )
+        file_state = git_project.getFileState( filename )
 
-        text = diff_objects.diffUnified( diff_objects.diff_head, diff_objects.diff_staged )
+        old_lines = file_state.getTextLinesHead()
+        new_lines = file_state.getTextLinesStaged()
+
+        text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Staged %s') % (filename,)
 
         window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )

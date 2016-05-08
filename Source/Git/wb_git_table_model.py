@@ -17,8 +17,6 @@ from PyQt5 import QtCore
 import os
 import time
 
-import pygit2
-
 class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
     def __init__( self, app, parent=None ):
         self.app = app
@@ -55,12 +53,12 @@ class WbGitTableSortFilter(QtCore.QSortFilterProxyModel):
 
         if column in (model.col_cache, model.col_working):
             # cached first
-            left = left_ent.cacheAsString()
-            right = right_ent.cacheAsString()
+            left = left_ent.stagedAsString()
+            right = right_ent.stagedAsString()
             if left != right:
                 return left > right
 
-            # then working changesabrt-CCpp.conf
+            # then working changes
             left = left_ent.workingAsString()
             right = right_ent.workingAsString()
             if left != right:
@@ -165,7 +163,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
             col = index.column()
 
             if col == self.col_cache:
-                return entry.cacheAsString()
+                return entry.stagedAsString()
 
             elif col == self.col_working:
                 return entry.workingAsString()
@@ -187,7 +185,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
 
         elif role == QtCore.Qt.ForegroundRole:
             entry = self.all_files[ index.row() ]
-            cached = entry.cacheAsString()
+            cached = entry.stagedAsString()
             working = entry.workingAsString()
 
             if cached != '':
@@ -229,7 +227,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
             else:
                 entry = all_files[ name ]
 
-            entry.updateFromGit( git_project_tree_node.state( name ) )
+            entry.updateFromGit( git_project_tree_node.getStatusEntry( name ) )
 
             all_files[ entry.name ] = entry
 
@@ -339,63 +337,25 @@ class WbGitTableEntry:
         if self.status is None:
             return True
 
-        return (self.status[1]&pygit2.GIT_STATUS_IGNORED) != 0
+        return False
 
-    def cacheAsString( self ):
-        '''
-GIT_STATUS_CONFLICTED: 0x8000
-GIT_STATUS_CURRENT: 0x0
-GIT_STATUS_IGNORED: 0x4000
-GIT_STATUS_INDEX_DELETED: 0x4
-GIT_STATUS_INDEX_MODIFIED: 0x2
-GIT_STATUS_INDEX_NEW: 0x1
-GIT_STATUS_WT_DELETED: 0x200
-GIT_STATUS_WT_MODIFIED: 0x100
-GIT_STATUS_WT_NEW: 0x80
-'''
+    def stagedAsString( self ):
         if self.status is None:
             return ''
 
-        status = self.status[1]
-
-        if status&pygit2.GIT_STATUS_INDEX_NEW:
-            return 'A'
-
-        elif status&pygit2.GIT_STATUS_INDEX_MODIFIED:
-            return 'M'
-
-        elif status&pygit2.GIT_STATUS_INDEX_DELETED:
-            return 'D'
-
-        else:
-            return ''
+        return self.status.getStagedAbbreviatedStatus()
 
     def workingAsString( self ):
         if self.status is None:
             return ''
 
-        status = self.status[1]
-        state = []
-
-        if status&pygit2.GIT_STATUS_CONFLICTED:
-            state.append( 'C' )
-
-        if status&pygit2.GIT_STATUS_WT_MODIFIED:
-            state.append( 'M' )
-
-        elif status&pygit2.GIT_STATUS_WT_DELETED:
-            state.append( 'D' )
-
-        return ''.join( state )
+        return self.status.getUnstagedAbbreviatedStatus()
 
     def isWorkingNew( self ):
         if self.status is None:
             return False
 
-        if self.status[1]&pygit2.GIT_STATUS_WT_NEW:
-            return True
-
-        return False
+        return self.status.isUntracked()
 
 def os_scandir( path ):
     if hasattr( os, 'scandir' ):

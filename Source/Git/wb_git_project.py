@@ -11,9 +11,9 @@
 
 '''
 import pathlib
-import difflib
 
-import pygit2
+import git
+import git.index
 
 class GitProject:
     def __init__( self, app, prefs_project ):
@@ -21,11 +21,12 @@ class GitProject:
         self._debug = self.app._debugGitProject
 
         self.prefs_project = prefs_project
-        self.repo = pygit2.Repository( str( prefs_project.path / '.git' ) )
+        self.repo = git.Repo( str( prefs_project.path ) )
+        self.index = None
 
         self.tree = GitProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
-        self.status = {}
+        self.all_file_state = {}
 
         self.__dirty = False
 
@@ -62,15 +63,39 @@ class GitProject:
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
-        self.repo.index.read( False )
+        self.__calculateStatus()
 
-        for entry in self.repo.index:
-            self.__updateTree( entry.path )
-
-        self.status = self.repo.status()
-
-        for path in self.status:
+        for path in self.all_file_state:
             self.__updateTree( path )
+
+    def __calculateStatus( self ):
+        self.index = git.index.IndexFile( self.repo )
+
+        head_vs_index = self.index.diff( self.repo.head.commit )
+        index_vs_working = self.index.diff( None )
+        # each ref to self.repo.untracked_files creates a new object
+        # cache the value once/update
+        untracked_files = self.repo.untracked_files
+
+        self.all_file_state = {}
+        for entry in self.index.entries.values():
+            self.all_file_state[ entry.path ] = WbGitFileState( self.repo, entry )
+
+        for diff in head_vs_index:
+            if diff.b_path not in self.all_file_state:
+                self.all_file_state[ diff.b_path ] = WbGitFileState( self.repo, None )
+            self.all_file_state[ diff.b_path ]._addStaged( diff )
+
+        for diff in index_vs_working:
+            if diff.a_path not in self.all_file_state:
+                self.all_file_state[ diff.a_path ] = WbGitFileState( self.repo, None )
+            self.all_file_state[ diff.a_path ]._addUnstaged( diff )
+
+        for path in untracked_files:
+            if path not in self.all_file_state:
+                self.all_file_state[ path ] = WbGitFileState( self.repo, None )
+
+            self.all_file_state[ path ]._setUntracked()
 
     def __updateTree( self, path ):
         path_parts = path.split( '/' )
@@ -93,46 +118,13 @@ class GitProject:
     # functions to retrive interesting info from the repo
     #
     #------------------------------------------------------------
-    def getStatus( self, filename ):
+    def getFileState( self, filename ):
         # status only has enties for none CURRENT status files
-        return self.status.get( str(filename), pygit2.GIT_STATUS_CURRENT )
-
-    def getDiffObjects( self, filename ):
-        state = self.getStatus( filename )
-
-        self._debug( 'getDiffObjects( %r ) state=0x%x pygit2.GIT_STATUS_INDEX_NEW 0x%x' % (filename, state, pygit2.GIT_STATUS_INDEX_NEW) )
-
-        # The id representing the filename contents at HEAD
-        if( (state&pygit2.GIT_STATUS_INDEX_NEW) != 0
-        or  (state&pygit2.GIT_STATUS_WT_NEW) != 0 ):
-            head_id = None
-
-        else:
-            commit = self.repo.revparse_single( 'HEAD' )
-            tree = commit.peel( pygit2.GIT_OBJ_TREE )
-            tree_entry = self.__findFileInTree( tree, filename )
-            head_id = tree_entry.id
-
-        # The id representing the filename contents that is staging
-        if( (state&pygit2.GIT_STATUS_INDEX_NEW) != 0
-        or  (state&pygit2.GIT_STATUS_INDEX_MODIFIED) != 0 ):
-            index_entry = self.repo.index[ str( filename ) ]
-            staged_id = index_entry.id
-
-        elif (state&pygit2.GIT_STATUS_INDEX_DELETED) != 0:
-            staged_id = None
-
-        else:
-            staged_id = None
-
-        # the path to the working copy
-        working_path = self.path() / filename
-
-        return WbGitDiffObjects( self, filename, state, head_id, staged_id, working_path )
+        return self.all_file_state[ str(filename) ]
 
     def getReportStagedFiles( self ):
         all_staged_files = []
-        for filename, status in self.status.items():
+        for filename, status in self.all_file_state.items():
             if (status&pygit2.GIT_STATUS_INDEX_NEW) != 0:
                 all_staged_files.append( (T_('new file'), filename) )
 
@@ -146,7 +138,7 @@ class GitProject:
 
     def getReportUntrackedFiles( self ):
         all_ubntracked_files = []
-        for filename, status in self.status.items():
+        for filename, status in self.all_file_state.items():
             if (status&pygit2.GIT_STATUS_WT_NEW) != 0:
                 all_ubntracked_files.append( (T_('new file'), filename) )
 
@@ -167,7 +159,7 @@ class GitProject:
     def cmdStage( self, filename ):
         self._debug( 'cmdStage( %r )' % (filename,) )
 
-        state = self.status[ str(filename) ]
+        state = self.all_file_state[ str(filename) ]
 
         if (pygit2.GIT_STATUS_WT_DELETED&state) != 0:
             self.repo.index.remove( str(filename) )
@@ -181,7 +173,7 @@ class GitProject:
     def cmdUnstage( self, rev, filename, reset_type ):
         self._debug( 'cmdUnstage( %r )' % (filename,) )
 
-        state = self.status[ str(filename) ]
+        state = self.all_file_state[ str(filename) ]
 
         if (state&pygit2.GIT_STATUS_INDEX_NEW) != 0:
             # new file just needs to be remove() from the index
@@ -425,6 +417,120 @@ class GitProject:
                 filename = '/'.join( filename_parts )
                 all_entries[ filename ] = entry.id
 
+class WbGitFileState:
+    def __init__( self, repo, index_entry ):
+        self.repo = repo
+        self.index_entry = index_entry
+        self.unstaged_diff = None
+        self.staged_diff = None
+        self.untracked = False
+
+        # from the above calculate the following
+        self.__state_calculated = False
+
+        self.__staged_abbrev = None
+        self.__unstaged_abbrev = None
+
+        self.__head_blob = None
+        self.__staged_blob = None
+
+    def _addStaged( self, diff ):
+        self.staged_diff = diff
+
+    def _addUnstaged( self, diff ):
+        self.unstaged_diff = diff
+
+    def _setUntracked( self ):
+        self.untracked = True
+
+    # from the provided info work out
+    # interesting properies
+    def __calculateState( self ):
+        if self.__state_calculated:
+            return
+
+        if self.staged_diff is None:
+            self.__staged_abbrev = ''
+
+        else:
+            if self.staged_diff.renamed:
+                self.__staged_abbrev = 'R'
+
+            elif self.staged_diff.deleted_file:
+                self.__staged_abbrev = 'A'
+
+            elif self.staged_diff.new_file:
+                self.__staged_abbrev = 'D'
+
+            else:
+                self.__staged_abbrev = 'M'
+                self.__head_blob = self.staged_diff.b_blob
+                self.__staged_blob = self.staged_diff.a_blob
+
+        if  self.unstaged_diff is None:
+            self.__unstaged_abbrev = ''
+
+        else:
+            if self.unstaged_diff.deleted_file:
+                self.__unstaged_abbrev = 'D'
+
+            elif self.unstaged_diff.new_file:
+                self.__unstaged_abbrev = 'A'
+
+            else:
+                self.__unstaged_abbrev = 'M'
+                self.__head_blob = self.unstaged_diff.a_blob
+
+        self.__state_calculated = True
+        
+
+    def getStagedAbbreviatedStatus( self ):
+        self.__calculateState()
+        return self.__staged_abbrev
+
+    def getUnstagedAbbreviatedStatus( self ):
+        self.__calculateState()
+        return self.__unstaged_abbrev
+        return self.__unstaged_abbrev
+
+    def isUntracked( self ):
+        return self.untracked
+
+    def canDiffHeadVsStaged( self ):
+        return (self.__head_blob is not None        # have HEAD
+            and self.__staged_blob is not None)     # is STAGED
+
+    def canDiffStagedVsWorking( self ):
+        return (self.__head_blob is None            # no HEAD
+            and self.__staged_blob is not None )    # is STAGED
+
+    def canDiffHeadVsWorking( self ):
+        return (self.__head_blob is not None        # have HEAD
+            and self.__staged_blob is None)         # no STAGED
+
+    def getTextLinesWorking( self ):
+        path = pathlib.Path( self.repo.working_tree_dir ) / self.unstaged_diff.a_path
+        with path.open( encoding='utf-8' ) as f:
+            return f.read().split( '\n' )
+
+    def getTextLinesHead( self ):
+        blob = self.getHeadBlob()
+        data = blob.data_stream.read()
+        text = data.decode( 'utf-8' )
+        return text.split('\n')
+
+    def getTextLinesStaged( self ):
+        blob = self.getStagedBlob()
+        data = blob.data_stream.read()
+        text = data.decode( 'utf-8' )
+        return text.split('\n')
+
+    def getHeadBlob( self ):
+        return self.__head_blob
+
+    def getStagedBlob( self ):
+        return self.__staged_blob
+
 class GitCommitLogNode:
     def __init__( self, commit ):
         self.__commit = commit
@@ -518,68 +624,11 @@ class GitProjectTreeNode:
     def absolutePath( self ):
         return self.project.path() / self.__path
 
-    def state( self, name ):
-        try:
-            mode = self.project.repo.index[ self.all_files[ name ] ].mode
+    def getStatusEntry( self, name ):
+        path = self.all_files[ name ]
+        if path in self.project.all_file_state:
+            entry = self.project.all_file_state[ path ]
+        else:
+            entry = WbGitFileState( self.project.repo, None )
 
-        except KeyError:
-            mode = 0
-
-        state = self.project.status.get( self.all_files[ name ], 0 )
-
-        return (mode, state)
-
-class WbGitDiffObjects:
-    diff_head = 1
-    diff_staged = 2
-    diff_working = 3
-
-    status_staged = pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_DELETED
-    status_modified = pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED
-
-    def __init__( self, git_project, filename, status, head_id, staged_id, working_path ):
-        self.git_project = git_project
-
-        self.filename = filename
-        self.status = status
-        self.head_id = head_id
-        self.staged_id = staged_id
-        self.working_path = working_path
-
-    def __repr__( self ):
-        return ('<WbGitDiffObjects: %s HEAD %r Staged %r Working %r>' %
-                    (self.filename, self.head_id, self.staged_id, self.working_path))
-
-    def canDiffHeadVsStaged( self ):
-        return (self.status&(self.status_staged)) != 0
-
-    def canDiffStagedVsWorking( self ):
-        return ((self.status&self.status_staged) != 0
-            and (self.status&self.status_modified) != 0 )
-
-    def canDiffHeadVsWorking( self ):
-        return (self.status&self.status_modified) != 0
-
-    def diffUnified( self, old, new ):
-        old_lines = self.getTextLines( old )
-        new_lines = self.getTextLines( new )
-
-        return list( difflib.unified_diff( old_lines, new_lines ) )
-
-    def getTextLines( self, source ):
-        # qqq need to handle encoding and line endings
-        if source == self.diff_head:
-            blob = self.git_project.repo.get( self.head_id )
-            text = blob.data.decode( 'utf-8' )
-            return text.split('\n')
-
-        if source == self.diff_staged:
-            blob = self.git_project.repo.get( self.staged_id )
-            text = blob.data.decode( 'utf-8' )
-            return text.split('\n')
-
-        if source == self.diff_working:
-            with self.working_path.open( encoding='utf-8' ) as f:
-                return f.read().split( '\n' )
-
-        assert False, 'unknown source type %r' % (source,)
+        return entry
