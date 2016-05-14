@@ -308,7 +308,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         m.addSection( T_('Diff') )
         self.__addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
         self.__addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self.__addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        self.__addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
         self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
@@ -600,7 +600,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.app.writePreferences()
 
         # close all open mode less windows
-        wb_diff_view.WbDiffView.closeAllWindows()
+        wb_diff_view.WbDiffViewBase.closeAllWindows()
         wb_git_log_history.WbGitLogHistoryView.closeAllWindows()
 
         if close:
@@ -974,7 +974,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         git_project.cmdStage( filename )
 
     def __actionGitUnStage( self, git_project, filename ):
-        #git_project.cmdUnstage( 'HEAD', filename, pygit2.GIT_RESET_MIXED )
+        git_project.cmdUnstage( 'HEAD', filename )
         pass
 
     def __actionGitRevert( self, git_project, filename ):
@@ -1007,7 +1007,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Work %s') % (filename,)
 
-        window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -1020,7 +1020,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff Staged vs. Work %s') % (filename,)
 
-        window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -1033,7 +1033,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Staged %s') % (filename,)
 
-        window = wb_diff_view.WbDiffView( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 

@@ -1,6 +1,10 @@
 import wb_git_project
 import sys
 
+import logging
+
+logging.basicConfig(filename='experiment.log',level=logging.DEBUG)
+
 class FakePrefs:
     def __init__( self ):
         self.name = 'TestRepo'
@@ -23,7 +27,7 @@ def printText( title, all_lines ):
     print( '            %s' % (title,) )
     print( '            %s' % ('-'* len(title),) )
     for index, line in enumerate( all_lines ):
-        print( '            %-2d: %s' % (index, line) )
+        print( '            %-2d: %s' % (index+1, line) )
 
 for folder_name in sorted( proj.tree.all_folders.keys() ):
     print( 'Folder: %s' % (folder_name,) )
@@ -51,14 +55,19 @@ for folder_name in sorted( proj.tree.all_folders.keys() ):
         print( '                          ----: -----' )
         print( '                      HeadBlob: %r' % (file_state.getHeadBlob(),) )
         print( '                    StagedBlob: %r' % (file_state.getStagedBlob(),) )
-        if file_state.canDiffHeadVsStaged():
+
+        if file_state.canDiffHeadVsWorking():
+            print( '                          ----: -----' )
             printText( 'Old HEAD', file_state.getTextLinesHead() )
-            printText( 'New Staged', file_state.getTextLinesStaged() )
+            printText( 'New Working', file_state.getTextLinesWorking() )
 
         if file_state.canDiffStagedVsWorking():
+            print( '                          ----: -----' )
             printText( 'Old Staged', file_state.getTextLinesStaged() )
             printText( 'New Working', file_state.getTextLinesWorking() )
 
-        if file_state.canDiffHeadVsWorking():
+        if file_state.canDiffHeadVsStaged():
+            print( '                          ----: -----' )
             printText( 'Old HEAD', file_state.getTextLinesHead() )
-            printText( 'New Working', file_state.getTextLinesWorking() )
+            printText( 'New Staged', file_state.getTextLinesStaged() )
+

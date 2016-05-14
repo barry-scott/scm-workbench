@@ -28,7 +28,8 @@ class GitProject:
 
         self.all_file_state = {}
 
-        self.__dirty = False
+        self.__dirty_index = False
+        self.__stale_index = False
 
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name
@@ -50,15 +51,20 @@ class GitProject:
             return ''
 
     def saveChanges( self ):
-        self._debug( 'saveChanges()' )
-        assert self.__dirty, 'Only call saveChanges if something was changed'
-        self.__dirty = False
-        self.repo.index.write()
+        self._debug( 'saveChanges() __dirty_index %r __stale_index %r' % (self.__dirty_index, self.__stale_index) )
+        assert self.__dirty_index or self.__stale_index, 'Only call saveChanges if something was changed'
+
+        if self.__dirty_index:
+            self.repo.index.write()
+            self.__dirty_index = False
+
+        self.__stale_index = False
+
         self.updateState()
 
     def updateState( self ):
         self._debug( 'updateState()' )
-        assert not self.__dirty, 'repo is dirty, forgot to call saveChanges?'
+        assert not self.__dirty_index, 'repo is dirty, forgot to call saveChanges?'
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -159,58 +165,24 @@ class GitProject:
     def cmdStage( self, filename ):
         self._debug( 'cmdStage( %r )' % (filename,) )
 
-        state = self.all_file_state[ str(filename) ]
+        self.repo.git.add( filename )
+        self.__stale_index = True
 
-        if (pygit2.GIT_STATUS_WT_DELETED&state) != 0:
-            self.repo.index.remove( str(filename) )
-
-        elif( (pygit2.GIT_STATUS_WT_MODIFIED&state) != 0
-        or    (pygit2.GIT_STATUS_WT_NEW&state) != 0 ):
-            self.repo.index.add( str(filename) )
-
-        self.__dirty = True
-
-    def cmdUnstage( self, rev, filename, reset_type ):
+    def cmdUnstage( self, rev, filename ):
         self._debug( 'cmdUnstage( %r )' % (filename,) )
 
-        state = self.all_file_state[ str(filename) ]
-
-        if (state&pygit2.GIT_STATUS_INDEX_NEW) != 0:
-            # new file just needs to be remove() from the index
-            self.repo.index.remove( str(filename) )
-
-        else:
-            # modified or delete file needs
-            # to be added back into index with there old value
-            commit = self.repo.revparse_single( rev )
-            tree = commit.peel( pygit2.GIT_OBJ_TREE )
-            tree_entry = self.__findFileInTree( tree, filename )
-
-            reset_entry = pygit2.IndexEntry( str(filename), tree_entry.id, tree_entry.filemode )
-            self.repo.index.add( reset_entry )
-
-        self.__dirty = True
+        self.repo.git.reset( 'HEAD', filename, mixed=True )
+        self.__stale_index = True
 
     def cmdRevert( self, rev, filename ):
         self._debug( 'cmdRevert( %r )' % (filename,) )
 
-        # either a modified file or a deleted file
-        # read the blob from HEAD and wite to disk
-
-        commit = self.repo.revparse_single( rev )
-        tree = commit.peel( pygit2.GIT_OBJ_TREE )
-        tree_entry = self.__findFileInTree( tree, filename )
-
-        blob = self.repo.get( tree_entry.id )
-
-        with (self.prefs_project.path / filename).open( 'wb' ) as f:
-            f.write( blob.data )
-
-        self.__dirty = True
+        self.repo.git.checkout( 'HEAD', filename )
+        self.__stale_index = True
 
     def cmdDelete( self, filename ):
         (self.prefs_project.path / filename).unlink()
-        self.__dirty = True
+        self.__stale_index = True
 
     def cmdCommit( self, message ):
         author = self.repo.default_signature
@@ -513,19 +485,31 @@ class WbGitFileState:
     def getTextLinesWorking( self ):
         path = pathlib.Path( self.repo.working_tree_dir ) / self.unstaged_diff.a_path
         with path.open( encoding='utf-8' ) as f:
-            return f.read().split( '\n' )
+            all_lines = f.read().split( '\n' )
+            if all_lines[-1] == '':
+                return all_lines[:-1]
+            else:
+                return all_lines
 
     def getTextLinesHead( self ):
         blob = self.getHeadBlob()
         data = blob.data_stream.read()
         text = data.decode( 'utf-8' )
-        return text.split('\n')
+        all_lines = text.split('\n')
+        if all_lines[-1] == '':
+            return all_lines[:-1]
+        else:
+            return all_lines
 
     def getTextLinesStaged( self ):
         blob = self.getStagedBlob()
         data = blob.data_stream.read()
         text = data.decode( 'utf-8' )
-        return text.split('\n')
+        all_lines = text.split('\n')
+        if all_lines[-1] == '':
+            return all_lines[:-1]
+        else:
+            return all_lines
 
     def getHeadBlob( self ):
         return self.__head_blob
