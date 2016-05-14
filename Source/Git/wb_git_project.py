@@ -238,17 +238,13 @@ class GitProject:
         return all_commit_logs
 
     def __addCommitChangeInformation( self, all_commit_logs ):
-        print( '__addCommitChangeInformation QQQ commented out fix me!' )
-
-        return
-
         # now calculate what was added, deleted and modified in each commit
         for offset in range( len(all_commit_logs) ):
             new_tree = all_commit_logs[ offset ].commitTree()
             old_tree = all_commit_logs[ offset ].commitPreviousTree()
 
             all_new = {}
-            self.__treeToDict( new_tree, [], all_new )
+            self.__treeToDict( new_tree, all_new )
             new_set = set(all_new)
 
             if old_tree is None:
@@ -256,7 +252,7 @@ class GitProject:
 
             else:
                 all_old = {}
-                self.__treeToDict( old_tree, [], all_old )
+                self.__treeToDict( old_tree, all_old )
 
                 old_set = set(all_old)
 
@@ -287,47 +283,13 @@ class GitProject:
 
                 all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_renamed, all_modified )
 
-    def __findFileInTree( self, tree, filename ):
-        self._debug( '__findFileInTree( %r, %r )' % (tree, filename) )
-        # match all the folders
-        for name in filename.parts[:-1]:
-            for entry in tree:
-                if name == entry.name:
-                    if entry.filemode == pygit2.GIT_FILEMODE_TREE:
-                        tree = self.repo.get( entry.id )
-                    else:
-                        raise KeyError( 'folder not in tree' )
+    def __treeToDict( self, tree, all_entries ):
+        for blob in tree:
+            if blob.type == 'blob':
+                all_entries[ blob.path ] = blob.hexsha
 
-        for entry in tree:
-            if filename.name == entry.name and entry.filemode in (pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE):
-                return entry
-
-        raise KeyError( 'file not in tree' )
-
-    def __filenameFromIdInTree( self, tree, file_id, parents ):
-        for entry in tree:
-            if entry.filemode == pygit2.GIT_FILEMODE_TREE:
-                filename = self.__filenameFromIdInTree( self.repo.get( entry.id ), file_id, parents + [entry.name] )
-                if filename is not None:
-                    return filename
-
-            elif( entry.filemode in (pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE)
-            and entry.id == file_id ):
-                filename_parts = parents + [entry.name]
-                filename = '/'.join( filename_parts )
-                return pathlib.Path( filename )
-
-        return None
-
-    def __treeToDict( self, tree, parents, all_entries ):
-        for entry in tree:
-            if entry.filemode == pygit2.GIT_FILEMODE_TREE:
-                self.__treeToDict( self.repo.get( entry.id ), parents + [entry.name], all_entries )
-
-            elif entry.filemode in (pygit2.GIT_FILEMODE_BLOB, pygit2.GIT_FILEMODE_BLOB_EXECUTABLE):
-                filename_parts = parents + [entry.name]
-                filename = '/'.join( filename_parts )
-                all_entries[ filename ] = entry.id
+        for child in tree.trees:
+            self.__treeToDict( child, all_entries )
 
 class WbGitFileState:
     def __init__( self, repo, index_entry ):
@@ -476,18 +438,18 @@ class GitCommitLogNode:
             self.__all_changes.append( ('M', name, '' ) )
 
     def commitTree( self ):
-        return self.__commit.peel( pygit2.GIT_OBJ_TREE )
+        return self.__commit.tree
 
     def commitPreviousTree( self ):
         if len(self.__commit.parents) == 0:
             return None
 
         previous_commit = self.__commit.parents[0]
-        return previous_commit.peel( pygit2.GIT_OBJ_TREE )
+        return previous_commit.tree
 
     def commitTreeDict( self ):
         all_entries = {}
-        self.__treeToDict( self.commitTree(), [], all_entries )
+        self.__treeToDict( self.commitTree(), all_entries )
         return all_entries
 
     def commitPreviousTreeDict( self ):
@@ -495,7 +457,7 @@ class GitCommitLogNode:
 
         tree = self.commitPreviousTree()
         if tree is not None:
-            self.__treeToDict( tree, [], all_entries )
+            self.__treeToDict( tree, all_entries )
 
         return all_entries
 
