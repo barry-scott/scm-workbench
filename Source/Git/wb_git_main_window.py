@@ -512,16 +512,14 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             # enable if any files staged
             git_project = self.__treeSelectedGitProject()
 
+
+            print( 'qqq enablerCommit numStagedFiles %d' % (git_project.numStagedFiles(),) )
+
             can_commit = False
             if( git_project is not None
-            and self.commit_dialog is None ):
-                #staged_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
-
-                #for status in git_project.status.values():
-                #    if (status&staged_status) != 0:
-                #        can_commit = True
-                #        break
-                pass
+            and self.commit_dialog is None
+            and git_project.numStagedFiles() > 0 ):
+                can_commit = True
 
             cache[ key ] = can_commit
 

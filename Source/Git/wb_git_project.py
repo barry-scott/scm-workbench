@@ -30,6 +30,7 @@ class GitProject:
 
         self.__dirty_index = False
         self.__stale_index = False
+        self.__num_staged_files = 0
 
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name
@@ -44,11 +45,10 @@ class GitProject:
         return self.prefs_project.path
 
     def headRefName( self ):
-        try:
-            return self.repo.head.name
+        return self.repo.head.ref.name
 
-        except _pygit2.GitError:
-            return ''
+    def numStagedFiles( self ):
+        return self.__num_staged_files
 
     def saveChanges( self ):
         self._debug( 'saveChanges() __dirty_index %r __stale_index %r' % (self.__dirty_index, self.__stale_index) )
@@ -87,7 +87,9 @@ class GitProject:
         for entry in self.index.entries.values():
             self.all_file_state[ entry.path ] = WbGitFileState( self.repo, entry )
 
+        self.__num_staged_files = 0
         for diff in head_vs_index:
+            self.__num_staged_files += 1
             if diff.b_path not in self.all_file_state:
                 self.all_file_state[ diff.b_path ] = WbGitFileState( self.repo, None )
             self.all_file_state[ diff.b_path ]._addStaged( diff )
@@ -130,31 +132,31 @@ class GitProject:
 
     def getReportStagedFiles( self ):
         all_staged_files = []
-        for filename, status in self.all_file_state.items():
-            if (status&pygit2.GIT_STATUS_INDEX_NEW) != 0:
-                all_staged_files.append( (T_('new file'), filename) )
+        for filename, file_state in self.all_file_state.items():
+            if file_state.isStagedNew():
+                all_staged_files.append( (T_('New file'), filename) )
 
-            elif (status&pygit2.GIT_STATUS_INDEX_MODIFIED) != 0:
-                all_staged_files.append( (T_('modified'), filename) )
+            elif file_state.isStagedModified():
+                all_staged_files.append( (T_('Modified'), filename) )
 
-            elif (status&pygit2.GIT_STATUS_INDEX_DELETED) != 0:
-                all_staged_files.append( (T_('deleted'), filename) )
+            elif file_state.isStagedDeleted():
+                all_staged_files.append( (T_('Deleted'), filename) )
 
         return all_staged_files
 
     def getReportUntrackedFiles( self ):
-        all_ubntracked_files = []
-        for filename, status in self.all_file_state.items():
-            if (status&pygit2.GIT_STATUS_WT_NEW) != 0:
-                all_ubntracked_files.append( (T_('new file'), filename) )
+        all_untracked_files = []
+        for filename, file_state in self.all_file_state.items():
+            if file_state.isUntracked():
+                all_untracked_files.append( (T_('New file'), filename) )
 
-            elif (status&pygit2.GIT_STATUS_WT_MODIFIED) != 0:
-                all_ubntracked_files.append( (T_('modified'), filename) )
+            elif file_state.isUnstagedModified():
+                all_untracked_files.append( (T_('Modified'), filename) )
 
-            elif (status&pygit2.GIT_STATUS_WT_DELETED) != 0:
-                all_ubntracked_files.append( (T_('deleted'), filename) )
+            elif file_state.isUnstagedDeleted():
+                all_untracked_files.append( (T_('Deleted'), filename) )
 
-        return all_ubntracked_files
+        return all_untracked_files
 
 
     #------------------------------------------------------------
@@ -185,23 +187,8 @@ class GitProject:
         self.__stale_index = True
 
     def cmdCommit( self, message ):
-        author = self.repo.default_signature
-        comitter = self.repo.default_signature
-
-        tree = self.repo.index.write_tree()
-
-        last_commit = self.repo.revparse_single( 'HEAD' )
-
-        commit_id = self.repo.create_commit(
-            self.repo.head.name,            # branch to commit to
-            author,
-            comitter,
-            message,
-            tree,                           # tree in the new state
-            [last_commit.id]                # the previous commit in the history
-            )
-
-        return commit_id
+        self.__stale_index = True
+        return self.index.commit( message )
 
     def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
         all_commit_logs = []
@@ -370,7 +357,21 @@ class WbGitFileState:
     def getUnstagedAbbreviatedStatus( self ):
         self.__calculateState()
         return self.__unstaged_abbrev
-        return self.__unstaged_abbrev
+
+    def isStagedNew( self ):
+        return self.__staged_abbrev == 'A'
+
+    def isStagedModified( self ):
+        return self.__staged_abbrev == 'M'
+
+    def isStagedDeleted( self ):
+        return self.__staged_abbrev == 'D'
+
+    def isUnstagedModified( self ):
+        return self.__unstaged_abbrev == 'M'
+
+    def isUnstagedDeleted( self ):
+        return self.__unstaged_abbrev == 'D'
 
     def isUntracked( self ):
         return self.untracked
