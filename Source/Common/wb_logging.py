@@ -24,14 +24,31 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 class AppLoggingMixin:
-    def __init__( self ):
+    def __init__( self, extra_logger_names=None ):
         self.log = None
         self.trace = None
+
+        if extra_logger_names is not None:
+            self.all_extra_logger_names = extra_logger_names
+        else:
+            self.all_extra_logger_names = []
+
+        self.all_extra_log = []
 
     def setupLogging( self ):
         name = ''.join( self.app_name_parts )
         self.log = logging.getLogger( name )
         self.trace = logging.getLogger( '%s.Trace' % (name,) )
+
+        for name in self.all_extra_logger_names:
+            log = logging.getLogger( name )
+            self.all_extra_log.append( log )
+
+            if self.extraDebugEnabled():
+                log.setLevel( logging.DEBUG )
+
+            else:
+                log.setLevel( logging.INFO )
 
         if self.debugEnabled():
             self.log.setLevel( logging.DEBUG )
@@ -51,6 +68,9 @@ class AppLoggingMixin:
         handler.setFormatter( formatter )
         self.log.addHandler( handler )
 
+        for log in self.all_extra_log:
+            log.addHandler( handler )
+
         if self.logToStdOut():
             handler = StdoutLogHandler()
             formatter = logging.Formatter( '%(asctime)s %(levelname)s %(message)s' )
@@ -61,6 +81,12 @@ class AppLoggingMixin:
             formatter = logging.Formatter( '%(asctime)s %(levelname)s %(message)s' )
             handler.setFormatter( formatter )
             self.trace.addHandler( handler )
+
+            for log in self.all_extra_log:
+                handler = StdoutLogHandler()
+                formatter = logging.Formatter( '%(asctime)s %(levelname)s %(message)s' )
+                handler.setFormatter( formatter )
+                log.addHandler( handler )
 
         self.log.debug( 'Debug is enabled' )
         self.trace.info( 'Trace enabled' )

@@ -1043,6 +1043,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         if options.exec_():
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(
                     self.app, T_('Commit Log for %s') % (filename,), wb_git_images.getQIcon( 'wb.png' ) )
+
             commit_log_view.showCommitLogForFile( git_project, filename, options )
             commit_log_view.show()
 

@@ -48,7 +48,7 @@ class WbGit_App(QtWidgets.QApplication,
 
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
-        wb_logging.AppLoggingMixin.__init__( self )
+        wb_logging.AppLoggingMixin.__init__( self, ['git.cmd'] )
         wb_git_debug.WbGitDebugMixin.__init__( self )
 
         self.may_quit = False
@@ -73,6 +73,7 @@ class WbGit_App(QtWidgets.QApplication,
         self.__debug_noredirect = False
         self.__debug = False
         self.__trace = False
+        self.__git_debug = False
         self.__log_stdout = False
 
         self.__callback_queue = queue.Queue()
@@ -98,6 +99,10 @@ class WbGit_App(QtWidgets.QApplication,
                 self.__debug = True
                 wb_git_debug.setDebug( args[2] )
                 del args[ 1 ]
+                del args[ 1 ]
+
+            elif arg == '--git-debug':
+                self.__git_debug = True
                 del args[ 1 ]
 
             elif arg == '--start-dir' and len(args) > 2:
@@ -141,6 +146,15 @@ class WbGit_App(QtWidgets.QApplication,
         self.__last_client_error = []
 
         # part 1 of settings up logging
+
+        # turn on GitPython debug is required
+        import git
+        if self.__git_debug:
+            git.Git.GIT_PYTHON_TRACE = 'full'
+        else:
+            git.Git.GIT_PYTHON_TRACE = False
+
+        # and logging
         self.setupLogging()
 
         self.log.info( 'startup_dir %s' % (self.startup_dir,) )
@@ -152,6 +166,7 @@ class WbGit_App(QtWidgets.QApplication,
                 self,
                 wb_platform_specific.getPreferencesFilename() )
 
+
         # part 2 of settings up logging is done in main window code
         self.main_window = wb_git_main_window.WbGitMainWindow( self )
 
@@ -159,6 +174,10 @@ class WbGit_App(QtWidgets.QApplication,
 
     def debugEnabled( self ):
         return self.__debug
+
+    def extraDebugEnabled( self ):
+        # tells wb_logging to turn on debug for git.cmd
+        return self.__git_debug
 
     def traceEnabled( self ):
         return self.__trace

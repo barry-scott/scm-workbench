@@ -332,7 +332,7 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
                 return '%s <%s>' % (node.commitAuthor(), node.commitAuthorEmail())
 
             elif col == self.col_date:
-                return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( node.commitDate() ) )
+                return node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
 
             elif col == self.col_message:
                 return node.commitMessage().split('\n')[0]

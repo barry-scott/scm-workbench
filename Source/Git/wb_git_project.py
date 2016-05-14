@@ -206,102 +206,42 @@ class GitProject:
     def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
         all_commit_logs = []
 
-        last_file_id = None
+        kwds = {}
+        if limit is not None:
+            kwds['max_count'] = limit
+        if since is not None:
+            kwds['since'] = since
+        if since is not None:
+            kwds['until'] = until
 
-        commit = self.repo.revparse_single( 'HEAD' )
-        while True:
-            if( until is not None
-            and commit.commit_time > until ):
-                # skip commits until the until date is found
-                pass
-
-            else:
-                if( since is not None
-                and commit.commit_time < since ):
-                    # can stop after the since date is exceeded
-                    break
-
-                new_node = GitCommitLogNode( commit )
-
-                all_commit_logs.append( new_node )
-
-                if( limit is not None
-                and len( all_commit_logs ) >= limit ):
-                    # only show limit logs
-                    break
-
-            if len( commit.parents ) == 0:
-                # end of the commmit chain - all done
-                break
-
-            commit = commit.parents[0]
+        for commit in self.repo.iter_commits( None, **kwds ):
+            all_commit_logs.append( GitCommitLogNode( commit ) )
 
         self.__addCommitChangeInformation( all_commit_logs )
         return all_commit_logs
 
     def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
-        offset = 0
         all_commit_logs = []
 
-        last_file_id = None
+        kwds = {}
+        if limit is not None:
+            kwds['max_count'] = limit
+        if since is not None:
+            kwds['since'] = since
+        if since is not None:
+            kwds['until'] = until
 
-        commit = self.repo.revparse_single( 'HEAD' )
-        while True:
-            file_was_renamed = False
-
-            tree = commit.peel( pygit2.GIT_OBJ_TREE )
-            try:
-                entry = self.__findFileInTree( tree, filename )
-                last_file_id = entry.id
-
-            except KeyError:
-                # was the file renamed?
-                filename = self.__filenameFromIdInTree( tree, last_file_id, [] )
-                if filename is None:
-                    # no rename we are done
-                    break
-
-                entry = self.__findFileInTree( tree, filename )
-                file_was_renamed = True
-
-            if( until is not None
-            and commit.commit_time > until ):
-                # skip commits until the until date is found
-                pass
-
-            else:
-                if( since is not None
-                and commit.commit_time < since ):
-                    # can stop after the since date is exceeded
-                    break
-
-                new_node = GitCommitLogFileNode( commit, entry )
-
-                if( len( all_commit_logs) > offset
-                and all_commit_logs[ offset ].isEntryEqual( new_node )
-                and not file_was_renamed ):
-                    all_commit_logs[ offset ] = new_node
-
-                    if( limit is not None
-                    and len( all_commit_logs ) >= limit ):
-                        # only show limit logs
-                        break
-
-                else:
-                    offset = len( all_commit_logs )
-                    all_commit_logs.append( new_node )
-
-            if len( commit.parents ) == 0:
-                # end of the commmit chain - all done
-                break
-
-            commit = commit.parents[0]
+        for commit in self.repo.iter_commits( None, str(filename), **kwds ):
+            all_commit_logs.append( GitCommitLogNode( commit ) )
 
         self.__addCommitChangeInformation( all_commit_logs )
-
         return all_commit_logs
 
     def __addCommitChangeInformation( self, all_commit_logs ):
+        print( '__addCommitChangeInformation QQQ commented out fix me!' )
+
+        return
+
         # now calculate what was added, deleted and modified in each commit
         for offset in range( len(all_commit_logs) ):
             new_tree = all_commit_logs[ offset ].commitTree()
@@ -560,7 +500,7 @@ class GitCommitLogNode:
         return all_entries
 
     def commitIdString( self ):
-        return self.__commit.hex
+        return self.__commit.hexsha
 
     def commitAuthor( self ):
         return self.__commit.author.name
@@ -569,22 +509,13 @@ class GitCommitLogNode:
         return self.__commit.author.email
 
     def commitDate( self ):
-        return self.__commit.commit_time
+        return self.__commit.committed_datetime
 
     def commitMessage( self ):
         return self.__commit.message
 
     def commitFileChanges( self ):
         return self.__all_changes
-
-class GitCommitLogFileNode:
-    def __init__( self, commit, entry ):
-        self._entry = entry
-
-        super().__init__( commit )
-
-    def isEntryEqual( self, other ):
-        return self._entry.id == other._entry.id
 
 class GitProjectTreeNode:
     def __init__( self, project, name, path ):
