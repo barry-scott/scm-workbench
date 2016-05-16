@@ -32,9 +32,9 @@ class WbGitPreferencesDialog(QtWidgets.QDialog):
         self.log_history_page = LogHistoryPage( self.app )
 
         self.tabs = QtWidgets.QTabWidget()
-        self.tabs.addTab( self.editor_page, T_('Editor' ) )
-        self.tabs.addTab( self.shell_page, T_('Shell' ) )
-        self.tabs.addTab( self.log_history_page, T_('Log History' ) )
+        self.tabs.addTab( self.editor_page, T_('Editor') )
+        self.tabs.addTab( self.shell_page, T_('Shell') )
+        self.tabs.addTab( self.log_history_page, T_('Log History') )
 
         self.buttons = QtWidgets.QDialogButtonBox()
         self.buttons.addButton( self.buttons.Ok )
@@ -98,8 +98,10 @@ class EditorPage(QtWidgets.QWidget):
         file_browser = QtWidgets.QFileDialog( self )
         file_browser.setFileMode( file_browser.ExistingFile )
         file_browser.setOption( file_browser.ReadOnly, True )
+        file_browser.setOption( file_browser.DontResolveSymlinks, True )
         file_browser.setViewMode( file_browser.Detail )
-        file_browser.setFilter( QtCore.QDir.Executable | QtCore.QDir.Files )
+        # Without Readable will not return a Executable image
+        file_browser.setFilter( QtCore.QDir.Files|QtCore.QDir.Executable|QtCore.QDir.Readable )
 
         path = pathlib.Path( self.editor_program.text() )
         if str(path) != '.':
