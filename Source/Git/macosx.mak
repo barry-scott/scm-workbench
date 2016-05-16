@@ -1,7 +1,7 @@
 #
 #	Mac OS X makefile for WorkBench
 #
-all: wb_git_git_version.py wb_git_git_images.py locale/en/LC_MESSAGES/git_workbench.mo
+all: wb_git_version.py wb_git_images.py locale/en/LC_MESSAGES/git_workbench.mo
 
 locale/en/LC_MESSAGES/git_workbench.mo:
 	./make-pot-file.sh
@@ -11,4 +11,4 @@ locale/en/LC_MESSAGES/git_workbench.mo:
 clean::	
 	rm -rf locale/*
 
-include wb_git_git_common.mak
+include wb_git_common.mak
