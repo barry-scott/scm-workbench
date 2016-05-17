@@ -820,7 +820,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def __commitDialogFinished( self, result ):
         if result:
             git_project = self.__treeSelectedGitProject()
-            commit_id = git_project.cmdCommit( self.commit_dialog.getMessage() )
+            message = self.commit_dialog.getMessage()
+            commit_id = git_project.cmdCommit( message )
 
             # take account of the change
             self.tree_model.refreshTree()
@@ -831,7 +832,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             # enabled states will have changed
             self.updateActionEnabledStates()
 
-            self.log.info( T_('Committed %s') % (commit_id,) )
+            headline = message.split('\n')[0]
+
+            self.log.info( T_('Committed "%s" as %s') % (headline, commit_id,) )
 
         self.commit_dialog = None
 
