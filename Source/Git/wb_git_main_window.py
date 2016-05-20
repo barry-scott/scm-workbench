@@ -878,27 +878,23 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.app.foregroundProcess( self.pushProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
 
     def pushProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        try:
-            if type(cur_count) in (int,float):
-                if type(max_count) in (int,float)
-                    status = 'Push %s %f/%f' % (stage_name, cur_count, max_count)
-
-                else:
-                    status = 'Push %s %f' % (stage_name, cur_count)
+        self.log.debug( 'pushProgressHandler %r, %r, %r, %r, %r, %r' % (is_begin, is_end, stage_name, cur_count, max_count, message) )
+        if type(cur_count) in (int,float):
+            if type(max_count) in (int,float)
+                status = 'Push %s %f/%f' % (stage_name, cur_count, max_count)
 
             else:
-                status = 'Push %s' % (stage_name,)
+                status = 'Push %s %f' % (stage_name, cur_count)
 
-            if message != '':
-                status = '%s - %s' % (status, message)
-               
-            self.setStatusText( status )
-            if is_end:
-                self.log.info( status )
+        else:
+            status = 'Push %s' % (stage_name,)
 
-        except TypeError as e:
-            self.log.error( 'TypeError in pushProgressHandler stage_name=%r, cur_count=%r, max_count=%r, message=%r' %
-                                (stage_name, cur_count, max_count, message) )
+        if message != '':
+            status = '%s - %s' % (status, message)
+           
+        self.setStatusText( status )
+        if is_end:
+            self.log.info( status )
 
     # ------------------------------------------------------------
     def treeActionPull( self ):
