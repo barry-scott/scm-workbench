@@ -892,6 +892,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                 status = '%s - %s' % (status, message)
                
             self.setStatusText( status )
+            if is_end:
+                self.log.info( status )
 
         except TypeError as e:
             self.log.error( 'TypeError in pushProgressHandler stage_name=%r, cur_count=%r, max_count=%r, message=%r' %
