@@ -834,7 +834,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
             headline = message.split('\n')[0]
 
-            self.log.info( T_('Committed "%s" as %s') % (headline, commit_id,) )
+            self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
         self.commit_dialog = None
 
