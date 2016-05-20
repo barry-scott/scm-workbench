@@ -167,13 +167,8 @@ class GitProject:
             commit_id = commit.hexsha
 
             for remote in self.repo.remotes:
-                print( 'qqq remote %r' % (remote,) )
                 for ref in remote.refs:
-                    print( 'qqq ref %r' % (ref,) )
                     remote_id = ref.commit.hexsha
-
-                    print( 'qqq commit_id', commit_id )
-                    print( 'qqq remote_id', remote_id )
 
                     return commit_id != remote_id
 
