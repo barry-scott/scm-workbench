@@ -32,6 +32,10 @@ class GitProject:
         self.__stale_index = False
         self.__num_staged_files = 0
 
+    # return a new GitProject that can be used in another thread
+    def newInstance( self ):
+        return GitProject( self.app, self.prefs_project )
+
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name
 
@@ -158,6 +162,14 @@ class GitProject:
 
         return all_untracked_files
 
+    def canPush( self ):
+        for commit in self.repo.iter_commits( None, max_count=1 ):
+            commit_id = commit.hexsha
+            remote_head_id = self.repo.head.ref.commit.hexsha
+
+            return commit_id != remote_head_id
+
+        return False
 
     #------------------------------------------------------------
     #
@@ -277,6 +289,16 @@ class GitProject:
 
         for child in tree.trees:
             self.__treeToDict( child, all_entries )
+
+    def cmdPull( self, progress_callback, info_callback ):
+        for remote in self.repo.remotes:
+            for info in remote.pull( progress=Progress( progress_callback ) ):
+                info_callback( info )
+
+    def cmdPush( self, progress_callback, info_callback ):
+        for remote in self.repo.remotes:
+            for info in remote.push( progress=Progress( progress_callback ) ):
+                info_callback( info )
 
 class WbGitFileState:
     def __init__( self, repo, index_entry ):
@@ -512,3 +534,25 @@ class GitProjectTreeNode:
             entry = WbGitFileState( self.project.repo, None )
 
         return entry
+
+class Progress(git.RemoteProgress):
+    def __init__( self, progress_call_back ):
+        super().__init__()
+        self.progress_call_back = progress_call_back
+
+    all_update_stages = {
+        git.RemoteProgress.COUNTING:        'Counting',
+        git.RemoteProgress.COMPRESSING:     'Compressing',
+        git.RemoteProgress.WRITING:         'Writing',
+        git.RemoteProgress.RECEIVING:       'Receiving',
+        git.RemoteProgress.RESOLVING:       'Resolving',
+        git.RemoteProgress.FINDING_SOURCES: 'Finding Sources',
+        git.RemoteProgress.CHECKING_OUT:    'Checking Out',
+        }
+
+    def update( self, op_code, cur_count, max_count=None, message='' ):
+        stage = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
+        is_begin = op_code&git.RemoteProgress.BEGIN != 0
+        is_end = op_code&git.RemoteProgress.END != 0
+        self.progress_call_back( is_begin, is_end, stage_name, cur_count, max_count, message )
+

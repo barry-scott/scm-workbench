@@ -16,7 +16,7 @@ import time
 # wb_git_app.py
 #
 _debug_app = False
-_debug_callback = False
+_debug_threading = False
 _debug_main_window = False
 _debug_tree_model = False
 _debug_table_model = False
@@ -55,9 +55,10 @@ class WbGitDebugMixin:
         if _debug_app:
             self.log.debug( 'APP %s' % (msg,) )
 
-    def _debugCallback( self, msg ):
-        if _debug_callback:
-            self.log.debug( 'CALLBACK %s' % (msg,) )
+    # wb_git_app and wb_background_thread
+    def _debugThreading( self, msg ):
+        if _debug_threading:
+            self.log.debug( 'THREADING %s' % (msg,) )
 
     # wb_git_tree_model
     def _debugTreeModel( self, msg ):

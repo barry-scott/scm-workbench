@@ -200,6 +200,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.timer_init = None
 
+    def setStatusText( self, text ):
+        self.status_message.setText( text )
+
     def __setupTableViewAndModel( self ):
         self.table_model = wb_git_table_model.WbGitTableModel( self.app )
 
@@ -287,6 +290,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         m.addSeparator()
         self.__addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
 
+        m.addSeparator()
+        self.__addMenu( m, T_('Push…'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
+        self.__addMenu( m, T_('Pull…'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
+
         m = mb.addMenu( T_('&Project') )
         self.__addMenu( m, T_('Add…'), self.projectActionAdd )
         self.__addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
@@ -357,6 +364,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
         self.__addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
+        t.addSeparator()
+        self.__addTool( t, T_('Push'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
+        self.__addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
     def __addToolBar( self, name ):
         bar = self.addToolBar( name )
@@ -526,6 +536,14 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                 can_commit = True
 
             cache[ key ] = can_commit
+
+        return cache[ key ]
+
+    def enablerPush( self, cache ):
+        key = 'enablerPush'
+        if key not in cache:
+            git_project = self.__treeSelectedGitProject()
+            cache[ key ] = git_project.canPush()
 
         return cache[ key ]
 
@@ -838,6 +856,76 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.commit_dialog = None
 
+    # ------------------------------------------------------------
+    def treeActionPush( self ):
+        git_project = self.__treeSelectedGitProject().newInstance()
+        self.setStatusText( 'Push...' )
+
+        self.app.backgroundProcess( self.treeActionPushBg, (git_project,) )
+
+    def treeActionPushBg( self, git_project ):
+        git_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
+
+        self.app.foregroundProcess( self.setStatusText, ('',) )
+
+    def pushInfoHandlerBg( self, info ):
+        self.app.foregroundProcess( self.pushInfoHandler, (info,) )
+
+    def pushInfoHandler( self, info ):
+        self.log.info( info.summary )
+
+    def pushProgressHandlerBg( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
+        self.app.foregroundProcess( self.pushProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
+
+    def pushProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
+        status ='Push %s %d/%d - %s' % (stage_name, cur_count, max_count, message)
+        self.setStatusText( status )
+
+    # ------------------------------------------------------------
+    def treeActionPull( self ):
+        git_project = self.__treeSelectedGitProject().newInstance()
+        self.setStatusText( 'Pull...' )
+
+        self.app.backgroundProcess( self.treeActionPullBg, (git_project,) )
+
+    def treeActionPullBg( self, git_project ):
+        git_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
+
+        self.app.foregroundProcess( self.setStatusText, ('',) )
+
+    def pullInfoHandlerBg( self, info ):
+        self.app.foregroundProcess( self.pullInfoHandler, (info,) )
+
+    def pullInfoHandler( self, info ):
+        if info.note != '':
+            self.log.info( 'Pull Note: %s' % (info.note,) )
+
+        for state, state_name in (
+                    (info.NEW_TAG, T_('New tag')),
+                    (info.NEW_HEAD, T_('New head')),
+                    (info.HEAD_UPTODATE, T_('Head up to date')),
+                    (info.TAG_UPDATE, T_('Tag update')),
+                    (info.FORCED_UPDATE, T_('Forced update')),
+                    (info.FAST_FORWARD, T_('Fast forward')),
+                    ):
+            if (info.flags&state) != 0:
+                self.log.info( T_('Pull status %s') % (state_name,) )
+
+        for state, state_name in (
+                    (info.REJECTED, T_('Rejected')),
+                    (info.ERROR, T_('Error'))
+                    ):
+            if (info.flags&state) != 0:
+                self.log.error( T('Pull status %s') % (state_name,) )
+
+    def pullProgressHandlerBg( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
+        self.app.foregroundProcess( self.pullProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
+
+    def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
+        status = 'Pull %s %d/%d - %s' % (stage_name, cur_count, max_count, message)
+        self.setStatusText( status )
+
+    # ------------------------------------------------------------
     def treeActionGitLogHistory( self ):
         options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
 

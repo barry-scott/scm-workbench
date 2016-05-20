@@ -37,8 +37,8 @@ class AppLoggingMixin:
 
     def setupLogging( self ):
         name = ''.join( self.app_name_parts )
-        self.log = logging.getLogger( name )
-        self.trace = logging.getLogger( '%s.Trace' % (name,) )
+        self.log = ThreadSafeLogFacade( self, logging.getLogger( name ) )
+        self.trace = ThreadSafeLogFacade( self, logging.getLogger( '%s.Trace' % (name,) ) )
 
         for name in self.all_extra_logger_names:
             log = logging.getLogger( name )
@@ -91,6 +91,48 @@ class AppLoggingMixin:
         self.log.debug( 'Debug is enabled' )
         self.trace.info( 'Trace enabled' )
 
+#--------------------------------------------------------------------------------
+# move all calls from a background thread to the foreground GUI thread
+class ThreadSafeLogFacade:
+    def __init__( self, app, thread_unsafe_log ):
+        self.__app = app
+        self.__log = thread_unsafe_log
+
+    def __dispatch( self, func, msg ):
+        if self.__app.isMainThread():
+            func( msg )
+
+        else:
+            self.__app.foregroundProcess( func, (msg,) )
+
+    def info( self, msg ):
+        self.__dispatch( self.__log.info, msg )
+
+    def warning( self, msg ):
+        self.__dispatch( self.__log.warning, msg )
+
+    def error( self, msg ):
+        self.__dispatch( self.__log.error, msg )
+
+    def critical( self, msg ):
+        self.__dispatch( self.__log.critical, msg )
+
+    def debug( self, msg ):
+        self.__dispatch( self.__log.debug, msg )
+
+    def exception( self, msg ):
+        assert self.__app.isMainThread()
+        self.__log.exception( msg )
+
+    def setLevel( self, level ):
+        assert self.__app.isMainThread()
+        self.__log.setLevel( level )
+
+    def addHandler( self, handler ):
+        assert self.__app.isMainThread()
+        self.__log.addHandler( handler )
+
+#--------------------------------------------------------------------------------
 class StdoutLogHandler(logging.Handler):
     def __init__( self ):
         logging.Handler.__init__( self )
@@ -120,7 +162,7 @@ class WbLog:
             sys.stderr = self
 
         # Redirect log to the Log panel
-        log_handler = LogHandler( self.__log_widget )
+        log_handler = WidgetLogHandler( self.app, self.__log_widget )
         self.app.log.addHandler( log_handler )
 
     def logWidget( self ):
@@ -133,6 +175,7 @@ class WbLog:
     def write( self, msg ):
         # only allowed to use GUI objects on the foreground thread
         if not self.app.isMainThread():
+            print( 'qqq moving WbLog.write to main thread' )
             self.app.foregroundProcess( self.write, (msg,) )
             return
 
@@ -146,8 +189,9 @@ class WbLog:
             sys.stdout.write( '\n' )
 
 #--------------------------------------------------------------------------------
-class LogHandler(logging.Handler):
-    def __init__( self, log_widget ):
+class WidgetLogHandler(logging.Handler):
+    def __init__( self, app, log_widget ):
+        self.app = app
         self.log_widget = log_widget
         logging.Handler.__init__( self )
 
