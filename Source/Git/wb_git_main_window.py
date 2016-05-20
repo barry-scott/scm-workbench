@@ -867,6 +867,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         git_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
+        self.app.foregroundProcess( self.updateActionEnabledStates, (,) )
 
     def pushInfoHandlerBg( self, info ):
         self.app.foregroundProcess( self.pushInfoHandler, (info,) )
@@ -906,6 +907,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         git_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
+        self.app.foregroundProcess( self.updateActionEnabledStates, (,) )
 
     def pullInfoHandlerBg( self, info ):
         self.app.foregroundProcess( self.pullInfoHandler, (info,) )
