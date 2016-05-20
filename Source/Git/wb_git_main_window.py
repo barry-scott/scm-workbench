@@ -1135,6 +1135,9 @@ class WbTableView(QtWidgets.QTableView):
 
         self.main_window.updateActionEnabledStates()
 
+        # allow the table to redraw the selected row highlights
+        super().selectionChanged( selected, deselected )
+
     def keyPressEvent( self, event ):
         text = event.text()
         if text != '' and text in self.all_keys:
