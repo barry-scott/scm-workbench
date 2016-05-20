@@ -21,6 +21,8 @@ import difflib
 # On OS X the packager missing this import
 import sip
 
+ellipsis = '…'
+
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -259,8 +261,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         mb = self.menuBar()
 
         m = mb.addMenu( T_('&File') )
-        self.__addMenu( m, T_('&Preferences…'), self.appActionPreferences )
-        self.__addMenu( m, T_('E&xit'), self.close )
+        self.__addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
+        self.__addMenu( m, T_('&Prefs…'), self.appActionPreferences )
+        self.__addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
 
         m = mb.addMenu( T_('F&older Actions') )
         self.__addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
@@ -317,14 +320,18 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         m.addSeparator()
         self.__addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
 
-    def __addMenu( self, menu, name, handler, enabler=None, icon_name=None ):
+    def __addMenu( self, menu, name, handler, enabler=None, icon_name=None, role=None ):
         if icon_name is None:
             action = menu.addAction( name )
         else:
             icon = wb_git_images.getQIcon( icon_name )
             action = menu.addAction( icon, name )
 
-        action.triggered.connect( handler )
+        if handler is not None:
+           action.triggered.connect( handler )
+
+        if role is not None:
+            action.setMenuRole( role )
 
         if enabler is not None:
             self.__enable_state_manager.add( action, enabler )
@@ -552,6 +559,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         if pref_dialog.exec_():
             pref_dialog.savePreferences()
             self.app.writePreferences()
+
+    def appActionQqq( self ):
+        print( 'qqq menu qqq' )
 
     def appActionAbout( self ):
         from PyQt5 import Qt
@@ -810,7 +820,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     def __commitDialogFinished( self, result ):
         if result:
             git_project = self.__treeSelectedGitProject()
-            commit_id = git_project.cmdCommit( self.commit_dialog.getMessage() )
+            message = self.commit_dialog.getMessage()
+            commit_id = git_project.cmdCommit( message )
 
             # take account of the change
             self.tree_model.refreshTree()
@@ -821,7 +832,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             # enabled states will have changed
             self.updateActionEnabledStates()
 
-            self.log.info( T_('Committed %s') % (commit_id,) )
+            headline = message.split('\n')[0]
+
+            self.log.info( T_('Committed "%s" as %s') % (headline, commit_id,) )
 
         self.commit_dialog = None
 

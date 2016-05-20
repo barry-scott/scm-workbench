@@ -15,7 +15,6 @@ import signal
 import subprocess
 import xml.sax.saxutils
 import shlex
-import types
 import tempfile
 import pathlib
 
@@ -35,7 +34,7 @@ def __sigchld_handler( signum, frame ):
             if pid == 0:
                 break
 
-    except OSError, e:
+    except OSError as e:
         pass
 
 def getTerminalProgramList():
@@ -50,33 +49,37 @@ def GuiDiffFiles( app, args ):
 def ShellDiffFiles( app, args ):
     return __run_command_with_output( app, app.prefs.getDiffTool().shell_diff_tool, args )
 
-def EditFile( app, working_dir, filename ):
+def EditFile( app, working_dir, all_filenames ):
+    all_filenames = [str(path) for path in all_filenames]
+
     p = app.prefs.getEditor()
 
-    if p.editor_image:
-        if p.editor_options:
-            cmd = p.editor_image
-            args = shlex.split( p.editor_options ) + [filename]
+    if p.getEditorProgram():
+        if p.getEditorOptions():
+            cmd = p.getEditorProgram()
+            args = shlex.split( p.getEditorOptions() ) + all_filenames
         else:
-            cmd = p.editor_image
-            args = [filename]
+            cmd = p.getEditorProgram()
+            args = all_filenames
     else:
         cmd = '/usr/bin/open'
-        args = ['-e', filename]
+        args = ['-e'] + all_filenames
 
     cur_dir = os.getcwd()
     try:
-        os.chdir( working_dir )
+        os.chdir( str(working_dir) )
         __run_command( app, cmd, args )
 
     finally:
         os.chdir( cur_dir )
 
-def ShellOpen( app, working_dir, filename ):
+def ShellOpen( app, working_dir, all_filenames ):
+    all_filenames = [str(path) for path in all_filenames]
+
     cur_dir = os.getcwd()
     try:
-        os.chdir( working_dir )
-        __run_command( app, u'/usr/bin/open', [filename] )
+        os.chdir( str(working_dir) )
+        __run_command( app, u'/usr/bin/open', all_filenames )
 
     finally:
         os.chdir( cur_dir )
@@ -143,7 +146,7 @@ tell application "iTerm"
     end tell
 
 end
-''' %   (.replace( '"', '\\"' )
+''' %   (title.replace( '"', '\\"' )
         ,commands.replace( '"', '\\"' ))
 
     f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt' )
@@ -229,7 +232,7 @@ def __run_command( app, cmd, args ):
 
     env = os.environ.copy()
     cmd = asUtf8( cmd )
-    args = [asUtf8( arg ) for arg in args]
+    args = [asUtf8( str(arg) ) for arg in args]
 
     os.spawnvpe( os.P_NOWAIT, cmd, [cmd]+args, env )
 
@@ -238,7 +241,7 @@ def __run_command_with_output( app, cmd, args ):
 
     try:
         cmd = asUtf8( cmd )
-        args = [asUtf8( arg ) for arg in args]
+        args = [asUtf8( str(arg) ) for arg in args]
         proc = subprocess.Popen(
                     [cmd]+args,
                     close_fds=True,
@@ -251,11 +254,11 @@ def __run_command_with_output( app, cmd, args ):
         rc = proc.wait()
         return output
 
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         return '%s - %s' % (err_prefix, str(e))
 
 def asUtf8( s ):
-    if type( s ) == types.UnicodeType:
+    if type( s ) == str:
         return s.encode( 'utf-8' )
     else:
         return s
