@@ -23,6 +23,8 @@ then
 fi
 PYTHONW=${DIRNAME}pythonw${SUFFIX}
 
+make -f linux.mak
+
 if [ "$1" = "--gdb" ]
 then
     shift

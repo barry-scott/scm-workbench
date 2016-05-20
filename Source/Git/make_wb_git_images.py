@@ -39,6 +39,9 @@ argv = [
 	'../toolbar_images/diff.png',
 	'../toolbar_images/history.png',
 
+	'../toolbar_images/commit.png',
+	'../toolbar_images/push.png',
+	'../toolbar_images/pull.png',
         ]
 
 def main( argv ):

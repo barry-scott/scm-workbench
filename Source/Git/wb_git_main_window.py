@@ -282,7 +282,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         m.addSeparator()
         self.__addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
         m.addSeparator()
-        self.__addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit )
+        self.__addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
 
         m = mb.addMenu( T_('&Project') )
         self.__addMenu( m, T_('Add…'), self.projectActionAdd )
@@ -349,7 +349,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
         self.__addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
-        self.__addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit )
+        self.__addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
 
     def __addToolBar( self, name ):
         bar = self.addToolBar( name )
