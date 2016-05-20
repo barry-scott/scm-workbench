@@ -859,7 +859,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
     # ------------------------------------------------------------
     def treeActionPush( self ):
         git_project = self.__treeSelectedGitProject().newInstance()
-        self.setStatusText( 'Push...' )
+        self.setStatusText( 'Push…' )
 
         self.app.backgroundProcess( self.treeActionPushBg, (git_project,) )
 
