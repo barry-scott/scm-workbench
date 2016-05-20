@@ -879,11 +879,12 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
     def pushProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
         try:
-            if type(cur_count) == int and type(max_count) == int:
-                status = 'Push %s %d/%d' % (stage_name, cur_count, max_count)
+            if type(cur_count) in (int,float):
+                if type(max_count) in (int,float)
+                    status = 'Push %s %f/%f' % (stage_name, cur_count, max_count)
 
-            elif type(cur_count) == int:
-                status = 'Push %s %d' % (stage_name, cur_count)
+                else:
+                    status = 'Push %s %f' % (stage_name, cur_count)
 
             else:
                 status = 'Push %s' % (stage_name,)
