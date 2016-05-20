@@ -165,9 +165,17 @@ class GitProject:
     def canPush( self ):
         for commit in self.repo.iter_commits( None, max_count=1 ):
             commit_id = commit.hexsha
-            remote_head_id = self.repo.head.ref.commit.hexsha
 
-            return commit_id != remote_head_id
+            for remote in self.repo.remotes:
+                print( 'qqq remote %r' % (remote,) )
+                for ref in remote.refs:
+                    print( 'qqq ref %r' % (ref,) )
+                    remote_id = ref.commit.hexsha
+
+                    print( 'qqq commit_id', commit_id )
+                    print( 'qqq remote_id', remote_id )
+
+                    return commit_id != remote_id
 
         return False
 
@@ -551,8 +559,7 @@ class Progress(git.RemoteProgress):
         }
 
     def update( self, op_code, cur_count, max_count=None, message='' ):
-        stage = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
+        stage_name = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
         is_begin = op_code&git.RemoteProgress.BEGIN != 0
         is_end = op_code&git.RemoteProgress.END != 0
         self.progress_call_back( is_begin, is_end, stage_name, cur_count, max_count, message )
-
