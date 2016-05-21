@@ -925,21 +925,35 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     (info.FAST_FORWARD, T_('Fast forward')),
                     ):
             if (info.flags&state) != 0:
-                self.log.info( T_('Pull status %s') % (state_name,) )
+                self.log.info( T_('Pull status: %(state_name)s for %(name)s') % {'state_name': state_name, 'name': info.name} )
 
         for state, state_name in (
                     (info.REJECTED, T_('Rejected')),
                     (info.ERROR, T_('Error'))
                     ):
             if (info.flags&state) != 0:
-                self.log.error( T('Pull status %s') % (state_name,) )
+                self.log.error( T_('Pull status: %(state_name)s') % {'state_name': state_name} )
 
     def pullProgressHandlerBg( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
         self.app.foregroundProcess( self.pullProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
 
     def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        status = 'Pull %s %d/%d - %s' % (stage_name, cur_count, max_count, message)
+        if type(cur_count) in (int,float):
+            if type(max_count) in (int,float):
+                status = 'Pull %s %d/%d' % (stage_name, int(cur_count), int(max_count))
+
+            else:
+                status = 'Pull %s %d' % (stage_name, int(cur_count))
+
+        else:
+            status = 'Push %s' % (stage_name,)
+
+        if message != '':
+            status = '%s - %s' % (status, message)
+           
         self.setStatusText( status )
+        if is_end:
+            self.log.info( status )
 
     # ------------------------------------------------------------
     def treeActionGitLogHistory( self ):
