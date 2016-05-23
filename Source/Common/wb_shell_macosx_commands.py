@@ -86,10 +86,10 @@ def ShellOpen( app, working_dir, all_filenames ):
 
 def CommandShell( app, working_dir ):
     p = app.prefs.getShell()
-    if p.shell_terminal == 'iTerm':
+    if p.getTerminalProgram() == 'iTerm':
         CommandShell_iTerm( app, working_dir )
 
-    elif p.shell_terminal == 'iTerm2 V3':
+    elif p.getTerminalProgram() == 'iTerm2 V3':
         CommandShell_iTerm2_V3( app, working_dir )
 
     else:
@@ -118,7 +118,7 @@ def CommandShell_iTerm( app, working_dir ):
     commands = u'cd "%s"' % (working_dir.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
 
     if len( p.shell_init_command ) > 0:
-        commands = commands + u';export WB_WD="$PWD"; . "%s"' % (p.shell_init_command.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
+        commands = commands + u';export WB_WD="$PWD"; . "%s"' % (p.getTerminalInitCommand().replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
 
     contents = u'''
 tell application "iTerm"
@@ -149,9 +149,9 @@ end
 ''' %   (title.replace( '"', '\\"' )
         ,commands.replace( '"', '\\"' ))
 
-    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt' )
+    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt', encoding='utf=8' )
     app.all_temp_files.append( f.name )
-    f.write( contents.encode( 'utf-8' ) )
+    f.write( contents )
     f.close()
 
     __run_command( app, u'/usr/bin/osascript', [f.name] )
@@ -161,10 +161,10 @@ def CommandShell_iTerm2_V3( app, working_dir ):
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
     title = __titleFromPath( working_dir )
-    commands = u'cd "%s"' % (working_dir.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
-
-    if len( p.shell_init_command ) > 0:
-        commands = commands + u';export WB_WD="$PWD"; . "%s"' % (p.shell_init_command.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
+    commands = u'cd "%s"' % (str(working_dir).replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
+    init_cmd = p.getTerminalInitCommand()
+    if len( init_cmd ) > 0:
+        commands = commands + u';export WB_WD="$PWD"; . "%s"' % (init_cmd.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
 
     contents = u'''
 tell application "iTerm"
@@ -181,9 +181,9 @@ end tell
 ''' %   (title.replace( '"', '\\"' )
         ,commands.replace( '"', '\\"' ))
 
-    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt' )
+    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt', encoding='utf=8' )
     app.all_temp_files.append( f.name )
-    f.write( contents.encode( 'utf-8' ) )
+    f.write( contents )
     f.close()
 
     __run_command( app, u'/usr/bin/osascript', [f.name] )
@@ -196,8 +196,8 @@ def CommandShell_Terminal( app, working_dir ):
 
     commands = u"cd '%s'" % (working_dir,)
 
-    if len( p.shell_init_command ) > 0:
-        commands = commands + ";. '%s'\n" % (p.shell_init_command,)
+    if len( p.getTerminalInitCommand() ) > 0:
+        commands = commands + ";. '%s'\n" % (p.getTerminalInitCommand(),)
 
     contents = u'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -217,9 +217,9 @@ def CommandShell_Terminal( app, working_dir ):
 ''' %   (xml.sax.saxutils.escape( title )
         ,xml.sax.saxutils.escape( commands ))
 
-    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-term', suffix='.term' )
+    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-term', suffix='.term', encoding='utf=8' )
     app.all_temp_files.append( f.name )
-    f.write( contents.encode( 'utf-8' ) )
+    f.write( contents )
     f.close()
 
     __run_command( app, u'/usr/bin/open', [f.name] )
