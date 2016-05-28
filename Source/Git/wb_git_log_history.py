@@ -154,11 +154,11 @@ class WbGitLogHistoryOptions(QtWidgets.QDialog):
 #------------------------------------------------------------
 class WbGitLogHistoryView(QtWidgets.QWidget):
     uid = 0
-    all_log_views = {}
+    all_windows = {}
 
     @staticmethod
     def closeAllWindows():
-        for window in list( WbGitLogHistoryView.all_log_views.values() ):
+        for window in list( WbGitLogHistoryView.all_windows.values() ):
             window.close()
 
     def __init__( self, app, title, icon ):
@@ -169,7 +169,7 @@ class WbGitLogHistoryView(QtWidgets.QWidget):
         self.window_uid = WbGitLogHistoryView.uid
 
         # remember this window to keep the object alive
-        WbGitLogHistoryView.all_log_views[ self.window_uid ] = self
+        WbGitLogHistoryView.all_windows[ self.window_uid ] = self
 
         super().__init__( None )
 
@@ -254,7 +254,7 @@ class WbGitLogHistoryView(QtWidgets.QWidget):
                 self.commit_changes.insertPlainText( '%s %s from %s\n' % (type_, filename, old_filename) )
 
     def closeEvent( self, event ):
-        del WbGitLogHistoryView.all_log_views[ self.window_uid ]
+        del WbGitLogHistoryView.all_windows[ self.window_uid ]
 
         super().closeEvent( event )
 
@@ -270,6 +270,10 @@ class WbLogTableView(QtWidgets.QTableView):
         self._debug( 'WbLogTableView.selectionChanged()' )
 
         self.log_view.selectionChanged()
+
+        # allow the table to redraw the selected row highlights
+        super().selectionChanged( selected, deselected )
+
 
 class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
