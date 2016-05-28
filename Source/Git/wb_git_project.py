@@ -323,10 +323,16 @@ class WbGitFileState:
         self.__head_blob = None
         self.__staged_blob = None
 
+    def __repr__( self ):
+        return ('<WbGitFileState: calc %r, S=%r, U=%r' %
+                (self.__state_calculated, self.__staged_abbrev, self.__unstaged_abbrev))
+
     def _addStaged( self, diff ):
+        self.__state_calculated = False
         self.staged_diff = diff
 
     def _addUnstaged( self, diff ):
+        self.__state_calculated = False
         self.unstaged_diff = diff
 
     def _setUntracked( self ):
@@ -384,30 +390,38 @@ class WbGitFileState:
         return self.__unstaged_abbrev
 
     def isStagedNew( self ):
+        self.__calculateState()
         return self.__staged_abbrev == 'A'
 
     def isStagedModified( self ):
+        self.__calculateState()
         return self.__staged_abbrev == 'M'
 
     def isStagedDeleted( self ):
+        self.__calculateState()
         return self.__staged_abbrev == 'D'
 
     def isUnstagedModified( self ):
+        self.__calculateState()
         return self.__unstaged_abbrev == 'M'
 
     def isUnstagedDeleted( self ):
+        self.__calculateState()
         return self.__unstaged_abbrev == 'D'
 
     def isUntracked( self ):
         return self.untracked
 
     def canDiffHeadVsStaged( self ):
+        self.__calculateState()
         return self.__staged_is_modified
 
     def canDiffStagedVsWorking( self ):
+        self.__calculateState()
         return self.__unstaged_is_modified and self.__staged_is_modified
 
     def canDiffHeadVsWorking( self ):
+        self.__calculateState()
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
@@ -538,9 +552,8 @@ class GitProjectTreeNode:
 
         return entry
 
-class Progress(git.RemoteProgress):
+class Progress:
     def __init__( self, progress_call_back ):
-        super().__init__()
         self.progress_call_back = progress_call_back
 
     all_update_stages = {
@@ -553,7 +566,7 @@ class Progress(git.RemoteProgress):
         git.RemoteProgress.CHECKING_OUT:    'Checking Out',
         }
 
-    def update( self, op_code, cur_count, max_count=None, message='' ):
+    def __call__( self, op_code, cur_count, max_count=None, message='' ):
         stage_name = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
         is_begin = op_code&git.RemoteProgress.BEGIN != 0
         is_end = op_code&git.RemoteProgress.END != 0

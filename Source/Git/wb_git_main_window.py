@@ -829,11 +829,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     git_project.getReportUntrackedFiles() )
         self.commit_dialog.finished.connect( self.__commitDialogFinished )
 
-        # enabled states has have changed
-        self.updateActionEnabledStates()
-
         # show to the user
         self.commit_dialog.show()
+
 
     def __commitDialogFinished( self, result ):
         if result:
@@ -855,6 +853,9 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
         self.commit_dialog = None
+
+        # enabled states may have changed
+        self.updateActionEnabledStates()
 
     # ------------------------------------------------------------
     def treeActionPush( self ):
