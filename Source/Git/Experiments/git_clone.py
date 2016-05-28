@@ -10,14 +10,6 @@ url = 'https://github.com/barry-scott/git-workbench.git'
 
 target = os.path.join( os.environ['HOME'], 'tmpdir/clone' )
 
-class QqqRemoteProgress(git.RemoteProgress):
-    def __init__( self, fn ):
-        super().__init__()
-        self.fn = fn
-
-    def update( self, op_code, cur_count, max_count=None, message='' ):
-        self.fn( op_code, cur_count, max_count, message )
-
 stages = [
     (git.RemoteProgress.BEGIN, 'BEGIN'),
     (git.RemoteProgress.END, 'END'),
@@ -41,10 +33,8 @@ def opCodeToString( op_code ):
 def progFunc( op_code, cur_count, max_count, message ):
     print( opCodeToString( op_code ), cur_count, max_count, message )
 
-c = QqqRemoteProgress( progFunc )
-
 # (url, to_path, progress=None, env=None, **kwargs)
 print( git )
 print( git.Repo.clone_from )
-x = git.Repo.clone_from( url, target, progress=c )
+x = git.Repo.clone_from( url, target, progress=progFunc )
 print( x )
