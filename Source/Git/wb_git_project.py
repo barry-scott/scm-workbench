@@ -175,25 +175,21 @@ class GitProject:
         return False
 
     def getUnpushedCommits( self ):
+        last_pushed_commit_id = ''
         for remote in self.repo.remotes:
             for ref in remote.refs:
-                remote_id = ref.commit.hexsha
+                last_pushed_commit_id = ref.commit.hexsha
 
-                all_unpushed_commits = []
+        all_unpushed_commits = []
+        for commit in self.repo.iter_commits( None ):
+            commit_id = commit.hexsha
 
-                for commit in self.repo.iter_commits( None, max_count=1 ):
-                    commit_id = commit.hexsha
+            if last_pushed_commit_id == commit_id:
+                break
 
-                    if remote_id == commit_id:
-                        return all_unpushed_commits
+            all_unpushed_commits.append( commit )
 
-                    else:
-                        all_unpushed_commits.append( commit )
-
-                return all_unpushed_commits
-
-        return []
-
+        return all_unpushed_commits
 
     #------------------------------------------------------------
     #
