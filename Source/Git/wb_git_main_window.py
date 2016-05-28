@@ -39,6 +39,7 @@ import wb_git_table_model
 import wb_git_project
 import wb_git_log_history
 import wb_git_project_dialogs
+import wb_git_status_view
 
 import wb_shell_commands
 import wb_logging
@@ -280,6 +281,8 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.__addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
         self.__addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
         self.__addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        m.addSeparator()
+        self.__addMenu( m, T_('Status'), self.treeActionGitStatus )
 
         m = mb.addMenu( T_('&Git Actions') )
         self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
@@ -622,9 +625,10 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         self.app.writePreferences()
 
-        # close all open mode less windows
+        # close all open modeless windows
         wb_diff_view.WbDiffViewBase.closeAllWindows()
         wb_git_log_history.WbGitLogHistoryView.closeAllWindows()
+        wb_git_status_view.WbGitStatusView.closeAllWindows()
 
         if close:
             self.close()
@@ -969,6 +973,19 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     wb_git_images.getQIcon( 'wb.png' ) )
             commit_log_view.showCommitLogForRepository( git_project, options )
             commit_log_view.show()
+
+    def treeActionGitStatus( self ):
+        git_project = self.__treeSelectedGitProject()
+
+        commit_status_view = wb_git_status_view.WbGitStatusView(
+                self.app,
+                T_('Status for %s') % (git_project.projectName(),),
+                wb_git_images.getQIcon( 'wb.png' ) )
+        commit_status_view.setStatus(
+                    git_project.getUnpushedCommits(),
+                    git_project.getReportStagedFiles(),
+                    git_project.getReportUntrackedFiles() )
+        commit_status_view.show()
 
     #------------------------------------------------------------
     #

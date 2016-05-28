@@ -174,6 +174,27 @@ class GitProject:
 
         return False
 
+    def getUnpushedCommits( self ):
+        for remote in self.repo.remotes:
+            for ref in remote.refs:
+                remote_id = ref.commit.hexsha
+
+                all_unpushed_commits = []
+
+                for commit in self.repo.iter_commits( None, max_count=1 ):
+                    commit_id = commit.hexsha
+
+                    if remote_id == commit_id:
+                        return all_unpushed_commits
+
+                    else:
+                        all_unpushed_commits.append( commit )
+
+                return all_unpushed_commits
+
+        return []
+
+
     #------------------------------------------------------------
     #
     # all functions starting with "cmd" are like the git <cmd> in behavior
