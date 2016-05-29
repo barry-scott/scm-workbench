@@ -869,7 +869,11 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.app.backgroundProcess( self.treeActionPushBg, (git_project,) )
 
     def treeActionPushBg( self, git_project ):
-        git_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
+        try:
+            git_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
+
+        except wb_git_project.GitCommandError as e:
+            self.log.error( str(e) )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
         self.app.foregroundProcess( self.updateActionEnabledStates, () )
@@ -909,7 +913,11 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.app.backgroundProcess( self.treeActionPullBg, (git_project,) )
 
     def treeActionPullBg( self, git_project ):
-        git_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
+        try:
+            git_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
+
+        except wb_git_project.GitCommandError as e:
+            self.log.error( str(e) )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
         self.app.foregroundProcess( self.updateActionEnabledStates, () )

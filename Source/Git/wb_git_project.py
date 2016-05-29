@@ -13,7 +13,10 @@
 import pathlib
 
 import git
+import git.exc
 import git.index
+
+GitCommandError = git.exc.GitCommandError
 
 class GitProject:
     def __init__( self, app, prefs_project ):
