@@ -862,6 +862,17 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.updateActionEnabledStates()
 
     # ------------------------------------------------------------
+    def __logGitCommandError( self, e ):
+        self.log.error( "'%s' returned with exit code %i" %
+                        (' '.join(str(i) for i in e.command), e.status) )
+        if e.stderr:
+            all_lines = e.stderr.split('\n')
+            if all_lines[-1] == '':
+                del all_lines[-1]
+
+            for line in all_lines:
+                self.log.error( line )
+
     def treeActionPush( self ):
         git_project = self.__treeSelectedGitProject().newInstance()
         self.setStatusText( 'Push…' )
@@ -873,7 +884,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             git_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
 
         except wb_git_project.GitCommandError as e:
-            self.log.error( str(e) )
+            self.__logGitCommandError( e )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
         self.app.foregroundProcess( self.updateActionEnabledStates, () )
@@ -917,7 +928,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
             git_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
 
         except wb_git_project.GitCommandError as e:
-            self.log.error( str(e) )
+            self.__logGitCommandError( e )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
         self.app.foregroundProcess( self.updateActionEnabledStates, () )
