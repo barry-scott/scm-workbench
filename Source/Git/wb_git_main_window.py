@@ -44,25 +44,16 @@ import wb_git_status_view
 import wb_shell_commands
 import wb_logging
 import wb_diff_unified_view
-import wb_window_chrome_setup
+import wb_main_window
 
-class WbGitMainWindow(QtWidgets.QMainWindow
-                     ,wb_window_chrome_setup.WbWindowChromeSetup):
+class WbGitMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app ):
-        self.app = app
-        self.log = self.app.log
-        self._debug = app._debugMainWindow
+        super().__init__( app, wb_git_images, app._debugMainWindow )
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
 
         win_prefs = self.app.prefs.getWindow()
-
-        # Why oh Why does python report this:
-        # TypeError: __init__() missing 1 required positional argument: 'image_store'
-        # image_store is a arg of WbWindowChromeSetup
-        QtWidgets.QMainWindow.__init__( self, image_store=None )
-        wb_window_chrome_setup.WbWindowChromeSetup.__init__( self, image_store=wb_git_images )
 
         self.setWindowTitle( title )
         self.setWindowIcon( wb_git_images.getQIcon( 'wb.png' ) )

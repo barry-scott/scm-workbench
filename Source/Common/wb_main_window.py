@@ -10,15 +10,23 @@
     wb_window_chrome_setup.py
 
 '''
+from PyQt5 import QtWidgets
+from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-class WbWindowChromeSetup:
-    def __init__( self, image_store ):
+class WbMainWindow(QtWidgets.QMainWindow):
+    def __init__( self, app, image_store, debug_fn ):
+        self.app = app
+        self.log = self.app.log
+        self._debug = app._debugMainWindow
+
+        super().__init__()
+
         self.__image_store = image_store
         self.icon_size = QtCore.QSize( 32, 32 )
 
         # list of all the WbActionEnableState for the menus and toolbars
-        self.__enable_state_manager = WbActionEnableStateManager( self.app )
+        self.__enable_state_manager = WbActionEnableStateManager( self._debug )
 
     def updateEnableStates( self ):
         self.__enable_state_manager.update()
@@ -66,8 +74,8 @@ class WbWindowChromeSetup:
             self.__enable_state_manager.add( action, enabler )
 
 class WbActionEnableStateManager:
-    def __init__( self, app ):
-        self._debug = app._debugMainWindow
+    def __init__( self, debug_fn ):
+        self._debug = debug_fn
 
         self.__all_action_enablers = []
 
