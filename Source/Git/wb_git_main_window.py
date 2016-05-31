@@ -44,8 +44,10 @@ import wb_git_status_view
 import wb_shell_commands
 import wb_logging
 import wb_diff_unified_view
+import wb_window_chrome_setup
 
-class WbGitMainWindow(QtWidgets.QMainWindow):
+class WbGitMainWindow(QtWidgets.QMainWindow
+                     ,wb_window_chrome_setup.WbWindowChromeSetup):
     def __init__( self, app ):
         self.app = app
         self.log = self.app.log
@@ -56,18 +58,16 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
 
         win_prefs = self.app.prefs.getWindow()
 
-        super().__init__()
+        QtWidgets.QMainWindow.__init__( self, image_store=None )
+        wb_window_chrome_setup.WbWindowChromeSetup.__init__( self, wb_git_images )
+
         self.setWindowTitle( title )
         self.setWindowIcon( wb_git_images.getQIcon( 'wb.png' ) )
 
-        # list of all the WbActionEnableState for the menus and toolbars
-        self.__enable_state_manager = WbActionEnableStateManager( app )
-
-        self.icon_size = QtCore.QSize( 32, 32 )
-
-        self.__setupMenuBar()
-        self.__setupToolBar()
-        self.__setupStatusBar()
+        # setup the chrome
+        self.setupMenuBar( self.menuBar() )
+        self.setupToolBar()
+        self.setupStatusBar( self.statusBar() )
 
         self.__setupTreeContextMenu()
         self.__setupTableContextMenu()
@@ -253,7 +253,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
     def updateActionEnabledStates( self ):
-        self.__enable_state_manager.update()
+        self.updateEnableStates()
 
         if self.commit_dialog is not None:
             git_project = self.__treeSelectedGitProject()
@@ -261,136 +261,99 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
                     git_project.getReportStagedFiles(),
                     git_project.getReportUntrackedFiles() )
 
-    def __setupMenuBar( self ):
-        mb = self.menuBar()
-
+    def setupMenuBar( self, mb ):
         m = mb.addMenu( T_('&File') )
-        self.__addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
-        self.__addMenu( m, T_('&Prefs…'), self.appActionPreferences )
-        self.__addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
+        self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
+        self._addMenu( m, T_('&Prefs…'), self.appActionPreferences )
+        self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
 
         m = mb.addMenu( T_('F&older Actions') )
-        self.__addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
-        self.__addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
+        self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+        self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
         m = mb.addMenu( T_('File &Actions') )
-        self.__addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self.__addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        self._addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         m = mb.addMenu( T_('&Information') )
-        self.__addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self.__addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self.__addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
         m.addSeparator()
-        self.__addMenu( m, T_('Status'), self.treeActionGitStatus )
+        self._addMenu( m, T_('Status'), self.treeActionGitStatus )
 
         m = mb.addMenu( T_('&Git Actions') )
-        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        self._addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self._addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self._addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        self.__addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
+        self._addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
         m.addSeparator()
-        self.__addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
+        self._addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        self.__addMenu( m, T_('Push…'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
-        self.__addMenu( m, T_('Pull…'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
+        self._addMenu( m, T_('Push…'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
+        self._addMenu( m, T_('Pull…'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
         m = mb.addMenu( T_('&Project') )
-        self.__addMenu( m, T_('Add…'), self.projectActionAdd )
-        self.__addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
-        self.__addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
+        self._addMenu( m, T_('Add…'), self.projectActionAdd )
+        self._addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
+        self._addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
 
         m = mb.addMenu( T_('&Help' ) )
-        self.__addMenu( m, T_("&About…"), self.appActionAbout )
+        self._addMenu( m, T_("&About…"), self.appActionAbout )
 
     def __setupTreeContextMenu( self ):
         m = self.tree_context_menu = QtWidgets.QMenu( self )
         m.addSection( T_('Folder Actions') )
-        self.__addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
-        self.__addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
+        self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+        self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
     def __setupTableContextMenu( self ):
         m = self.table_context_menu = QtWidgets.QMenu( self )
 
         m.addSection( T_('File Actions') )
-        self.__addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self.__addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        self._addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         m.addSection( T_('Diff') )
-        self.__addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self.__addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self.__addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
-        self.__addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self.__addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self.__addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        self._addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self._addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self._addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        self.__addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
+        self._addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
 
-    def __addMenu( self, menu, name, handler, enabler=None, icon_name=None, role=None ):
-        if icon_name is None:
-            action = menu.addAction( name )
-        else:
-            icon = wb_git_images.getQIcon( icon_name )
-            action = menu.addAction( icon, name )
-
-        if handler is not None:
-           action.triggered.connect( handler )
-
-        if role is not None:
-            action.setMenuRole( role )
-
-        if enabler is not None:
-            self.__enable_state_manager.add( action, enabler )
-
-    def __setupToolBar( self ):
+    def setupToolBar( self ):
         style = self.style()
 
-        t = self.tool_bar_tree = self.__addToolBar( T_('tree') )
-        self.__addTool( t, T_('Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
-        self.__addTool( t, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
+        t = self.tool_bar_tree = self._addToolBar( T_('tree') )
+        self._addTool( t, T_('Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+        self._addTool( t, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
-        t = self.tool_bar_table = self.__addToolBar( T_('table') )
-        self.__addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self.__addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        t = self.tool_bar_table = self._addToolBar( T_('table') )
+        self._addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self._addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        t = self.tool_bar_git_info = self.__addToolBar( T_('git info') )
-        self.__addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
-        self.__addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
+        t = self.tool_bar_git_info = self._addToolBar( T_('git info') )
+        self._addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
+        self._addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
 
-        t = self.tool_bar_git_state = self.__addToolBar( T_('git state') )
-        self.__addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self.__addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self.__addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        t = self.tool_bar_git_state = self._addToolBar( T_('git state') )
+        self._addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self._addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self._addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
-        self.__addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
+        self._addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        self.__addTool( t, T_('Push'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
-        self.__addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
+        self._addTool( t, T_('Push'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
+        self._addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
-    def __addToolBar( self, name ):
-        bar = self.addToolBar( name )
-        bar.setIconSize( self.icon_size )
-        return bar
-
-    def __addTool( self, bar, name, handler, enabler=None, icon_name=None ):
-        if icon_name is None:
-            action = bar.addAction( name )
-
-        else:
-            icon = wb_git_images.getQIcon( icon_name )
-            action = bar.addAction( icon, name )
-
-        action.triggered.connect( handler )
-        if enabler is not None:
-            self.__enable_state_manager.add( action, enabler )
-
-    def __setupStatusBar( self ):
-        s = self.statusBar()
-
+    def setupStatusBar( self, s ):
         self.status_message = QtWidgets.QLabel()
         s.addWidget( self.status_message )
 
@@ -1309,37 +1272,3 @@ class WbTableView(QtWidgets.QTableView):
 
         else:
             super().keyReleaseEvent( event )
-
-class WbActionEnableStateManager:
-    def __init__( self, app ):
-        self._debug = app._debugMainWindow
-
-        self.__all_action_enablers = []
-
-        self.__update_running = False
-
-    def add( self, action, enable_handler ):
-        self.__all_action_enablers.append( WbActionEnableState( action, enable_handler ) )
-
-    def update( self ):
-        if self.__update_running:
-            return
-
-        self.__update_running = True
-        self._debug( 'WbActionEnableState.update running' )
-
-        # use a cache to avoid calling state queries more then once on any one update
-        cache = {}
-        for enabler in self.__all_action_enablers:
-            enabler.setEnableState( cache )
-
-        self._debug( 'WbActionEnableState.update done' )
-        self.__update_running = False
-
-class WbActionEnableState:
-    def __init__( self, action, enable_handler ):
-        self.action = action
-        self.enable_handler = enable_handler
-
-    def setEnableState( self, cache ):
-        self.action.setEnabled( self.enable_handler( cache ) )
