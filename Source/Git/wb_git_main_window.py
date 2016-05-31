@@ -43,7 +43,7 @@ import wb_git_status_view
 
 import wb_shell_commands
 import wb_logging
-import wb_diff_view
+import wb_diff_unified_view
 
 class WbGitMainWindow(QtWidgets.QMainWindow):
     def __init__( self, app ):
@@ -626,7 +626,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         self.app.writePreferences()
 
         # close all open modeless windows
-        wb_diff_view.WbDiffViewBase.closeAllWindows()
+        wb_diff_unified_view.WbDiffViewBase.closeAllWindows()
         wb_git_log_history.WbGitLogHistoryView.closeAllWindows()
         wb_git_status_view.WbGitStatusView.closeAllWindows()
 
@@ -1170,7 +1170,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Work %s') % (filename,)
 
-        window = wb_diff_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -1183,7 +1183,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff Staged vs. Work %s') % (filename,)
 
-        window = wb_diff_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -1196,7 +1196,7 @@ class WbGitMainWindow(QtWidgets.QMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Staged %s') % (filename,)
 
-        window = wb_diff_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
