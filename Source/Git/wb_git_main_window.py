@@ -58,8 +58,11 @@ class WbGitMainWindow(QtWidgets.QMainWindow
 
         win_prefs = self.app.prefs.getWindow()
 
+        # Why oh Why does python report this:
+        # TypeError: __init__() missing 1 required positional argument: 'image_store'
+        # image_store is a arg of WbWindowChromeSetup
         QtWidgets.QMainWindow.__init__( self, image_store=None )
-        wb_window_chrome_setup.WbWindowChromeSetup.__init__( self, wb_git_images )
+        wb_window_chrome_setup.WbWindowChromeSetup.__init__( self, image_store=wb_git_images )
 
         self.setWindowTitle( title )
         self.setWindowIcon( wb_git_images.getQIcon( 'wb.png' ) )
