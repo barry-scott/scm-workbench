@@ -50,14 +50,8 @@ class WbHgTableSortFilter(QtCore.QSortFilterProxyModel):
         if column == model.col_name:
             return left_ent.name < right_ent.name
 
-        if column in (model.col_cache, model.col_working):
-            # cached first
-            left = left_ent.stagedAsString()
-            right = right_ent.stagedAsString()
-            if left != right:
-                return left > right
-
-            # then working changes
+        if column == model.col_state:
+            # working changes
             left = left_ent.workingAsString()
             right = right_ent.workingAsString()
             if left != right:
@@ -70,12 +64,6 @@ class WbHgTableSortFilter(QtCore.QSortFilterProxyModel):
 
             # finally in name order
             return left_ent.name < right_ent.name
-
-        if column == model.col_working:
-            if left == right:
-                return left_ent.name < right_ent.name
-
-            return left > right
 
         if column == model.col_date:
             left = (left_ent.stat().st_mtime, left_ent.name)
@@ -107,13 +95,12 @@ class WbHgTableSortFilter(QtCore.QSortFilterProxyModel):
         return all_indices
 
 class WbHgTableModel(QtCore.QAbstractTableModel):
-    col_cache = 0
-    col_working = 1
-    col_name = 2
-    col_date = 3
-    col_type = 4
+    col_state = 0
+    col_name = 1
+    col_date = 2
+    col_type = 3
 
-    column_titles = [U_('Cache'), U_('Working'), U_('Name'), U_('Date'), U_('Type')]
+    column_titles = [U_('State'), U_('Name'), U_('Date'), U_('Type')]
 
     def __init__( self, app ):
         self.app = app
@@ -127,7 +114,6 @@ class WbHgTableModel(QtCore.QAbstractTableModel):
         self.all_files = []
 
         self.__brush_working_new = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
-        self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 0, 255 ) )
         self.__brush_is_working_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
 
     def rowCount( self, parent ):
@@ -161,10 +147,7 @@ class WbHgTableModel(QtCore.QAbstractTableModel):
 
             col = index.column()
 
-            if col == self.col_cache:
-                return entry.stagedAsString()
-
-            elif col == self.col_working:
+            if col == self.col_state:
                 return entry.workingAsString()
 
             elif col == self.col_name:
@@ -184,11 +167,7 @@ class WbHgTableModel(QtCore.QAbstractTableModel):
 
         elif role == QtCore.Qt.ForegroundRole:
             entry = self.all_files[ index.row() ]
-            cached = entry.stagedAsString()
             working = entry.workingAsString()
-
-            if cached != '':
-                return self.__brush_is_cached
 
             if working != '':
                 return self.__brush_is_working_changed
@@ -260,7 +239,7 @@ class WbHgTableModel(QtCore.QAbstractTableModel):
                     if all_new_files[ offset ].isNotEqual( self.all_files[ offset ] ):
                         self._debug( 'WbHgTableModel.refreshTable() emit dataChanged row=%d' % (offset,) )
                         self.dataChanged.emit(
-                            self.createIndex( offset, self.col_cache ),
+                            self.createIndex( offset, self.col_state ),
                             self.createIndex( offset, self.col_type ) )
                     offset += 1
 
@@ -338,23 +317,18 @@ class WbHgTableEntry:
 
         return False
 
-    def stagedAsString( self ):
-        if self.status is None:
-            return ''
-
-        return self.status.getStagedAbbreviatedStatus()
-
     def workingAsString( self ):
         if self.status is None:
             return ''
 
-        return self.status.getUnstagedAbbreviatedStatus()
+        return self.status.getAbbreviatedStatus()
 
     def isWorkingNew( self ):
         if self.status is None:
             return False
 
-        return self.status.isUntracked()
+        # QQQ
+        return False
 
 def os_scandir( path ):
     if hasattr( os, 'scandir' ):

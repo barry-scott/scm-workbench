@@ -204,7 +204,7 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
         self.table_sortfilter.setSourceModel( self.table_model )
         self.table_sortfilter.setDynamicSortFilter( False )
 
-        self.table_sort_column = self.table_model.col_cache
+        self.table_sort_column = self.table_model.col_state
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
@@ -228,8 +228,7 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
 
         # size columns
         char_width = 10
-        self.table_view.setColumnWidth( self.table_model.col_cache, char_width*4 )
-        self.table_view.setColumnWidth( self.table_model.col_working, char_width*4 )
+        self.table_view.setColumnWidth( self.table_model.col_state, char_width*4 )
         self.table_view.setColumnWidth( self.table_model.col_name, char_width*32 )
         self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
@@ -270,8 +269,6 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
 
         m = mb.addMenu( T_('&Information') )
         self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionHgDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionHgDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionHgDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
         m.addSeparator()
         self._addMenu( m, T_('Status'), self.treeActionHgStatus )
 
@@ -311,8 +308,6 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
 
         m.addSection( T_('Diff') )
         self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionHgDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionHgDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionHgDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Hg Actions') )
         self._addMenu( m, T_('Stage'), self.tableActionHgStage, self.enablerFilesStage, 'toolbar_images/include.png' )
@@ -449,12 +444,6 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
     def enablerDiffHeadVsWorking( self, cache ):
         return self.__enablerDiff( cache, 'enablerDiffHeadVsWorking', wb_hg_project.WbHgFileState.canDiffHeadVsWorking )
 
-    def enablerDiffStagedVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffStagedVsWorking', wb_hg_project.WbHgFileState.canDiffStagedVsWorking )
-
-    def enablerDiffHeadVsStaged( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsStaged', wb_hg_project.WbHgFileState.canDiffHeadVsStaged )
-
     def enablerDiffSmart( self, cache ):
         key = 'enablerDiffSmart'
         if key not in cache:
@@ -467,9 +456,7 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
                 all_file_states = self.__enablerTableSelectedStatus( cache )
                 enable = True
                 for obj in all_file_states:
-                    if not (obj.canDiffStagedVsWorking()
-                            or obj.canDiffHeadVsWorking()
-                            or obj.canDiffHeadVsStaged()):
+                    if not obj.canDiffHeadVsWorking():
                         enable = False
                         break
 
@@ -489,7 +476,7 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
             can_commit = False
             if( hg_project is not None
             and self.commit_dialog is None
-            and hg_project.numStagedFiles() > 0 ):
+            and hg_project.numUncommittedFiles() > 0 ):
                 can_commit = True
 
             cache[ key ] = can_commit
@@ -665,12 +652,6 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
     def treeTableActionHgDiffSmart( self ):
         self.__callTreeOrTableFunction( self.treeActionHgDiffSmart, self.tableActionHgDiffSmart )
 
-    def treeTableActionHgDiffStagedVsWorking( self ):
-        self.__callTreeOrTableFunction( self.treeActionHgDiffStagedVsWorking, self.tableActionHgDiffStagedVsWorking )
-
-    def treeTableActionHgDiffHeadVsStaged( self ):
-        self.__callTreeOrTableFunction( self.treeActionHgDiffHeadVsStaged, self.tableActionHgDiffHeadVsStaged )
-
     def treeTableActionHgDiffHeadVsWorking( self ):
         self.__callTreeOrTableFunction( self.treeActionHgDiffHeadVsWorking, self.tableActionHgDiffHeadVsWorking )
 
@@ -766,12 +747,6 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
 
     def treeActionHgDiffSmart( self ):
         self._debug( 'treeActionHgDiffSmart()' )
-
-    def treeActionHgDiffStagedVsWorking( self ):
-        self._debug( 'treeActionHgDiffStagedVsWorking()' )
-
-    def treeActionHgDiffHeadVsStaged( self ):
-        self._debug( 'treeActionHgDiffHeadVsStaged()' )
 
     def treeActionHgDiffHeadVsWorking( self ):
         self._debug( 'treeActionHgDiffHeadVsWorking()' )
@@ -1072,14 +1047,6 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
         self._debug( 'tableActionHgDiffSmart()' )
         self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffSmart )
 
-    def tableActionHgDiffStagedVsWorking( self ):
-        self._debug( 'tableActionHgDiffStagedVsWorking()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffStagedVsWorking )
-
-    def tableActionHgDiffHeadVsStaged( self ):
-        self._debug( 'tableActionHgDiffHeadVsStaged()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffHeadVsStaged )
-
     def tableActionHgDiffHeadVsWorking( self ):
         self._debug( 'tableActionHgDiffHeadVsWorking()' )
         self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffHeadVsWorking )
@@ -1103,13 +1070,7 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
     def __actionHgDiffSmart( self, hg_project, filename ):
         file_state = hg_project.getFileState( filename )
 
-        if file_state.canDiffStagedVsWorking():
-            self.__actionHgDiffStagedVsWorking( hg_project, filename )
-
-        elif file_state.canDiffHeadVsStaged():
-            self.__actionHgDiffHeadVsStaged( hg_project, filename )
-
-        elif file_state.canDiffHeadVsWorking():
+        if file_state.canDiffHeadVsWorking():
             self.__actionHgDiffHeadVsWorking( hg_project, filename )
 
     def __diffUnified( self, old_lines, new_lines ):
@@ -1123,32 +1084,6 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
 
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Work %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_hg_images.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
-
-    def __actionHgDiffStagedVsWorking( self, hg_project, filename ):
-        file_state = hg_project.getFileState( filename )
-
-        old_lines = file_state.getTextLinesStaged()
-        new_lines = file_state.getTextLinesWorking()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff Staged vs. Work %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_hg_images.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
-
-    def __actionHgDiffHeadVsStaged( self, hg_project, filename ):
-        file_state = hg_project.getFileState( filename )
-
-        old_lines = file_state.getTextLinesHead()
-        new_lines = file_state.getTextLinesStaged()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff HEAD vs. Staged %s') % (filename,)
 
         window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_hg_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )

@@ -11,6 +11,9 @@
 
 '''
 import pathlib
+import sys
+
+import hglib
 
 class HgProject:
     def __init__( self, app, prefs_project ):
@@ -18,16 +21,14 @@ class HgProject:
         self._debug = self.app._debugHgProject
 
         self.prefs_project = prefs_project
-        self.repo = hg.Repo( str( prefs_project.path ) )
-        self.index = None
+        self.repo = hglib.open( str( prefs_project.path ) )
 
         self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
         self.all_file_state = {}
+        self.__stale_status = False
 
-        self.__dirty_index = False
-        self.__stale_index = False
-        self.__num_staged_files = 0
+        self.__num_uncommitted_files = 0
 
     # return a new HgProject that can be used in another thread
     def newInstance( self ):
@@ -46,26 +47,15 @@ class HgProject:
         return self.prefs_project.path
 
     def headRefName( self ):
-        return self.repo.head.ref.name
+        return 'unknown'
 
-    def numStagedFiles( self ):
-        return self.__num_staged_files
-
-    def saveChanges( self ):
-        self._debug( 'saveChanges() __dirty_index %r __stale_index %r' % (self.__dirty_index, self.__stale_index) )
-        assert self.__dirty_index or self.__stale_index, 'Only call saveChanges if something was changed'
-
-        if self.__dirty_index:
-            self.repo.index.write()
-            self.__dirty_index = False
-
-        self.__stale_index = False
-
-        self.updateState()
+    def numUncommittedFiles( self ):
+        return self.__num_uncommitted_files
 
     def updateState( self ):
-        self._debug( 'updateState()' )
-        assert not self.__dirty_index, 'repo is dirty, forgot to call saveChanges?'
+        self._debug( 'updateState() is_stale %r' % (self.__stale_status,) )
+
+        self.__stale_status = False
 
         # rebuild the tree
         self.tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -76,38 +66,64 @@ class HgProject:
             self.__updateTree( path )
 
     def __calculateStatus( self ):
-        self.index = hg.index.IndexFile( self.repo )
-
-        head_vs_index = self.index.diff( self.repo.head.commit )
-        index_vs_working = self.index.diff( None )
-        # each ref to self.repo.untracked_files creates a new object
-        # cache the value once/update
-        untracked_files = self.repo.untracked_files
-
         self.all_file_state = {}
-        for entry in self.index.entries.values():
-            self.all_file_state[ entry.path ] = WbHgFileState( self.repo, entry )
 
-        self.__num_staged_files = 0
-        for diff in head_vs_index:
-            self.__num_staged_files += 1
-            if diff.b_path not in self.all_file_state:
-                self.all_file_state[ diff.b_path ] = WbHgFileState( self.repo, None )
-            self.all_file_state[ diff.b_path ]._addStaged( diff )
+        repo_root = self.path()
 
-        for diff in index_vs_working:
-            if diff.a_path not in self.all_file_state:
-                self.all_file_state[ diff.a_path ] = WbHgFileState( self.repo, None )
-            self.all_file_state[ diff.a_path ]._addUnstaged( diff )
+        hg_dir = repo_root / '.hg'
 
-        for path in untracked_files:
-            if path not in self.all_file_state:
-                self.all_file_state[ path ] = WbHgFileState( self.repo, None )
+        all_folders = set( [repo_root] )
+        while len(all_folders) > 0:
+            folder = all_folders.pop()
 
-            self.all_file_state[ path ]._setUntracked()
+            print( 'qqq __calculateStatus folder %r' % (folder,) )
+
+            for filename in folder.iterdir():
+                abs_path = folder / filename
+
+                print( 'qqq __calculateStatus abs_path %r' % (abs_path,) )
+
+                repo_relative = abs_path.relative_to( repo_root )
+
+                if abs_path.is_dir():
+                    if abs_path != hg_dir:
+                        all_folders.add( abs_path )
+
+                        self.all_file_state[ str(repo_relative) ] = WbHgFileState( self, repo_relative )
+                        self.all_file_state[ str(repo_relative) ].setIsDir()
+
+                else:
+                    self.all_file_state[ str(repo_relative) ] = WbHgFileState( self, repo_relative )
+            
+        print( '__calculateStatus manifest()' )
+        for nodeid, permission, executable, symlink, filepath in self.repo.manifest():
+            filepath = filepath.decode( sys.getfilesystemencoding() )
+            print( '__calculateStatus manifest() filepath %r' % (filepath,) )
+            if filepath not in self.all_file_state:
+                # filepath has been deleted
+                self.all_file_state[ filepath ] = WbHgFileState( self, pathlib.Path( filepath ) )
+
+            self.all_file_state[ filepath ].setManifest( nodeid, permission, executable, symlink )
+
+        print( '__calculateStatus status()' )
+        for state, filepath in self.repo.status( all=True, ignored=True ):
+            state = state.decode( 'utf-8' )
+            filepath = filepath.decode( sys.getfilesystemencoding() )
+            print( '__calculateStatus status() filepath %r' % (filepath,) )
+            if filepath not in self.all_file_state:
+                # filepath has been deleted
+                self.all_file_state[ filepath ] = WbHgFileState( self, pathlib.Path( filepath ) )
+
+            self.all_file_state[ filepath ].setState( state )
+
+            if state in 'AMR':
+                self.__num_uncommitted_files += 1
 
     def __updateTree( self, path ):
         path_parts = path.split( '/' )
+
+        print( 'qqq __updateTree %r' % (path,) )
+
 
         node = self.tree
         for depth in range( len(path_parts) - 1 ):
@@ -160,6 +176,7 @@ class HgProject:
         return all_untracked_files
 
     def canPush( self ):
+        return False
         for commit in self.repo.iter_commits( None, max_count=1 ):
             commit_id = commit.hexsha
 
@@ -172,6 +189,8 @@ class HgProject:
         return False
 
     def getUnpushedCommits( self ):
+        return []
+
         last_pushed_commit_id = ''
         for remote in self.repo.remotes:
             for ref in remote.refs:
@@ -195,31 +214,37 @@ class HgProject:
     #------------------------------------------------------------
     def cmdStage( self, filename ):
         self._debug( 'cmdStage( %r )' % (filename,) )
+        return
 
         self.repo.hg.add( filename )
-        self.__stale_index = True
+        self.__stale_status = True
 
     def cmdUnstage( self, rev, filename ):
         self._debug( 'cmdUnstage( %r )' % (filename,) )
+        return
 
         self.repo.hg.reset( 'HEAD', filename, mixed=True )
-        self.__stale_index = True
+        self.__stale_status = True
 
     def cmdRevert( self, rev, filename ):
         self._debug( 'cmdRevert( %r )' % (filename,) )
+        return
 
         self.repo.hg.checkout( 'HEAD', filename )
-        self.__stale_index = True
+        self.__stale_status = True
 
     def cmdDelete( self, filename ):
+        return
         (self.prefs_project.path / filename).unlink()
-        self.__stale_index = True
+        self.__stale_status = True
 
     def cmdCommit( self, message ):
-        self.__stale_index = True
+        self.__stale_status = True
         return self.index.commit( message )
 
     def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
+        return []
+
         all_commit_logs = []
 
         kwds = {}
@@ -237,6 +262,8 @@ class HgProject:
         return all_commit_logs
 
     def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
+        return []
+
         all_commit_logs = []
 
         kwds = {}
@@ -308,138 +335,81 @@ class HgProject:
             self.__treeToDict( child, all_entries )
 
     def cmdPull( self, progress_callback, info_callback ):
+        self._debug( 'cmdPull()' )
+        return
+
         for remote in self.repo.remotes:
             for info in remote.pull( progress=Progress( progress_callback ) ):
                 info_callback( info )
 
     def cmdPush( self, progress_callback, info_callback ):
+        self._debug( 'cmdPush()' )
+        return
+
         for remote in self.repo.remotes:
             for info in remote.push( progress=Progress( progress_callback ) ):
                 info_callback( info )
 
 class WbHgFileState:
-    def __init__( self, repo, index_entry ):
-        self.repo = repo
-        self.index_entry = index_entry
-        self.unstaged_diff = None
-        self.staged_diff = None
-        self.untracked = False
+    def __init__( self, project, filepath ):
+        print( 'qqq WbHgFileState( %r )' % (filepath,) )
+        self.__project = project
+        self.__filepath = filepath
 
-        # from the above calculate the following
-        self.__state_calculated = False
+        self.__is_dir = False
 
-        self.__staged_is_modified = False
-        self.__unstaged_is_modified = False
+        self.__state = ''
 
-        self.__staged_abbrev = None
-        self.__unstaged_abbrev = None
+        self.__nodeid = None
+        self.__permission = None
+        self.__executable = None
+        self.__symlink = None
 
-        self.__head_blob = None
-        self.__staged_blob = None
+    def setState( self, state ):
+        self.__state = state.decode('utf-8')
 
     def __repr__( self ):
-        return ('<WbHgFileState: calc %r, S=%r, U=%r' %
-                (self.__state_calculated, self.__staged_abbrev, self.__unstaged_abbrev))
+        return ('<WbHgFileState: %s %s %s>' %
+                (self.__filepath, self.__state, self.__nodeid))
 
-    def _addStaged( self, diff ):
-        self.__state_calculated = False
-        self.staged_diff = diff
+    def setIsDir( self ):
+        self.__is_dir = True
 
-    def _addUnstaged( self, diff ):
-        self.__state_calculated = False
-        self.unstaged_diff = diff
+    def isDir( self ):
+        return self.__is_dir
 
-    def _setUntracked( self ):
-        self.untracked = True
+    def setManifest( self, nodeid, permission, executable, symlink ):
+        self.__nodeid = nodeid.decode('utf-8')
+        self.__permission = permission
+        self.__executable = executable
+        self.__symlink = symlink
 
-    # from the provided info work out
-    # interesting properies
-    def __calculateState( self ):
-        if self.__state_calculated:
-            return
+    def setState( self, state ):
+        self.__state = state
 
-        if self.staged_diff is None:
-            self.__staged_abbrev = ''
+    def getAbbreviatedStatus( self ):
+        return self.__state
 
-        else:
-            if self.staged_diff.renamed:
-                self.__staged_abbrev = 'R'
+    def isTracked( self ):
+        return self.__nodeid is not None
 
-            elif self.staged_diff.deleted_file:
-                self.__staged_abbrev = 'A'
+    def isNew( self ):
+        return self.__state == 'A'
 
-            elif self.staged_diff.new_file:
-                self.__staged_abbrev = 'D'
+    def isModified( self ):
+        return self.__state == 'M'
 
-            else:
-                self.__staged_abbrev = 'M'
-                self.__staged_is_modified = True
-                self.__head_blob = self.staged_diff.b_blob
-                self.__staged_blob = self.staged_diff.a_blob
-
-        if  self.unstaged_diff is None:
-            self.__unstaged_abbrev = ''
-
-        else:
-            if self.unstaged_diff.deleted_file:
-                self.__unstaged_abbrev = 'D'
-
-            elif self.unstaged_diff.new_file:
-                self.__unstaged_abbrev = 'A'
-
-            else:
-                self.__unstaged_abbrev = 'M'
-                self.__unstaged_is_modified = True
-                if self.__head_blob is None:
-                    self.__head_blob = self.unstaged_diff.a_blob
-
-        self.__state_calculated = True
-
-    def getStagedAbbreviatedStatus( self ):
-        self.__calculateState()
-        return self.__staged_abbrev
-
-    def getUnstagedAbbreviatedStatus( self ):
-        self.__calculateState()
-        return self.__unstaged_abbrev
-
-    def isStagedNew( self ):
-        self.__calculateState()
-        return self.__staged_abbrev == 'A'
-
-    def isStagedModified( self ):
-        self.__calculateState()
-        return self.__staged_abbrev == 'M'
-
-    def isStagedDeleted( self ):
-        self.__calculateState()
-        return self.__staged_abbrev == 'D'
-
-    def isUnstagedModified( self ):
-        self.__calculateState()
-        return self.__unstaged_abbrev == 'M'
-
-    def isUnstagedDeleted( self ):
-        self.__calculateState()
-        return self.__unstaged_abbrev == 'D'
+    def isDeleted( self ):
+        return self.__state == 'R'
 
     def isUntracked( self ):
-        return self.untracked
-
-    def canDiffHeadVsStaged( self ):
-        self.__calculateState()
-        return self.__staged_is_modified
-
-    def canDiffStagedVsWorking( self ):
-        self.__calculateState()
-        return self.__unstaged_is_modified and self.__staged_is_modified
+        return self.__state == '?'
 
     def canDiffHeadVsWorking( self ):
-        self.__calculateState()
-        return self.__unstaged_is_modified
+        return self.isModified()
 
     def getTextLinesWorking( self ):
-        path = pathlib.Path( self.repo.working_tree_dir ) / self.unstaged_diff.a_path
+        path = pathlib.Path( self.__project.path() ) / self.unstaged_diff.a_path
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -448,30 +418,14 @@ class WbHgFileState:
                 return all_lines
 
     def getTextLinesHead( self ):
-        blob = self.getHeadBlob()
-        data = blob.data_stream.read()
+        abs_path = self.__project.path() / self.__filepath
+        text = self.__project.repo.cat( str(abs_path) )
         text = data.decode( 'utf-8' )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
             return all_lines[:-1]
         else:
             return all_lines
-
-    def getTextLinesStaged( self ):
-        blob = self.getStagedBlob()
-        data = blob.data_stream.read()
-        text = data.decode( 'utf-8' )
-        all_lines = text.split('\n')
-        if all_lines[-1] == '':
-            return all_lines[:-1]
-        else:
-            return all_lines
-
-    def getHeadBlob( self ):
-        return self.__head_blob
-
-    def getStagedBlob( self ):
-        return self.__staged_blob
 
 class HgCommitLogNode:
     def __init__( self, commit ):
@@ -562,6 +516,6 @@ class HgProjectTreeNode:
         if path in self.project.all_file_state:
             entry = self.project.all_file_state[ path ]
         else:
-            entry = WbHgFileState( self.project.repo, None )
+            entry = WbHgFileState( self.project, None )
 
         return entry

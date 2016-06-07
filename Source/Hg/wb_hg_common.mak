@@ -1,8 +1,8 @@
-wb_git_images.py: make_wb_git_images.py
-	$(PYTHON) -u make_wb_git_images.py
+wb_hg_images.py: make_wb_hg_images.py
+	$(PYTHON) -u make_wb_hg_images.py
 
 run:
-	$(PYTHON) -u wb_git_main.py
+	$(PYTHON) -u wb_hg_main.py
 
 clean::
-	rm -f wb_git_images.py
+	rm -f wb_hg_images.py
