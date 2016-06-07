@@ -66,5 +66,5 @@ hg status
 # allow Source/Git modules to be tested
 export PYTHONPATH=${BUILDER_TOP_DIR}/Source/Git
 
-python3 ${SCRIPT_DIR}/hg_python_status.py ${REPO} $1
-python3 ${SCRIPT_DIR}/hg_wb_project_status.py ${REPO} $1
+python3 ${SCRIPT_DIR}/hglib_status.py ${REPO} $1
+#python3 ${SCRIPT_DIR}/hg_wb_project_status.py ${REPO} $1
