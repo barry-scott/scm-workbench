@@ -9,7 +9,7 @@
  ====================================================================
 
 
-    wb_git_preferences.py
+    wb_hg_preferences.py
 
 '''
 import os
@@ -127,7 +127,7 @@ class PreferenceData:
         except xml.parsers.expat.ExpatError as e:
             raise ParseError( str(e) )
 
-        prefs = dom.getElementsByTagName( 'git-workbench-preferences' )[0]
+        prefs = dom.getElementsByTagName( 'hg-workbench-preferences' )[0]
 
         self.__parseXmlChildren( prefs, self.all_sections )
 
@@ -233,9 +233,9 @@ class PreferenceData:
 
     def write( self, f ):
         f.write( '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' )
-        f.write( '<git-workbench-preferences>\n' )
+        f.write( '<hg-workbench-preferences>\n' )
         self.__writeDictionary( f, self.all_sections, 4 )
-        f.write( '</git-workbench-preferences>\n' )
+        f.write( '</hg-workbench-preferences>\n' )
 
     def __writeDictionary( self, f, d, indent ):
         all_key_names = sorted( d.keys() )

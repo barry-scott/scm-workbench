@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 '''
  ====================================================================
  Copyright (c) 2016 Barry A Scott.  All rights reserved.
@@ -8,14 +7,11 @@
 
  ====================================================================
 
-    wb_git_main.py
+	wb_hg_version.py
 
 '''
-import sys
-
-import wb_main
-import wb_git_app
-
-
-if __name__ == '__main__':
-    sys.exit( wb_main.main( wb_git_app.WbGitApp, sys.argv ) )
+major = 1
+minor = 0
+patch = 0
+build = 0
+year = "2016"

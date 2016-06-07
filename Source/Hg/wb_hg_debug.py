@@ -7,23 +7,24 @@
 
  ====================================================================
 
-    wb_git_debug.py
+    wb_hg_debug.py
 
 '''
 import wb_debug
 
-class WbGitDebug(wb_debug.WbDebug):
+class WbHgDebug(wb_debug.WbDebug):
     def __init__( self ):
         # assumes derived class sets self.log
-        self._debug_git_project = False
+
+        self._debug_hg_project = False
         self._debug_log_history = False
 
         super().__init__()
 
-    # wb_git_project
-    def _debugGitProject( self, msg ):
-        if self._debug_git_project:
-            self.log.debug( 'GIT-PROJECT %s' % (msg,) )
+    # wb_hg_project
+    def _debugHgProject( self, msg ):
+        if self._debug_hg_project:
+            self.log.debug( 'HG-PROJECT %s' % (msg,) )
 
     def _debugLogHistory( self, msg ):
         if self._debug_log_history:

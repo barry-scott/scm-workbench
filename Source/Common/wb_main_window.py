@@ -15,12 +15,12 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 class WbMainWindow(QtWidgets.QMainWindow):
-    def __init__( self, app, image_store, debug_fn ):
+    def __init__( self, app, image_store, debug_fn, parent=None ):
         self.app = app
         self.log = self.app.log
         self._debug = app._debugMainWindow
 
-        super().__init__()
+        super().__init__( parent )
 
         self.__image_store = image_store
         self.icon_size = QtCore.QSize( 32, 32 )

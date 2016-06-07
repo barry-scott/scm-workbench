@@ -8,14 +8,13 @@
 
  ====================================================================
 
-    wb_git_main.py
+    wb_hg_main.py
 
 '''
 import sys
 
 import wb_main
-import wb_git_app
-
+import wb_hg_app
 
 if __name__ == '__main__':
-    sys.exit( wb_main.main( wb_git_app.WbGitApp, sys.argv ) )
+    sys.exit( wb_main.main( wb_hg_app.WbHgApp, sys.argv ) )

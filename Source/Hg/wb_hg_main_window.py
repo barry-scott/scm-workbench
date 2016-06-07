@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_main_window.py
+    wb_hg_main_window.py
 
     Based on code from pysvn WorkBench
 
@@ -27,27 +27,27 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import wb_git_version
-import wb_git_images
-import wb_git_preferences
-import wb_git_preferences_dialog
-import wb_git_commit_dialog
+import wb_hg_version
+import wb_hg_images
+import wb_hg_preferences
+import wb_hg_preferences_dialog
+#import wb_hg_commit_dialog
 
-import wb_git_tree_model
-import wb_git_table_model
-import wb_git_project
-import wb_git_log_history
-import wb_git_project_dialogs
-import wb_git_status_view
+import wb_hg_tree_model
+import wb_hg_table_model
+import wb_hg_project
+import wb_hg_log_history
+import wb_hg_project_dialogs
+import wb_hg_status_view
 
 import wb_shell_commands
 import wb_logging
 import wb_diff_unified_view
 import wb_main_window
 
-class WbGitMainWindow(wb_main_window.WbMainWindow):
+class WbHgMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app ):
-        super().__init__( app, wb_git_images, app._debugMainWindow )
+        super().__init__( app, wb_hg_images, app._debugMainWindow )
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
@@ -55,7 +55,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         win_prefs = self.app.prefs.getWindow()
 
         self.setWindowTitle( title )
-        self.setWindowIcon( wb_git_images.getQIcon( 'wb.png' ) )
+        self.setWindowIcon( wb_hg_images.getQIcon( 'wb.png' ) )
 
         # setup the chrome
         self.setupMenuBar( self.menuBar() )
@@ -198,9 +198,9 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self.status_message.setText( text )
 
     def __setupTableViewAndModel( self ):
-        self.table_model = wb_git_table_model.WbGitTableModel( self.app )
+        self.table_model = wb_hg_table_model.WbHgTableModel( self.app )
 
-        self.table_sortfilter = wb_git_table_model.WbGitTableSortFilter( self.app )
+        self.table_sortfilter = wb_hg_table_model.WbHgTableSortFilter( self.app )
         self.table_sortfilter.setSourceModel( self.table_model )
         self.table_sortfilter.setDynamicSortFilter( False )
 
@@ -235,7 +235,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
 
     def __setupTreeViewAndModel( self ):
-        self.tree_model = wb_git_tree_model.WbGitTreeModel( self.app, self.table_model )
+        self.tree_model = wb_hg_tree_model.WbHgTreeModel( self.app, self.table_model )
 
         self.tree_view = QtWidgets.QTreeView()
         self.tree_view.setModel( self.tree_model )
@@ -249,10 +249,10 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self.updateEnableStates()
 
         if self.commit_dialog is not None:
-            git_project = self.__treeSelectedGitProject()
+            hg_project = self.__treeSelectedHgProject()
             self.commit_dialog.setStatus(
-                    git_project.getReportStagedFiles(),
-                    git_project.getReportUntrackedFiles() )
+                    hg_project.getReportStagedFiles(),
+                    hg_project.getReportUntrackedFiles() )
 
     def setupMenuBar( self, mb ):
         m = mb.addMenu( T_('&File') )
@@ -269,18 +269,18 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         m = mb.addMenu( T_('&Information') )
-        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionHgDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionHgDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionHgDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
         m.addSeparator()
-        self._addMenu( m, T_('Status'), self.treeActionGitStatus )
+        self._addMenu( m, T_('Status'), self.treeActionHgStatus )
 
-        m = mb.addMenu( T_('&Git Actions') )
-        self._addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self._addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self._addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        m = mb.addMenu( T_('&Hg Actions') )
+        self._addMenu( m, T_('Stage'), self.tableActionHgStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self._addMenu( m, T_('Unstage'), self.tableActionHgUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self._addMenu( m, T_('Revert'), self.tableActionHgRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        self._addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
+        self._addMenu( m, T_('Delete…'), self.tableActionHgDelete, self.enablerFilesExists )
         m.addSeparator()
         self._addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
 
@@ -310,16 +310,16 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         m.addSection( T_('Diff') )
-        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionHgDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionHgDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionHgDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
 
-        m.addSection( T_('Git Actions') )
-        self._addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self._addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self._addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        m.addSection( T_('Hg Actions') )
+        self._addMenu( m, T_('Stage'), self.tableActionHgStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self._addMenu( m, T_('Unstage'), self.tableActionHgUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self._addMenu( m, T_('Revert'), self.tableActionHgRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        self._addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.enablerFilesExists )
+        self._addMenu( m, T_('Delete…'), self.tableActionHgDelete, self.enablerFilesExists )
 
     def setupToolBar( self ):
         t = self.tool_bar_tree = self._addToolBar( T_('tree') )
@@ -330,14 +330,14 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self._addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
         self._addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        t = self.tool_bar_git_info = self._addToolBar( T_('git info') )
-        self._addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
-        self._addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
+        t = self.tool_bar_hg_info = self._addToolBar( T_('hg info') )
+        self._addTool( t, T_('Diff'), self.treeTableActionHgDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
+        self._addTool( t, T_('Commit History'), self.treeTableActionHgLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
 
-        t = self.tool_bar_git_state = self._addToolBar( T_('git state') )
-        self._addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self._addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self._addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        t = self.tool_bar_hg_state = self._addToolBar( T_('hg state') )
+        self._addTool( t, T_('Stage'), self.tableActionHgStage, self.enablerFilesStage, 'toolbar_images/include.png' )
+        self._addTool( t, T_('Unstage'), self.tableActionHgUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
+        self._addTool( t, T_('Revert'), self.tableActionHgRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
         self._addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
@@ -377,7 +377,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
     def enablerFilesStage( self, cache ):
         key = 'enablerFilesStage'
         if key not in cache:
-            #with_status = (pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_NEW|pygit2.GIT_STATUS_WT_DELETED)
+            #with_status = (pyhg2.HG_STATUS_WT_MODIFIED|pyhg2.HG_STATUS_WT_NEW|pyhg2.HG_STATUS_WT_DELETED)
             #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
             cache[ key ] = True
 
@@ -386,7 +386,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
     def enablerFilesUnstage( self, cache ):
         key = 'enablerFilesUnstage'
         if key not in cache:
-            #with_status = pygit2.GIT_STATUS_INDEX_MODIFIED|pygit2.GIT_STATUS_INDEX_NEW|pygit2.GIT_STATUS_INDEX_DELETED
+            #with_status = pyhg2.HG_STATUS_INDEX_MODIFIED|pyhg2.HG_STATUS_INDEX_NEW|pyhg2.HG_STATUS_INDEX_DELETED
             #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
             cache[ key ] = True
 
@@ -395,8 +395,8 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
     def enablerFilesRevert( self, cache ):
         key = 'enablerFilesRevert'
         if key not in cache:
-            #with_status = pygit2.GIT_STATUS_WT_MODIFIED|pygit2.GIT_STATUS_WT_DELETED
-            #without_status = pygit2.GIT_STATUS_INDEX_MODIFIED
+            #with_status = pyhg2.HG_STATUS_WT_MODIFIED|pyhg2.HG_STATUS_WT_DELETED
+            #without_status = pyhg2.HG_STATUS_INDEX_MODIFIED
             #cache[ key ] = self.__tableSelectedWithStatus( with_status, without_status )
             cache[ key ] = True
 
@@ -447,13 +447,13 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         return cache[ key ]
 
     def enablerDiffHeadVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsWorking', wb_git_project.WbGitFileState.canDiffHeadVsWorking )
+        return self.__enablerDiff( cache, 'enablerDiffHeadVsWorking', wb_hg_project.WbHgFileState.canDiffHeadVsWorking )
 
     def enablerDiffStagedVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffStagedVsWorking', wb_git_project.WbGitFileState.canDiffStagedVsWorking )
+        return self.__enablerDiff( cache, 'enablerDiffStagedVsWorking', wb_hg_project.WbHgFileState.canDiffStagedVsWorking )
 
     def enablerDiffHeadVsStaged( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsStaged', wb_git_project.WbGitFileState.canDiffHeadVsStaged )
+        return self.__enablerDiff( cache, 'enablerDiffHeadVsStaged', wb_hg_project.WbHgFileState.canDiffHeadVsStaged )
 
     def enablerDiffSmart( self, cache ):
         key = 'enablerDiffSmart'
@@ -484,12 +484,12 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         key = 'enablerCommit'
         if key not in cache:
             # enable if any files staged
-            git_project = self.__treeSelectedGitProject()
+            hg_project = self.__treeSelectedHgProject()
 
             can_commit = False
-            if( git_project is not None
+            if( hg_project is not None
             and self.commit_dialog is None
-            and git_project.numStagedFiles() > 0 ):
+            and hg_project.numStagedFiles() > 0 ):
                 can_commit = True
 
             cache[ key ] = can_commit
@@ -499,8 +499,8 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
     def enablerPush( self, cache ):
         key = 'enablerPush'
         if key not in cache:
-            git_project = self.__treeSelectedGitProject()
-            cache[ key ] = git_project.canPush()
+            hg_project = self.__treeSelectedHgProject()
+            cache[ key ] = hg_project.canPush()
 
         return cache[ key ]
 
@@ -530,7 +530,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
     #
     #------------------------------------------------------------
     def appActionPreferences( self ):
-        pref_dialog = wb_git_preferences_dialog.WbGitPreferencesDialog( self.app, self )
+        pref_dialog = wb_hg_preferences_dialog.WbHgPreferencesDialog( self.app, self )
         if pref_dialog.exec_():
             pref_dialog.savePreferences()
             self.app.writePreferences()
@@ -543,8 +543,8 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         all_about_info = []
         all_about_info.append( "%s %d.%d.%d-%d" %
                                 (' '.join( self.app.app_name_parts )
-                                ,wb_git_version.major, wb_git_version.minor
-                                ,wb_git_version.patch, wb_git_version.build) )
+                                ,wb_hg_version.major, wb_hg_version.minor
+                                ,wb_hg_version.patch, wb_hg_version.build) )
         all_about_info.append( 'Python %d.%d.%d %s %d' %
                                 (sys.version_info.major
                                 ,sys.version_info.minor
@@ -552,7 +552,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
                                 ,sys.version_info.releaselevel
                                 ,sys.version_info.serial) )
         all_about_info.append( 'PyQt %s, Qt %s' % (Qt.PYQT_VERSION_STR, QtCore.QT_VERSION_STR) )
-        all_about_info.append( T_('Copyright Barry Scott (c) 2016-%s. All rights reserved') % (wb_git_version.year,) )
+        all_about_info.append( T_('Copyright Barry Scott (c) 2016-%s. All rights reserved') % (wb_hg_version.year,) )
 
         QtWidgets.QMessageBox.information( self,
             T_('About %s') % (' '.join( self.app.app_name_parts ),),
@@ -563,14 +563,14 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
 
     def appActionClose( self, close=True ):
         self._debug( 'appActionClose()' )
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
+        hg_project_tree_node = self.tree_model.selectedHgProjectTreeNode()
 
-        if git_project_tree_node is not None:
+        if hg_project_tree_node is not None:
             prefs = self.app.prefs.getBookmarks()
-            bookmark = wb_git_preferences.Bookmark(
+            bookmark = wb_hg_preferences.Bookmark(
                         prefs.name_last_position,
-                        git_project_tree_node.project.projectName(),
-                        git_project_tree_node.relativePath() )
+                        hg_project_tree_node.project.projectName(),
+                        hg_project_tree_node.relativePath() )
 
             prefs.addBookmark( bookmark )
 
@@ -581,8 +581,8 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
 
         # close all open modeless windows
         wb_diff_unified_view.WbDiffViewBase.closeAllWindows()
-        wb_git_log_history.WbGitLogHistoryView.closeAllWindows()
-        wb_git_status_view.WbGitStatusView.closeAllWindows()
+        wb_hg_log_history.WbHgLogHistoryView.closeAllWindows()
+        wb_hg_status_view.WbHgStatusView.closeAllWindows()
 
         if close:
             self.close()
@@ -594,11 +594,11 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
     #
     #------------------------------------------------------------
     def projectActionAdd( self ):
-        wiz = wb_git_project_dialogs.WbGitAddProjectWizard( self.app )
+        wiz = wb_hg_project_dialogs.WbHgAddProjectWizard( self.app )
         if wiz.exec_():
-            if wiz.git_url is None:
+            if wiz.hg_url is None:
                 prefs = self.app.prefs.getProjects()
-                project = wb_git_preferences.Project( wiz.name, wiz.wc_path )
+                project = wb_hg_preferences.Project( wiz.name, wiz.wc_path )
                 prefs.addProject( project )
 
                 self.app.writePreferences()
@@ -662,20 +662,20 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
 
         # else in log so ignore
 
-    def treeTableActionGitDiffSmart( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffSmart, self.tableActionGitDiffSmart )
+    def treeTableActionHgDiffSmart( self ):
+        self.__callTreeOrTableFunction( self.treeActionHgDiffSmart, self.tableActionHgDiffSmart )
 
-    def treeTableActionGitDiffStagedVsWorking( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffStagedVsWorking, self.tableActionGitDiffStagedVsWorking )
+    def treeTableActionHgDiffStagedVsWorking( self ):
+        self.__callTreeOrTableFunction( self.treeActionHgDiffStagedVsWorking, self.tableActionHgDiffStagedVsWorking )
 
-    def treeTableActionGitDiffHeadVsStaged( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffHeadVsStaged, self.tableActionGitDiffHeadVsStaged )
+    def treeTableActionHgDiffHeadVsStaged( self ):
+        self.__callTreeOrTableFunction( self.treeActionHgDiffHeadVsStaged, self.tableActionHgDiffHeadVsStaged )
 
-    def treeTableActionGitDiffHeadVsWorking( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
+    def treeTableActionHgDiffHeadVsWorking( self ):
+        self.__callTreeOrTableFunction( self.treeActionHgDiffHeadVsWorking, self.tableActionHgDiffHeadVsWorking )
 
-    def treeTableActionGitLogHistory( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
+    def treeTableActionHgLogHistory( self ):
+        self.__callTreeOrTableFunction( self.treeActionHgLogHistory, self.tableActionHgLogHistory )
 
     #------------------------------------------------------------
     #
@@ -685,18 +685,18 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
     def __treeSelectedProjectName( self ):
         # only correct is called with the top of the tree is selected
         # which is ensured by the enablers
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
-        if git_project_tree_node is None:
+        hg_project_tree_node = self.tree_model.selectedHgProjectTreeNode()
+        if hg_project_tree_node is None:
             return None
 
-        return git_project_tree_node.name
+        return hg_project_tree_node.name
 
     def __treeSelectedAbsoluteFolder( self ):
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
-        if git_project_tree_node is None:
+        hg_project_tree_node = self.tree_model.selectedHgProjectTreeNode()
+        if hg_project_tree_node is None:
             return None
 
-        folder_path = git_project_tree_node.absolutePath()
+        folder_path = hg_project_tree_node.absolutePath()
 
         if not folder_path.exists():
             return None
@@ -704,18 +704,18 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         return folder_path
 
     def __treeSelectedRelativeFolder( self ):
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
-        if git_project_tree_node is None:
+        hg_project_tree_node = self.tree_model.selectedHgProjectTreeNode()
+        if hg_project_tree_node is None:
             return None
 
-        return git_project_tree_node.relativePath()
+        return hg_project_tree_node.relativePath()
 
-    def __treeSelectedGitProject( self ):
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
-        if git_project_tree_node is None:
+    def __treeSelectedHgProject( self ):
+        hg_project_tree_node = self.tree_model.selectedHgProjectTreeNode()
+        if hg_project_tree_node is None:
             return None
 
-        return git_project_tree_node.project
+        return hg_project_tree_node.project
 
     def treeContextMenu( self, pos ):
         self._debug( 'treeContextMenu( %r )' % (pos,) )
@@ -728,12 +728,12 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self.tree_model.selectionChanged( selected, deselected )
         self.updateActionEnabledStates()
 
-        git_project = self.__treeSelectedGitProject()
-        if git_project is None:
+        hg_project = self.__treeSelectedHgProject()
+        if hg_project is None:
             self.branch_text.clear()
 
         else:
-            self.branch_text.setText( git_project.headRefName() )
+            self.branch_text.setText( hg_project.headRefName() )
 
         folder = self.__treeSelectedAbsoluteFolder()
         if folder is None:                                                          
@@ -764,27 +764,27 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
 
         wb_shell_commands.FileBrowser( self.app, folder_path )
 
-    def treeActionGitDiffSmart( self ):
-        self._debug( 'treeActionGitDiffSmart()' )
+    def treeActionHgDiffSmart( self ):
+        self._debug( 'treeActionHgDiffSmart()' )
 
-    def treeActionGitDiffStagedVsWorking( self ):
-        self._debug( 'treeActionGitDiffStagedVsWorking()' )
+    def treeActionHgDiffStagedVsWorking( self ):
+        self._debug( 'treeActionHgDiffStagedVsWorking()' )
 
-    def treeActionGitDiffHeadVsStaged( self ):
-        self._debug( 'treeActionGitDiffHeadVsStaged()' )
+    def treeActionHgDiffHeadVsStaged( self ):
+        self._debug( 'treeActionHgDiffHeadVsStaged()' )
 
-    def treeActionGitDiffHeadVsWorking( self ):
-        self._debug( 'treeActionGitDiffHeadVsWorking()' )
+    def treeActionHgDiffHeadVsWorking( self ):
+        self._debug( 'treeActionHgDiffHeadVsWorking()' )
 
     def treeActionCommit( self ):
-        git_project = self.__treeSelectedGitProject()
+        hg_project = self.__treeSelectedHgProject()
 
-        self.commit_dialog = wb_git_commit_dialog.WbGitCommitDialog(
+        self.commit_dialog = wb_hg_commit_dialog.WbHgCommitDialog(
                     self.app, self,
-                    T_('Commit %s') % (git_project.projectName(),) )
+                    T_('Commit %s') % (hg_project.projectName(),) )
         self.commit_dialog.setStatus(
-                    git_project.getReportStagedFiles(),
-                    git_project.getReportUntrackedFiles() )
+                    hg_project.getReportStagedFiles(),
+                    hg_project.getReportUntrackedFiles() )
         self.commit_dialog.finished.connect( self.__commitDialogFinished )
 
         # show to the user
@@ -793,9 +793,9 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
 
     def __commitDialogFinished( self, result ):
         if result:
-            git_project = self.__treeSelectedGitProject()
+            hg_project = self.__treeSelectedHgProject()
             message = self.commit_dialog.getMessage()
-            commit_id = git_project.cmdCommit( message )
+            commit_id = hg_project.cmdCommit( message )
 
             # take account of the change
             self.tree_model.refreshTree()
@@ -816,7 +816,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self.updateActionEnabledStates()
 
     # ------------------------------------------------------------
-    def __logGitCommandError( self, e ):
+    def __logHgCommandError( self, e ):
         self.log.error( "'%s' returned with exit code %i" %
                         (' '.join(str(i) for i in e.command), e.status) )
         if e.stderr:
@@ -828,17 +828,17 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
                 self.log.error( line )
 
     def treeActionPush( self ):
-        git_project = self.__treeSelectedGitProject().newInstance()
+        hg_project = self.__treeSelectedHgProject().newInstance()
         self.setStatusText( 'Push…' )
 
-        self.app.backgroundProcess( self.treeActionPushBg, (git_project,) )
+        self.app.backgroundProcess( self.treeActionPushBg, (hg_project,) )
 
-    def treeActionPushBg( self, git_project ):
+    def treeActionPushBg( self, hg_project ):
         try:
-            git_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
+            hg_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
 
-        except wb_git_project.GitCommandError as e:
-            self.__logGitCommandError( e )
+        except wb_hg_project.HgCommandError as e:
+            self.__logHgCommandError( e )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
         self.app.foregroundProcess( self.updateActionEnabledStates, () )
@@ -872,17 +872,17 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
 
     # ------------------------------------------------------------
     def treeActionPull( self ):
-        git_project = self.__treeSelectedGitProject().newInstance()
+        hg_project = self.__treeSelectedHgProject().newInstance()
         self.setStatusText( 'Pull...' )
 
-        self.app.backgroundProcess( self.treeActionPullBg, (git_project,) )
+        self.app.backgroundProcess( self.treeActionPullBg, (hg_project,) )
 
-    def treeActionPullBg( self, git_project ):
+    def treeActionPullBg( self, hg_project ):
         try:
-            git_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
+            hg_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
 
-        except wb_git_project.GitCommandError as e:
-            self.__logGitCommandError( e )
+        except wb_hg_project.HgCommandError as e:
+            self.__logHgCommandError( e )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
         self.app.foregroundProcess( self.updateActionEnabledStates, () )
@@ -934,30 +934,30 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
             self.log.info( status )
 
     # ------------------------------------------------------------
-    def treeActionGitLogHistory( self ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
+    def treeActionHgLogHistory( self ):
+        options = wb_hg_log_history.WbHgLogHistoryOptions( self.app, self )
 
         if options.exec_():
-            git_project = self.__treeSelectedGitProject()
+            hg_project = self.__treeSelectedHgProject()
 
-            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+            commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
                     self.app,
-                    T_('Commit Log for %s') % (git_project.projectName(),),
-                    wb_git_images.getQIcon( 'wb.png' ) )
-            commit_log_view.showCommitLogForRepository( git_project, options )
+                    T_('Commit Log for %s') % (hg_project.projectName(),),
+                    wb_hg_images.getQIcon( 'wb.png' ) )
+            commit_log_view.showCommitLogForRepository( hg_project, options )
             commit_log_view.show()
 
-    def treeActionGitStatus( self ):
-        git_project = self.__treeSelectedGitProject()
+    def treeActionHgStatus( self ):
+        hg_project = self.__treeSelectedHgProject()
 
-        commit_status_view = wb_git_status_view.WbGitStatusView(
+        commit_status_view = wb_hg_status_view.WbHgStatusView(
                 self.app,
-                T_('Status for %s') % (git_project.projectName(),),
-                wb_git_images.getQIcon( 'wb.png' ) )
+                T_('Status for %s') % (hg_project.projectName(),),
+                wb_hg_images.getQIcon( 'wb.png' ) )
         commit_status_view.setStatus(
-                    git_project.getUnpushedCommits(),
-                    git_project.getReportStagedFiles(),
-                    git_project.getReportUntrackedFiles() )
+                    hg_project.getUnpushedCommits(),
+                    hg_project.getReportStagedFiles(),
+                    hg_project.getReportUntrackedFiles() )
         commit_status_view.show()
 
     #------------------------------------------------------------
@@ -988,12 +988,12 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         if len(all_names) == 0:
             return False
 
-        git_project = self.__treeSelectedGitProject()
+        hg_project = self.__treeSelectedHgProject()
 
         relative_folder = self.__treeSelectedRelativeFolder()
 
         for name in all_names:
-            status = git_project.getStatus( relative_folder / name )
+            status = hg_project.getStatus( relative_folder / name )
             if (status&with_status) == 0:
                 return False
 
@@ -1011,11 +1011,11 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         if len(all_names) == 0:
             return []
 
-        git_project = self.__treeSelectedGitProject()
+        hg_project = self.__treeSelectedHgProject()
 
         relative_folder = self.__treeSelectedRelativeFolder()
 
-        return [git_project.getFileState( relative_folder / name ) for name in all_names]
+        return [hg_project.getFileState( relative_folder / name ) for name in all_names]
 
     def tableKeyHandler( self, key ):
         if key in self.table_keys_edit:
@@ -1056,67 +1056,67 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         if len(all_filenames) > 0:
             wb_shell_commands.EditFile( self.app, self.__treeSelectedAbsoluteFolder(), all_filenames )
 
-    def tableActionGitStage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitStage )
+    def tableActionHgStage( self ):
+        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionHgStage )
 
-    def tableActionGitUnstage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitUnStage )
+    def tableActionHgUnstage( self ):
+        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionHgUnStage )
 
-    def tableActionGitRevert( self ):
-        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionGitRevert )
+    def tableActionHgRevert( self ):
+        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionHgRevert )
 
-    def tableActionGitDelete( self ):
-        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionGitDelete )
+    def tableActionHgDelete( self ):
+        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionHgDelete )
 
-    def tableActionGitDiffSmart( self ):
-        self._debug( 'tableActionGitDiffSmart()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffSmart )
+    def tableActionHgDiffSmart( self ):
+        self._debug( 'tableActionHgDiffSmart()' )
+        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffSmart )
 
-    def tableActionGitDiffStagedVsWorking( self ):
-        self._debug( 'tableActionGitDiffStagedVsWorking()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffStagedVsWorking )
+    def tableActionHgDiffStagedVsWorking( self ):
+        self._debug( 'tableActionHgDiffStagedVsWorking()' )
+        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffStagedVsWorking )
 
-    def tableActionGitDiffHeadVsStaged( self ):
-        self._debug( 'tableActionGitDiffHeadVsStaged()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsStaged )
+    def tableActionHgDiffHeadVsStaged( self ):
+        self._debug( 'tableActionHgDiffHeadVsStaged()' )
+        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffHeadVsStaged )
 
-    def tableActionGitDiffHeadVsWorking( self ):
-        self._debug( 'tableActionGitDiffHeadVsWorking()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsWorking )
+    def tableActionHgDiffHeadVsWorking( self ):
+        self._debug( 'tableActionHgDiffHeadVsWorking()' )
+        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffHeadVsWorking )
 
-    def tableActionGitLogHistory( self ):
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitLogHistory )
+    def tableActionHgLogHistory( self ):
+        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionHgLogHistory )
 
-    def __actionGitStage( self, git_project, filename ):
-        git_project.cmdStage( filename )
+    def __actionHgStage( self, hg_project, filename ):
+        hg_project.cmdStage( filename )
 
-    def __actionGitUnStage( self, git_project, filename ):
-        git_project.cmdUnstage( 'HEAD', filename )
+    def __actionHgUnStage( self, hg_project, filename ):
+        hg_project.cmdUnstage( 'HEAD', filename )
         pass
 
-    def __actionGitRevert( self, git_project, filename ):
-        git_project.cmdRevert( 'HEAD', filename )
+    def __actionHgRevert( self, hg_project, filename ):
+        hg_project.cmdRevert( 'HEAD', filename )
 
-    def __actionGitDelete( self, git_project, filename ):
-        git_project.cmdDelete( filename )
+    def __actionHgDelete( self, hg_project, filename ):
+        hg_project.cmdDelete( filename )
 
-    def __actionGitDiffSmart( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
+    def __actionHgDiffSmart( self, hg_project, filename ):
+        file_state = hg_project.getFileState( filename )
 
         if file_state.canDiffStagedVsWorking():
-            self.__actionGitDiffStagedVsWorking( git_project, filename )
+            self.__actionHgDiffStagedVsWorking( hg_project, filename )
 
         elif file_state.canDiffHeadVsStaged():
-            self.__actionGitDiffHeadVsStaged( git_project, filename )
+            self.__actionHgDiffHeadVsStaged( hg_project, filename )
 
         elif file_state.canDiffHeadVsWorking():
-            self.__actionGitDiffHeadVsWorking( git_project, filename )
+            self.__actionHgDiffHeadVsWorking( hg_project, filename )
 
     def __diffUnified( self, old_lines, new_lines ):
         return list( difflib.unified_diff( old_lines, new_lines ) )
 
-    def __actionGitDiffHeadVsWorking( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
+    def __actionHgDiffHeadVsWorking( self, hg_project, filename ):
+        file_state = hg_project.getFileState( filename )
 
         old_lines = file_state.getTextLinesHead()
         new_lines = file_state.getTextLinesWorking()
@@ -1124,12 +1124,12 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Work %s') % (filename,)
 
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_hg_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
-    def __actionGitDiffStagedVsWorking( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
+    def __actionHgDiffStagedVsWorking( self, hg_project, filename ):
+        file_state = hg_project.getFileState( filename )
 
         old_lines = file_state.getTextLinesStaged()
         new_lines = file_state.getTextLinesWorking()
@@ -1137,12 +1137,12 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff Staged vs. Work %s') % (filename,)
 
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_hg_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
-    def __actionGitDiffHeadVsStaged( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
+    def __actionHgDiffHeadVsStaged( self, hg_project, filename ):
+        file_state = hg_project.getFileState( filename )
 
         old_lines = file_state.getTextLinesHead()
         new_lines = file_state.getTextLinesStaged()
@@ -1150,18 +1150,18 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Staged %s') % (filename,)
 
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_hg_images.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
-    def __actionGitLogHistory( self, git_project, filename ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
+    def __actionHgLogHistory( self, hg_project, filename ):
+        options = wb_hg_log_history.WbHgLogHistoryOptions( self.app, self )
 
         if options.exec_():
-            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                    self.app, T_('Commit Log for %s') % (filename,), wb_git_images.getQIcon( 'wb.png' ) )
+            commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
+                    self.app, T_('Commit Log for %s') % (filename,), wb_hg_images.getQIcon( 'wb.png' ) )
 
-            commit_log_view.showCommitLogForFile( git_project, filename, options )
+            commit_log_view.showCommitLogForFile( hg_project, filename, options )
             commit_log_view.show()
 
     #------------------------------------------------------------
@@ -1201,7 +1201,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         if len(all_names) == 0:
             return
 
-        git_project = self.__treeSelectedGitProject()
+        hg_project = self.__treeSelectedHgProject()
 
         relative_folder = self.__treeSelectedRelativeFolder()
 
@@ -1211,14 +1211,14 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
             return False
 
         for filename in all_filenames:
-            execute_function( git_project, filename )
+            execute_function( hg_project, filename )
 
         return True
 
     def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
         if self.__tableActionViewRepo( are_you_sure_function, execute_function ):
-            git_project = self.__treeSelectedGitProject()
-            git_project.saveChanges()
+            hg_project = self.__treeSelectedHgProject()
+            hg_project.saveChanges()
 
             # take account of the change
             self.table_model.refreshTable()
