@@ -365,9 +365,9 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
     def enablerFilesExists( self, cache ):
         key = 'enablerFilesExists'
         if key not in cache:
-            cache[ key ] = self.__tableSelectedExistingFiles()
+            cache[ key ] = len( self.__tableSelectedExistingFiles() ) > 0
 
-        return len( cache[ key ] ) > 0
+        return cache[ key ]
 
     def enablerFilesStage( self, cache ):
         key = 'enablerFilesStage'
@@ -951,7 +951,7 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
             return []
 
         all_filenames = [folder_path / name for name in self.__tableSelectedFiles()]
-        all_existing_filenames = [filename for filename in all_filenames if filename.exists()]
+        all_existing_filenames = [filename for filename in all_filenames if filename.exists() and not filename.is_dir()]
         return all_existing_filenames
 
     def __tableSelectedWithStatus( self, with_status, without_status ):
