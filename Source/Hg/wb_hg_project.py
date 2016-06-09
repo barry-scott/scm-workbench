@@ -67,23 +67,6 @@ class HgProject:
 
         #self.dumpTree()
 
-    def __updateTree( self, path ):
-        self._debug( '__updateTree path %r' % (path,) )
-        node = self.tree
-
-        self._debug( '__updateTree path.parts %r' % (path.parts,) )
-
-        for index, name in enumerate( path.parts[0:-1] ):
-            self._debug( '__updateTree name %r at node %r' % (name,node) )
-
-            if not node.hasFolder( name ):
-                node.addFolder( name, HgProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
-
-            node = node.getFolder( name )
-
-        self._debug( '__updateTree addFile %r to node %r' % (path, node) )
-        node.addFile( path )
-
     def __calculateStatus( self ):
         self.all_file_state = {}
 
@@ -129,6 +112,23 @@ class HgProject:
 
             if state in ('A', 'M', 'R'):
                 self.__num_uncommitted_files += 1
+
+    def __updateTree( self, path ):
+        self._debug( '__updateTree path %r' % (path,) )
+        node = self.tree
+
+        self._debug( '__updateTree path.parts %r' % (path.parts,) )
+
+        for index, name in enumerate( path.parts[0:-1] ):
+            self._debug( '__updateTree name %r at node %r' % (name,node) )
+
+            if not node.hasFolder( name ):
+                node.addFolder( name, HgProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
+
+            node = node.getFolder( name )
+
+        self._debug( '__updateTree addFile %r to node %r' % (path, node) )
+        node.addFile( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )
