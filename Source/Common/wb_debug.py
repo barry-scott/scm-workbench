@@ -32,7 +32,6 @@ class WbDebug:
 
             else:
                 msg = 'Unknown debug option %s - see wb_debug.py for available options' % (option,)
-                self.log.error( msg )
                 print( msg )
 
     def _debugSpeed( self, msg, start_timer=False ):
