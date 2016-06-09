@@ -219,7 +219,7 @@ class WbGitTableModel(QtCore.QAbstractTableModel):
             
             all_files[ entry.name ] = entry
 
-        for name in git_project_tree_node.all_files.keys():
+        for name in git_project_tree_node.getAllFileNames():
             if name not in all_files:
                 entry = WbGitTableEntry( name )
 

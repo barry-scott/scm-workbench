@@ -81,7 +81,35 @@ class GitProject:
         for path in self.all_file_state:
             self.__updateTree( path )
 
+        self.dumpTree()
+
     def __calculateStatus( self ):
+        self.all_file_state = {}
+
+        repo_root = self.path()
+
+        git_dir = repo_root / '.git'
+
+        all_folders = set( [repo_root] )
+        while len(all_folders) > 0:
+            folder = all_folders.pop()
+
+            for filename in folder.iterdir():
+                abs_path = folder / filename
+
+                repo_relative = abs_path.relative_to( repo_root )
+
+                if abs_path.is_dir():
+                    if abs_path != git_dir:
+                        all_folders.add( abs_path )
+
+                        self.all_file_state[ repo_relative ] = WbGitFileState( self, repo_relative )
+                        self.all_file_state[ repo_relative ].setIsDir()
+
+                else:
+                    self.all_file_state[ repo_relative ] = WbGitFileState( self, repo_relative )
+
+        # ----------------------------------------
         self.index = git.index.IndexFile( self.repo )
 
         head_vs_index = self.index.diff( self.repo.head.commit )
@@ -90,43 +118,55 @@ class GitProject:
         # cache the value once/update
         untracked_files = self.repo.untracked_files
 
-        self.all_file_state = {}
         for entry in self.index.entries.values():
-            self.all_file_state[ entry.path ] = WbGitFileState( self.repo, entry )
+            filepath = pathlib.Path( entry.path )
+            if filepath not in self.all_file_state:
+                # filepath has been deleted
+                self.all_file_state[ filepath ] = WbGitFileState( self, filepath )
+
+            self.all_file_state[ filepath ].setIndexEntry( entry )
 
         self.__num_staged_files = 0
         for diff in head_vs_index:
             self.__num_staged_files += 1
-            if diff.b_path not in self.all_file_state:
-                self.all_file_state[ diff.b_path ] = WbGitFileState( self.repo, None )
-            self.all_file_state[ diff.b_path ]._addStaged( diff )
+            filepath = pathlib.Path( diff.b_path )
+            if filepath not in self.all_file_state:
+                self.all_file_state[ filepath ] = WbGitFileState( self, filepath )
+            self.all_file_state[ filepath ]._addStaged( diff )
 
         for diff in index_vs_working:
-            if diff.a_path not in self.all_file_state:
-                self.all_file_state[ diff.a_path ] = WbGitFileState( self.repo, None )
-            self.all_file_state[ diff.a_path ]._addUnstaged( diff )
+            filepath = pathlib.Path( diff.a_path )
+            if filepath not in self.all_file_state:
+                self.all_file_state[ filepath ] = WbGitFileState( self, filepath )
+            self.all_file_state[ filepath ]._addUnstaged( diff )
 
         for path in untracked_files:
-            if path not in self.all_file_state:
-                self.all_file_state[ path ] = WbGitFileState( self.repo, None )
+            filepath = pathlib.Path( path )
+            if filepath not in self.all_file_state:
+                self.all_file_state[ filepath ] = WbGitFileState( self, filepath )
 
-            self.all_file_state[ path ]._setUntracked()
+            self.all_file_state[ filepath ]._setUntracked()
 
     def __updateTree( self, path ):
-        path_parts = path.split( '/' )
-
+        assert isinstance( path, pathlib.Path ), 'path %r' % (path,)
+        self._debug( '__updateTree path %r' % (path,) )
         node = self.tree
-        for depth in range( len(path_parts) - 1 ):
-            node_name = path_parts[ depth ]
-            if node_name in node.all_folders:
-                node = node.all_folders[ node_name ]
 
-            else:
-                new_node = GitProjectTreeNode( self, node_name, pathlib.Path( '/'.join( path_parts[0:depth+1] ) ) )
-                node.all_folders[ node_name ] = new_node
-                node = new_node
+        self._debug( '__updateTree path.parts %r' % (path.parts,) )
 
-        node.all_files[ path_parts[-1] ] = path
+        for index, name in enumerate( path.parts[0:-1] ):
+            self._debug( '__updateTree name %r at node %r' % (name,node) )
+
+            if not node.hasFolder( name ):
+                node.addFolder( name, GitProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
+
+            node = node.getFolder( name )
+
+        self._debug( '__updateTree addFile %r to node %r' % (path, node) )
+        node.addFile( path )
+
+    def dumpTree( self ):
+        self.tree._dumpTree( 0 )
 
     #------------------------------------------------------------
     #
@@ -134,8 +174,9 @@ class GitProject:
     #
     #------------------------------------------------------------
     def getFileState( self, filename ):
+        assert isinstance( filename, pathlib.Path )
         # status only has enties for none CURRENT status files
-        return self.all_file_state[ str(filename) ]
+        return self.all_file_state[ filename ]
 
     def getReportStagedFiles( self ):
         all_staged_files = []
@@ -324,12 +365,19 @@ class GitProject:
                 info_callback( info )
 
 class WbGitFileState:
-    def __init__( self, repo, index_entry ):
-        self.repo = repo
-        self.index_entry = index_entry
-        self.unstaged_diff = None
-        self.staged_diff = None
-        self.untracked = False
+    def __init__( self, project, filepath ):
+        assert isinstance( project, GitProject )
+        assert isinstance( filepath, pathlib.Path )
+
+        self.__project = project
+        self.__filepath = filepath
+
+        self.__is_dir = False
+
+        self.__index_entry = None
+        self.__unstaged_diff = None
+        self.__staged_diff = None
+        self.__untracked = False
 
         # from the above calculate the following
         self.__state_calculated = False
@@ -347,16 +395,25 @@ class WbGitFileState:
         return ('<WbGitFileState: calc %r, S=%r, U=%r' %
                 (self.__state_calculated, self.__staged_abbrev, self.__unstaged_abbrev))
 
+    def setIsDir( self ):
+        self.__is_dir = True
+
+    def isDir( self ):
+        return self.__is_dir
+
+    def setIndexEntry( self, index_entry ):
+        self.__index_entry = index_entry
+
     def _addStaged( self, diff ):
         self.__state_calculated = False
-        self.staged_diff = diff
+        self.__staged_diff = diff
 
     def _addUnstaged( self, diff ):
         self.__state_calculated = False
-        self.unstaged_diff = diff
+        self.__unstaged_diff = diff
 
     def _setUntracked( self ):
-        self.untracked = True
+        self.__untracked = True
 
     # from the provided info work out
     # interesting properies
@@ -364,40 +421,40 @@ class WbGitFileState:
         if self.__state_calculated:
             return
 
-        if self.staged_diff is None:
+        if self.__staged_diff is None:
             self.__staged_abbrev = ''
 
         else:
-            if self.staged_diff.renamed:
+            if self.__staged_diff.renamed:
                 self.__staged_abbrev = 'R'
 
-            elif self.staged_diff.deleted_file:
+            elif self.__staged_diff.deleted_file:
                 self.__staged_abbrev = 'A'
 
-            elif self.staged_diff.new_file:
+            elif self.__staged_diff.new_file:
                 self.__staged_abbrev = 'D'
 
             else:
                 self.__staged_abbrev = 'M'
                 self.__staged_is_modified = True
-                self.__head_blob = self.staged_diff.b_blob
-                self.__staged_blob = self.staged_diff.a_blob
+                self.__head_blob = self.__staged_diff.b_blob
+                self.__staged_blob = self.__staged_diff.a_blob
 
-        if  self.unstaged_diff is None:
+        if  self.__unstaged_diff is None:
             self.__unstaged_abbrev = ''
 
         else:
-            if self.unstaged_diff.deleted_file:
+            if self.__unstaged_diff.deleted_file:
                 self.__unstaged_abbrev = 'D'
 
-            elif self.unstaged_diff.new_file:
+            elif self.__unstaged_diff.new_file:
                 self.__unstaged_abbrev = 'A'
 
             else:
                 self.__unstaged_abbrev = 'M'
                 self.__unstaged_is_modified = True
                 if self.__head_blob is None:
-                    self.__head_blob = self.unstaged_diff.a_blob
+                    self.__head_blob = self.__unstaged_diff.a_blob
 
         self.__state_calculated = True
 
@@ -430,7 +487,7 @@ class WbGitFileState:
         return self.__unstaged_abbrev == 'D'
 
     def isUntracked( self ):
-        return self.untracked
+        return self.__untracked
 
     def canDiffHeadVsStaged( self ):
         self.__calculateState()
@@ -445,7 +502,7 @@ class WbGitFileState:
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
-        path = pathlib.Path( self.repo.working_tree_dir ) / self.unstaged_diff.a_path
+        path = self.__project.path() / self.__unstaged_diff.a_path
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -544,11 +601,46 @@ class GitProjectTreeNode:
         self.project = project
         self.name = name
         self.__path = path
-        self.all_folders = {}
-        self.all_files = {}
+        self.__all_folders = {}
+        self.__all_files = {}
 
     def __repr__( self ):
         return '<GitProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
+
+    def addFile( self, path ):
+        assert path.name != ''
+        self.__all_files[ path.name ] = path
+
+    def getAllFileNames( self ):
+        return self.__all_files.keys()
+
+    def addFolder( self, name, node ):
+        assert type(name) == str and name != '', 'name %r, node %r' % (name, node)
+        assert isinstance( node, GitProjectTreeNode )
+        self.__all_folders[ name ] = node
+
+    def getFolder( self, name ):
+        assert type(name) == str
+        return self.__all_folders[ name ]
+
+    def getAllFolderNodes( self ):
+        return self.__all_folders.values()
+
+    def getAllFolderNames( self ):
+        return self.__all_folders.keys()
+
+    def hasFolder( self, name ):
+        assert type(name) == str
+        return name in self.__all_folders
+
+    def _dumpTree( self, indent ):
+        self.project._debug( 'dump: %*s%r' % (indent, '', self) )
+
+        for file in sorted( self.__all_files ):
+            self.project._debug( 'dump %*s   file: %r' % (indent, '', file) )
+
+        for folder in sorted( self.__all_folders ):
+            self.__all_folders[ folder ]._dumpTree( indent+4 )
 
     def isNotEqual( self, other ):
         return (self.__path != other.__path
@@ -564,11 +656,11 @@ class GitProjectTreeNode:
         return self.project.path() / self.__path
 
     def getStatusEntry( self, name ):
-        path = self.all_files[ name ]
+        path = self.__all_files[ name ]
         if path in self.project.all_file_state:
             entry = self.project.all_file_state[ path ]
         else:
-            entry = WbGitFileState( self.project.repo, None )
+            entry = WbGitFileState( self.project, path )
 
         return entry
 

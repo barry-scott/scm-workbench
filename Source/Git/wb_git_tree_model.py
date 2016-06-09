@@ -173,7 +173,7 @@ class ProjectTreeNode(QtGui.QStandardItem):
 
         super().__init__( self.git_project_tree_node.name )
 
-        for tree in sorted( self.git_project_tree_node.all_folders.values() ):
+        for tree in sorted( self.git_project_tree_node.getAllFolderNodes() ):
             self.appendRow( ProjectTreeNode( self.model, tree ) )
 
     def update( self, git_project_tree_node, indent=0 ):
@@ -182,7 +182,7 @@ class ProjectTreeNode(QtGui.QStandardItem):
 
         self._debug( '%*sProjectTreeNode.update name %s' % (indent, '', self.text()) )
 
-        self._debug( '%*sProjectTreeNode.update all_folders %r' % (indent, '', list( git_project_tree_node.all_folders.keys() )) )
+        self._debug( '%*sProjectTreeNode.update all_folders %r' % (indent, '', list( git_project_tree_node.getAllFolderNames() )) )
 
         # do the deletes first
         all_row_names = set()
@@ -190,19 +190,19 @@ class ProjectTreeNode(QtGui.QStandardItem):
         while row < self.rowCount():
             item = self.child( row )
             self._debug( '%*sProjectTreeNode.update row %d child %s' % (indent, '', row, item.text()) )
-            if item.text() not in git_project_tree_node.all_folders:
+            if not git_project_tree_node.hasFolder( item.text() ):
                 self._debug( '%*sProjectTreeNode.update remove row %d child %s' % (indent, '', row, item.text()) )
                 self.removeRow( row )
 
             else:
                 # recursive update of the whole tree
-                item.update( git_project_tree_node.all_folders[ item.text() ], indent+4 )
+                item.update( git_project_tree_node.getFolder( item.text() ), indent+4 )
 
                 all_row_names.add( item.text() )
                 row += 1
 
         # do the inserts now
-        all_new_row_names = set( git_project_tree_node.all_folders )
+        all_new_row_names = set( git_project_tree_node.getAllFolderNames() )
 
         all_to_add = all_new_row_names - all_row_names
         for name in all_to_add:
