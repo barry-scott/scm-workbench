@@ -487,7 +487,7 @@ class WbHgMainWindow(wb_main_window.WbMainWindow):
         key = 'enablerPush'
         if key not in cache:
             hg_project = self.__treeSelectedHgProject()
-            cache[ key ] = hg_project.canPush()
+            cache[ key ] = hg_project is not None and hg_project.canPush()
 
         return cache[ key ]
 
