@@ -65,6 +65,25 @@ class HgProject:
         for path in self.all_file_state:
             self.__updateTree( path )
 
+        #self.dumpTree()
+
+    def __updateTree( self, path ):
+        self._debug( '__updateTree path %r' % (path,) )
+        node = self.tree
+
+        self._debug( '__updateTree path.parts %r' % (path.parts,) )
+
+        for index, name in enumerate( path.parts[0:-1] ):
+            self._debug( '__updateTree name %r at node %r' % (name,node) )
+
+            if not node.hasFolder( name ):
+                node.addFolder( name, HgProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
+
+            node = node.getFolder( name )
+
+        self._debug( '__updateTree addFile %r to node %r' % (path, node) )
+        node.addFile( path )
+
     def __calculateStatus( self ):
         self.all_file_state = {}
 
@@ -76,12 +95,8 @@ class HgProject:
         while len(all_folders) > 0:
             folder = all_folders.pop()
 
-            print( 'qqq __calculateStatus folder %r' % (folder,) )
-
             for filename in folder.iterdir():
                 abs_path = folder / filename
-
-                print( 'qqq __calculateStatus abs_path %r' % (abs_path,) )
 
                 repo_relative = abs_path.relative_to( repo_root )
 
@@ -89,54 +104,34 @@ class HgProject:
                     if abs_path != hg_dir:
                         all_folders.add( abs_path )
 
-                        self.all_file_state[ str(repo_relative) ] = WbHgFileState( self, repo_relative )
-                        self.all_file_state[ str(repo_relative) ].setIsDir()
+                        self.all_file_state[ repo_relative ] = WbHgFileState( self, repo_relative )
+                        self.all_file_state[ repo_relative ].setIsDir()
 
                 else:
-                    self.all_file_state[ str(repo_relative) ] = WbHgFileState( self, repo_relative )
+                    self.all_file_state[ repo_relative ] = WbHgFileState( self, repo_relative )
             
-        print( '__calculateStatus manifest()' )
         for nodeid, permission, executable, symlink, filepath in self.repo.manifest():
-            filepath = filepath.decode( sys.getfilesystemencoding() )
-            print( '__calculateStatus manifest() filepath %r' % (filepath,) )
+            filepath = self.pathForWb( filepath )
             if filepath not in self.all_file_state:
                 # filepath has been deleted
-                self.all_file_state[ filepath ] = WbHgFileState( self, pathlib.Path( filepath ) )
+                self.all_file_state[ filepath ] = WbHgFileState( self, filepath )
 
             self.all_file_state[ filepath ].setManifest( nodeid, permission, executable, symlink )
 
-        print( '__calculateStatus status()' )
         for state, filepath in self.repo.status( all=True, ignored=True ):
             state = state.decode( 'utf-8' )
-            filepath = filepath.decode( sys.getfilesystemencoding() )
-            print( '__calculateStatus status() filepath %r' % (filepath,) )
+            filepath = self.pathForWb( filepath )
             if filepath not in self.all_file_state:
                 # filepath has been deleted
-                self.all_file_state[ filepath ] = WbHgFileState( self, pathlib.Path( filepath ) )
+                self.all_file_state[ filepath ] = WbHgFileState( self, filepath )
 
             self.all_file_state[ filepath ].setState( state )
 
-            if state in 'AMR':
+            if state in ('A', 'M', 'R'):
                 self.__num_uncommitted_files += 1
 
-    def __updateTree( self, path ):
-        path_parts = path.split( '/' )
-
-        print( 'qqq __updateTree %r' % (path,) )
-
-
-        node = self.tree
-        for depth in range( len(path_parts) - 1 ):
-            node_name = path_parts[ depth ]
-            if node_name in node.all_folders:
-                node = node.all_folders[ node_name ]
-
-            else:
-                new_node = HgProjectTreeNode( self, node_name, pathlib.Path( '/'.join( path_parts[0:depth+1] ) ) )
-                node.all_folders[ node_name ] = new_node
-                node = new_node
-
-        node.all_files[ path_parts[-1] ] = path
+    def dumpTree( self ):
+        self.tree._dumpTree( 0 )
 
     #------------------------------------------------------------
     #
@@ -144,8 +139,9 @@ class HgProject:
     #
     #------------------------------------------------------------
     def getFileState( self, filename ):
+        assert isinstance( filename, pathlib.Path )
         # status only has enties for none CURRENT status files
-        return self.all_file_state[ str(filename) ]
+        return self.all_file_state[ filename ]
 
     def getReportStagedFiles( self ):
         all_staged_files = []
@@ -212,33 +208,42 @@ class HgProject:
     # all functions starting with "cmd" are like the hg <cmd> in behavior
     #
     #------------------------------------------------------------
-    def cmdStage( self, filename ):
-        self._debug( 'cmdStage( %r )' % (filename,) )
+    def pathForHg( self, path ):
+        assert isinstance( path, pathlib.Path )
+        # return abs path
+        return (self.path() / path).path.encode( sys.getfilesystemencoding() )
+
+    def pathForWb( self, bytes_path ):
+        assert type( bytes_path ) == bytes
+        return pathlib.Path( bytes_path.decode( sys.getfilesystemencoding() ) )
+
+    def cmdCat( self, filename ):
+        return self.repo.cat( self.pathForHg( filename ) )
+
+    def cmdAdd( self, filename ):
+        self._debug( 'cmdAdd( %r )' % (filename,) )
         return
 
-        self.repo.hg.add( filename )
+        self.repo.add( self.pathForHg( filename ) )
         self.__stale_status = True
 
-    def cmdUnstage( self, rev, filename ):
-        self._debug( 'cmdUnstage( %r )' % (filename,) )
-        return
-
-        self.repo.hg.reset( 'HEAD', filename, mixed=True )
-        self.__stale_status = True
-
-    def cmdRevert( self, rev, filename ):
+    def cmdRevert( self, filename ):
         self._debug( 'cmdRevert( %r )' % (filename,) )
         return
 
-        self.repo.hg.checkout( 'HEAD', filename )
+        self.repo.revert( self.pathForHg( filename ) )
         self.__stale_status = True
 
     def cmdDelete( self, filename ):
         return
-        (self.prefs_project.path / filename).unlink()
+
+        self.repo.delete( self.pathForHg( filename ) )
+
         self.__stale_status = True
 
     def cmdCommit( self, message ):
+        return
+
         self.__stale_status = True
         return self.index.commit( message )
 
@@ -352,7 +357,6 @@ class HgProject:
 
 class WbHgFileState:
     def __init__( self, project, filepath ):
-        print( 'qqq WbHgFileState( %r )' % (filepath,) )
         self.__project = project
         self.__filepath = filepath
 
@@ -419,7 +423,7 @@ class WbHgFileState:
 
     def getTextLinesHead( self ):
         abs_path = self.__project.path() / self.__filepath
-        text = self.__project.repo.cat( str(abs_path) )
+        text = self.__project.repo.cat( self.pathForHg( filename ) )
         text = data.decode( 'utf-8' )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
@@ -492,11 +496,46 @@ class HgProjectTreeNode:
         self.project = project
         self.name = name
         self.__path = path
-        self.all_folders = {}
-        self.all_files = {}
+        self.__all_folders = {}
+        self.__all_files = {}
 
     def __repr__( self ):
         return '<HgProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
+
+    def addFile( self, path ):
+        assert path.name != ''
+        self.__all_files[ path.name ] = path
+
+    def getAllFileNames( self ):
+        return self.__all_files.keys()
+
+    def addFolder( self, name, node ):
+        assert type(name) == str and name != '', 'name %r, node %r' % (name, node)
+        assert isinstance( node, HgProjectTreeNode )
+        self.__all_folders[ name ] = node
+
+    def getFolder( self, name ):
+        assert type(name) == str
+        return self.__all_folders[ name ]
+
+    def getAllFolderNodes( self ):
+        return self.__all_folders.values()
+
+    def getAllFolderNames( self ):
+        return self.__all_folders.keys()
+
+    def hasFolder( self, name ):
+        assert type(name) == str
+        return name in self.__all_folders
+
+    def _dumpTree( self, indent ):
+        self.project._debug( 'dump: %*s%r' % (indent, '', self) )
+
+        for file in sorted( self.__all_files ):
+            self.project._debug( 'dump %*s   file: %r' % (indent, '', file) )
+
+        for folder in sorted( self.__all_folders ):
+            self.__all_folders[ folder ]._dumpTree( indent+4 )
 
     def isNotEqual( self, other ):
         return (self.__path != other.__path
@@ -512,9 +551,11 @@ class HgProjectTreeNode:
         return self.project.path() / self.__path
 
     def getStatusEntry( self, name ):
-        path = self.all_files[ name ]
+        path = self.__all_files[ name ]
+
         if path in self.project.all_file_state:
             entry = self.project.all_file_state[ path ]
+
         else:
             entry = WbHgFileState( self.project, None )
 

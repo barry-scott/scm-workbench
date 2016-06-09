@@ -198,7 +198,7 @@ class WbHgTableModel(QtCore.QAbstractTableModel):
             
             all_files[ entry.name ] = entry
 
-        for name in hg_project_tree_node.all_files.keys():
+        for name in hg_project_tree_node.getAllFileNames():
             if name not in all_files:
                 entry = WbHgTableEntry( name )
 
@@ -281,6 +281,7 @@ class WbHgTableModel(QtCore.QAbstractTableModel):
 class WbHgTableEntry:
     def __init__( self, name ):
         self.name = name
+        assert type(name) == str and len(name) > 0, 'name is %r' % (name,)
         self.dirent = None
         self.status = None
 

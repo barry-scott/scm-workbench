@@ -60,7 +60,7 @@ class WbHgTreeModel(QtGui.QStandardItemModel):
         self.removeRow( row, QtCore.QModelIndex() )
 
     def refreshTree( self ):
-        self._debug( 'WbHgTreeModel.refreshTree()' )
+        self._debug( 'WbHgTreeModel.refreshTree() selected_node %r' % (self.selected_node,) )
         if self.selected_node is None:
             return
 
@@ -68,12 +68,14 @@ class WbHgTreeModel(QtGui.QStandardItemModel):
         project = self.selected_node.hg_project_tree_node.project
         project.updateState()
 
+
         # add new nodes
         hg_project, tree_node = self.all_hg_projects[ project.tree.name ]
 
         tree_node.update( hg_project.tree )
 
-        self.table_model.setHgProjectTreeNode( self.selected_node.hg_project_tree_node )
+        if self.selected_node is not None:
+            self.table_model.setHgProjectTreeNode( self.selected_node.hg_project_tree_node )
 
     def getFirstProjectIndex( self ):
         if self.invisibleRootItem().rowCount() == 0:
@@ -104,7 +106,6 @@ class WbHgTreeModel(QtGui.QStandardItemModel):
         item = self.invisibleRootItem()
 
         for name in [bookmark.project] + list( bookmark.path.parts ):
-
             row = 0
             while True:
                 child = item.child( row )
@@ -131,9 +132,10 @@ class WbHgTreeModel(QtGui.QStandardItemModel):
         self.refreshTree()
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'selectChanged()' )
+        self._debug( 'selectionChanged()' )
         all_selected = selected.indexes()
         if len( all_selected ) == 0:
+            self._debug( 'selectionChanged() - selected_node None' )
             self.selected_node = None
             return
 
@@ -150,6 +152,7 @@ class WbHgTreeModel(QtGui.QStandardItemModel):
             if old_project != new_project:
                 need_to_refresh = True
 
+        self._debug( 'selectionChanged() - selected_node %r' % (selected_node,) )
         self.selected_node = selected_node
 
         if need_to_refresh:
@@ -173,8 +176,11 @@ class ProjectTreeNode(QtGui.QStandardItem):
 
         super().__init__( self.hg_project_tree_node.name )
 
-        for tree in sorted( self.hg_project_tree_node.all_folders.values() ):
+        for tree in sorted( self.hg_project_tree_node.getAllFolderNodes() ):
             self.appendRow( ProjectTreeNode( self.model, tree ) )
+
+    def __repr__( self ):
+        return '<ProjectTreeNode: %s>' % (self.text(),)
 
     def update( self, hg_project_tree_node, indent=0 ):
         # replace the old hg_project_tree_node with the new one from updateStatus()
@@ -182,7 +188,7 @@ class ProjectTreeNode(QtGui.QStandardItem):
 
         self._debug( '%*sProjectTreeNode.update name %s' % (indent, '', self.text()) )
 
-        self._debug( '%*sProjectTreeNode.update all_folders %r' % (indent, '', list( hg_project_tree_node.all_folders.keys() )) )
+        self._debug( '%*sProjectTreeNode.update all_folders %r' % (indent, '', list( hg_project_tree_node.getAllFolderNames() )) )
 
         # do the deletes first
         all_row_names = set()
@@ -190,21 +196,21 @@ class ProjectTreeNode(QtGui.QStandardItem):
         while row < self.rowCount():
             item = self.child( row )
             self._debug( '%*sProjectTreeNode.update row %d child %s' % (indent, '', row, item.text()) )
-            if item.text() not in hg_project_tree_node.all_folders:
+            if not hg_project_tree_node.hasFolder( item.text() ):
                 self._debug( '%*sProjectTreeNode.update remove row %d child %s' % (indent, '', row, item.text()) )
                 self.removeRow( row )
 
             else:
                 # recursive update of the whole tree
-                item.update( hg_project_tree_node.all_folders[ item.text() ], indent+4 )
+                item.update( hg_project_tree_node.getFolder( item.text() ), indent+4 )
 
                 all_row_names.add( item.text() )
                 row += 1
 
         # do the inserts now
-        all_new_row_names = set( hg_project_tree_node.all_folders )
+        all_new_row_names = set( hg_project_tree_node.getAllFolderNames() )
 
         all_to_add = all_new_row_names - all_row_names
         for name in all_to_add:
             self._debug( '%*sProjectTreeNode.update add name %s' % (indent, '', name,) )
-            self.appendRow( ProjectTreeNode( self.model, self.hg_project_tree_node.all_folders[ name ] ) )
+            self.appendRow( ProjectTreeNode( self.model, self.hg_project_tree_node.getFolder( name ) ) )
