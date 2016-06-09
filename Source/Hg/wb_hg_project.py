@@ -211,14 +211,16 @@ class HgProject:
     def pathForHg( self, path ):
         assert isinstance( path, pathlib.Path )
         # return abs path
-        return (self.path() / path).path.encode( sys.getfilesystemencoding() )
+        return str( self.path() / path ).encode( sys.getfilesystemencoding() )
 
     def pathForWb( self, bytes_path ):
         assert type( bytes_path ) == bytes
         return pathlib.Path( bytes_path.decode( sys.getfilesystemencoding() ) )
 
     def cmdCat( self, filename ):
-        return self.repo.cat( self.pathForHg( filename ) )
+        path = self.pathForHg( filename )
+        byte_result = self.repo.cat( [path] )
+        return byte_result.decode( 'utf-8' )
 
     def cmdAdd( self, filename ):
         self._debug( 'cmdAdd( %r )' % (filename,) )
@@ -413,7 +415,7 @@ class WbHgFileState:
         return self.isModified()
 
     def getTextLinesWorking( self ):
-        path = pathlib.Path( self.__project.path() ) / self.unstaged_diff.a_path
+        path = pathlib.Path( self.__project.path() ) / self.__filepath
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -422,9 +424,7 @@ class WbHgFileState:
                 return all_lines
 
     def getTextLinesHead( self ):
-        abs_path = self.__project.path() / self.__filepath
-        text = self.__project.repo.cat( self.pathForHg( filename ) )
-        text = data.decode( 'utf-8' )
+        text = self.__project.cmdCat( self.__filepath )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
             return all_lines[:-1]
