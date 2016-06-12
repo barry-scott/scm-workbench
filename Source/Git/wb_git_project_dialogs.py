@@ -43,9 +43,9 @@ class WbGitAddProjectWizard(QtWidgets.QWizard):
         self.all_existing_project_paths = set()
 
         if self.app is not None:
-            prefs = self.app.prefs.getProjects()
+            prefs = self.app.prefs
 
-            for project in prefs.getProjectList():
+            for project in prefs.getAllProjects():
                 self.all_existing_project_names.add( project.name )
                 self.all_existing_project_paths.add( project.path )
 

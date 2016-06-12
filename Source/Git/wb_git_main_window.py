@@ -44,6 +44,7 @@ import wb_shell_commands
 import wb_logging
 import wb_diff_unified_view
 import wb_main_window
+import wb_preferences
 
 class WbGitMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app ):
@@ -52,7 +53,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
 
-        win_prefs = self.app.prefs.getWindow()
+        win_prefs = self.app.prefs.main_window
 
         self.setWindowTitle( title )
         self.setWindowIcon( wb_git_images.getQIcon( 'wb.png' ) )
@@ -65,7 +66,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         self.__setupTreeContextMenu()
         self.__setupTableContextMenu()
 
-        geometry = win_prefs.getFrameGeometry()
+        geometry = win_prefs.geometry
         if geometry is not None:
             geometry = QtCore.QByteArray( geometry.encode('utf-8') )
             self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
@@ -152,7 +153,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         selection_model.selectionChanged.connect( self.treeSelectionChanged )
 
         # select the first project
-        bookmark = self.app.prefs.getBookmarks().getLastPosition()
+        bookmark = self.app.prefs.last_position_bookmark
         if bookmark is not None:
             index = self.tree_model.indexFromBookmark( bookmark )
 
@@ -500,7 +501,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         key = 'enablerPush'
         if key not in cache:
             git_project = self.__treeSelectedGitProject()
-            cache[ key ] = git_project.canPush()
+            cache[ key ] = git_project is not None and git_project.canPush()
 
         return cache[ key ]
 
@@ -566,16 +567,16 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
 
         if git_project_tree_node is not None:
-            prefs = self.app.prefs.getBookmarks()
-            bookmark = wb_git_preferences.Bookmark(
-                        prefs.name_last_position,
+            prefs = self.app.prefs
+            bookmark = wb_preferences.Bookmark(
+                        'last position',
                         git_project_tree_node.project.projectName(),
                         git_project_tree_node.relativePath() )
 
-            prefs.addBookmark( bookmark )
+            prefs.last_position_bookmark = bookmark
 
-        win_prefs = self.app.prefs.getWindow()
-        win_prefs.setFrameGeometry( self.saveGeometry().toHex().data() )
+        win_prefs = self.app.prefs.main_window
+        win_prefs.geometry = self.saveGeometry().toHex().data()
 
         self.app.writePreferences()
 
@@ -597,8 +598,8 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
         wiz = wb_git_project_dialogs.WbGitAddProjectWizard( self.app )
         if wiz.exec_():
             if wiz.git_url is None:
-                prefs = self.app.prefs.getProjects()
-                project = wb_git_preferences.Project( wiz.name, wiz.wc_path )
+                prefs = self.app.prefs
+                project = wb_preferences.Project( wiz.name, wiz.wc_path )
                 prefs.addProject( project )
 
                 self.app.writePreferences()

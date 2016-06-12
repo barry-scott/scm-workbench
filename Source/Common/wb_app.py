@@ -18,6 +18,7 @@ import threading
 import inspect
 import gettext
 import queue
+import xml_preferences
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
@@ -175,7 +176,15 @@ class WbApp(QtWidgets.QApplication,
         self.log.info( 'find %r' % (gettext.find( 'wb', str(locale_path) ),) )
         self.log.info( 'info %r' % (self.translation.info(),) )
 
-        self.prefs = self.createPreferences()
+        self.prefs_manager = self.createPreferencesManager()
+        try:
+            self.prefs_manager.readPreferences()
+
+        except xml_preferences.ParseError as e:
+            # the preferences are defaulted on a failure to load
+            self.log.error( str(e) )
+
+        self.prefs = self.prefs_manager.getPreferences()
 
         # part 2 of settings up logging is done in main window code
         self.main_window = self.createMainWindow()
@@ -237,7 +246,7 @@ class WbApp(QtWidgets.QApplication,
             self.log.exception( 'foregroundProcess failed' )
 
     def writePreferences( self ):
-        self.prefs.writePreferences()
+        self.prefs_manager.writePreferences()
 
     def debugShowCallers( self, depth ):
         if not self.__debug:

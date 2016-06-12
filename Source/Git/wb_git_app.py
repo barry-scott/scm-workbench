@@ -45,9 +45,9 @@ class WbGitApp(wb_app.WbApp,
         else:
             git.Git.GIT_PYTHON_TRACE = False
 
-    def createPreferences( self ):
-        return wb_git_preferences.Preferences(
-                    self,
+    def createPreferencesManager( self ):
+        return wb_git_preferences.PreferencesManager(
+                    self.log,
                     wb_platform_specific.getPreferencesFilename() )
 
     def createMainWindow( self ):

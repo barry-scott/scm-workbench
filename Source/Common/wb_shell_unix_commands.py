@@ -49,14 +49,14 @@ def getFileBrowserProgramList():
     return gui_file_browsers[:]
 
 def EditFile( app, working_dir, all_filenames ):
-    p = app.prefs.getEditor()
+    p = app.prefs.editor
 
-    editor = p.getEditorProgram()
+    editor = p.program
     if editor == '':
         app.log.warning( T_('Please configure the editor in the Preferences Editor tab') )
         return
     
-    options = p.getEditorOptions()
+    options = p.options
 
     editor_args = []
     if options != '':
@@ -94,7 +94,7 @@ def __titleFromPath( working_dir ):
     return ' '.join( title )
 
 def CommandShell( app, working_dir ):
-    p = app.prefs.getShell()
+    p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
     title = __titleFromPath( working_dir )
@@ -102,45 +102,44 @@ def CommandShell( app, working_dir ):
     with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.sh' ) as f:
         app.all_temp_files.append( f.name )
         
-        if len( p.getTerminalInitCommand() ) > 0:
-            f.write( ". '%s'\n" % (p.getTerminalInitCommand(),) )
+        if len( p.terminal_init ) > 0:
+            f.write( ". '%s'\n" % (p.terminal_init,) )
         f.write( 'exec "$SHELL" -i\n' )
         f.close()
         # chmod +x
         os.chmod( f.name, 0o700 )
 
     path = os.environ.get( 'PATH' )
-    terminal_program = p.getTerminalProgram()
-    if terminal_program == '':
+    if p.terminal_program == '':
         app.log.warning( T_('Please configure the Terminal in the Preferences Shell tab') )
         return
 
     found = False
     for folder in path.split( os.pathsep ):
-        exe = os.path.join( folder, terminal_program )
-        if os.path.isfile( exe ):
+        exe = pathlib.Path( folder ) / p.terminal_program
+        if exe.is_file():
             found = True
             break
 
     if not found:
-        app.log.warning( T_('Cannot find the Terminal program %s.') % (terminal_program,) )
+        app.log.warning( T_('Cannot find the Terminal program %s.') % (p.terminal_program,) )
         app.log.warning( T_('Please configure a terminal program that is installed on the system in the Preferences Shell tab') )
         return
 
     os.environ['WB_WD'] = str( working_dir )
     try:
-        if terminal_program == 'konsole':
-            __run_command( app, terminal_program,
+        if p.terminal_program == 'konsole':
+            __run_command( app, p.terminal_program,
                 ['--title',  title, '--workdir', working_dir, '-e', '/bin/bash', f.name],
                 working_dir )
 
-        elif terminal_program in ('gnome-terminal', 'xfce4-terminal'):
-            __run_command( app, terminal_program,
+        elif p.terminal_program in ('gnome-terminal', 'xfce4-terminal'):
+            __run_command( app, p.terminal_program,
                 ['--title',  title, '--working-directory', working_dir, '-x', f.name],
                 working_dir )
 
         elif terminal_program == 'xterm':
-            __run_command( app, terminal_program,
+            __run_command( app, p.terminal_program,
                 ['-T',  title, '-e', f.name],
                 working_dir )
 
@@ -148,36 +147,35 @@ def CommandShell( app, working_dir ):
         del os.environ['WB_WD']
 
 def FileBrowser( app, working_dir ):
-    p = app.prefs.getShell()
+    p = app.prefs.shell
 
     path = os.environ.get("PATH")
     found = False
 
-    browser_program = p.getFileBrowserProgram()
-    if browser_program == '':
+    if p.file_browser == '':
         app.log.warning( T_('Please configure the File Browser in the Preferences Shell tab') )
         return
 
     for folder in path.split( os.pathsep ):
-        exe = os.path.join( folder, browser_program )
-        if os.path.isfile(exe):
+        exe = pathlib.Path( folder ) / p.file_browser
+        if exe.is_file():
             found = True
             break
 
     if not found:
-        app.log.warning( T_('Cannot find the File Browser program %s.') % (browser_program,) )
+        app.log.warning( T_('Cannot find the File Browser program %s.') % (p.file_browser,) )
         app.log.warning( T_('Please configure a File Browser program that is installed on the system in the Preferences Shell tab') )
         return
 
-    if browser_program == 'konqueror':
+    if p.file_browser == 'konqueror':
         __run_command( app,
-                browser_program,
+                p.file_browser,
                 ['--mimetype', 'inode/directory', working_dir],
                 working_dir )
 
-    elif browser_program in ('nautilus', 'thunar', 'dolphin'):
+    elif p.file_browser in ('nautilus', 'thunar', 'dolphin'):
         __run_command( app,
-                browser_program,
+                p.file_browser,
                 [working_dir],
                 working_dir )
 

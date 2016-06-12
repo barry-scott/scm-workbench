@@ -62,7 +62,7 @@ class EditorPage(QtWidgets.QWidget):
         if self.app is None:
             self.prefs = None
         else:
-            self.prefs = self.app.prefs.getEditor()
+            self.prefs = self.app.prefs.editor
 
         super().__init__()
 
@@ -70,8 +70,8 @@ class EditorPage(QtWidgets.QWidget):
         self.editor_options = QtWidgets.QLineEdit( '' )
 
         if self.prefs is not None:
-            self.editor_program.setText( self.prefs.getEditorProgram() )
-            self.editor_options.setText( self.prefs.getEditorOptions() )
+            self.editor_program.setText( self.prefs.program )
+            self.editor_options.setText( self.prefs.options )
 
         self.browse = QtWidgets.QPushButton( T_('Browse…') )
 
@@ -91,8 +91,8 @@ class EditorPage(QtWidgets.QWidget):
         if self.prefs is None:
             return
 
-        self.prefs.setEditorProgram( self.editor_program.text() )
-        self.prefs.setEditorOptions( self.editor_options.text() )
+        self.prefs.program = self.editor_program.text()
+        self.prefs.options = self.editor_options.text()
 
     def pickEditor( self ):
         file_browser = QtWidgets.QFileDialog( self )
@@ -122,7 +122,7 @@ class ShellPage(QtWidgets.QWidget):
         if self.app is None:
             self.prefs = None
         else:
-            self.prefs = self.app.prefs.getShell()
+            self.prefs = self.app.prefs.shell
 
         super().__init__()
 
@@ -136,9 +136,9 @@ class ShellPage(QtWidgets.QWidget):
         self.file_browser_program.addItems( file_browser_program_list )
 
         if self.prefs is not None:
-            self.terminal_program.setCurrentText( self.prefs.getTerminalProgram() )
-            self.terminal_init.setText( self.prefs.getTerminalInitCommand() )
-            self.file_browser_program.setCurrentText( self.prefs.getFileBrowserProgram() )
+            self.terminal_program.setCurrentText( self.prefs.terminal_program )
+            self.terminal_init.setText( self.prefs.terminal_init )
+            self.file_browser_program.setCurrentText( self.prefs.file_browser )
 
         self.layout = QtWidgets.QGridLayout()
         self.layout.setAlignment( QtCore.Qt.AlignTop )
@@ -155,9 +155,9 @@ class ShellPage(QtWidgets.QWidget):
         if self.prefs is None:
             return
 
-        self.prefs.setTerminalProgram( self.terminal_program.currentText() )
-        self.prefs.setTerminalInitCommand( self.terminal_init.text() )
-        self.prefs.setFileBrowserProgram( self.file_browser_program.currentText() )
+        self.prefs.terminal_program = self.terminal_program.currentText()
+        self.prefs.terminal_init = self.terminal_init.text()
+        self.prefs.file_browser = self.file_browser_program.currentText()
 
 class LogHistoryPage(QtWidgets.QWidget):
     def __init__( self, app ):
@@ -165,7 +165,7 @@ class LogHistoryPage(QtWidgets.QWidget):
         if self.app is None:
             self.prefs = None
         else:
-            self.prefs = self.app.prefs.getLogHistory()
+            self.prefs = self.app.prefs.log_history
 
         super().__init__()
 
@@ -188,14 +188,14 @@ class LogHistoryPage(QtWidgets.QWidget):
         self.use_default_since = QtWidgets.QCheckBox( T_('Use since') )
 
         if self.prefs is not None:
-            self.default_limit.setValue( self.prefs.getDefaultLimit() )
-            self.use_default_limit.setChecked( self.prefs.getUseDefaultLimit() )
+            self.default_limit.setValue( self.prefs.default_limit )
+            self.use_default_limit.setChecked( self.prefs.use_default_limit )
 
-            self.default_until.setValue( self.prefs.getDefaultUntilDaysInterval() )
-            self.use_default_until.setChecked( self.prefs.getUseDefaultUntilDaysInterval() )
+            self.default_until.setValue( self.prefs.default_until_days_interval )
+            self.use_default_until.setChecked( self.prefs.use_default_until_days_interval )
 
-            self.default_since.setValue( self.prefs.getDefaultSinceDaysInterval() )
-            self.use_default_since.setChecked( self.prefs.getUseDefaultSinceDaysInterval() )
+            self.default_since.setValue( self.prefs.default_since_days_interval )
+            self.use_default_since.setChecked( self.prefs.use_default_since_days_interval )
 
         self.layout = QtWidgets.QGridLayout()
         self.layout.setAlignment( QtCore.Qt.AlignTop )
@@ -228,14 +228,14 @@ class LogHistoryPage(QtWidgets.QWidget):
         if self.prefs is None:
             return
 
-        self.prefs.setDefaultLimit( self.default_limit.value() )
-        self.prefs.setUseDefaultLimit( self.use_default_limit.isChecked() )
+        self.prefs.default_limit = self.default_limit.value()
+        self.prefs.use_default_limit = self.use_default_limit.isChecked()
 
-        self.prefs.setDefaultUntilDaysInterval( self.default_until.value() )
-        self.prefs.setUseDefaultUntilDaysInterval( self.use_default_until.isChecked() )
+        self.prefs.default_until_days_interval = self.default_until.value()
+        self.prefs.use_default_until_days_interval = self.use_default_until.isChecked()
 
-        self.prefs.setDefaultSinceDaysInterval( self.default_since.value() )
-        self.prefs.setUseDefaultSinceDaysInterval( self.use_default_since.isChecked() )
+        self.prefs.default_since_days_interval = self.default_since.value()
+        self.prefs.use_default_since_days_interval = self.use_default_since.isChecked()
 
 if __name__ == '__main__':
     def T_(s):

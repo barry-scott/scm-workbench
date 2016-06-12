@@ -30,7 +30,7 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
 
         self.selected_node = None
 
-        for project in self.app.prefs.getProjects().getProjectList():
+        for project in self.app.prefs.getAllProjects():
             self.addProject( project )
 
     def addProject( self, project ):
@@ -103,7 +103,7 @@ class WbGitTreeModel(QtGui.QStandardItemModel):
     def indexFromBookmark( self, bookmark ):
         item = self.invisibleRootItem()
 
-        for name in [bookmark.project] + list( bookmark.path.parts ):
+        for name in [bookmark.project_name] + list( bookmark.path.parts ):
 
             row = 0
             while True:
@@ -207,4 +207,4 @@ class ProjectTreeNode(QtGui.QStandardItem):
         all_to_add = all_new_row_names - all_row_names
         for name in all_to_add:
             self._debug( '%*sProjectTreeNode.update add name %s' % (indent, '', name,) )
-            self.appendRow( ProjectTreeNode( self.model, self.git_project_tree_node.all_folders[ name ] ) )
+            self.appendRow( ProjectTreeNode( self.model, self.git_project_tree_node.getFolder( name ) ) )

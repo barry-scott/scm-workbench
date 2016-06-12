@@ -49,7 +49,7 @@ class GitProject:
         return self.prefs_project.name
 
     def path( self ):
-        return self.prefs_project.path
+        return pathlib.Path( self.prefs_project.path )
 
     def headRefName( self ):
         return self.repo.head.ref.name
@@ -488,6 +488,16 @@ class WbGitFileState:
 
     def isUntracked( self ):
         return self.__untracked
+
+    def isIgnored( self ):
+        if self.__index_entry is not None:
+            return False
+
+        # untracked files have had ignored files striped out
+        if self.__untracked:
+            return False
+
+        return True
 
     def canDiffHeadVsStaged( self ):
         self.__calculateState()
