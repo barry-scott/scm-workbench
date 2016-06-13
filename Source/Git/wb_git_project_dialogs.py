@@ -301,7 +301,8 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
             self.wc_path.setText( str( w.getWcPath() ) )
 
 class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
-    addGitProject = QtCore.pyqtSignal( [str] )
+    foundRepository = QtCore.pyqtSignal( [str] )
+    scannedOneMoreFolder = QtCore.pyqtSignal()
     scanComplete = QtCore.pyqtSignal()
 
     def __init__( self ):
@@ -325,7 +326,8 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
 
         self.thread = None
 
-        self.addGitProject.connect( self.__addGitProject, type=QtCore.Qt.QueuedConnection )
+        self.foundRepository.connect( self.__foundRepository, type=QtCore.Qt.QueuedConnection )
+        self.scannedOneMoreFolder.connect( self.__setFeedback, type=QtCore.Qt.QueuedConnection )
         self.scanComplete.connect( self.__scanCompleted, type=QtCore.Qt.QueuedConnection )
 
     def initializePage( self ):
@@ -335,26 +337,47 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         self.thread = ScanForGitRepositoriesThread( self, self.wizard().home )
         self.thread.start()
 
-    def __addGitProject( self, project_path ):
+    def __foundRepository( self, project_path ):
         project_path = pathlib.Path( project_path )
         if project_path not in self.wizard().all_existing_project_paths:
             QtWidgets.QListWidgetItem( str( project_path ), self.wc_list )
+
+        self.__setFeedback()
+
+    def __setFeedback( self, complete=False ):
+        if self.thread.stop_scan:
+            prefix = T_('Scan interrupted.')
+
+        elif complete:
+            prefix = T_('Scan completed.')
+
+        else:
+            prefix = T_('Scanning.')
+
+        args = {'scanned': self.thread.num_folders_scanned
+               ,'found': self.thread.num_git_repos_found}
+
+        fmt1 = S_( 'Found 1 repos.',
+                  'Found %(found)d repos.',
+                 self.thread.num_git_repos_found )
+
+        fmt2 = S_( 'Scanned 1 folder.',
+                  'Scanned %(scanned)d folders.',
+                 self.thread.num_folders_scanned )
+
+        self.feedback.setText( '%s %s %s' % (prefix, fmt1 % args, fmt2 % args) )
 
     def __selectionChanged( self ):
         self.completeChanged.emit()
 
     def __scanCompleted( self ):
         self.completeChanged.emit()
-        self.feedback.setText( 'Scan Complete' )
+        
+        self.__setFeedback( complete=True )
 
     def isComplete( self ):
-        if self.thread is None:
-            return False
-
-        if self.thread.isRunning():
-            return False
-
-        self.feedback.setText( '' )
+        if self.thread is None or not self.thread.isRunning():
+            self.feedback.setText( '' )
 
         all_selected_items = self.wc_list.selectedItems()
         return len(all_selected_items) == 1
@@ -367,17 +390,49 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
 
         self.wizard().setWcPath( pathlib.Path( all_selected_items[0].text() ) )
 
+        self.thread.stop_scan = True
+        self.thread.wait()
+
+        self.thread = None
+
         return True
 
 class ScanForGitRepositoriesThread(QtCore.QThread):
     def __init__( self, wizard, home ):
-        self.wizard = wizard
-        self.home = home
         super().__init__()
 
+        self.wizard = wizard
+        self.home = home
+
+        self.num_folders_scanned = 0
+        self.num_git_repos_found = 0
+
+        self.stop_scan = False
+
+        self.folders_to_scan = [self.home]
+
     def run( self ):
-        for git_folder in self.home.glob( '**/.git' ):
-            self.wizard.addGitProject.emit( str( git_folder.parent ) )
+        while len(self.folders_to_scan) > 0:
+            if self.stop_scan:
+                return
+
+            self.wizard.scannedOneMoreFolder.emit()
+
+            folder = self.folders_to_scan.pop( 0 )
+            self.num_folders_scanned += 1
+
+            for path in folder.iterdir():
+                if self.stop_scan:
+                    return
+
+                if path.is_dir():
+                    git_folder = path / '.git'
+                    if git_folder.is_dir():
+                        self.num_git_repos_found += 1
+                        self.wizard.foundRepository.emit( str( path ) )
+
+                    else:
+                        self.folders_to_scan.append( path )
 
         self.wizard.scanComplete.emit()
 
