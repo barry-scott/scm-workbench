@@ -396,6 +396,14 @@ class WbHgFileState:
     def getAbbreviatedStatus( self ):
         return self.__state
 
+    def getStagedAbbreviatedStatus( self ):
+        # QQQ here for Git compat - bad OO design here
+        return ''
+
+    def getUnstagedAbbreviatedStatus( self ):
+        # QQQ here for Git compat - bad OO design here
+        return self.getAbbreviatedStatus()
+
     def isTracked( self ):
         return self.__nodeid is not None
 
@@ -538,7 +546,7 @@ class HgProjectTreeNode:
             self.__all_folders[ folder ]._dumpTree( indent+4 )
 
     def isNotEqual( self, other ):
-        return (self.__path != other.__path
+        return (self.relativePath() != other.relativePath()
             or self.project.isNotEqual( other.project ))
 
     def __lt__( self, other ):

@@ -653,7 +653,7 @@ class GitProjectTreeNode:
             self.__all_folders[ folder ]._dumpTree( indent+4 )
 
     def isNotEqual( self, other ):
-        return (self.__path != other.__path
+        return (self.relativePath() != other.relativePath()
             or self.project.isNotEqual( other.project ))
 
     def __lt__( self, other ):

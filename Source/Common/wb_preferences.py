@@ -52,6 +52,9 @@ class Preferences(PreferencesNode):
         assert isinstance( project, Project )
         self.all_projects[ project.name ] = project
 
+    def delProject( self, project_name ):
+        del self.all_projects[ project_name ]
+
     def getAllBookmarks( self ):
         return self.all_bookmarks.values()
 
@@ -132,14 +135,14 @@ class BookmarkCollection(PreferencesMapNode):
         super().__init__()
 
 class Project(PreferencesNode):
-    xml_attribute_info = ('scm', ('path', pathlib.Path))
+    xml_attribute_info = ('scm_type', ('path', pathlib.Path))
 
-    def __init__( self, name, path=None, scm=None ):
+    def __init__( self, name, scm_type=None, path=None ):
         assert path is None or isinstance( path, pathlib.Path )
-        assert scm is None or scm in ('git','hg','svn')
+        assert scm_type is None or scm_type in ('git','hg','svn')
 
-        self.scm = scm
         self.name = name
+        self.scm_type = scm_type
         self.path = path
 
     def __repr__( self ):
