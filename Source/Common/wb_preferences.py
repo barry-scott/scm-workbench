@@ -49,12 +49,14 @@ class Preferences(PreferencesNode):
         return self.all_projects.values()
 
     def addProject( self, project ):
+        assert isinstance( project, Project )
         self.all_projects[ project.name ] = project
 
     def getAllBookmarks( self ):
         return self.all_bookmarks.values()
 
     def addBookmark( self, bookmark ):
+        assert isinstance( project, Bookmark )
         self.all_bookmarks[ bookmark.name ] = bookmark
 
 class MainWindow(PreferencesNode):
@@ -140,6 +142,9 @@ class Project(PreferencesNode):
         self.name = name
         self.path = path
 
+    def __repr__( self ):
+        return '<Project: name=%r scm=%r path=%r>' % (self.name, self.scm, self.path)
+
 class ProjectCollection(PreferencesMapNode):
     def __init__( self ):
         super().__init__()
@@ -186,6 +191,8 @@ class PreferencesManager:
         return self.prefs
 
     def writePreferences( self ):
+        #self.prefs.dumpNode( sys.stdout )
+
         tmp_filename = self.prefs_filename.with_suffix( '.tmp' )
 
         self.xml_prefs.saveAs( self.prefs, tmp_filename )

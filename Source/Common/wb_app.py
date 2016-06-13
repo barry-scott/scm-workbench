@@ -178,6 +178,7 @@ class WbApp(QtWidgets.QApplication,
 
         self.prefs_manager = self.createPreferencesManager()
         try:
+            self.log.info( 'Reading preferences' )
             self.prefs_manager.readPreferences()
 
         except xml_preferences.ParseError as e:
@@ -246,6 +247,7 @@ class WbApp(QtWidgets.QApplication,
             self.log.exception( 'foregroundProcess failed' )
 
     def writePreferences( self ):
+        self.log.info( 'Writing preferences' )
         self.prefs_manager.writePreferences()
 
     def debugShowCallers( self, depth ):
