@@ -19,6 +19,10 @@ git status
 mkdir Folder1
 mkdir Folder2
 
+cat <<EOF >.gitignore
+*~
+EOF
+
 echo 1 deleted-sh-rm.txt >Folder1/deleted-sh-rm.txt
 echo 1 deleted-git-rm.txt >Folder1/deleted-git-rm.txt
 echo 1 renamed.txt >Folder1/renamed.txt
@@ -27,6 +31,7 @@ echo 1 changed-working.txt >Folder1/changed-working.txt
 echo 1 changed-staged-and-working.txt >Folder1/changed-staged-and-working.txt
 
 git add \
+    .gitignore \
     Folder1/deleted-sh-rm.txt \
     Folder1/deleted-git-rm.txt \
     Folder1/renamed.txt \
@@ -45,6 +50,7 @@ git rm Folder1/deleted-git-rm.txt
 git mv Folder1/renamed.txt Folder2/renamed2.txt
 
 # modify files
+cp Folder1/changed-staged.txt Folder1/changed-staged.txt~
 echo 2 staged change >> Folder1/changed-staged.txt
 git add Folder1/changed-staged.txt 
 

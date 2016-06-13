@@ -21,7 +21,7 @@ class FakeApp:
 proj = wb_git_project.GitProject( FakeApp(), FakePrefs() )
 proj.updateState()
 
-print( 'Root: folders %r' % (proj.tree.all_folders.keys(),) )
+print( 'Root: folders %r' % (proj.tree.getAllFolderNames(),) )
 
 def printText( title, all_lines ):
     print( '            %s' % (title,) )
@@ -29,21 +29,14 @@ def printText( title, all_lines ):
     for index, line in enumerate( all_lines ):
         print( '            %-2d: %s' % (index+1, line) )
 
-for folder_name in sorted( proj.tree.all_folders.keys() ):
+for folder_name in sorted( proj.tree.getAllFolderNames() ):
     print( 'Folder: %s' % (folder_name,) )
 
-    folder = proj.tree.all_folders[ folder_name ]
-    for filename in sorted( folder.all_files ):
+    folder = proj.tree.getFolder( folder_name )
+    for filename in sorted( folder.getAllFileNames() ):
         print( '    ----: ----------------------------------------' )
         print( '    File: %s' % (filename,) )
         file_state = folder.getStatusEntry( filename )
-        print( '                   index_entry: %r' % (file_state.index_entry,) )
-        if file_state.staged_diff is not None:
-            print( '                 staged a_blob: %r' % (file_state.staged_diff.a_blob,) )
-            print( '                 staged b_blob: %r' % (file_state.staged_diff.b_blob,) )
-        if file_state.unstaged_diff is not None:
-            print( '               unstaged a_blob: %r' % (file_state.unstaged_diff.a_blob,) )
-            print( '               unstaged b_blob: %r' % (file_state.unstaged_diff.b_blob,) )
         print( '                          ----: -----' )
         print( '                 Staged status: %r' % (file_state.getStagedAbbreviatedStatus(),) )
         print( '               Unstaged status: %r' % (file_state.getUnstagedAbbreviatedStatus(),) )
