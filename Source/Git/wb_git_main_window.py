@@ -575,6 +575,9 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
 
             prefs.last_position_bookmark = bookmark
 
+        else:
+            prefs.last_position_bookmark = None
+
         win_prefs = self.app.prefs.main_window
         win_prefs.geometry = self.saveGeometry().toHex().data()
 
