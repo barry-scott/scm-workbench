@@ -27,7 +27,7 @@ from PyQt5 import QtCore
 class WbGitLogHistoryOptions(QtWidgets.QDialog):
     def __init__( self, app, parent ):
         self.app = app
-        prefs = self.app.prefs.getLogHistory()
+        prefs = self.app.prefs.log_history
 
         super().__init__( parent )
 
@@ -75,26 +75,26 @@ class WbGitLogHistoryOptions(QtWidgets.QDialog):
         self.setLayout( layout )
 
         # --- limit
-        self.use_limit.setChecked( prefs.getUseDefaultLimit() )
-        self.limit.setValue( prefs.getDefaultLimit() )
-        self.limit.setEnabled( prefs.getUseDefaultLimit() )
+        self.use_limit.setChecked( prefs.use_default_limit )
+        self.limit.setValue( prefs.default_limit )
+        self.limit.setEnabled( prefs.use_default_limit )
 
         # --- until
-        self.use_until.setChecked( prefs.getUseDefaultUntilDaysInterval() )
+        self.use_until.setChecked( prefs.use_default_until_days_interval )
         until = QtCore.QDate.currentDate()
-        until = until.addDays( -prefs.getDefaultUntilDaysInterval() )
+        until = until.addDays( -prefs.default_until_days_interval )
 
         self.until.setSelectedDate( until )
-        self.until.setEnabled( prefs.getUseDefaultUntilDaysInterval() )
+        self.until.setEnabled( prefs.use_default_until_days_interval )
 
         # --- since
-        self.use_since.setChecked( prefs.getUseDefaultSinceDaysInterval() )
+        self.use_since.setChecked( prefs.use_default_since_days_interval )
 
         since = QtCore.QDate.currentDate()
-        since = since.addDays( -prefs.getDefaultSinceDaysInterval() )
+        since = since.addDays( -prefs.use_default_since_days_interval )
 
         self.since.setSelectedDate( since )
-        self.since.setEnabled( prefs.getUseDefaultSinceDaysInterval() )
+        self.since.setEnabled( prefs.use_default_since_days_interval )
 
         # --- connect up behavior
         self.use_limit.stateChanged.connect( self.limit.setEnabled )
