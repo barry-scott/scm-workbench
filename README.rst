@@ -1,4 +1,4 @@
 scm-workbench
 -------------
 
-SCM Workbench is a GUI to easily work with a Git, Mercurial (hg) amd Subversion (svn) is the style of PySVN WorkBench
+SCM Workbench is a GUI to easily work with Git, Mercurial (hg) amd Subversion (svn) repositories in the style of PySVN WorkBench
