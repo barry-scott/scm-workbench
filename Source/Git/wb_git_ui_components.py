@@ -324,7 +324,7 @@ class GitMainWindowComponents:
         self.commit_dialog = None
 
         # enabled states may have changed
-        self.updateActionEnabledStates()
+        self.main_window.updateActionEnabledStates()
 
     def __logGitCommandError( self, e ):
         self.log.error( "'%s' returned with exit code %i" %
@@ -352,7 +352,7 @@ class GitMainWindowComponents:
             self.__logGitCommandError( e )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
-        self.app.foregroundProcess( self.updateActionEnabledStates, () )
+        self.app.foregroundProcess( self.main_window.updateActionEnabledStates, () )
 
     def pushInfoHandlerBg( self, info ):
         self.app.foregroundProcess( self.pushInfoHandler, (info,) )
@@ -396,7 +396,7 @@ class GitMainWindowComponents:
             self.__logGitCommandError( e )
 
         self.app.foregroundProcess( self.setStatusText, ('',) )
-        self.app.foregroundProcess( self.updateActionEnabledStates, () )
+        self.app.foregroundProcess( self.main_window.updateActionEnabledStates, () )
 
     def pullInfoHandlerBg( self, info ):
         self.app.foregroundProcess( self.pullInfoHandler, (info,) )
