@@ -17,6 +17,9 @@ import wb_scm_main_window
 import wb_scm_preferences
 import wb_scm_debug
 
+import wb_git_ui_components
+import wb_hg_ui_components
+
 class WbScmApp(wb_app.WbApp,
                wb_scm_debug.WbScmDebug):
     def __init__( self, args ):
@@ -34,7 +37,7 @@ class WbScmApp(wb_app.WbApp,
         return False
 
     def extraDebugEnabled( self ):
-        # tells wb_logging to turn on debug for scm.cmd
+        # tells wb_logging to turn on debug for git.cmd
         return self.__git_debug
 
     def setupScmDebug( self ):
@@ -51,4 +54,6 @@ class WbScmApp(wb_app.WbApp,
                     wb_platform_specific.getPreferencesFilename() )
 
     def createMainWindow( self ):
-        return wb_scm_main_window.WbScmMainWindow( self )
+        return wb_scm_main_window.WbScmMainWindow( self,
+            {'git': wb_git_ui_components.GitMainWindowComponents()
+            ,'hg':  wb_hg_ui_components.HgMainWindowComponents()} )

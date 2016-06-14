@@ -30,6 +30,12 @@ class HgProject:
 
         self.__num_uncommitted_files = 0
 
+    def scmType( self ):
+        return 'hg'
+
+    def getBranchName( self ):
+        return '-- TBD --' # QQQ missing code
+
     # return a new HgProject that can be used in another thread
     def newInstance( self ):
         return HgProject( self.app, self.prefs_project )

@@ -48,8 +48,12 @@ import wb_main_window
 import wb_preferences
 
 class WbScmMainWindow(wb_main_window.WbMainWindow):
-    def __init__( self, app ):
+    def __init__( self, app, all_ui_components ):
         super().__init__( app, wb_scm_images, app._debugMainWindow )
+
+        self.all_ui_components = all_ui_components
+        for scm_type in self.all_ui_components:
+            self.all_ui_components[ scm_type ].setMainWindow( self )
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
@@ -89,6 +93,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.__log = wb_logging.WbLog( self.app )
 
         # models and views
+        self.__ui_active_scm_type = None
 
         # on Qt on macOS table will tigger selectionChanged that needs tree_model
         self.tree_model = None
@@ -272,12 +277,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.updateEnableStates()
 
         if self.commit_dialog is not None:
-            scm_project = self.__treeSelectedScmProject()
+            scm_project = self._treeSelectedScmProject()
             self.commit_dialog.setStatus(
                     scm_project.getReportStagedFiles(),
                     scm_project.getReportUntrackedFiles() )
 
     def setupMenuBar( self, mb ):
+        # --- setup common menus
         m = mb.addMenu( T_('&File') )
         self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
         self._addMenu( m, T_('&Prefs…'), self.appActionPreferences )
@@ -291,26 +297,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
         self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        m = mb.addMenu( T_('&Information') )
-        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionScmDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionScmDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionScmDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
-        m.addSeparator()
-        self._addMenu( m, T_('Status'), self.treeActionScmStatus )
+        # --- setup scm_type specific menus
+        for scm_type in self.all_ui_components:
+            self._debug( 'calling setupMenuBar for %r' % (scm_type,) )
+            self.all_ui_components[ scm_type ].setupMenuBar( mb, self._addMenu )
 
-        m = mb.addMenu( T_('&Git Actions') )
-        self._addMenu( m, T_('Stage'), self.tableActionScmStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self._addMenu( m, T_('Unstage'), self.tableActionScmUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self._addMenu( m, T_('Revert'), self.tableActionScmRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
-        m.addSeparator()
-        self._addMenu( m, T_('Delete…'), self.tableActionScmDelete, self.enablerFilesExists )
-        m.addSeparator()
-        self._addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
-
-        m.addSeparator()
-        self._addMenu( m, T_('Push…'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
-        self._addMenu( m, T_('Pull…'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
-
+        # --- setup menus less used common menus
         m = mb.addMenu( T_('&Project') )
         self._addMenu( m, T_('Add…'), self.projectActionAdd )
         self._addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
@@ -321,34 +313,34 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def __setupTreeContextMenu( self ):
         self._debug( '__setupTreeContextMenu' )
+        # --- setup scm_type specific menu
+        for scm_type in self.all_ui_components:
+            self._debug( 'calling setupTreeContextMenu for %r' % (scm_type,) )
 
-        m = self.tree_context_menu = QtWidgets.QMenu( self )
-        m.addSection( T_('Folder Actions') )
-        self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
-        self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
+            m = QtWidgets.QMenu( self )
+            m.addSection( T_('Folder Actions') )
+            self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
+            self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
+
+            self.all_ui_components[ scm_type ].setupTreeContextMenu( m, self._addMenu )
 
     def __setupTableContextMenu( self ):
         self._debug( '__setupTableContextMenu' )
 
-        m = self.table_context_menu = QtWidgets.QMenu( self )
+        # --- setup scm_type specific menu
+        for scm_type in self.all_ui_components:
+            self._debug( 'calling setupTableContextMenu for %r' % (scm_type,) )
 
-        m.addSection( T_('File Actions') )
-        self._addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+            m = QtWidgets.QMenu( self )
 
-        m.addSection( T_('Diff') )
-        self._addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionScmDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionScmDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        self._addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionScmDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+            m.addSection( T_('File Actions') )
+            self._addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+            self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        m.addSection( T_('Git Actions') )
-        self._addMenu( m, T_('Stage'), self.tableActionScmStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self._addMenu( m, T_('Unstage'), self.tableActionScmUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self._addMenu( m, T_('Revert'), self.tableActionScmRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
-        m.addSeparator()
-        self._addMenu( m, T_('Delete…'), self.tableActionScmDelete, self.enablerFilesExists )
+            self.all_ui_components[ scm_type ].setupTableContextMenu( m, self._addMenu )
 
     def setupToolBar( self ):
+        # --- setup common toolbars
         t = self.tool_bar_tree = self._addToolBar( T_('tree') )
         self._addTool( t, T_('Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
         self._addTool( t, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
@@ -357,19 +349,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
         self._addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-        t = self.tool_bar_scm_info = self._addToolBar( T_('scm info') )
-        self._addTool( t, T_('Diff'), self.treeTableActionScmDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
-        self._addTool( t, T_('Commit History'), self.treeTableActionScmLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
 
-        t = self.tool_bar_scm_state = self._addToolBar( T_('scm state') )
-        self._addTool( t, T_('Stage'), self.tableActionScmStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        self._addTool( t, T_('Unstage'), self.tableActionScmUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        self._addTool( t, T_('Revert'), self.tableActionScmRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
-        t.addSeparator()
-        self._addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
-        t.addSeparator()
-        self._addTool( t, T_('Push'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
-        self._addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
+        # --- setup scm_type specific tool bars
+        for scm_type in self.all_ui_components:
+            self._debug( 'calling setupToolBar for %r' % (scm_type,) )
+            self.all_ui_components[ scm_type ].setupToolBar( self._addToolBar, self._addTool )
 
     def setupStatusBar( self, s ):
         self.status_message = QtWidgets.QLabel()
@@ -383,7 +367,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def enablerFolderExists( self, cache ):
         key = 'enablerFolderExists'
         if key not in cache:
-            cache[ key ] = self.__treeSelectedAbsoluteFolder()
+            cache[ key ] = self._treeSelectedAbsoluteFolder()
 
         return cache[ key ] is not None
 
@@ -397,40 +381,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def enablerFilesExists( self, cache ):
         key = 'enablerFilesExists'
         if key not in cache:
-            cache[ key ] = self.__tableSelectedExistingFiles()
+            cache[ key ] = self._tableSelectedExistingFiles()
 
         return len( cache[ key ] ) > 0
 
-    def enablerFilesStage( self, cache ):
-        key = 'enablerFilesStage'
-        if key not in cache:
-            #with_status = (pyscm2.SCM_STATUS_WT_MODIFIED|pyscm2.SCM_STATUS_WT_NEW|pyscm2.SCM_STATUS_WT_DELETED)
-            #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
-            cache[ key ] = True
-
-        return cache[ key ]
-
-    def enablerFilesUnstage( self, cache ):
-        key = 'enablerFilesUnstage'
-        if key not in cache:
-            #with_status = pyscm2.SCM_STATUS_INDEX_MODIFIED|pyscm2.SCM_STATUS_INDEX_NEW|pyscm2.SCM_STATUS_INDEX_DELETED
-            #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
-            cache[ key ] = True
-
-        return cache[ key ]
-
-    def enablerFilesRevert( self, cache ):
-        key = 'enablerFilesRevert'
-        if key not in cache:
-            #with_status = pyscm2.SCM_STATUS_WT_MODIFIED|pyscm2.SCM_STATUS_WT_DELETED
-            #without_status = pyscm2.SCM_STATUS_INDEX_MODIFIED
-            #cache[ key ] = self.__tableSelectedWithStatus( with_status, without_status )
-            cache[ key ] = True
-
-        return cache[ key ]
-
-    def __enablerFocusWidget( self, cache ):
-        key = '__enablerFocusWidget'
+    def _enablerFocusWidget( self, cache ):
+        key = '_enablerFocusWidget'
         if key not in cache:
             if self.tree_view.hasFocus():
                 cache[ key ] = 'tree'
@@ -444,95 +400,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         return cache[ key ]
 
-    def __enablerTableSelectedStatus( self, cache ):
-        key = '__enablerTableSelectedStatus'
+    def _enablerTableSelectedStatus( self, cache ):
+        key = '_enablerTableSelectedStatus'
         if key not in cache:
-            cache[ key ] = self.__tableSelectedStatus()
+            cache[ key ] = self._tableSelectedStatus()
 
         return cache[ key ]
 
-    def __enablerDiff( self, cache, key, predicate ):
-        if key not in cache:
-            focus = self.__enablerFocusWidget( cache )
-            if focus == 'tree':
-                cache[ key ] = True
-
-            elif focus == 'table':
-                # make sure all the selected entries is modified
-                all_file_states = self.__enablerTableSelectedStatus( cache )
-                enable = True
-                for obj in all_file_states:
-                    if not predicate( obj ):
-                        enable = False
-                        break
-
-                cache[ key ] = enable
-
-            else:
-                cache[ key ] = False
-
-        return cache[ key ]
-
-    def enablerDiffHeadVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsWorking', wb_scm_project.WbScmFileState.canDiffHeadVsWorking )
-
-    def enablerDiffStagedVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffStagedVsWorking', wb_scm_project.WbScmFileState.canDiffStagedVsWorking )
-
-    def enablerDiffHeadVsStaged( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsStaged', wb_scm_project.WbScmFileState.canDiffHeadVsStaged )
-
-    def enablerDiffSmart( self, cache ):
-        key = 'enablerDiffSmart'
-        if key not in cache:
-            focus = self.__enablerFocusWidget( cache )
-            if focus == 'tree':
-                cache[ key ] = True
-
-            elif focus == 'table':
-                # make sure all the selected entries is modified
-                all_file_states = self.__enablerTableSelectedStatus( cache )
-                enable = True
-                for obj in all_file_states:
-                    if not (obj.canDiffStagedVsWorking()
-                            or obj.canDiffHeadVsWorking()
-                            or obj.canDiffHeadVsStaged()):
-                        enable = False
-                        break
-
-                cache[ key ] = enable
-
-            else:
-                cache[ key ] = False
-
-        return cache[ key ]
-
-    def enablerCommit( self, cache ):
-        key = 'enablerCommit'
-        if key not in cache:
-            # enable if any files staged
-            scm_project = self.__treeSelectedScmProject()
-
-            can_commit = False
-            if( scm_project is not None
-            and self.commit_dialog is None
-            and scm_project.numStagedFiles() > 0 ):
-                can_commit = True
-
-            cache[ key ] = can_commit
-
-        return cache[ key ]
-
-    def enablerPush( self, cache ):
-        key = 'enablerPush'
-        if key not in cache:
-            scm_project = self.__treeSelectedScmProject()
-            cache[ key ] = scm_project is not None and scm_project.canPush()
-
-        return cache[ key ]
-
-    def enablerLogHistory( self, cache ):
-        return True
 
     #------------------------------------------------------------
     #
@@ -561,9 +435,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if pref_dialog.exec_():
             pref_dialog.savePreferences()
             self.app.writePreferences()
-
-    def appActionQqq( self ):
-        print( 'qqq menu qqq' )
 
     def appActionAbout( self ):
         from PyQt5 import Qt
@@ -678,49 +549,17 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     #------------------------------------------------------------
     #
-    # tree or table actions depending on focus
-    #
-    #------------------------------------------------------------
-    def __callTreeOrTableFunction( self, fn_tree, fn_table ):
-        if self.tree_view.hasFocus():
-            fn_tree()
-
-        elif( self.table_view.hasFocus()
-        or self.filter_text.hasFocus() ):
-            fn_table()
-
-        # else in log so ignore
-
-    def treeTableActionScmDiffSmart( self ):
-        self.__callTreeOrTableFunction( self.treeActionScmDiffSmart, self.tableActionScmDiffSmart )
-
-    def treeTableActionScmDiffStagedVsWorking( self ):
-        self.__callTreeOrTableFunction( self.treeActionScmDiffStagedVsWorking, self.tableActionScmDiffStagedVsWorking )
-
-    def treeTableActionScmDiffHeadVsStaged( self ):
-        self.__callTreeOrTableFunction( self.treeActionScmDiffHeadVsStaged, self.tableActionScmDiffHeadVsStaged )
-
-    def treeTableActionScmDiffHeadVsWorking( self ):
-        self.__callTreeOrTableFunction( self.treeActionScmDiffHeadVsWorking, self.tableActionScmDiffHeadVsWorking )
-
-    def treeTableActionScmLogHistory( self ):
-        self.__callTreeOrTableFunction( self.treeActionScmLogHistory, self.tableActionScmLogHistory )
-
-    #------------------------------------------------------------
-    #
     # tree actions
     #
     #------------------------------------------------------------
-    def __treeSelectedProjectName( self ):
-        # only correct is called with the top of the tree is selected
-        # which is ensured by the enablers
+    def _treeSelectedScmProject( self ):
         scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
         if scm_project_tree_node is None:
             return None
 
-        return scm_project_tree_node.name
+        return scm_project_tree_node.project
 
-    def __treeSelectedAbsoluteFolder( self ):
+    def _treeSelectedAbsoluteFolder( self ):
         scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
         if scm_project_tree_node is None:
             return None
@@ -739,13 +578,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         return scm_project_tree_node.relativePath()
 
-    def __treeSelectedScmProject( self ):
-        scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
-        if scm_project_tree_node is None:
-            return None
-
-        return scm_project_tree_node.project
-
     def treeContextMenu( self, pos ):
         self._debug( 'treeContextMenu( %r )' % (pos,) )
         global_pos = self.tree_view.viewport().mapToGlobal( pos )
@@ -753,18 +585,30 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_context_menu.exec_( global_pos )
 
     def treeSelectionChanged( self, selected, deselected ):
-        self.filter_text.clear()
         self.tree_model.selectionChanged( selected, deselected )
-        self.updateActionEnabledStates()
 
-        scm_project = self.__treeSelectedScmProject()
+        self.filter_text.clear()
+
+        scm_project = self._treeSelectedScmProject()
+        if self.__ui_active_scm_type != scm_project.scmType():
+            if self.__ui_active_scm_type is not None:
+                self._debug( 'treeSelectionChanged hiding UI for %s' % (self.__ui_active_scm_type,) )
+                self.all_ui_components[ self.__ui_active_scm_type ].hideUiComponents()
+
+
+            self._debug( 'treeSelectionChanged showing UI for %s' % (scm_project.scmType(),) )
+            self.__ui_active_scm_type = scm_project.scmType()
+            self.all_ui_components[ self.__ui_active_scm_type ].showUiComponents()
+
         if scm_project is None:
             self.branch_text.clear()
 
         else:
-            self.branch_text.setText( scm_project.headRefName() )
+            self.branch_text.setText( scm_project.getBranchName() )
 
-        folder = self.__treeSelectedAbsoluteFolder()
+        self.updateActionEnabledStates()
+
+        folder = self._treeSelectedAbsoluteFolder()
         if folder is None:                                                          
              self.folder_text.clear()
 
@@ -780,244 +624,48 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.folder_text.setText( folder )
 
     def treeActionShell( self ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
+        folder_path = self._treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
 
         wb_shell_commands.CommandShell( self.app, folder_path )
 
     def treeActionFileBrowse( self ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
+        folder_path = self._treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
 
         wb_shell_commands.FileBrowser( self.app, folder_path )
-
-    def treeActionScmDiffSmart( self ):
-        self._debug( 'treeActionScmDiffSmart()' )
-
-    def treeActionScmDiffStagedVsWorking( self ):
-        self._debug( 'treeActionScmDiffStagedVsWorking()' )
-
-    def treeActionScmDiffHeadVsStaged( self ):
-        self._debug( 'treeActionScmDiffHeadVsStaged()' )
-
-    def treeActionScmDiffHeadVsWorking( self ):
-        self._debug( 'treeActionScmDiffHeadVsWorking()' )
-
-    def treeActionCommit( self ):
-        scm_project = self.__treeSelectedScmProject()
-
-        self.commit_dialog = wb_scm_commit_dialog.WbScmCommitDialog(
-                    self.app, self,
-                    T_('Commit %s') % (scm_project.projectName(),) )
-        self.commit_dialog.setStatus(
-                    scm_project.getReportStagedFiles(),
-                    scm_project.getReportUntrackedFiles() )
-        self.commit_dialog.finished.connect( self.__commitDialogFinished )
-
-        # show to the user
-        self.commit_dialog.show()
-
-
-    def __commitDialogFinished( self, result ):
-        if result:
-            scm_project = self.__treeSelectedScmProject()
-            message = self.commit_dialog.getMessage()
-            commit_id = scm_project.cmdCommit( message )
-
-            # take account of the change
-            self.tree_model.refreshTree()
-
-            # sort filter is now invalid
-            self.table_sortfilter.invalidate()
-
-            # enabled states will have changed
-            self.updateActionEnabledStates()
-
-            headline = message.split('\n')[0]
-
-            self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
-
-        self.commit_dialog = None
-
-        # enabled states may have changed
-        self.updateActionEnabledStates()
-
-    # ------------------------------------------------------------
-    def __logScmCommandError( self, e ):
-        self.log.error( "'%s' returned with exit code %i" %
-                        (' '.join(str(i) for i in e.command), e.status) )
-        if e.stderr:
-            all_lines = e.stderr.split('\n')
-            if all_lines[-1] == '':
-                del all_lines[-1]
-
-            for line in all_lines:
-                self.log.error( line )
-
-    def treeActionPush( self ):
-        scm_project = self.__treeSelectedScmProject().newInstance()
-        self.setStatusText( 'Push…' )
-
-        self.app.backgroundProcess( self.treeActionPushBg, (scm_project,) )
-
-    def treeActionPushBg( self, scm_project ):
-        try:
-            scm_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
-
-        except wb_scm_project.ScmCommandError as e:
-            self.__logScmCommandError( e )
-
-        self.app.foregroundProcess( self.setStatusText, ('',) )
-        self.app.foregroundProcess( self.updateActionEnabledStates, () )
-
-    def pushInfoHandlerBg( self, info ):
-        self.app.foregroundProcess( self.pushInfoHandler, (info,) )
-
-    def pushInfoHandler( self, info ):
-        self.log.info( 'Push summary: %s' % (info.summary,) )
-
-    def pushProgressHandlerBg( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        self.app.foregroundProcess( self.pushProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
-
-    def pushProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        if type(cur_count) in (int,float):
-            if type(max_count) in (int,float):
-                status = 'Push %s %d/%d' % (stage_name, int(cur_count), int(max_count))
-
-            else:
-                status = 'Push %s %d' % (stage_name, int(cur_count))
-
-        else:
-            status = 'Push %s' % (stage_name,)
-
-        if message != '':
-            status = '%s - %s' % (status, message)
-           
-        self.setStatusText( status )
-        if is_end:
-            self.log.info( status )
-
-    # ------------------------------------------------------------
-    def treeActionPull( self ):
-        scm_project = self.__treeSelectedScmProject().newInstance()
-        self.setStatusText( 'Pull...' )
-
-        self.app.backgroundProcess( self.treeActionPullBg, (scm_project,) )
-
-    def treeActionPullBg( self, scm_project ):
-        try:
-            scm_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
-
-        except wb_scm_project.ScmCommandError as e:
-            self.__logScmCommandError( e )
-
-        self.app.foregroundProcess( self.setStatusText, ('',) )
-        self.app.foregroundProcess( self.updateActionEnabledStates, () )
-
-    def pullInfoHandlerBg( self, info ):
-        self.app.foregroundProcess( self.pullInfoHandler, (info,) )
-
-    def pullInfoHandler( self, info ):
-        if info.note != '':
-            self.log.info( 'Pull Note: %s' % (info.note,) )
-
-        for state, state_name in (
-                    (info.NEW_TAG, T_('New tag')),
-                    (info.NEW_HEAD, T_('New head')),
-                    (info.HEAD_UPTODATE, T_('Head up to date')),
-                    (info.TAG_UPDATE, T_('Tag update')),
-                    (info.FORCED_UPDATE, T_('Forced update')),
-                    (info.FAST_FORWARD, T_('Fast forward')),
-                    ):
-            if (info.flags&state) != 0:
-                self.log.info( T_('Pull status: %(state_name)s for %(name)s') % {'state_name': state_name, 'name': info.name} )
-
-        for state, state_name in (
-                    (info.REJECTED, T_('Rejected')),
-                    (info.ERROR, T_('Error'))
-                    ):
-            if (info.flags&state) != 0:
-                self.log.error( T_('Pull status: %(state_name)s') % {'state_name': state_name} )
-
-    def pullProgressHandlerBg( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        self.app.foregroundProcess( self.pullProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
-
-    def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        if type(cur_count) in (int,float):
-            if type(max_count) in (int,float):
-                status = 'Pull %s %d/%d' % (stage_name, int(cur_count), int(max_count))
-
-            else:
-                status = 'Pull %s %d' % (stage_name, int(cur_count))
-
-        else:
-            status = 'Push %s' % (stage_name,)
-
-        if message != '':
-            status = '%s - %s' % (status, message)
-           
-        self.setStatusText( status )
-        if is_end:
-            self.log.info( status )
-
-    # ------------------------------------------------------------
-    def treeActionScmLogHistory( self ):
-        options = wb_scm_log_history.WbScmLogHistoryOptions( self.app, self )
-
-        if options.exec_():
-            scm_project = self.__treeSelectedScmProject()
-
-            commit_log_view = wb_scm_log_history.WbScmLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %s') % (scm_project.projectName(),),
-                    wb_scm_images.getQIcon( 'wb.png' ) )
-            commit_log_view.showCommitLogForRepository( scm_project, options )
-            commit_log_view.show()
-
-    def treeActionScmStatus( self ):
-        scm_project = self.__treeSelectedScmProject()
-
-        commit_status_view = wb_scm_status_view.WbScmStatusView(
-                self.app,
-                T_('Status for %s') % (scm_project.projectName(),),
-                wb_scm_images.getQIcon( 'wb.png' ) )
-        commit_status_view.setStatus(
-                    scm_project.getUnpushedCommits(),
-                    scm_project.getReportStagedFiles(),
-                    scm_project.getReportUntrackedFiles() )
-        commit_status_view.show()
 
     #------------------------------------------------------------
     #
     # table actions
     #
     #------------------------------------------------------------
-    def __tableSelectedFiles( self ):
+    def _tableSelectedFiles( self ):
         return [index.data( QtCore.Qt.UserRole ).name
                     for index in self.table_view.selectedIndexes()
                     if index.column() == 0]
 
-    def __tableSelectedExistingFiles( self ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
+    def _tableSelectedExistingFiles( self ):
+        folder_path = self._treeSelectedAbsoluteFolder()
         if folder_path is None:
             return []
 
-        all_filenames = [folder_path / name for name in self.__tableSelectedFiles()]
+        all_filenames = [folder_path / name for name in self._tableSelectedFiles()]
         all_existing_filenames = [filename for filename in all_filenames if filename.exists()]
         return all_existing_filenames
 
-    def __tableSelectedWithStatus( self, with_status, without_status ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
+    def _tableSelectedWithStatus( self, with_status, without_status ):
+        folder_path = self._treeSelectedAbsoluteFolder()
         if folder_path is None:
             return False
 
-        all_names = self.__tableSelectedFiles()
+        all_names = self._tableSelectedFiles()
         if len(all_names) == 0:
             return False
 
-        scm_project = self.__treeSelectedScmProject()
+        scm_project = self._treeSelectedScmProject()
 
         relative_folder = self.__treeSelectedRelativeFolder()
 
@@ -1031,20 +679,35 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         return True
 
-    def __tableSelectedStatus( self ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
+    def _tableSelectedStatus( self ):
+        folder_path = self._treeSelectedAbsoluteFolder()
         if folder_path is None:
             return []
 
-        all_names = self.__tableSelectedFiles()
+        all_names = self._tableSelectedFiles()
         if len(all_names) == 0:
             return []
 
-        scm_project = self.__treeSelectedScmProject()
+        scm_project = self._treeSelectedScmProject()
 
         relative_folder = self.__treeSelectedRelativeFolder()
 
         return [scm_project.getFileState( relative_folder / name ) for name in all_names]
+
+    def _tableSelectedStatus( self ):
+        folder_path = self._treeSelectedAbsoluteFolder()
+        if folder_path is None:
+            return []
+
+        all_names = self._tableSelectedFiles()
+        if len(all_names) == 0:
+            return []
+
+        git_project = self.__treeSelectedGitProject()
+
+        relative_folder = self.__treeSelectedRelativeFolder()
+
+        return [git_project.getFileState( relative_folder / name ) for name in all_names]
 
     def tableKeyHandler( self, key ):
         if key in self.table_keys_edit:
@@ -1057,6 +720,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._debug( 'tableContextMenu( %r )' % (pos,) )
         global_pos = self.table_view.viewport().mapToGlobal( pos )
 
+        qqq
         self.table_context_menu.exec_( global_pos )
 
     def tableHeaderClicked( self, column ):
@@ -1076,187 +740,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tableActionEdit()
 
     def tableActionOpen( self ):
-        all_filenames = self.__tableSelectedExistingFiles()
+        all_filenames = self._tableSelectedExistingFiles()
         if len(all_filenames) > 0:
-            wb_shell_commands.ShellOpen( self.app, self.__treeSelectedAbsoluteFolder(), all_filenames )
+            wb_shell_commands.ShellOpen( self.app, self._treeSelectedAbsoluteFolder(), all_filenames )
 
     def tableActionEdit( self ):
-        all_filenames = self.__tableSelectedExistingFiles()
+        all_filenames = self._tableSelectedExistingFiles()
         if len(all_filenames) > 0:
-            wb_shell_commands.EditFile( self.app, self.__treeSelectedAbsoluteFolder(), all_filenames )
-
-    def tableActionScmStage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionScmStage )
-
-    def tableActionScmUnstage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionScmUnStage )
-
-    def tableActionScmRevert( self ):
-        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionScmRevert )
-
-    def tableActionScmDelete( self ):
-        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionScmDelete )
-
-    def tableActionScmDiffSmart( self ):
-        self._debug( 'tableActionScmDiffSmart()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionScmDiffSmart )
-
-    def tableActionScmDiffStagedVsWorking( self ):
-        self._debug( 'tableActionScmDiffStagedVsWorking()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionScmDiffStagedVsWorking )
-
-    def tableActionScmDiffHeadVsStaged( self ):
-        self._debug( 'tableActionScmDiffHeadVsStaged()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionScmDiffHeadVsStaged )
-
-    def tableActionScmDiffHeadVsWorking( self ):
-        self._debug( 'tableActionScmDiffHeadVsWorking()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionScmDiffHeadVsWorking )
-
-    def tableActionScmLogHistory( self ):
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionScmLogHistory )
-
-    def __actionScmStage( self, scm_project, filename ):
-        scm_project.cmdStage( filename )
-
-    def __actionScmUnStage( self, scm_project, filename ):
-        scm_project.cmdUnstage( 'HEAD', filename )
-        pass
-
-    def __actionScmRevert( self, scm_project, filename ):
-        scm_project.cmdRevert( 'HEAD', filename )
-
-    def __actionScmDelete( self, scm_project, filename ):
-        scm_project.cmdDelete( filename )
-
-    def __actionScmDiffSmart( self, scm_project, filename ):
-        file_state = scm_project.getFileState( filename )
-
-        if file_state.canDiffStagedVsWorking():
-            self.__actionScmDiffStagedVsWorking( scm_project, filename )
-
-        elif file_state.canDiffHeadVsStaged():
-            self.__actionScmDiffHeadVsStaged( scm_project, filename )
-
-        elif file_state.canDiffHeadVsWorking():
-            self.__actionScmDiffHeadVsWorking( scm_project, filename )
-
-    def __diffUnified( self, old_lines, new_lines ):
-        return list( difflib.unified_diff( old_lines, new_lines ) )
-
-    def __actionScmDiffHeadVsWorking( self, scm_project, filename ):
-        file_state = scm_project.getFileState( filename )
-
-        old_lines = file_state.getTextLinesHead()
-        new_lines = file_state.getTextLinesWorking()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff HEAD vs. Work %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_scm_images.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
-
-    def __actionScmDiffStagedVsWorking( self, scm_project, filename ):
-        file_state = scm_project.getFileState( filename )
-
-        old_lines = file_state.getTextLinesStaged()
-        new_lines = file_state.getTextLinesWorking()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff Staged vs. Work %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_scm_images.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
-
-    def __actionScmDiffHeadVsStaged( self, scm_project, filename ):
-        file_state = scm_project.getFileState( filename )
-
-        old_lines = file_state.getTextLinesHead()
-        new_lines = file_state.getTextLinesStaged()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff HEAD vs. Staged %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_scm_images.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
-
-    def __actionScmLogHistory( self, scm_project, filename ):
-        options = wb_scm_log_history.WbScmLogHistoryOptions( self.app, self )
-
-        if options.exec_():
-            commit_log_view = wb_scm_log_history.WbScmLogHistoryView(
-                    self.app, T_('Commit Log for %s') % (filename,), wb_scm_images.getQIcon( 'wb.png' ) )
-
-            commit_log_view.showCommitLogForFile( scm_project, filename, options )
-            commit_log_view.show()
-
-    #------------------------------------------------------------
-    def __areYouSureAlways( self, all_filenames ):
-        return True
-
-    def __areYouSureRevert( self, all_filenames ):
-        default_button = QtWidgets.QMessageBox.No
-
-        title = T_('Confirm Revert')
-        all_parts = [T_('Are you sure you wish to revert:')]
-        all_parts.extend( [str(filename) for filename in all_filenames] )
-
-        message = '\n'.join( all_parts )
-
-        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
-        return rc == QtWidgets.QMessageBox.Yes
-
-    def __areYouSureDelete( self, all_filenames ):
-        default_button = QtWidgets.QMessageBox.No
-
-        title = T_('Confirm Delete')
-        all_parts = [T_('Are you sure you wish to delete:')]
-        all_parts.extend( [str(filename) for filename in all_filenames] )
-
-        message = '\n'.join( all_parts )
-
-        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
-        return rc == QtWidgets.QMessageBox.Yes
-
-    def __tableActionViewRepo( self, are_you_sure_function, execute_function ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return
-
-        all_names = self.__tableSelectedFiles()
-        if len(all_names) == 0:
-            return
-
-        scm_project = self.__treeSelectedScmProject()
-
-        relative_folder = self.__treeSelectedRelativeFolder()
-
-        all_filenames = [relative_folder / name for name in all_names]
-
-        if not are_you_sure_function( all_filenames ):
-            return False
-
-        for filename in all_filenames:
-            execute_function( scm_project, filename )
-
-        return True
-
-    def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
-        if self.__tableActionViewRepo( are_you_sure_function, execute_function ):
-            scm_project = self.__treeSelectedScmProject()
-            scm_project.saveChanges()
-
-            # take account of the change
-            self.table_model.refreshTable()
-
-            # sort filter is now invalid
-            self.table_sortfilter.invalidate()
-
-            # enabled states will have changed
-            self.updateActionEnabledStates()
+            wb_shell_commands.EditFile( self.app, self._treeSelectedAbsoluteFolder(), all_filenames )
 
 class WbTableView(QtWidgets.QTableView):
     def __init__( self, main_window, all_keys, key_handler ):

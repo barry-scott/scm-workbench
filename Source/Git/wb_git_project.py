@@ -35,6 +35,9 @@ class GitProject:
         self.__stale_index = False
         self.__num_staged_files = 0
 
+    def scmType( self ):
+        return 'git'
+
     # return a new GitProject that can be used in another thread
     def newInstance( self ):
         return GitProject( self.app, self.prefs_project )
@@ -51,7 +54,7 @@ class GitProject:
     def path( self ):
         return pathlib.Path( self.prefs_project.path )
 
-    def headRefName( self ):
+    def getBranchName( self ):
         return self.repo.head.ref.name
 
     def numStagedFiles( self ):
