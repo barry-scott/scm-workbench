@@ -314,7 +314,7 @@ class GitMainWindowComponents:
             commit_id = git_project.cmdCommit( message )
 
             # take account of the change
-            self.main_window.updateTreeView()
+            self.main_window.updateTableView()
 
             headline = message.split('\n')[0]
 
