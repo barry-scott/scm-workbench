@@ -89,6 +89,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.__log = wb_logging.WbLog( self.app )
 
         # models and views
+
+        # on Qt on macOS table will tigger selectionChanged that needs tree_model
+        self.tree_model = None
         self.__setupTableViewAndModel()
         self.__setupTreeViewAndModel()
 
@@ -213,7 +216,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
+
+        self._debug( '__setupTableViewAndModel view a' )
+
+        # setModel triggers a selectionChanged event
         self.table_view.setModel( self.table_sortfilter )
+
+        self._debug( '__setupTableViewAndModel view b' )
+
         # allow Tab/Shift-Tab to move between tree/filter/table and log widgets
         self.table_view.setTabKeyNavigation( False )
 
@@ -239,6 +249,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
 
+        self._debug( '__setupTableViewAndModel Done' )
+
     def __setupTreeViewAndModel( self ):
         self._debug( '__setupTreeViewAndModel' )
 
@@ -253,6 +265,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
     def updateActionEnabledStates( self ):
+        # can be called during __init__ on macOS version
+        if self.tree_model is None:
+            return
+
         self.updateEnableStates()
 
         if self.commit_dialog is not None:
