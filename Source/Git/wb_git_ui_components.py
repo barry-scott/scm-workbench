@@ -307,7 +307,6 @@ class GitMainWindowComponents:
         # show to the user
         self.commit_dialog.show()
 
-
     def __commitDialogFinished( self, result ):
         if result:
             git_project = self.__treeSelectedGitProject()
@@ -315,13 +314,7 @@ class GitMainWindowComponents:
             commit_id = git_project.cmdCommit( message )
 
             # take account of the change
-            self.tree_model.refreshTree()
-
-            # sort filter is now invalid
-            self.table_sortfilter.invalidate()
-
-            # enabled states will have changed
-            self.updateActionEnabledStates()
+            self.main_window.updateTreeView()
 
             headline = message.split('\n')[0]
 
