@@ -24,6 +24,7 @@ class HgMainWindowComponents:
 
     def setMainWindow( self, main_window ):
         self.main_window = main_window
+        self._debug = self.main_window.app._debugHgUi
 
     def getTableContextMenu( self ):
         return self.hg_table_context_menu

@@ -31,21 +31,17 @@ import wb_scm_version
 import wb_scm_images
 import wb_scm_preferences
 import wb_scm_preferences_dialog
-#import wb_scm_commit_dialog
 
 import wb_scm_tree_model
 
 import wb_scm_table_model
-#import wb_scm_project
-#import wb_scm_log_history
 import wb_scm_project_dialogs
-#import wb_scm_status_view
 
 import wb_shell_commands
 import wb_logging
-import wb_diff_unified_view
 import wb_main_window
 import wb_preferences
+import wb_tracked_qwidget
 
 class WbScmMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app, all_ui_components ):
@@ -269,6 +265,16 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.customContextMenuRequested.connect( self.treeContextMenu )
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
+    def updateTableView( self ):
+        self.table_model.refreshTable()
+
+        # sort filter is now invalid
+        self.table_sortfilter.invalidate()
+
+        # enabled states will have changed
+        self.updateActionEnabledStates()
+
+
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
         if self.tree_model is None:
@@ -374,7 +380,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def enablerIsProject( self, cache ):
         key = 'enablerIsProject'
         if key not in cache:
-            cache[ key ] = self.__treeSelectedRelativeFolder() == pathlib.Path( '.' )
+            cache[ key ] = self._treeSelectedRelativeFolder() == pathlib.Path( '.' )
 
         return cache[ key ]
 
@@ -481,9 +487,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.app.writePreferences()
 
         # close all open modeless windows
-        wb_diff_unified_view.WbDiffViewBase.closeAllWindows()
-        wb_scm_log_history.WbScmLogHistoryView.closeAllWindows()
-        wb_scm_status_view.WbScmStatusView.closeAllWindows()
+        wb_tracked_qwidget.closeAllWindows()
 
         if close:
             self.close()
@@ -552,6 +556,15 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # tree actions
     #
     #------------------------------------------------------------
+    def _treeSelectedScmProjectName( self ):
+        # only correct if called when the top of the tree is selected
+        # which is ensured by the enablers
+        project_tree_node = self.tree_model.selectedScmProjectTreeNode()
+        if project_tree_node is None:
+            return None
+
+        return project_tree_node.name
+
     def _treeSelectedScmProject( self ):
         scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
         if scm_project_tree_node is None:
@@ -571,7 +584,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         return folder_path
 
-    def __treeSelectedRelativeFolder( self ):
+    def _treeSelectedRelativeFolder( self ):
         scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
         if scm_project_tree_node is None:
             return None
@@ -582,7 +595,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._debug( 'treeContextMenu( %r )' % (pos,) )
         global_pos = self.tree_view.viewport().mapToGlobal( pos )
 
-        self.tree_context_menu.exec_( global_pos )
+        if self.__ui_active_scm_type is not None:
+            self.all_ui_components[ self.__ui_active_scm_type ].getTreeContextMenu().exec_( global_pos )
 
     def treeSelectionChanged( self, selected, deselected ):
         self.tree_model.selectionChanged( selected, deselected )
@@ -642,6 +656,16 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # table actions
     #
     #------------------------------------------------------------
+    def _callTreeOrTableFunction( self, fn_tree, fn_table ):
+        if self.tree_view.hasFocus():
+            fn_tree()
+
+        elif( self.table_view.hasFocus()
+        or self.filter_text.hasFocus() ):
+            fn_table()
+
+        # else in logWidget so ignore
+
     def _tableSelectedFiles( self ):
         return [index.data( QtCore.Qt.UserRole ).name
                     for index in self.table_view.selectedIndexes()
@@ -667,7 +691,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         scm_project = self._treeSelectedScmProject()
 
-        relative_folder = self.__treeSelectedRelativeFolder()
+        relative_folder = self._treeSelectedRelativeFolder()
 
         for name in all_names:
             status = scm_project.getStatus( relative_folder / name )
@@ -690,24 +714,31 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         scm_project = self._treeSelectedScmProject()
 
-        relative_folder = self.__treeSelectedRelativeFolder()
+        relative_folder = self._treeSelectedRelativeFolder()
 
         return [scm_project.getFileState( relative_folder / name ) for name in all_names]
 
-    def _tableSelectedStatus( self ):
+    def _tableActionViewRepo( self, are_you_sure_function, execute_function ):
         folder_path = self._treeSelectedAbsoluteFolder()
         if folder_path is None:
-            return []
+            return
 
         all_names = self._tableSelectedFiles()
         if len(all_names) == 0:
-            return []
+            return
+        scm_project = self._treeSelectedScmProject()
 
-        git_project = self.__treeSelectedGitProject()
+        relative_folder = self._treeSelectedRelativeFolder()
 
-        relative_folder = self.__treeSelectedRelativeFolder()
+        all_filenames = [relative_folder / name for name in all_names]
 
-        return [git_project.getFileState( relative_folder / name ) for name in all_names]
+        if not are_you_sure_function( all_filenames ):
+            return False
+
+        for filename in all_filenames:
+            execute_function( scm_project, filename )
+
+        return True
 
     def tableKeyHandler( self, key ):
         if key in self.table_keys_edit:
@@ -720,8 +751,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._debug( 'tableContextMenu( %r )' % (pos,) )
         global_pos = self.table_view.viewport().mapToGlobal( pos )
 
-        qqq
-        self.table_context_menu.exec_( global_pos )
+        if self.__ui_active_scm_type is not None:
+            self.all_ui_components[ self.__ui_active_scm_type ].getTableContextMenu().exec_( global_pos )
 
     def tableHeaderClicked( self, column ):
         if column == self.table_sort_column:

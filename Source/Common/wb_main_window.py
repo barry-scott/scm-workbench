@@ -28,6 +28,9 @@ class WbMainWindow(QtWidgets.QMainWindow):
         # list of all the WbActionEnableState for the menus and toolbars
         self.__enable_state_manager = WbActionEnableStateManager( self._debug )
 
+    def getQIcon( self, icon_name ):
+        return self.__image_store.getQIcon( icon_name )
+
     def updateEnableStates( self ):
         self.__enable_state_manager.update()
 
@@ -44,7 +47,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
         if icon_name is None:
             action = menu.addAction( name )
         else:
-            icon = self.__image_store.getQIcon( icon_name )
+            icon = self.getQIcon( icon_name )
             action = menu.addAction( icon, name )
 
         if handler is not None:
@@ -66,7 +69,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action = bar.addAction( name )
 
         else:
-            icon = self.__image_store.getQIcon( icon_name )
+            icon = self.getQIcon( icon_name )
             action = bar.addAction( icon, name )
 
         action.triggered.connect( handler )

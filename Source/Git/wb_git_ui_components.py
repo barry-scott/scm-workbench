@@ -10,28 +10,38 @@
     wb_git_ui_components.py.py
 
 '''
+import difflib
+
+import wb_diff_unified_view
+
 import wb_git_project
+import wb_git_commit_dialog
+
 
 class GitMainWindowComponents:
     def __init__( self ):
         self.main_window = None
+        self.app = None
+        self._debug = None
 
         self.commit_dialog = None
 
         self.all_menus = []
         self.all_toolbars = []
 
-        self.git_table_context_menu = None
-        self.git_tree_context_menu = None
+        self.table_context_menu = None
+        self.tree_context_menu = None
 
     def setMainWindow( self, main_window ):
         self.main_window = main_window
+        self.app = self.main_window.app
+        self._debug = self.main_window.app._debugGitUi
 
     def getTableContextMenu( self ):
-        return self.git_table_context_menu
+        return self.table_context_menu
 
     def getTreeContextMenu( self ):
-        return self.git_tree_context_menu
+        return self.tree_context_menu
 
     def showUiComponents( self ):
         for menu in self.all_menus:
@@ -101,7 +111,7 @@ class GitMainWindowComponents:
         addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
-        self.git_table_context_menu = m
+        self.table_context_menu = m
 
         m.addSection( T_('Diff') )
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
@@ -116,7 +126,7 @@ class GitMainWindowComponents:
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.enablerFilesExists )
 
     def setupTreeContextMenu( self, m, addMenu ):
-        self.git_tre_context_menu = m
+        self.tree_context_menu = m
 
     #------------------------------------------------------------
     #
@@ -240,63 +250,26 @@ class GitMainWindowComponents:
     # tree or table actions depending on focus
     #
     #------------------------------------------------------------
-    def __callTreeOrTableFunction( self, fn_tree, fn_table ):
-        if self.tree_view.hasFocus():
-            fn_tree()
-
-        elif( self.table_view.hasFocus()
-        or self.filter_text.hasFocus() ):
-            fn_table()
-
-        # else in log so ignore
-
     def treeTableActionGitDiffSmart( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffSmart, self.tableActionGitDiffSmart )
+        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffSmart, self.tableActionGitDiffSmart )
 
     def treeTableActionGitDiffStagedVsWorking( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffStagedVsWorking, self.tableActionGitDiffStagedVsWorking )
+        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffStagedVsWorking, self.tableActionGitDiffStagedVsWorking )
 
     def treeTableActionGitDiffHeadVsStaged( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffHeadVsStaged, self.tableActionGitDiffHeadVsStaged )
+        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffHeadVsStaged, self.tableActionGitDiffHeadVsStaged )
 
     def treeTableActionGitDiffHeadVsWorking( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
+        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
 
     def treeTableActionGitLogHistory( self ):
-        self.__callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
+        self.main_window._callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
 
     #------------------------------------------------------------
     #
     # tree actions
     #
     #------------------------------------------------------------
-    def __treeSelectedProjectName( self ):
-        # only correct if called when the top of the tree is selected
-        # which is ensured by the enablers
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
-        if git_project_tree_node is None:
-            return None
-
-        return git_project_tree_node.name
-
-    def __treeSelectedAbsoluteFolder( self ):
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
-        if git_project_tree_node is None:
-            return None
-
-        folder_path = git_project_tree_node.absolutePath()
-
-        if not folder_path.exists():
-            return None
-
-        return folder_path
-
-    def __treeSelectedRelativeFolder( self ):
-        git_project_tree_node = self.tree_model.selectedGitProjectTreeNode()
-        if git_project_tree_node is None:
-            return None
-
-        return git_project_tree_node.relativePath()
 
     def __treeSelectedGitProject( self ):
         git_project = self.main_window._treeSelectedScmProject()
@@ -324,7 +297,7 @@ class GitMainWindowComponents:
         git_project = self.__treeSelectedGitProject()
 
         self.commit_dialog = wb_git_commit_dialog.WbGitCommitDialog(
-                    self.app, self,
+                    self.app, self.main_window,
                     T_('Commit %s') % (git_project.projectName(),) )
         self.commit_dialog.setStatus(
                     git_project.getReportStagedFiles(),
@@ -487,7 +460,7 @@ class GitMainWindowComponents:
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(
                     self.app,
                     T_('Commit Log for %s') % (git_project.projectName(),),
-                    wb_git_images.getQIcon( 'wb.png' ) )
+                    self.main_window.getQIcon( 'wb.png' ) )
             commit_log_view.showCommitLogForRepository( git_project, options )
             commit_log_view.show()
 
@@ -497,7 +470,7 @@ class GitMainWindowComponents:
         commit_status_view = wb_git_status_view.WbGitStatusView(
                 self.app,
                 T_('Status for %s') % (git_project.projectName(),),
-                wb_git_images.getQIcon( 'wb.png' ) )
+                self.main_window.getQIcon( 'wb.png' ) )
         commit_status_view.setStatus(
                     git_project.getUnpushedCommits(),
                     git_project.getReportStagedFiles(),
@@ -519,22 +492,22 @@ class GitMainWindowComponents:
 
     def tableActionGitDiffSmart( self ):
         self._debug( 'tableActionGitDiffSmart()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffSmart )
+        self.main_window._tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffSmart )
 
     def tableActionGitDiffStagedVsWorking( self ):
         self._debug( 'tableActionGitDiffStagedVsWorking()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffStagedVsWorking )
+        self.main_window._tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffStagedVsWorking )
 
     def tableActionGitDiffHeadVsStaged( self ):
         self._debug( 'tableActionGitDiffHeadVsStaged()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsStaged )
+        self.main_window._tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsStaged )
 
     def tableActionGitDiffHeadVsWorking( self ):
         self._debug( 'tableActionGitDiffHeadVsWorking()' )
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsWorking )
+        self.main_window._tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsWorking )
 
     def tableActionGitLogHistory( self ):
-        self.__tableActionViewRepo( self.__areYouSureAlways, self.__actionGitLogHistory )
+        self.main_window._tableActionViewRepo( self.__areYouSureAlways, self.__actionGitLogHistory )
 
     def __actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )
@@ -573,7 +546,7 @@ class GitMainWindowComponents:
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Work %s') % (filename,)
 
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -586,7 +559,7 @@ class GitMainWindowComponents:
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff Staged vs. Work %s') % (filename,)
 
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -599,7 +572,7 @@ class GitMainWindowComponents:
         text = self.__diffUnified( old_lines, new_lines )
         title = T_('Diff HEAD vs. Staged %s') % (filename,)
 
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, wb_git_images.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
         window.setUnifiedDiffText( text )
         window.show()
 
@@ -608,7 +581,7 @@ class GitMainWindowComponents:
 
         if options.exec_():
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                    self.app, T_('Commit Log for %s') % (filename,), wb_git_images.getQIcon( 'wb.png' ) )
+                    self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
 
             commit_log_view.showCommitLogForFile( git_project, filename, options )
             commit_log_view.show()
@@ -641,40 +614,10 @@ class GitMainWindowComponents:
         rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
         return rc == QtWidgets.QMessageBox.Yes
 
-    def __tableActionViewRepo( self, are_you_sure_function, execute_function ):
-        folder_path = self.__treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return
-
-        all_names = self.__tableSelectedFiles()
-        if len(all_names) == 0:
-            return
-
-        git_project = self.__treeSelectedGitProject()
-
-        relative_folder = self.__treeSelectedRelativeFolder()
-
-        all_filenames = [relative_folder / name for name in all_names]
-
-        if not are_you_sure_function( all_filenames ):
-            return False
-
-        for filename in all_filenames:
-            execute_function( git_project, filename )
-
-        return True
-
     def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
-        if self.__tableActionViewRepo( are_you_sure_function, execute_function ):
+        if self.main_window._tableActionViewRepo( are_you_sure_function, execute_function ):
             git_project = self.__treeSelectedGitProject()
             git_project.saveChanges()
 
             # take account of the change
-            self.table_model.refreshTable()
-
-            # sort filter is now invalid
-            self.table_sortfilter.invalidate()
-
-            # enabled states will have changed
-            self.updateActionEnabledStates()
-
+            self.main_window.updateTableView()

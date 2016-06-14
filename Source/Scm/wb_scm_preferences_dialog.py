@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_main_window.py
+    wb_scm_preferences_dialog.py
 
     Based on code from pysvn WorkBench
 
@@ -21,7 +21,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-class WbGitPreferencesDialog(QtWidgets.QDialog):
+class WbScmPreferencesDialog(QtWidgets.QDialog):
     def __init__( self, app, parent ):
         self.app = app
 
@@ -243,7 +243,7 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication( ['foo'] )
 
-    prefs = WbGitPreferencesDialog( None, None )
+    prefs = WbScmPreferencesDialog( None, None )
     if prefs.exec_():
         print( 'o.k.' )
 

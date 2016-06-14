@@ -19,6 +19,9 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import wb_tracked_qwidget
+
+
 #------------------------------------------------------------
 #
 #   WbHgLogHistoryOptions - option to control which commit logs to show
@@ -152,26 +155,12 @@ class WbHgLogHistoryOptions(QtWidgets.QDialog):
 #   WbHgLogHistoryView - show the commits from the log model
 #
 #------------------------------------------------------------
-class WbHgLogHistoryView(QtWidgets.QWidget):
-    uid = 0
-    all_windows = {}
-
-    @staticmethod
-    def closeAllWindows():
-        for window in list( WbHgLogHistoryView.all_windows.values() ):
-            window.close()
-
+class WbHgLogHistoryView(wb_tracked_qwidget.WbTrackedModelessQWidget):
     def __init__( self, app, title, icon ):
         self.app = app
         self._debug = self.app._debugLogHistory
 
-        WbHgLogHistoryView.uid += 1
-        self.window_uid = WbHgLogHistoryView.uid
-
-        # remember this window to keep the object alive
-        WbHgLogHistoryView.all_windows[ self.window_uid ] = self
-
-        super().__init__( None )
+        super().__init__()
 
         self.log_model = WbHgLogHistoryModel( self.app )
 
@@ -252,11 +241,6 @@ class WbHgLogHistoryView(QtWidgets.QWidget):
 
             else:
                 self.commit_changes.insertPlainText( '%s %s from %s\n' % (type_, filename, old_filename) )
-
-    def closeEvent( self, event ):
-        del WbHgLogHistoryView.all_windows[ self.window_uid ]
-
-        super().closeEvent( event )
 
 class WbLogTableView(QtWidgets.QTableView):
     def __init__( self, log_view ):

@@ -13,25 +13,13 @@
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 
-class WbGitStatusView(QtWidgets.QWidget):
-    uid = 0
-    all_windows = {}
+import wb_tracked_qwidget
 
-    @staticmethod
-    def closeAllWindows():
-        for window in list( WbGitStatusView.all_windows.values() ):
-            window.close()
-
+class WbGitStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
     def __init__( self, app, title, icon ):
         self.app = app
 
-        WbGitStatusView.uid += 1
-        self.window_uid = WbGitStatusView.uid
-
-        # remember this window to keep the object alive
-        WbGitStatusView.all_windows[ self.window_uid ] = self
-
-        super().__init__( None )
+        super().__init__()
 
         self.setWindowTitle( title )
         self.setWindowIcon( icon )
@@ -68,8 +56,3 @@ class WbGitStatusView(QtWidgets.QWidget):
         self.unpushed.setPlainText( unpushed_text )
         self.staged.setPlainText( staged_text )
         self.untracked.setPlainText( untracked_text )
-
-    def closeEvent( self, event ):
-        del WbGitStatusView.all_windows[ self.window_uid ]
-
-        super().closeEvent( event )

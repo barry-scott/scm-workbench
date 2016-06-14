@@ -18,10 +18,12 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import wb_tracked_qwidget
+
 def U_(s):
     return s
 
-class WbDiffViewBase(QtWidgets.QWidget):
+class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
     style_header = 0
     style_normal = 1
     style_add = 2
@@ -34,33 +36,14 @@ class WbDiffViewBase(QtWidgets.QWidget):
         (style_delete,  '#1919c0', '#ffffff'),
         )
 
-    uid = 0
-    all_diff_views = {}
-
-    @staticmethod
-    def closeAllWindows():
-        for window in list( WbDiffViewBase.all_diff_views.values() ):
-            window.close()
-
     def __init__( self, app, title, icon ):
         self.app = app
 
-        WbDiffViewBase.uid += 1
-        self.window_uid = WbDiffViewBase.uid
-
-        # remember this window to keep the object alive
-        WbDiffViewBase.all_diff_views[ self.window_uid ] = self
-
-        super().__init__( None )
+        super().__init__()
 
         self.setWindowTitle( title )
         if icon is not None:
             self.setWindowIcon( icon )
-
-    def closeEvent( self, event ):
-        del WbDiffViewBase.all_diff_views[ self.window_uid ]
-
-        super().closeEvent( event )
 
 class WbDiffViewText(WbDiffViewBase):
     def __init__( self, app, title, icon ):
