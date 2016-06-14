@@ -274,6 +274,15 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # enabled states will have changed
         self.updateActionEnabledStates()
 
+    # QQQ is it necessary to have both updateTableView and updateTreeView?
+    def updateTreeView( self ):
+        self.tree_model.refreshTable()
+
+        # sort filter is now invalid
+        self.table_sortfilter.invalidate()
+
+        # enabled states will have changed
+        self.updateActionEnabledStates()
 
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
