@@ -162,6 +162,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             index = self.tree_model.getFirstProjectIndex()
 
         if index is not None:
+            self._debug( 'Selecting project in tree' )
             selection_model.select( index,
                         selection_model.Clear |
                         selection_model.Select |
@@ -200,6 +201,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.status_message.setText( text )
 
     def __setupTableViewAndModel( self ):
+        self._debug( '__setupTableViewAndModel' )
+
         self.table_model = wb_scm_table_model.WbScmTableModel( self.app )
 
         self.table_sortfilter = wb_scm_table_model.WbScmTableSortFilter( self.app )
@@ -237,6 +240,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
 
     def __setupTreeViewAndModel( self ):
+        self._debug( '__setupTreeViewAndModel' )
+
         self.tree_model = wb_scm_tree_model.WbScmTreeModel( self.app, self.table_model )
 
         self.tree_view = QtWidgets.QTreeView()
@@ -299,12 +304,16 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_("&About…"), self.appActionAbout )
 
     def __setupTreeContextMenu( self ):
+        self._debug( '__setupTreeContextMenu' )
+
         m = self.tree_context_menu = QtWidgets.QMenu( self )
         m.addSection( T_('Folder Actions') )
         self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
         self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
     def __setupTableContextMenu( self ):
+        self._debug( '__setupTableContextMenu' )
+
         m = self.table_context_menu = QtWidgets.QMenu( self )
 
         m.addSection( T_('File Actions') )
