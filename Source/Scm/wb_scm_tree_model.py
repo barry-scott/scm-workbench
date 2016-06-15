@@ -31,7 +31,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         self.selected_node = None
 
-        for project in self.app.prefs.getAllProjects():
+        for project in sorted( self.app.prefs.getAllProjects() ):
             self.addProject( project )
 
     def addProject( self, project ):

@@ -173,6 +173,9 @@ class Project(PreferencesNode):
         self.scm_type = scm_type
         self.path = path
 
+    def __lt__( self, other ):
+        return self.name.lower() < other.name.lower()
+
     def __repr__( self ):
         return '<Project: name=%r scm=%r path=%r>' % (self.name, self.scm, self.path)
 
