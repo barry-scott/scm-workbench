@@ -22,7 +22,8 @@ import wb_ui_components
 
 import wb_git_project
 import wb_git_commit_dialog
-
+import wb_git_log_history
+import wb_git_status_view
 
 class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self ):
@@ -423,7 +424,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def treeActionGitLogHistory( self ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
+        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self.main_window )
 
         if options.exec_():
             git_project = self.__treeSelectedGitProject()
@@ -548,7 +549,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         window.show()
 
     def __actionGitLogHistory( self, git_project, filename ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
+        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self.main_window )
 
         if options.exec_():
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(

@@ -327,10 +327,11 @@ class GitProject:
 
                 all_renamed = []
 
-                if len(all_added) > 0:
+                # look for renames
+                if len(all_added) > 0 and len(all_deleted) > 0:
                     all_old_id_to_name = {}
-                    for name, id_ in all_old.items():
-                        all_old_id_to_name[ id_ ] = name
+                    for name in all_deleted:
+                        all_old_id_to_name[ all_old[ name ] ] = name
 
                     for name in list(all_added):
                         id_ = all_new[ name ]

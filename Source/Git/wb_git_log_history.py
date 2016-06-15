@@ -224,7 +224,11 @@ class WbGitLogHistoryView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.log_model.loadCommitLogForFile( git_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
 
     def selectionChanged( self ):
-        index = self.table_view.selectedIndexes()[0]
+        all_indices = self.table_view.selectedIndexes()
+        if len(all_indices) == 0:
+            return
+
+        index = all_indices[0]
 
         node = self.log_model.commitNode( index )
         self.commit_id.clear()
