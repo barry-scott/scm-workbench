@@ -3,7 +3,7 @@ export GIT_WORKBENCH_STDOUT_LOG=$(tty)
 
 if [ "${BUILDER_TOP_DIR}" = "" ]
 then
-    BUILDER_TOP_DIR=.
+    BUILDER_TOP_DIR=$( cd ../..; pwd )
 fi
 if [ "$PYTHONPATH" = "" ]
 then

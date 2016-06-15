@@ -737,7 +737,7 @@ class WbGitMainWindow(wb_main_window.WbMainWindow):
             self.branch_text.clear()
 
         else:
-            self.branch_text.setText( git_project.headRefName() )
+            self.branch_text.setText( git_project.getBranchName() )
 
         folder = self.__treeSelectedAbsoluteFolder()
         if folder is None:                                                          
