@@ -10,6 +10,10 @@
     wb_git_ui_components.py.py
 
 '''
+from PyQt5 import QtWidgets
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+
 import difflib
 
 import wb_diff_unified_view
@@ -37,6 +41,7 @@ class GitMainWindowComponents:
         self.app = self.main_window.app
         self.log = self.app.log
         self._debug = self.main_window.app._debugGitUi
+        self.setStatusText = self.main_window.setStatusText
 
     def getTableContextMenu( self ):
         return self.table_context_menu
@@ -593,7 +598,7 @@ class GitMainWindowComponents:
 
         message = '\n'.join( all_parts )
 
-        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
+        rc = QtWidgets.QMessageBox.question( self.main_window, title, message, defaultButton=default_button )
         return rc == QtWidgets.QMessageBox.Yes
 
     def __areYouSureDelete( self, all_filenames ):
@@ -605,7 +610,7 @@ class GitMainWindowComponents:
 
         message = '\n'.join( all_parts )
 
-        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
+        rc = QtWidgets.QMessageBox.question( self.main_window, title, message, defaultButton=default_button )
         return rc == QtWidgets.QMessageBox.Yes
 
     def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
