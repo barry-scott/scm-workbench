@@ -410,6 +410,9 @@ class WbHgFileState:
         # QQQ here for Git compat - bad OO design here
         return self.getAbbreviatedStatus()
 
+    def isIgnored( self ):
+        return self.__state == 'I'
+
     def isTracked( self ):
         return self.__nodeid is not None
 

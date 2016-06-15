@@ -25,14 +25,14 @@ class WbMainWindow(QtWidgets.QMainWindow):
         self.__image_store = image_store
         self.icon_size = QtCore.QSize( 32, 32 )
 
-        # list of all the WbActionEnableState for the menus and toolbars
-        self.__enable_state_manager = WbActionEnableStateManager( self._debug )
+        # list of all the WbActionState for the menus and toolbars
+        self.__action_state_manager = WbActionStateManager( self._debug )
 
     def getQIcon( self, icon_name ):
         return self.__image_store.getQIcon( icon_name )
 
     def updateEnableStates( self ):
-        self.__enable_state_manager.update()
+        self.__action_state_manager.update()
 
     def setupMenuBar( self, menu_bar ):
         pass
@@ -43,7 +43,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def setupStatusBar( self, status_bar ):
         pass
 
-    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, role=QtWidgets.QAction.NoRole ):
+    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, role=QtWidgets.QAction.NoRole ):
         if icon_name is None:
             action = menu.addAction( name )
         else:
@@ -51,20 +51,28 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action = menu.addAction( icon, name )
 
         if handler is not None:
-           action.triggered.connect( handler )
+            if checker is not None:
+                action.toggled.connect( handler )
+
+            else:
+                action.triggered.connect( handler )
 
         if role is not None:
             action.setMenuRole( role )
 
         if enabler is not None:
-            self.__enable_state_manager.add( action, enabler )
+            self.__action_state_manager.addEnabler( action, enabler )
+
+        if checker is not None:
+            action.setCheckable( True )
+            self.__action_state_manager.addChecker( action, checker )
 
     def _addToolBar( self, name ):
         bar = self.addToolBar( name )
         bar.setIconSize( self.icon_size )
         return bar
 
-    def _addTool( self, bar, name, handler, enabler=None, icon_name=None ):
+    def _addTool( self, bar, name, handler, enabler=None, icon_name=None, checker=None ):
         if icon_name is None:
             action = bar.addAction( name )
 
@@ -72,40 +80,72 @@ class WbMainWindow(QtWidgets.QMainWindow):
             icon = self.getQIcon( icon_name )
             action = bar.addAction( icon, name )
 
-        action.triggered.connect( handler )
-        if enabler is not None:
-            self.__enable_state_manager.add( action, enabler )
+        if handler is not None:
+            if checker is not None:
+                action.toggled.connect( handler )
 
-class WbActionEnableStateManager:
+            else:
+                action.triggered.connect( handler )
+
+        if enabler is not None:
+            self.__action_state_manager.addEnabler( action, enabler )
+
+        if checker is not None:
+            action.setCheckable( True )
+            self.__action_state_manager.addChecker( action, enabler )
+
+class WbActionStateManager:
     def __init__( self, debug_fn ):
         self._debug = debug_fn
 
         self.__all_action_enablers = []
+        self.__all_action_checkers = []
 
         self.__update_running = False
 
-    def add( self, action, enable_handler ):
-        self.__all_action_enablers.append( WbActionEnableState( action, enable_handler ) )
+    def addEnabler( self, action, enabler_handler ):
+        self.__all_action_enablers.append( WbActionEnabledState( action, enabler_handler ) )
+
+    def addChecker( self, action, checker_handler ):
+        self.__all_action_checkers.append( WbActionCheckedState( action, checker_handler ) )
 
     def update( self ):
         if self.__update_running:
             return
 
         self.__update_running = True
-        self._debug( 'WbActionEnableState.update running' )
+        self._debug( 'WbActionState.update running' )
 
         # use a cache to avoid calling state queries more then once on any one update
         cache = {}
         for enabler in self.__all_action_enablers:
             enabler.setEnableState( cache )
 
-        self._debug( 'WbActionEnableState.update done' )
+        for checker in self.__all_action_checkers:
+            checker.setCheckedState( cache )
+
+        self._debug( 'WbActionState.update done' )
         self.__update_running = False
 
-class WbActionEnableState:
-    def __init__( self, action, enable_handler ):
+class WbActionEnabledState:
+    def __init__( self, action, enabler_handler ):
         self.action = action
-        self.enable_handler = enable_handler
+        self.enabler_handler = enabler_handler
+
+    def __repr__( self ):
+        return '<WbActionEnabledState: %r>' % (self.enabler_handler,)
 
     def setEnableState( self, cache ):
-        self.action.setEnabled( self.enable_handler( cache ) )
+        self.action.setEnabled( self.enabler_handler( cache ) )
+
+class WbActionCheckedState:
+    def __init__( self, action, checker_handler ):
+        self.action = action
+        self.checker_handler = checker_handler
+
+    def __repr__( self ):
+        return '<WbActionCheckedState: %r>' % (self.checker_handler,)
+
+    def setCheckedState( self, cache ):
+        state = self.checker_handler( cache )
+        self.action.setChecked( state )

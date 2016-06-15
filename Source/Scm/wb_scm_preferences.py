@@ -20,6 +20,8 @@ import wb_preferences
 from  xml_preferences import Scheme, SchemeNode, PreferencesNode
 
 
+Bool = wb_preferences.Bool
+
 class Preferences(wb_preferences.Preferences):
     xml_attribute_info = wb_preferences.Preferences.xml_attribute_info
 
@@ -28,16 +30,6 @@ class Preferences(wb_preferences.Preferences):
         self.log_history = None
 
 
-# cannot use a class for bool as PyQt wll not use __bool__ to get its truth
-def Bool( text ):
-    if text.lower() == 'true':
-        return True
-
-    elif text.lower() == 'false':
-        return False
-
-    else:
-        raise ValueError( 'Bool expects the string true or false' )
 
 class LogHistory(PreferencesNode):
     xml_attribute_info = (('default_limit', int)

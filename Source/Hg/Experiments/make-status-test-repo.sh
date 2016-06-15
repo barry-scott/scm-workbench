@@ -16,21 +16,32 @@ cd ${REPO}
 hg status
 
 mkdir Folder1
+mkdir Folder1/Folder1.1
 mkdir Folder2
+
+cat <<EOF >.hgignore
+syntax: glob
+
+*.pyc
+*~
+.bash_history
+.directory
+EOF
 
 echo 1 deleted-sh-rm.txt >Folder1/deleted-sh-rm.txt
 echo 1 deleted-git-rm.txt >Folder1/deleted-git-rm.txt
 echo 1 renamed.txt >Folder1/renamed.txt
 echo 1 changed-staged.txt >Folder1/changed-staged.txt
-echo 1 changed-working.txt >Folder1/changed-working.txt
+echo 1 changed-working.txt >Folder1/Folder1.1/changed-working.txt
 echo 1 changed-staged-and-working.txt >Folder1/changed-staged-and-working.txt
 
 hg add \
+    .hgignore \
     Folder1/deleted-sh-rm.txt \
     Folder1/deleted-git-rm.txt \
     Folder1/renamed.txt \
     Folder1/changed-staged.txt \
-    Folder1/changed-working.txt \
+    Folder1/Folder1.1/changed-working.txt \
     Folder1/changed-staged-and-working.txt \
     ;
 
@@ -44,10 +55,12 @@ hg rm Folder1/deleted-git-rm.txt
 hg mv Folder1/renamed.txt Folder2/renamed2.txt
 
 # modify files
+
+cp Folder1/changed-staged.txt Folder1/changed-staged.txt~
 echo 2 staged change >> Folder1/changed-staged.txt
 hg add Folder1/changed-staged.txt 
 
-echo 2 working chage >> Folder1/changed-working.txt
+echo 2 working chage >> Folder1/Folder1.1/changed-working.txt
 
 echo 2 staged change >> Folder1/changed-staged-and-working.txt
 hg add Folder1/changed-staged-and-working.txt 
