@@ -83,6 +83,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.__setupTreeContextMenu()
         self.__setupTableContextMenu()
 
+        # tell all scm ui to hide all compoents
+        for scm_type in self.all_ui_components:
+            self.all_ui_components[ scm_type ].hideUiComponents()
+
         geometry = win_prefs.geometry
         if geometry is not None:
             geometry = QtCore.QByteArray( geometry.encode('utf-8') )
@@ -353,6 +357,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.all_ui_components[ scm_type ].setupTableContextMenu( m, self._addMenu )
 
     def setupToolBar( self ):
+        # --- setup scm_type specific tool bars
+        for scm_type in self.all_ui_components:
+            self._debug( 'calling setupToolBarAtLeft for %r' % (scm_type,) )
+            self.all_ui_components[ scm_type ].setupToolBarAtLeft( self._addToolBar, self._addTool )
+
         # --- setup common toolbars
         t = self.tool_bar_tree = self._addToolBar( T_('tree') )
         self._addTool( t, T_('Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
@@ -362,11 +371,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
         self._addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
-
         # --- setup scm_type specific tool bars
         for scm_type in self.all_ui_components:
-            self._debug( 'calling setupToolBar for %r' % (scm_type,) )
-            self.all_ui_components[ scm_type ].setupToolBar( self._addToolBar, self._addTool )
+            self._debug( 'calling setupToolBarAtRight for %r' % (scm_type,) )
+            self.all_ui_components[ scm_type ].setupToolBarAtRight( self._addToolBar, self._addTool )
 
     def setupStatusBar( self, s ):
         self.status_message = QtWidgets.QLabel()
@@ -648,7 +656,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             if self.__ui_active_scm_type is not None:
                 self._debug( 'treeSelectionChanged hiding UI for %s' % (self.__ui_active_scm_type,) )
                 self.all_ui_components[ self.__ui_active_scm_type ].hideUiComponents()
-
 
             self._debug( 'treeSelectionChanged showing UI for %s' % (scm_project.scmType(),) )
             self.__ui_active_scm_type = scm_project.scmType()
