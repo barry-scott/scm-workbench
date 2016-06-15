@@ -291,7 +291,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # --- setup common menus
         m = mb.addMenu( T_('&File') )
         self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
-        self._addMenu( m, T_('&Prefs…'), self.appActionPreferences )
         self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
 
         m = mb.addMenu( T_('F&older Actions') )
@@ -314,7 +313,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
 
         m = mb.addMenu( T_('&Help' ) )
-        self._addMenu( m, T_("&About…"), self.appActionAbout )
+        self._addMenu( m, T_("&About…"), self.appActionAbout, role=QtWidgets.QAction.AboutRole )
 
     def __setupTreeContextMenu( self ):
         self._debug( '__setupTreeContextMenu' )
