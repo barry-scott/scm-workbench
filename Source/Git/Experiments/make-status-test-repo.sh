@@ -4,9 +4,9 @@ set -e
 
 SCRIPT_DIR=${PWD}
 
-REPO=${TMPDIR:? set TMPDIR}/test-repo-status
+REPO=${TMPDIR:? set TMPDIR}/test-git-repo-status
 
-rm -rf ${TMPDIR:? set TMPDIR}/test-repo-status
+rm -rf ${TMPDIR:? set TMPDIR}/test-git-repo-status
 
 mkdir ${REPO}
 

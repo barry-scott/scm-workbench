@@ -23,8 +23,29 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
 
         self.filter_text = ''
 
+        self.show_controlled = True
+        self.show_uncontrolled = True
+        self.show_ignored = False
+        self.show_only_changed = False
+
     def setFilterText( self, text ):
         self.filter_text = text
+        self.invalidateFilter()
+
+    def setShowControllerFiles( self, state ):
+        self.show_controlled = state
+        self.invalidateFilter()
+
+    def setShowUncontrolledFiles( self, state ):
+        self.show_uncontrolled = state
+        self.invalidateFilter()
+
+    def setShowIgnoredFiles( self, state ):
+        self.show_ignored = state
+        self.invalidateFilter()
+
+    def setShowOnlyChangedFiles( self, state ):
+        self.show_only_changed = state
         self.invalidateFilter()
 
     def filterAcceptsRow( self, source_row, source_parent ):
@@ -32,7 +53,17 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         index = model.createIndex( source_row, WbScmTableModel.col_name )
 
         entry = model.data( index, QtCore.Qt.UserRole )
-        if entry.ignoreFile():
+
+        if entry.controlledFile() and not self.show_controlled:
+            return False
+
+        if entry.uncontrolledFile() and not self.show_uncontrolled:
+            return False
+
+        if entry.ignoreFile() and not self.show_ignored:
+            return False
+
+        if (entry.stagedAsString() != '' or entry.statusAsString() !=0) and not self.show_only_changed:
             return False
 
         if self.filter_text != '':
@@ -50,7 +81,7 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         if column == model.col_name:
             return left_ent.name < right_ent.name
 
-        if column in (model.col_cache, model.col_working):
+        if column in (model.col_staged, model.col_status):
             # cached first
             left = left_ent.stagedAsString()
             right = right_ent.stagedAsString()
@@ -58,8 +89,8 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
                 return left > right
 
             # then working changes
-            left = left_ent.workingAsString()
-            right = right_ent.workingAsString()
+            left = left_ent.statusAsString()
+            right = right_ent.statusAsString()
             if left != right:
                 return left > right
 
@@ -68,10 +99,15 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
             if left != right:
                 return left < right
 
+            left = left_ent.ignoreFile()
+            right = right_ent.ignoreFile()
+            if left != right:
+                return left < right
+
             # finally in name order
             return left_ent.name < right_ent.name
 
-        if column == model.col_working:
+        if column == model.col_status:
             if left == right:
                 return left_ent.name < right_ent.name
 
@@ -107,13 +143,13 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         return all_indices
 
 class WbScmTableModel(QtCore.QAbstractTableModel):
-    col_cache = 0
-    col_working = 1
+    col_staged = 0
+    col_status = 1
     col_name = 2
     col_date = 3
     col_type = 4
 
-    column_titles = [U_('Cache'), U_('Working'), U_('Name'), U_('Date'), U_('Type')]
+    column_titles = [U_('Staged'), U_('Status'), U_('Name'), U_('Date'), U_('Type')]
 
     def __init__( self, app ):
         self.app = app
@@ -161,11 +197,11 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
             col = index.column()
 
-            if col == self.col_cache:
+            if col == self.col_staged:
                 return entry.stagedAsString()
 
-            elif col == self.col_working:
-                return entry.workingAsString()
+            elif col == self.col_status:
+                return entry.statusAsString()
 
             elif col == self.col_name:
                 if entry.is_dir():
@@ -185,7 +221,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.ForegroundRole:
             entry = self.all_files[ index.row() ]
             cached = entry.stagedAsString()
-            working = entry.workingAsString()
+            working = entry.statusAsString()
 
             if cached != '':
                 return self.__brush_is_cached
@@ -212,6 +248,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         if scm_project_tree_node is None:
             scm_project_tree_node = self.scm_project_tree_node
 
+        # find all the files know to the SCM and the folder
         all_files = {}
         for dirent in os_scandir( str( scm_project_tree_node.absolutePath() ) ):
             entry = WbScmTableEntry( dirent.name )
@@ -260,7 +297,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     if all_new_files[ offset ].isNotEqual( self.all_files[ offset ] ):
                         self._debug( 'WbScmTableModel.refreshTable() emit dataChanged row=%d' % (offset,) )
                         self.dataChanged.emit(
-                            self.createIndex( offset, self.col_cache ),
+                            self.createIndex( offset, self.col_staged ),
                             self.createIndex( offset, self.col_type ) )
                     offset += 1
 
@@ -332,8 +369,21 @@ class WbScmTableEntry:
         else:
             return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( self.dirent.stat().st_mtime ) )
 
+    def controlledFile( self ):
+        if self.status is not None and not self.status.isIgnored():
+            return True
+
+        return False
+
+    def uncontrolledFile( self ):
+        if self.status is None:
+            return True
+
     def ignoreFile( self ):
         if self.status is None:
+            return True
+
+        if self.status.isIgnored():
             return True
 
         return False
@@ -344,7 +394,7 @@ class WbScmTableEntry:
 
         return self.status.getStagedAbbreviatedStatus()
 
-    def workingAsString( self ):
+    def statusAsString( self ):
         if self.status is None:
             return ''
 

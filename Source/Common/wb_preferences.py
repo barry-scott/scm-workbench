@@ -36,10 +36,23 @@ class RGBA:
     def __repr__( self ):
         return '<RGBA R:%d G:%d B:%d, A:%d>' % (self.R, self.G, self.B, self.A)
 
+# cannot use a class for bool as PyQt wll not use __bool__ to get its truth
+def Bool( text ):
+    if text.lower() == 'true':
+        return True
+
+    elif text.lower() == 'false':
+        return False
+
+    else:
+        raise ValueError( 'Bool expects the string true or false' )
+
 class Preferences(PreferencesNode):
     xml_attribute_info = tuple()
 
     def __init__( self ):
+        super().__init__()
+
         self.main_window = None
         self.last_position_bookmark = None
         self.all_bookmarks = None
@@ -66,6 +79,8 @@ class MainWindow(PreferencesNode):
     xml_attribute_info = ('geometry',)
 
     def __init__( self ):
+        super().__init__()
+
         self.geometry = None
         self.font = None
         self.all_colours = {}
@@ -80,6 +95,8 @@ class Font(PreferencesNode):
     xml_attribute_info = ('face', ('point_size', int))
 
     def __init__( self ):
+        super().__init__()
+
         # point size and face need to chosen by platform
         if sys.platform.startswith( 'win' ):
             self.face = 'Courier New'
@@ -98,6 +115,8 @@ class Colour(PreferencesNode):
     xml_attribute_info = (('fg', RGB), ('bg', RGB))
 
     def __init__( self, name, fg=None, bg=None ):
+        super().__init__()
+
         self.name = name
         self.fg = fg
         self.bg = bg
@@ -107,14 +126,19 @@ class Colour(PreferencesNode):
 
 class Editor(PreferencesNode):
     xml_attribute_info = ('program', 'options')
+
     def __init__( self ):
-        self.program = None
-        self.options = None
+        super().__init__()
+
+        self.program = ''
+        self.options = ''
 
 class Shell(PreferencesNode):
     xml_attribute_info = ('terminal_program', 'terminal_init', 'file_browser')
 
     def __init__( self ):
+        super().__init__()
+
         self.terminal_program = ''
         self.terminal_init = ''
         self.file_browser = ''
@@ -123,6 +147,8 @@ class Bookmark(PreferencesNode):
     xml_attribute_info = ('project_name', ('path', pathlib.Path))
 
     def __init__( self, name=None, project_name=None, path=None ):
+        super().__init__()
+
         assert project_name is None or isinstance( project_name, str )
         assert path is None or isinstance( path, pathlib.Path )
 
@@ -138,6 +164,8 @@ class Project(PreferencesNode):
     xml_attribute_info = ('scm_type', ('path', pathlib.Path))
 
     def __init__( self, name, scm_type=None, path=None ):
+        super().__init__()
+
         assert path is None or isinstance( path, pathlib.Path )
         assert scm_type is None or scm_type in ('git','hg','svn')
 
@@ -152,6 +180,21 @@ class ProjectCollection(PreferencesMapNode):
     def __init__( self ):
         super().__init__()
 
+class View(PreferencesNode):
+    xml_attribute_info = (('show_controlled', Bool), ('show_uncontrolled', Bool), ('show_ignored', Bool), ('show_only_changed', Bool))
+
+    def __init__( self ):
+        super().__init__()
+
+        self.show_controlled = True
+        self.show_uncontrolled = True
+        self.show_ignored = False
+        self.show_only_changed = False
+
+    def __repr__( self ):
+        return ('<View: ctl=%r unctl=%r ig=%r only=%r>' %
+                (self.show_controlled, self.show_uncontrolled, self.show_ignored, self.show_only_changed))
+
 scheme_nodes = (
     (SchemeNode( Preferences, 'preferences',  )
     << SchemeNode( MainWindow, 'main_window' )
@@ -164,6 +207,7 @@ scheme_nodes = (
     << SchemeNode( Bookmark, 'last_position_bookmark', default=False )
     << SchemeNode( Editor, 'editor' )
     << SchemeNode( Shell, 'shell' )
+    << SchemeNode( View, 'view' )
     )
 )
 

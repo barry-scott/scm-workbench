@@ -59,6 +59,22 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.setWindowTitle( title )
         self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
 
+        # models and views
+        self.__ui_active_scm_type = None
+
+        # short cut keys in the table view
+        self.table_keys_edit = ['\r', 'e', 'E']
+        self.table_keys_open = ['o', 'O']
+
+        self.all_table_keys = []
+        self.all_table_keys.extend( self.table_keys_edit )
+        self.all_table_keys.extend( self.table_keys_open )
+
+        # on Qt on macOS table will tigger selectionChanged that needs tree_model
+        self.tree_model = None
+        self.__setupTableViewAndModel()
+        self.__setupTreeViewAndModel()
+
         # setup the chrome
         self.setupMenuBar( self.menuBar() )
         self.setupToolBar()
@@ -78,23 +94,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # the singleton commit dialog
         self.commit_dialog = None
 
-        self.table_keys_edit = ['\r', 'e', 'E']
-        self.table_keys_open = ['o', 'O']
-
-        self.all_table_keys = []
-        self.all_table_keys.extend( self.table_keys_edit )
-        self.all_table_keys.extend( self.table_keys_open )
-
         # window major widgets
         self.__log = wb_logging.WbLog( self.app )
 
-        # models and views
-        self.__ui_active_scm_type = None
-
-        # on Qt on macOS table will tigger selectionChanged that needs tree_model
-        self.tree_model = None
-        self.__setupTableViewAndModel()
-        self.__setupTreeViewAndModel()
 
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
@@ -213,7 +215,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.table_sortfilter.setSourceModel( self.table_model )
         self.table_sortfilter.setDynamicSortFilter( False )
 
-        self.table_sort_column = self.table_model.col_cache
+        self.table_sort_column = self.table_model.col_status
         self.table_sort_order = QtCore.Qt.AscendingOrder
 
         self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
@@ -244,8 +246,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # size columns
         char_width = 10
-        self.table_view.setColumnWidth( self.table_model.col_cache, char_width*4 )
-        self.table_view.setColumnWidth( self.table_model.col_working, char_width*4 )
+        self.table_view.setColumnWidth( self.table_model.col_staged, char_width*4 )
+        self.table_view.setColumnWidth( self.table_model.col_status, char_width*4 )
         self.table_view.setColumnWidth( self.table_model.col_name, char_width*32 )
         self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
         self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
@@ -293,6 +295,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
         self._addMenu( m, T_('&Prefs…'), self.appActionPreferences )
         self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
+
+        m = mb.addMenu( T_('&View') )
+        self._addMenu( m, T_('Show Controlled files'), self.table_sortfilter.setShowControllerFiles, checker=self.checkerShowControllerFiles )
+        self._addMenu( m, T_('Show Uncontrolled files'), self.table_sortfilter.setShowUncontrolledFiles, checker=self.checkerShowUncontrolledFiles )
+        self._addMenu( m, T_('Show Ignored files'), self.table_sortfilter.setShowIgnoredFiles, checker=self.checkerShowIgnoredFiles )
+        self._addMenu( m, T_('Show Only changed files'), self.table_sortfilter.setShowOnlyChangedFiles, checker=self.checkerShowOnlyChangedFiles )
 
         m = mb.addMenu( T_('F&older Actions') )
         self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
@@ -549,6 +557,39 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def projectActionSettings( self ):
         pass
+
+    #------------------------------------------------------------
+    #
+    # view actions
+    #
+    #------------------------------------------------------------
+    def checkerShowControllerFiles( self, cache ):
+        key = 'checkerShowControllerFiles'
+        if key not in cache:
+            cache[ key ] = True
+
+        return cache[ key ]
+
+    def checkerShowUncontrolledFiles( self, cache ):
+        key = 'checkerShowUncontrolledFiles'
+        if key not in cache:
+            cache[ key ] = True
+
+        return cache[ key ]
+
+    def checkerShowIgnoredFiles( self, cache ):
+        key = 'checkerShowIgnoredFiles'
+        if key not in cache:
+            cache[ key ] = False
+
+        return cache[ key ]
+
+    def checkerShowOnlyChangedFiles( self, cache ):
+        key = 'checkerShowOnlyChangedFiles'
+        if key not in cache:
+            cache[ key ] = True
+
+        return cache[ key ]
 
     #------------------------------------------------------------
     #
