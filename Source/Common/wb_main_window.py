@@ -43,7 +43,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def setupStatusBar( self, status_bar ):
         pass
 
-    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, role=None ):
+    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, role=QtWidgets.QAction.NoRole ):
         if icon_name is None:
             action = menu.addAction( name )
         else:

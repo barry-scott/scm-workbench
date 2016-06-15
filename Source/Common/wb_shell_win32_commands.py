@@ -26,15 +26,15 @@ def getFileBrowserProgramList():
     return ['Explorer']
 
 def EditFile( app, project_info, filename ):
-    p = app.prefs.getEditor()
+    p = app.prefs.editor
 
-    if p.editor_image:
-        if p.editor_options:
+    if p.program:
+        if p.options:
             command_line = (u'"%s" %s "%s"' %
-                (p.editor_image, p.editor_options, filename))
+                (p.program, p.options, filename))
         else:
             command_line = (u'"%s" "%s"' %
-                (p.editor_image, filename))
+                (p.program, filename))
     else:
         command_line = (u'"notepad.exe" "%s"' %
                             (filename,))
@@ -73,7 +73,7 @@ def ShellOpen( app, working_dir, filename ):
                             ,'error': e[2]} )
 
 def CommandShell( app, project_info ):
-    p = app.prefs.getShell()
+    p = app.prefs.shell
     working_dir = project_info.getWorkingDir()
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
@@ -89,8 +89,8 @@ def CommandShell( app, project_info ):
         u'@cd %s\n' % (working_dir,),
         u'@echo on\n',
         ]
-    if len( p.shell_init_command ) > 0:
-        cmd_lines.append( u'call %s\n' % (p.shell_init_command,) )
+    if len( p.terminal_init ) > 0:
+        cmd_lines.append( u'call %s\n' % (p.terminal_init,) )
 
     f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.cmd' )
     app.all_temp_files.append( f.name )
