@@ -268,7 +268,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
     def updateTableView( self ):
-        self.table_model.refreshTable()
+        # load in the latest status
+        self.tree_model.refreshTree()
 
         # sort filter is now invalid
         self.table_sortfilter.invalidate()
@@ -429,7 +430,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._debug( 'appActiveHandler()' )
 
         # update the selected projects data
-        self.tree_model.appActiveHandler()
+        self.tree_model.refreshTree()
 
         # sort filter is now invalid
         self.table_sortfilter.invalidate()

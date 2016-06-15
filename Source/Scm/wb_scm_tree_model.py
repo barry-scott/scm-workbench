@@ -137,9 +137,6 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         # turn off edit as that stops double click to expand
         return super().flags( index ) & ~QtCore.Qt.ItemIsEditable
 
-    def appActiveHandler( self ):
-        self.refreshTree()
-
     def selectionChanged( self, selected, deselected ):
         self._debug( 'selectChanged()' )
         all_selected = selected.indexes()
