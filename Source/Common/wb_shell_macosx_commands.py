@@ -52,14 +52,14 @@ def ShellDiffFiles( app, args ):
 def EditFile( app, working_dir, all_filenames ):
     all_filenames = [str(path) for path in all_filenames]
 
-    p = app.prefs.getEditor()
+    p = app.prefs.editor
 
-    if p.getEditorProgram():
-        if p.getEditorOptions():
-            cmd = p.getEditorProgram()
-            args = shlex.split( p.getEditorOptions() ) + all_filenames
+    if p.program:
+        if p.options:
+            cmd = p.program
+            args = shlex.split( p.options ) + all_filenames
         else:
-            cmd = p.getEditorProgram()
+            cmd = p.program
             args = all_filenames
     else:
         cmd = '/usr/bin/open'
@@ -85,11 +85,11 @@ def ShellOpen( app, working_dir, all_filenames ):
         os.chdir( cur_dir )
 
 def CommandShell( app, working_dir ):
-    p = app.prefs.getShell()
-    if p.getTerminalProgram() == 'iTerm':
+    p = app.prefs.shell
+    if p.terminal_program == 'iTerm':
         CommandShell_iTerm( app, working_dir )
 
-    elif p.getTerminalProgram() == 'iTerm2 V3':
+    elif p.terminal_program == 'iTerm2 V3':
         CommandShell_iTerm2_V3( app, working_dir )
 
     else:
@@ -110,15 +110,15 @@ def __titleFromPath( working_dir ):
     return ' '.join( title )
 
 def CommandShell_iTerm( app, working_dir ):
-    p = app.prefs.getShell()
+    p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
     title = _titleFromPath( working_dir )
 
     commands = u'cd "%s"' % (working_dir.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
 
-    if len( p.shell_init_command ) > 0:
-        commands = commands + u';export WB_WD="$PWD"; . "%s"' % (p.getTerminalInitCommand().replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
+    if len( p.terminal_init ) > 0:
+        commands = commands + u';export WB_WD="$PWD"; . "%s"' % (p.terminal_init.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
 
     contents = u'''
 tell application "iTerm"
@@ -157,12 +157,12 @@ end
     __run_command( app, u'/usr/bin/osascript', [f.name] )
 
 def CommandShell_iTerm2_V3( app, working_dir ):
-    p = app.prefs.getShell()
+    p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
     title = __titleFromPath( working_dir )
     commands = u'cd "%s"' % (str(working_dir).replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
-    init_cmd = p.getTerminalInitCommand()
+    init_cmd = p.terminal_init
     if len( init_cmd ) > 0:
         commands = commands + u';export WB_WD="$PWD"; . "%s"' % (init_cmd.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
 
@@ -189,15 +189,15 @@ end tell
     __run_command( app, u'/usr/bin/osascript', [f.name] )
 
 def CommandShell_Terminal( app, working_dir ):
-    p = app.prefs.getShell()
+    p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
     title = __titleFromPath( working_dir )
 
     commands = u"cd '%s'" % (working_dir,)
 
-    if len( p.getTerminalInitCommand() ) > 0:
-        commands = commands + ";. '%s'\n" % (p.getTerminalInitCommand(),)
+    if len( p.terminal_init ) > 0:
+        commands = commands + ";. '%s'\n" % (p.terminal_init,)
 
     contents = u'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

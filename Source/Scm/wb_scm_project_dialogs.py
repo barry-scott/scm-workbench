@@ -30,30 +30,41 @@ scm_presentation_names = {
     'svn': 'Subversion (svn)'
     }
 
-def detectScmFolder( folder ):
+def detectScmTypeForFolder( folder ):
     for special_folder, scm in scm_folder_detection:
         scm_folder = folder / special_folder
-        if scm_folder.is_dir():
-            return scm
+        try:
+            if scm_folder.is_dir():
+                return scm
+
+        except PermissionError:
+            # ignore folders that cannot be accessed
+            pass
 
     return None
 
 class WbScmAddProjectWizard(QtWidgets.QWizard):
-    page_start = 1
-    page_browse_existing = 2
-    page_scan_for_existing = 3
-    page_git_clone = 4
-    page_name = 5
+    page_id_start = 1
+    page_id_browse_existing = 2
+    page_id_scan_for_existing = 3
+    page_id_git_clone = 4
+    page_id_name = 5
 
     def __init__( self, app ):
         self.app = app
         super().__init__()
 
-        self.setPage( self.page_start, PageAddProjectStart() )
-        self.setPage( self.page_browse_existing, PageAddProjectBrowseExisting() )
-        self.setPage( self.page_scan_for_existing, PageAddProjectScanForExisting() )
-        self.setPage( self.page_git_clone, PageAddProjectGitClone() )
-        self.setPage( self.page_name, PageAddProjectName() )
+        self.page_start = PageAddProjectStart()
+        self.page_browse_existing = PageAddProjectBrowseExisting()
+        self.page_scan_for_existing = PageAddProjectScanForExisting()
+        self.page_git_clone = PageAddProjectGitClone()
+        self.page_name = PageAddProjectName()
+
+        self.setPage( self.page_id_git_clone, self.page_git_clone )
+        self.setPage( self.page_id_scan_for_existing, self.page_scan_for_existing )
+        self.setPage( self.page_id_start, self.page_start )
+        self.setPage( self.page_id_browse_existing, self.page_browse_existing )
+        self.setPage( self.page_id_name, self.page_name )
 
         self.all_existing_project_names = set()
         self.all_existing_project_paths = set()
@@ -75,6 +86,12 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.wc_path = None
         self.scm_url = None
         self.name = None
+
+    def closeEvent( self, event ):
+        # tell pages with resources to cleanup
+        self.page_scan_for_existing.freeResources()
+
+        super().closeEvent( event )
 
     def setScmUrl( self, scm_url ):
         self.scm_url = scm_url
@@ -169,13 +186,13 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
 
     def nextId( self ):
         if self.radio_git_clone.isChecked():
-            return WbScmAddProjectWizard.page_git_clone
+            return WbScmAddProjectWizard.page_id_git_clone
 
         elif self.radio_browse_existing.isChecked():
-            return WbScmAddProjectWizard.page_browse_existing
+            return WbScmAddProjectWizard.page_id_browse_existing
 
         elif self.radio_scan_for_existing.isChecked():
-            return WbScmAddProjectWizard.page_scan_for_existing
+            return WbScmAddProjectWizard.page_id_scan_for_existing
 
         assert False
 
@@ -211,7 +228,7 @@ class PageAddProjectGitClone(QtWidgets.QWizardPage):
         self.wc_path.setText( str( self.wizard().home ) )
 
     def nextId( self ):
-        return WbScmAddProjectWizard.page_name
+        return WbScmAddProjectWizard.page_id_name
 
     def __pickDirectory( self ):
         w = self.wizard()
@@ -292,7 +309,7 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
         self.setLayout( layout )
 
     def nextId( self ):
-        return WbScmAddProjectWizard.page_name
+        return WbScmAddProjectWizard.page_id_name
 
     def __fieldsChanged( self, text ):
         self.completeChanged.emit()
@@ -304,7 +321,7 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
 
         path = pathlib.Path( path )
 
-        scm_type = detectScmFolder( path )
+        scm_type = detectScmTypeForFolder( path )
         if scm_type is None:
             self.feedback.setText( T_('%s is not a SCM folder') % (path,) )
             return False
@@ -361,6 +378,14 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         self.scanComplete.connect( self.__scanCompleted, type=QtCore.Qt.QueuedConnection )
 
         self.__all_labels_to_scm_info = {}
+
+    def freeResources( self ):
+        if self.thread is None:
+            return
+
+        self.thread.stop_scan = True
+        self.thread.wait()
+        self.thread = None
 
     def initializePage( self ):
         if self.wc_list.count() != 0:
@@ -420,7 +445,7 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         return len(all_selected_items) == 1
 
     def nextId( self ):
-        return WbScmAddProjectWizard.page_name
+        return WbScmAddProjectWizard.page_id_name
 
     def validatePage( self ):
         all_selected_items = self.wc_list.selectedItems()
@@ -430,10 +455,7 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         self.wizard().setScmType( scm_type )
         self.wizard().setWcPath( project_path )
 
-        self.thread.stop_scan = True
-        self.thread.wait()
-
-        self.thread = None
+        self.freeResources()
 
         return True
 
@@ -461,18 +483,24 @@ class ScanForScmRepositoriesThread(QtCore.QThread):
             folder = self.folders_to_scan.pop( 0 )
             self.num_folders_scanned += 1
 
-            for path in folder.iterdir():
-                if self.stop_scan:
-                    return
+            try:
+                for path in folder.iterdir():
+                    if self.stop_scan:
+                        return
 
-                if path.is_dir():
-                    scm = detectScmFolder( path )
-                    if scm is not None:
-                        self.num_scm_repos_found += 1
-                        self.wizard.foundRepository.emit( str(scm), str( path ) )
+                    if path.is_dir():
+                        scm_type = detectScmTypeForFolder( path )
+                        if scm_type is not None:
+                            self.num_scm_repos_found += 1
+                            self.wizard.foundRepository.emit( scm_type, str(path) )
 
-                    else:
-                        self.folders_to_scan.append( path )
+                        else:
+                            self.folders_to_scan.append( path )
+
+            except PermissionError:
+                # iterdir or is_dir can raise PermissionError
+                # is the folder is inaccessable
+                pass
 
         self.wizard.scanComplete.emit()
 
