@@ -23,6 +23,7 @@ class WbDebug:
         self._debug_main_window = False
         self._debug_tree_model = False
         self._debug_table_model = False
+        self._debug_diff = False
 
     def setDebug( self, str_options ):
         for option in [s.strip().lower() for s in str_options.split(',')]:
@@ -71,3 +72,8 @@ class WbDebug:
     def _debugMainWindow( self, msg ):
         if self._debug_main_window:
             self.log.debug( 'MAIN-WINDOW %s' % (msg,) )
+
+    # wb_diff*
+    def _debugDiff( self, msg ):
+        if self._debug_diff:
+            self.log.debug( 'DIFF %s' % (msg,) )

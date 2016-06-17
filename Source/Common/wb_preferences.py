@@ -54,6 +54,7 @@ class Preferences(PreferencesNode):
         super().__init__()
 
         self.main_window = None
+        self.diff_window = None
         self.last_position_bookmark = None
         self.all_bookmarks = None
         self.all_projects = None
@@ -197,17 +198,18 @@ class View(PreferencesNode):
 
 scheme_nodes = (
     (SchemeNode( Preferences, 'preferences',  )
-    << SchemeNode( MainWindow, 'main_window' )
+    <<  SchemeNode( MainWindow, 'main_window' )
+    <<  SchemeNode( MainWindow, 'diff_window' )
     <<  (SchemeNode( ProjectCollection, 'projects', store_as='all_projects' )
         << SchemeNode( Project, 'project', key_attribute='name' )
         )
     <<  (SchemeNode( BookmarkCollection, 'bookmarks', store_as='all_bookmarks' )
         << SchemeNode( Bookmark, 'bookmark', key_attribute='name')
         )
-    << SchemeNode( Bookmark, 'last_position_bookmark', default=False )
-    << SchemeNode( Editor, 'editor' )
-    << SchemeNode( Shell, 'shell' )
-    << SchemeNode( View, 'view' )
+    <<  SchemeNode( Bookmark, 'last_position_bookmark', default=False )
+    <<  SchemeNode( Editor, 'editor' )
+    <<  SchemeNode( Shell, 'shell' )
+    <<  SchemeNode( View, 'view' )
     )
 )
 
