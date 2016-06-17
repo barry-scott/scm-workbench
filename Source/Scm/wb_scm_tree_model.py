@@ -31,7 +31,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         self.selected_node = None
 
-        for project in self.app.prefs.getAllProjects():
+        for project in sorted( self.app.prefs.getAllProjects() ):
             self.addProject( project )
 
     def addProject( self, project ):
@@ -136,9 +136,6 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
     def flags( self, index ):
         # turn off edit as that stops double click to expand
         return super().flags( index ) & ~QtCore.Qt.ItemIsEditable
-
-    def appActiveHandler( self ):
-        self.refreshTree()
 
     def selectionChanged( self, selected, deselected ):
         self._debug( 'selectChanged()' )

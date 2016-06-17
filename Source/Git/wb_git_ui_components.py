@@ -18,58 +18,19 @@ import difflib
 
 import wb_diff_unified_view
 
+import wb_ui_components
+
 import wb_git_project
 import wb_git_commit_dialog
+import wb_git_log_history
+import wb_git_status_view
 
-
-class GitMainWindowComponents:
+class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self ):
-        self.main_window = None
-        self.app = None
-        self._debug = None
+        super().__init__()
 
-        self.commit_dialog = None
-
-        self.all_menus = []
-        self.all_toolbars = []
-
-        self.table_context_menu = None
-        self.tree_context_menu = None
-
-    def setMainWindow( self, main_window ):
-        self.main_window = main_window
-
-        self.app = self.main_window.app
-        self.log = self.app.log
-
+    def setupDebug( self ):
         self._debug = self.main_window.app._debugGitUi
-        self.setStatusText = self.main_window.setStatusText
-
-        # shorts cut to main window functions
-        self.setStatusText = self.main_window.setStatusText
-
-
-    def getTableContextMenu( self ):
-        return self.table_context_menu
-
-    def getTreeContextMenu( self ):
-        return self.tree_context_menu
-
-    def showUiComponents( self ):
-        for menu in self.all_menus:
-            menu.menuAction().setVisible( True )
-
-        for toolbar in self.all_toolbars:
-            toolbar.setVisible( True )
-            #self.main_window.addToolBar( toolbar )
-
-    def hideUiComponents( self ):
-        for menu in self.all_menus:
-            menu.menuAction().setVisible( False )
-
-        for toolbar in self.all_toolbars:
-            toolbar.setVisible( False )
-            #self.main_window.removeToolBar( toolbar )
 
     def setupMenuBar( self, mb, addMenu ):
         # ----------------------------------------
@@ -101,7 +62,13 @@ class GitMainWindowComponents:
         addMenu( m, T_('Push…'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
         addMenu( m, T_('Pull…'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
-    def setupToolBar( self, addToolBar, addTool ):
+    def setupToolBarAtLeft( self, addToolBar, addTool ):
+        t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 32px; color: #cc0000' )
+        self.all_toolbars.append( t )
+
+        addTool( t, 'Git', self.main_window.projectActionSettings )
+
+    def setupToolBarAtRight( self, addToolBar, addTool ):
         # ----------------------------------------
         t = addToolBar( T_('git info') )
         self.all_toolbars.append( t )
@@ -123,7 +90,7 @@ class GitMainWindowComponents:
         addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
-        self.table_context_menu = m
+        super().setupTableContextMenu( m, addMenu )
 
         m.addSection( T_('Diff') )
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
@@ -138,7 +105,7 @@ class GitMainWindowComponents:
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.enablerFilesExists )
 
     def setupTreeContextMenu( self, m, addMenu ):
-        self.tree_context_menu = m
+        super().setupTreeContextMenu( m, addMenu )
 
     #------------------------------------------------------------
     #
@@ -457,7 +424,7 @@ class GitMainWindowComponents:
 
     # ------------------------------------------------------------
     def treeActionGitLogHistory( self ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
+        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self.main_window )
 
         if options.exec_():
             git_project = self.__treeSelectedGitProject()
@@ -582,7 +549,7 @@ class GitMainWindowComponents:
         window.show()
 
     def __actionGitLogHistory( self, git_project, filename ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self )
+        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self.main_window )
 
         if options.exec_():
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(

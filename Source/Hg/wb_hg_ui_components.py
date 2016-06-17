@@ -10,50 +10,31 @@
     wb_hg_ui_components.py.py
 
 '''
+import wb_ui_components
 import wb_hg_project
 
-class HgMainWindowComponents:
+class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self ):
-        self.main_window = None
+        super().__init__()
 
-        self.all_menus = []
-        self.all_toolbars = []
-
-        self.hg_table_context_menu = None
-        self.hg_tree_context_menu = None
-
-    def setMainWindow( self, main_window ):
-        self.main_window = main_window
+    def setupDebug( self ):
         self._debug = self.main_window.app._debugHgUi
-
-    def getTableContextMenu( self ):
-        return self.hg_table_context_menu
-
-    def getTreeContextMenu( self ):
-        return self.hg_tree_context_menu
-
-    def showUiComponents( self ):
-        for menu in self.all_menus:
-            menu.menuAction().setVisible( True )
-
-        for toolbar in self.all_toolbars:
-            self.main_window.addToolBar( toolbar )
-
-    def hideUiComponents( self ):
-        for menu in self.all_menus:
-            menu.menuAction().setVisible( False )
-
-        for toolbar in self.all_toolbars:
-            self.main_window.removeToolBar( toolbar )
 
     def setupMenuBar( self, mb, addMenu ):
         pass
 
-    def setupToolBar( self, addToolBar, addTool ):
+    def setupToolBarAtLeft( self, addToolBar, addTool ):
+        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 32px; color: #000099' )
+        self.all_toolbars.append( t )
+
+        addTool( t, 'Hg', self.main_window.projectActionSettings )
+
+    def setupToolBarAtRight( self, addToolBar, addTool ):
         pass
 
+
     def setupTableContextMenu( self, m, addMenu ):
-        self.hg_table_context_menu = m
+        super().setupTableContextMenu( m, addMenu )
 
     def setupTreeContextMenu( self, m, addMenu ):
-        self.hg_tre_context_menu = m
+        super().setupTreeContextMenu( m, addMenu )

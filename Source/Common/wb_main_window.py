@@ -67,9 +67,11 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action.setCheckable( True )
             self.__action_state_manager.addChecker( action, checker )
 
-    def _addToolBar( self, name ):
+    def _addToolBar( self, name, style=None ):
         bar = self.addToolBar( name )
         bar.setIconSize( self.icon_size )
+        if style is not None:
+            bar.setStyleSheet( 'QToolButton{%s}' % (style,) )
         return bar
 
     def _addTool( self, bar, name, handler, enabler=None, icon_name=None, checker=None ):
