@@ -11,7 +11,6 @@
     wb_diff_main.py
 
 '''
-
 VERSION_STRING = "Uncontrolled"
 
 import sys
@@ -21,10 +20,12 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_main
+import wb_app
 
 import wb_diff_side_by_side_view
 import wb_platform_specific
 import wb_debug
+import wb_preferences
 
 def noTranslation( msg ):
     return msg
@@ -44,27 +45,49 @@ builtins.__dict__['S_'] = noPluralTranslation
 # U_( 'static string' )
 # already setup in wb_main
 
-class WbDiff_App(QtWidgets.QApplication, wb_debug.WbDebug):
-    def __init__( self, file1, file2 ):
+class WbDiff_App(wb_app.WbApp,
+                 wb_debug.WbDebug):
+    def __init__( self, argv ):
         self._debugDiffEnabled = True
 
-        self.file1 = file1
-        self.file2 = file2
-
         self.log = self
+        self.file1 = None
+        self.file2 = None
 
         wb_debug.WbDebug.__init__( self )
-        super().__init__( [sys.argv[0]] )
+        super().__init__( ('Wb', 'Diff'), argv )
+
+        if len(self.all_positional_args) != 2:
+            print( 'Error: expection 2 filename arguments' )
+            sys.exit( 1 )
 
         # self is log and app
-        self.main_window = wb_diff_side_by_side_view.DiffSideBySideView( self, None, self.file1, self.file1, self.file2, self.file2 )
         self.main_window.resize( 800, 600 )
 
-    def info( self, *args ):
-        print( 'Info: %r' % (args,) )
+    def createPreferencesManager( self ):
+        return PreferencesManager(
+                    self.log,
+                    wb_platform_specific.getPreferencesFilename() )
+
+    def createMainWindow( self ):
+        self.file1 = self.all_positional_args[0]
+        self.file2 = self.all_positional_args[1]
+
+        return wb_diff_side_by_side_view.DiffSideBySideView( self, None, self.file1, self.file1, self.file2, self.file2 )
+
+preferences_scheme = (
+    wb_preferences.Scheme(
+        wb_preferences.scheme_nodes
+    )
+)
+
+
+class PreferencesManager(wb_preferences.PreferencesManager):
+    def __init__( self, log, filename ):
+        super().__init__( log, filename, preferences_scheme, wb_preferences.Preferences )
 
 def createDiffApp( argv ):
-    return WbDiff_App( argv[1], argv[2] )
+    return WbDiff_App( argv )
 
 if __name__ == '__main__':
     sys.exit( wb_main.main( createDiffApp, sys.argv ) )

@@ -143,11 +143,11 @@ def CreateProcess( app, command_line, current_dir ):
             pass
 
 
-    except win32process.error as detail:
+    except win32process.error as e:
         app.log.error( T_('Create process failed for command - %(command)s\n'
                         'Reason %(reason)s') %
                             {'command': command_line
-                            ,'reason': detail} )
+                            ,'reason': e} )
 
 def ensureDirectory( app, current_dir ):
     if not current_dir.exists():

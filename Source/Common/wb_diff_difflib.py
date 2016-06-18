@@ -61,10 +61,10 @@ class Difference:
         # search for the pair that matches best without being identical
         # (identical lines must be junk lines, & we don't want to synch up
         # on junk -- unless we have to)
-        for j in xrange(blo, bhi):
+        for j in range( blo, bhi ):
             bj = b[j]
             cruncher.set_seq2(bj)
-            for i in xrange(alo, ahi):
+            for i in range( alo, ahi ):
                 ai = a[i]
                 if ai == bj:
                     if eqi is None:
@@ -148,8 +148,8 @@ class Difference:
             try:
                 lines_left = wb_read_file.readFileContentsAsUnicode( filename_left ).split('\n')
 
-            except IOError( detail ):
-                print( 'Error opening %s\n%s' % (filename_left, detail) )
+            except IOError as e:
+                print( 'Error opening %s\n%s' % (filename_left, e) )
                 return 0
 
         if type(filename_right) == type([]):
@@ -158,8 +158,8 @@ class Difference:
             try:
                 lines_right = wb_read_file.readFileContentsAsUnicode( filename_right ).split('\n')
 
-            except IOError( detail ):
-                print( 'Error opening %s\n%s' % (filename_right, detail) )
+            except IOError as e:
+                print( 'Error opening %s\n%s' % (filename_right, e) )
                 return 0
 
         lines_left = [eolRemoval( line ) for line in lines_left]

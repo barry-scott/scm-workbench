@@ -25,7 +25,7 @@ class DiffOneSideProcessor:
         self.current_change_marker = -1
 
     def _markChangeCurrentLine( self ):
-        line_number = self.text_body.GetLineCount() - 1
+        line_number = self.text_body.getLineCount() - 1
 
         if( self.last_line_number != line_number
         and self.last_line_number != (line_number - 1) ):
@@ -57,17 +57,18 @@ class DiffOneSideProcessor:
         if top_line < 1:
             top_line = 1
 
-        self.text_body.ScrollToLine( top_line )
-        self.text_body.GotoLine( line_number )
+        self.text_body.setFirstVisibleLine( top_line-1 )
+        self.text_body.gotoLine( line_number )
 
     def getCurrentChangeLine( self ):
         return self.changed_lines[ self.current_changed_block ]
         
     def updateCurrentChangeMarker( self, line ):
         if self.current_change_marker != -1:
-            self.diff_line_numbers.ChangeLineStyle( self.current_change_marker, self.diff_line_numbers.style_line_numbers )
+            self.diff_line_numbers.changeLineStyle( self.current_change_marker, self.diff_line_numbers.style_line_numbers )
+
         self.current_change_marker = line
-        self.diff_line_numbers.ChangeLineStyle( self.current_change_marker, self.diff_line_numbers.style_line_numbers_for_diff )
+        self.diff_line_numbers.changeLineStyle( self.current_change_marker, self.diff_line_numbers.style_line_numbers_for_diff )
 
     #--------------------------------------------------------------------------------
     def _addLineNumber( self ):
@@ -92,8 +93,8 @@ class DiffOneSideProcessor:
         self._addBlankLineNumber()
 
         line_number = self.text_body.lineFromPosition( self.text_body.getLength() )
-        self.text_body.SetFoldLine( line_number, False )
-        self.text_body.InsertStyledText( '\n', self.text_body.style_line_normal )
+        self.text_body.setFoldLine( line_number, False )
+        self.text_body.insertStyledText( '\n', self.text_body.style_line_normal )
 
     def addInsertedLine( self, line ):
         self._markChangeCurrentLine()
@@ -194,7 +195,7 @@ class DiffProcessor:
         self.processor_right.updateCurrentChangeMarker( line )
 
     def toggleViewWhiteSpace( self ):
-        self.processor_left.text_body.ToggleViewWhiteSpace()
+        self.processor_left.text_body.toggleViewWhiteSpace()
 
     def getChangeCount( self ):
         return len( self.processor_left.changed_lines )

@@ -74,7 +74,7 @@ class WbScintilla(Qsci.QsciScintilla):
         return self.SendScintilla( self.SCI_GETLENGTH )
 
     def insertText( self, pos, text ):
-        self.SendScintilla( self.SCI_INSERTTEXT, text.encode( 'utf-8' ) )
+        self.SendScintilla( self.SCI_INSERTTEXT, pos, text.encode( 'utf-8' ) )
 
     def startStyling( self, pos ):
         self.SendScintilla( self.SCI_STARTSTYLING, pos )
@@ -83,16 +83,19 @@ class WbScintilla(Qsci.QsciScintilla):
         self.SendScintilla( self.SCI_SETSTYLING, length, style_number )
 
     def positionFromLine( self, line ):
-        self.SendScintilla( self.SCI_POSITIONFROMLINE, line )
+        return self.SendScintilla( self.SCI_POSITIONFROMLINE, line )
 
     def getLineEndPosition( self, line ):
-        self.SendScintilla( self.SCI_GETLINEENDPOSITION, line )
+        return self.SendScintilla( self.SCI_GETLINEENDPOSITION, line )
 
-    def setSelection( self, start, end ):
-        self.SendScintilla( self.SCI_SETSELECTION, start, end )
+    def setSelectionStart( self, start ):
+        self.SendScintilla( self.SCI_SETSELECTIONSTART, start )
 
-    def replaceSelection( self, text ):
-        self.SendScintilla( self.SCI_REPLACESELECTION, text.encode( 'utf-8' ) )
+    def setSelectionEnd( self, end ):
+        self.SendScintilla( self.SCI_SETSELECTIONEND, end )
+
+    def replaceSel( self, text ):
+        self.SendScintilla( self.SCI_REPLACESEL, text.encode( 'utf-8' ) )
 
     def indicSetStyle( self, style_number, style ):
         self.SendScintilla( self.SCI_INDICSETSTYLE, style_number, style )
@@ -128,13 +131,49 @@ class WbScintilla(Qsci.QsciScintilla):
         self.SendScintilla( self.SCI_SETREADONLY, readonly )
 
     def getLength( self ):
-        self.SendScintilla( self.SCI_GETLENGTH )
+        return self.SendScintilla( self.SCI_GETLENGTH )
 
     def setFoldLevel( self, line, level ):
         self.SendScintilla( self.SCI_SETFOLDLEVEL, line, level )
 
+    def getFoldLevel( self, line ):
+        return self.SendScintilla( self.SCI_GETFOLDLEVEL, line )
+
+    def setFoldExpanded( self, line, expand ):
+        self.SendScintilla( self.SCI_SETFOLDEXPANDED, line, expand )
+
+    def getFoldExpanded( self, line ):
+        return self.SendScintilla( self.SCI_GETFOLDEXPANDED, line )
+
     def setZoom( self, zoom_in_points ):
         self.SendScintilla( self.SCI_SETZOOM, zoom_in_points )
+
+    def showLines( self, line_start, line_end ):
+        self.SendScintilla( self.SCI_SHOWLINES, line_start, line_end ) 
+
+    def hideLines( self, line_start, line_end ):
+        self.SendScintilla( self.SCI_HIDELINES, line_start, line_end )
+
+    def getLineCount( self ):
+        return self.SendScintilla( self.SCI_GETLINECOUNT )
+
+    def setFirstVisibleLine( self, line ):
+        self.SendScintilla( self.SCI_SETFIRSTVISIBLELINE, line )
+
+    def getFirstVisibleLine( self ):
+        return self.SendScintilla( self.SCI_GETFIRSTVISIBLELINE )
+
+    def gotoLine( self, line ):
+        self.SendScintilla( self.SCI_GOTOLINE, line )
+
+    def setViewWhiteSpace( self, visible ):
+        if visible:
+            self.setViewWs( self.SCWS_VISIBLEALWAYS )
+        else:
+            self.setViewWs( self.SCWS_INVISIBLE )
+
+    def setViewWs( self, mode ):
+        self.SendScintilla( self.SCI_SETVIEWWS, mode )
 
     #--- high level API -------------------------------------------------------------
     def insertStyledText( self, text, style ):
@@ -147,11 +186,4 @@ class WbScintilla(Qsci.QsciScintilla):
         pos_start = self.positionFromLine( line )
         pos_end = self.getLineEndPosition( line )
         self.startStyling( pos_start )
-
-        self.setSelection( pos_start, pos_end )
-        text = self.GetSelectedText()
-        self.replaceSelection( text )
-        self.setSelection( -1, -1 )
-
         self.setStyling( pos_end - pos_start, style )
-

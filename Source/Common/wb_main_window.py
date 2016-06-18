@@ -28,6 +28,10 @@ class WbMainWindow(QtWidgets.QMainWindow):
         # list of all the WbActionState for the menus and toolbars
         self.__action_state_manager = WbActionStateManager( self._debug )
 
+    # override to do what is required on app becoming active.
+    def appActiveHandler( self ):
+        pass
+
     def getQIcon( self, icon_name ):
         return self.__image_store.getQIcon( icon_name )
 

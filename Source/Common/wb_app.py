@@ -87,6 +87,8 @@ class WbApp(QtWidgets.QApplication,
         self.__git_debug = False
         self.__log_stdout = False
 
+        self.all_positional_args = []
+
         while len(args) > 1:
             arg = args[ 1 ]
 
@@ -127,7 +129,8 @@ class WbApp(QtWidgets.QApplication,
                 break
 
             else:
-                break
+                self.all_positional_args.append( arg )
+                del args[1]
 
         self.args = args
         self.app_name = os.path.basename( args[0] )

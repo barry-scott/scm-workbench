@@ -30,12 +30,8 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
     def __init__( self, app, parent, file_left, title_left, file_right, title_right, ):
         super().__init__( app, wb_diff_images, app._debugDiff, parent=parent )
 
-        if hasattr( self.app, 'prefs' ):
-            prefs = self.app.prefs.diff_window
-            geometry = prefs.geometry()
-
-        else:
-            geometry = None
+        prefs = self.app.prefs.diff_window
+        geometry = prefs.geometry
 
         self.setWindowTitle( T_('Diff %(title1)s and %(title2)s') %
                                 {'title1': title_left
@@ -69,26 +65,24 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
             self.setChangeCounts( 0, 0 )
 
             self.status_bar_key_field = DiffBodyText( s, line_numbers=False )
-            self.status_bar_key_field.InsertStyledText( T_('Key: '), self.status_bar_key_field.style_line_normal )
-            self.status_bar_key_field.InsertStyledText( T_('Inserted text '), self.status_bar_key_field.style_line_insert )
-            self.status_bar_key_field.InsertStyledText( T_('Deleted text '), self.status_bar_key_field.style_line_delete )
-            self.status_bar_key_field.InsertStyledText( T_('Changed text'), self.status_bar_key_field.style_line_changed )
-            self.status_bar_key_field.SetReadOnly( True )
-            self.status_bar_key_field.Enable( False )
+            self.status_bar_key_field.insertStyledText( T_('Key: '), self.status_bar_key_field.style_line_normal )
+            self.status_bar_key_field.insertStyledText( T_('Inserted text '), self.status_bar_key_field.style_line_insert )
+            self.status_bar_key_field.insertStyledText( T_('Deleted text '), self.status_bar_key_field.style_line_delete )
+            self.status_bar_key_field.insertStyledText( T_('Changed text'), self.status_bar_key_field.style_line_changed )
+            self.status_bar_key_field.setReadOnly( True )
 
             wx.EVT_SIZE( s, self.onStatusBarSize )
             wx.EVT_IDLE( s, self.onStatusBarIdle )
 
-
         self.splitter = QtWidgets.QSplitter()
-        self.splitter.setOrientation( QtCore.Qt.Vertical )
+        self.splitter.setOrientation( QtCore.Qt.Horizontal )
         self.sash_ratio = 0.5
 
         self.panel_left = DiffWidget( self.splitter, title_left )
         self.panel_right = DiffWidget( self.splitter, title_right )
 
-        self.panel_left.ed.SetMirrorEditor( self.panel_right.ed )
-        self.panel_right.ed.SetMirrorEditor( self.panel_left.ed )
+        self.panel_left.ed.setMirrorEditor( self.panel_right.ed )
+        self.panel_right.ed.setMirrorEditor( self.panel_left.ed )
 
         self.splitter.addWidget( self.panel_left )
         self.splitter.addWidget( self.panel_right )
@@ -125,6 +119,8 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
         # qqq # maybe zoomIn and zoomOut events?
         #self.panel_left.zoomChanged.connect( self.handleZoomChanged )
         #self.panel_right.zoomChanged.connect( self.handleZoomChanged )
+
+        self.setCentralWidget( self.splitter )
 
         # show first diff
         self.actionDiffNext()
@@ -180,7 +176,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
     def closeEvent( self, event ):
         #qqq# save geometry
 
-        super().closeEvent()
+        super().closeEvent( event )
 
     def OnSashPositionChanged( self, event ):
         w, h = self.splitter.GetClientSizeTuple()
@@ -201,8 +197,8 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
         self.setChangeCounts( self.processor.getCurrentChange() )
 
     def actionToggleWhiteSpace( self ):
-        self.panel_left.ed.ToggleViewWhiteSpace()
-        self.panel_right.ed.ToggleViewWhiteSpace()
+        self.panel_left.ed.toggleViewWhiteSpace()
+        self.panel_right.ed.toggleViewWhiteSpace()
 
     def actionFoldsExpand( self ):
         self.showAllFolds( True )
@@ -233,9 +229,9 @@ class DiffWidget(QtWidgets.QWidget):
     def __init__( self, parent_win, title ):
         super().__init__( parent_win )
 
-        self.resize( 200, 200 )
-
         self.text_file_name = QtWidgets.QLineEdit()
+        self.text_file_name.setText( title )
+        self.text_file_name.setReadOnly( True )
 
         self.ed = DiffBodyText( self )
 
@@ -256,6 +252,8 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.text_body_other = None
 
         super().__init__( parent )
+
+        self.white_space_visible = False
 
         if line_numbers:
             self.diff_line_numbers = DiffLineNumbers( parent )
@@ -318,32 +316,24 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         assert( self.text_body_other )
         self.syncScroll.emit()
 
-    def OnNeedToSyncScroll( self, event ):
+    def onNeedToSyncScroll( self, event ):
         if self.text_body_other is not None:
             self.syncScroll.emit()
 
         event.Skip()
 
-    def onSyncScroll( self, event ):
-        line_number = event.text_body_this.GetFirstVisibleLine()
-        event.text_body_other.ScrollToLine( line_number )
-        event.text_body_other.diff_line_numbers.ScrollToLine( line_number )
-        event.text_body_this.diff_line_numbers.ScrollToLine( line_number )
-        
-        xpos = event.text_body_this.GetXOffset()
-        event.text_body_other.SetXOffset( xpos )
-        sb_horizontal_postion = event.text_body_this.GetScrollPos( wx.SB_HORIZONTAL )
-        if event.text_body_other.GetScrollPos( wx.SB_HORIZONTAL ) != sb_horizontal_postion:
-            event.text_body_other.SetScrollPos( wx.SB_HORIZONTAL, sb_horizontal_postion, True )
+    def onSyncScroll( self ):
+        line_number = self.getFirstVisibleLine()
+        self.diff_line_numbers.setFirstVisibleLine( line_number )
+        self.text_body_other.setFirstVisibleLine( line_number )
+        self.text_body_other.diff_line_numbers.setFirstVisibleLine( line_number )
 
-    def SetMirrorEditor( self, text_body_other ):
+    def setMirrorEditor( self, text_body_other ):
         self.text_body_other = text_body_other
 
-    def ToggleViewWhiteSpace( self ):
-        if self.getViewWhiteSpace():
-            self.setViewWhiteSpace( False )
-        else:
-            self.setViewWhiteSpace( True )
+    def toggleViewWhiteSpace( self ):
+        self.white_space_visible = not self.white_space_visible
+        self.setViewWhiteSpace( self.white_space_visible )
 
     #--------------------------------------------------------------------------------
     def handleMarginClicked( self, event ):
@@ -383,7 +373,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.markerSetFore( self.SC_MARKNUM_FOLDEROPEN,    'white' )
         self.markerSetBack( self.SC_MARKNUM_FOLDEROPEN,    'black' )
 
-    def ToggleFoldAtLine( self, line ):
+    def toggleFoldAtLine( self, line ):
         if self.getFoldLevel( line ) & self.SC_FOLDLEVELHEADERFLAG:
             if self.getFoldExpanded( line ):
                 self.setFoldExpanded( line, False )
@@ -394,7 +384,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
                 self.diff_line_numbers.setFoldExpanded( line, True )
                 self._ShowFoldLines( line, self.getFoldEnd( line ), True )
 
-    def GetFoldEnd( self, fold_start_line ):
+    def getFoldEnd( self, fold_start_line ):
         current_fold_line = fold_start_line
 
         fold_level = self.getFoldLevel( current_fold_line ) & self.SC_FOLDLEVELNUMBERMASK
@@ -410,13 +400,13 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
         self.showFoldLines( fold_start, fold_end, show_lines )
 
-    def ShowFoldLines( self, start_line, end_line, show_lines ):
+    def showFoldLines( self, start_line, end_line, show_lines ):
         if show_lines:
             self.showLines( start_line, end_line )
-            self.diff_line_numbers.ShowLines( start_line, end_line )
+            self.diff_line_numbers.showLines( start_line, end_line )
         else:
             self.hideLines( start_line, end_line )
-            self.diff_line_numbers.HideLines( start_line, end_line )
+            self.diff_line_numbers.hideLines( start_line, end_line )
 
     def setFoldLine( self, line_number, is_fold_line ):
         if is_fold_line:
@@ -438,7 +428,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
                 self.fold_start = -1
 
     def showAllFolds(self, show_folds):
-        for line in range(self.getLineCount()):
+        for line in range( self.getLineCount() ):
             if( self.getFoldLevel( line ) & self.SC_FOLDLEVELHEADERFLAG
             and ((self.getFoldExpanded( line ) and not show_folds)
                 or (not self.getFoldExpanded( line ) and show_folds)) ):
@@ -460,7 +450,6 @@ class DiffLineNumbers(wb_scintilla.WbScintilla):
         self.setMarginWidth( 1, 0 )
         self.setMarginWidth( 2, 0 )
 
-        self.setScrollWidth( 10000 )
 
         # make some styles
         self.styleSetFromSpec( self.style_normal,
@@ -470,18 +459,17 @@ class DiffLineNumbers(wb_scintilla.WbScintilla):
         self.styleSetFromSpec( self.style_line_numbers_for_diff,
                 'size:%d,face:%s,fore:#000000,back:#d0d0d0' % (wb_config.point_size, wb_config.face) )
 
-        # Calculate space for 5 digits
+        # Calculate space for 6 digits
         font = QtGui.QFont( wb_config.face, wb_config.point_size )
         self.setFont( font )
 
         fontmetrics = QtGui.QFontMetrics( font )
 
-        width = fontmetrics.width( '12345' )
+        width = fontmetrics.width( '123456' )
 
-        width = width + 10
-        self.resize( width, 200 )
-        #self.setSizeHints( minW=width, maxW=width, maxH=-1, minH=-1 )
-        #self.enable( False )
+        self.setScrollWidth( width )
+        self.setMaximumWidth( width )
+        self.setMinimumWidth( width )
 
         # no scroll bars on the line number control
         self.setVScrollBar( False )
