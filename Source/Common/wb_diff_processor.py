@@ -54,10 +54,10 @@ class DiffOneSideProcessor:
         line_number = self.changed_lines[self.current_changed_block]
 
         top_line = line_number - 3
-        if top_line < 1:
-            top_line = 1
+        if top_line < 0:
+            top_line = 0
 
-        self.text_body.setFirstVisibleLine( top_line-1 )
+        self.text_body.setFirstVisibleLine( top_line )
         self.text_body.gotoLine( line_number )
 
     def getCurrentChangeLine( self ):
@@ -183,19 +183,16 @@ class DiffProcessor:
         self.processor_left.text_body.setFocus( QtCore.Qt.OtherFocusReason)
 
     def moveNextChange( self ):
-        self.processor_left.moveNextChange()
-        line = self.processor_left.getCurrentChangeLine()
-        self.processor_left.updateCurrentChangeMarker( line )
-        self.processor_right.updateCurrentChangeMarker( line )
+        for proc in (self.processor_left, self.processor_right):
+            proc.moveNextChange()
+            line = proc.getCurrentChangeLine()
+            proc.updateCurrentChangeMarker( line )
 
     def movePrevChange( self ):
-        self.processor_left.movePrevChange()
-        line = self.processor_left.getCurrentChangeLine()
-        self.processor_left.updateCurrentChangeMarker( line )
-        self.processor_right.updateCurrentChangeMarker( line )
-
-    def toggleViewWhiteSpace( self ):
-        self.processor_left.text_body.toggleViewWhiteSpace()
+        for proc in (self.processor_left, self.processor_right):
+            proc.movePrevChange()
+            line = proc.getCurrentChangeLine()
+            proc.updateCurrentChangeMarker( line )
 
     def getChangeCount( self ):
         return len( self.processor_left.changed_lines )

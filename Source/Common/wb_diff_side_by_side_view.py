@@ -46,40 +46,14 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
             self.resize( 800, 600 )
 
         self.setupToolBar()
-
-        if False:
-            # Add the status bar
-            self.status_bar_size_changed = False
-
-            s = self.createStatusBar()
-
-            s.SetFieldsCount( 3 )
-            s.SetStatusWidths( [-1,  -1, 480] )
-
-            s.SetStatusText( 'Ready', 0 )
-            s.SetStatusText( 'Steady', 1 )
-            s.SetStatusText( 'Go!', 2 )
-
-            self.total_change_number = 0
-            self.current_change_number = 0
-            self.setChangeCounts( 0, 0 )
-
-            self.status_bar_key_field = DiffBodyText( s, line_numbers=False )
-            self.status_bar_key_field.insertStyledText( T_('Key: '), self.status_bar_key_field.style_line_normal )
-            self.status_bar_key_field.insertStyledText( T_('Inserted text '), self.status_bar_key_field.style_line_insert )
-            self.status_bar_key_field.insertStyledText( T_('Deleted text '), self.status_bar_key_field.style_line_delete )
-            self.status_bar_key_field.insertStyledText( T_('Changed text'), self.status_bar_key_field.style_line_changed )
-            self.status_bar_key_field.setReadOnly( True )
-
-            wx.EVT_SIZE( s, self.onStatusBarSize )
-            wx.EVT_IDLE( s, self.onStatusBarIdle )
+        self.setupStatusBar( self.statusBar() )
 
         self.splitter = QtWidgets.QSplitter()
         self.splitter.setOrientation( QtCore.Qt.Horizontal )
         self.sash_ratio = 0.5
 
-        self.panel_left = DiffWidget( self.splitter, title_left )
-        self.panel_right = DiffWidget( self.splitter, title_right )
+        self.panel_left = DiffWidget( app, self.splitter, title_left, name='left' )
+        self.panel_right = DiffWidget( app, self.splitter, title_right, name='right' )
 
         self.panel_left.ed.setMirrorEditor( self.panel_right.ed )
         self.panel_right.ed.setMirrorEditor( self.panel_left.ed )
@@ -135,6 +109,27 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
         self._addTool( t, T_('Previous difference'), self.actionDiffPrev, self.enablerDiffPrev )
         self._addTool( t, T_('Next difference'), self.actionDiffNext, self.enablerDiffNext )
 
+    def setupStatusBar( self, s ):
+        self.status_message = QtWidgets.QLabel()
+        s.addWidget( self.status_message )
+
+        prefs = self.app.prefs.diff_window
+
+        key = QtWidgets.QLabel()
+        key.setTextFormat( QtCore.Qt.RichText )
+        key.setText( '<font color="%(normal)s">Key: </font>'
+                     '<font color="%(insert)s">Inserted text </font>'
+                     '<font color="%(delete)s">Deleted text </font>'
+                     '<font color="%(change)s">Changed text </font>' %
+                        {'normal': prefs.colour_normal.fg
+                        ,'insert': prefs.colour_insert_line.fg
+                        ,'delete': prefs.colour_delete_line.fg
+                        ,'change': prefs.colour_change_line.fg} )
+        key.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+
+        self.status_bar_key_field = key
+        s.addPermanentWidget( self.status_bar_key_field )
+
     def enablerAlways( self ):
         return True
 
@@ -151,26 +146,17 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
         return true
 
     #------------------------------------------------------------
-    def OnStatusBarSize( self, event ):
-        self._repositionStatusBar()
-
-        # tell idle to fix up status bar
-        self.status_bar_size_changed = True
-
-    def OnStatusBarIdle( self, event ):
-        if self.status_bar_size_changed:
-            self._repositionStatusBar()
-            self.status_bar_size_changed = False
-
     def setChangeCounts( self, current_change_number=None, total_change_number=None ):
         if current_change_number is not None:
             self.current_change_number = current_change_number
+
         if total_change_number is not None:
             self.total_change_number = total_change_number
 
-        #self.getStatusBar().SetStatusText( T_('Diff %(change1)d of %(change2)d') %
-        #                        {'change1': self.current_change_number
-        #                        ,'change2': self.total_change_number}, 1 )
+        self.status_message.setText(
+            T_('Diff %(change1)d of %(change2)d') %
+                {'change1': self.current_change_number
+                ,'change2': self.total_change_number} )
 
     #------------------------------------------------------------
     def closeEvent( self, event ):
@@ -193,6 +179,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
     def actionDiffPrev( self ):
         if self.total_change_number == 0:
             return
+
         self.processor.movePrevChange()
         self.setChangeCounts( self.processor.getCurrentChange() )
 
@@ -226,14 +213,16 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
             
 #----------------------------------------------------------------------
 class DiffWidget(QtWidgets.QWidget):
-    def __init__( self, parent_win, title ):
+    def __init__( self, app, parent_win, title, name=None ):
         super().__init__( parent_win )
+
+        self.name = name    # used for debug
 
         self.text_file_name = QtWidgets.QLineEdit()
         self.text_file_name.setText( title )
         self.text_file_name.setReadOnly( True )
 
-        self.ed = DiffBodyText( self )
+        self.ed = DiffBodyText( app, self, name=self.name )
 
         v_layout = QtWidgets.QBoxLayout( QtWidgets.QBoxLayout.LeftToRight )
         v_layout.addWidget( self.ed.diff_line_numbers )
@@ -248,7 +237,9 @@ class DiffWidget(QtWidgets.QWidget):
 class DiffBodyText(wb_scintilla.WbScintilla):
     syncScroll = QtCore.pyqtSignal()
 
-    def __init__( self, parent, line_numbers=True ):
+    def __init__( self, app, parent, line_numbers=True, name=None ):
+        self._debug = app._debugDiff
+        self.name = name    # used for debug
         self.text_body_other = None
 
         super().__init__( parent )
@@ -256,7 +247,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.white_space_visible = False
 
         if line_numbers:
-            self.diff_line_numbers = DiffLineNumbers( parent )
+            self.diff_line_numbers = DiffLineNumbers( app, parent, name='%s-numbers' % (self.name,) )
         else:
             self.diff_line_numbers = None
 
@@ -268,11 +259,11 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.style_line_normal = self.STYLE_DEFAULT
         self.style_line_insert = self.STYLE_LASTPREDEFINED
         self.style_line_delete = self.STYLE_LASTPREDEFINED + 1
-        self.style_line_changed = self.STYLE_LASTPREDEFINED + 2
+        self.style_line_change = self.STYLE_LASTPREDEFINED + 2
 
         self.style_replace_insert =  self.style_line_insert | self.INDIC1_MASK
         self.style_replace_delete =  self.style_line_delete | self.INDIC1_MASK
-        self.style_replace_changed = self.style_line_changed | self.INDIC1_MASK
+        self.style_replace_changed = self.style_line_change | self.INDIC1_MASK
         self.style_replace_equal =   self.style_line_normal | self.INDIC1_MASK
 
         self.emptyUndoBuffer()
@@ -284,19 +275,20 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.setScrollWidth( 10000 )
 
         # make some styles
+        prefs = app.prefs.diff_window
         self.styleSetFromSpec( self.style_line_normal,
-                'size:%d,face:%s,fore:#000000' % (wb_config.point_size, wb_config.face) )
-        self.styleSetFromSpec( self.style_line_insert, 'fore:#008200' )
-        self.styleSetFromSpec( self.style_line_delete, 'fore:#0000FF' )
-        self.styleSetFromSpec( self.style_line_changed, 'fore:#FF0000' )
+                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_normal.fg) )
+        self.styleSetFromSpec( self.style_line_insert, 'fore:%s' % (prefs.colour_insert_line.fg,) )
+        self.styleSetFromSpec( self.style_line_delete, 'fore:%s' % (prefs.colour_delete_line.fg,) )
+        self.styleSetFromSpec( self.style_line_change, 'fore:%s' % (prefs.colour_change_line.fg,) )
 
         # and finally, an indicator or two
         self.indicSetStyle( self.style_line_insert, self.INDIC_SQUIGGLE )
-        self.indicSetFore( self.style_line_insert, '#ffb0b0' )
+        self.indicSetFore( self.style_line_insert, str(prefs.colour_insert_char.fg) )
         self.indicSetStyle( self.style_line_delete, self.INDIC_SQUIGGLE)
-        self.indicSetFore( self.style_line_delete, '#ff0000' )
-        self.indicSetStyle( self.style_line_changed, self.INDIC_STRIKE )
-        self.indicSetFore( self.style_line_changed, '#000000' )
+        self.indicSetFore( self.style_line_delete, str(prefs.colour_delete_char.fg) )
+        self.indicSetStyle( self.style_line_change, self.INDIC_STRIKE )
+        self.indicSetFore( self.style_line_change, str(prefs.colour_change_char.fg) )
 
         self.marginClicked.connect( self.handleMarginClicked )
 
@@ -313,6 +305,8 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         return '<DiffBodyText: %d>' % (self.body_count,)
 
     def wheelEvent( self, event ):
+        super().wheelEvent( event )
+
         assert( self.text_body_other )
         self.syncScroll.emit()
 
@@ -320,12 +314,17 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         if self.text_body_other is not None:
             self.syncScroll.emit()
 
-        event.Skip()
-
     def onSyncScroll( self ):
         line_number = self.getFirstVisibleLine()
+        self._debug( 'onSyncScroll (%s) first line is %d' % (self.name, line_number) )
+
+        self._debug( 'onSyncScroll (%s) set first line %d' % (self.diff_line_numbers.name, line_number) )
         self.diff_line_numbers.setFirstVisibleLine( line_number )
+
+        self._debug( 'onSyncScroll (%s) set first line %d' % (self.text_body_other.name, line_number) )
         self.text_body_other.setFirstVisibleLine( line_number )
+
+        self._debug( 'onSyncScroll (%s) set first line %d' % (self.text_body_other.diff_line_numbers.name, line_number) )
         self.text_body_other.diff_line_numbers.setFirstVisibleLine( line_number )
 
     def setMirrorEditor( self, text_body_other ):
@@ -436,9 +435,9 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
 #------------------------------------------------------------------------------------------
 class DiffLineNumbers(wb_scintilla.WbScintilla):
-    def __init__( self, parent ):
-
+    def __init__( self, app, parent, name=None ):
         super().__init__( parent )
+        self.name = name
 
         self.style_normal = self.STYLE_DEFAULT
         self.style_line_numbers = self.STYLE_LASTPREDEFINED + 1
@@ -449,7 +448,6 @@ class DiffLineNumbers(wb_scintilla.WbScintilla):
         self.setMarginWidth( 0, 0 )
         self.setMarginWidth( 1, 0 )
         self.setMarginWidth( 2, 0 )
-
 
         # make some styles
         self.styleSetFromSpec( self.style_normal,

@@ -16,22 +16,37 @@ import sys
 
 from  xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError
 
+import wb_config
+
 class RGB:
     def __init__( self, text ):
-        self.R, self.G, self.B = [int(s.strip()) for s in text.split( ',' )]
+        if len(text) == 7 and text[0] == '#':
+            self.R = int( text[1:3], 16 )
+            self.G = int( text[3:5], 16 )
+            self.B = int( text[5:7], 16 )
+
+        else:
+            raise ValueError( 'expecting #RRGGBB hex colour not %r' % (text,) )
 
     def __str__( self ):
-        return '%d,%d,%d' % (self.R, self.G, self.B)
+        return '#%2.2x%2.2x%2.2x' % (self.R, self.G, self.B)
 
     def __repr__( self ):
         return '<RGB R:%d G:%d B:%d>' % (self.R, self.G, self.B)
 
 class RGBA:
     def __init__( self, text ):
-        self.R, self.G, self.B, self.A = [int(s.strip()) for s in text.split( ',' )]
+        if len(text) == 9 and text[0] == '#':
+            self.R = int( text[1:3], 16 )
+            self.G = int( text[3:5], 16 )
+            self.B = int( text[5:7], 16 )
+            self.A = int( text[7:9], 16 )
+
+        else:
+            raise ValueError( 'expecting #RRGGBBAA hex colour not %r' % (text,) )
 
     def __str__( self ):
-        return '%d,%d,%d,%d' % (self.R, self.G, self.B, self.A)
+        return '#%2.2x%2.2x%2.2x%2.2x'(self.R, self.G, self.B, self.A)
 
     def __repr__( self ):
         return '<RGBA R:%d G:%d B:%d, A:%d>' % (self.R, self.G, self.B, self.A)
@@ -112,7 +127,7 @@ class Font(PreferencesNode):
             self.face = 'Liberation Mono'
             self.point_size = 11
 
-class Colour(PreferencesNode):
+class NamedColour(PreferencesNode):
     xml_attribute_info = (('fg', RGB), ('bg', RGB))
 
     def __init__( self, name, fg=None, bg=None ):
@@ -124,6 +139,15 @@ class Colour(PreferencesNode):
 
     def __lt__( self, other ):
         return self.name < other.name
+
+class Colour(PreferencesNode):
+    xml_attribute_info = (('fg', RGB), ('bg', RGB))
+
+    def __init__( self, fg=None, bg=None ):
+        super().__init__()
+
+        self.fg = fg
+        self.bg = bg
 
 class Editor(PreferencesNode):
     xml_attribute_info = ('program', 'options')
@@ -202,7 +226,15 @@ class View(PreferencesNode):
 scheme_nodes = (
     (SchemeNode( Preferences, 'preferences',  )
     <<  SchemeNode( MainWindow, 'main_window' )
-    <<  SchemeNode( MainWindow, 'diff_window' )
+    <<  (SchemeNode( MainWindow, 'diff_window' )
+        << SchemeNode( Colour, 'colour_normal', default_attributes={'fg': wb_config.diff_colour_normal} )
+        << SchemeNode( Colour, 'colour_insert_line', default_attributes={'fg': wb_config.diff_colour_insert_line} )
+        << SchemeNode( Colour, 'colour_delete_line', default_attributes={'fg': wb_config.diff_colour_delete_line} )
+        << SchemeNode( Colour, 'colour_change_line', default_attributes={'fg': wb_config.diff_colour_change_line} )
+        << SchemeNode( Colour, 'colour_insert_char', default_attributes={'fg': wb_config.diff_colour_insert_char} )
+        << SchemeNode( Colour, 'colour_delete_char', default_attributes={'fg': wb_config.diff_colour_delete_char} )
+        << SchemeNode( Colour, 'colour_change_char', default_attributes={'fg': wb_config.diff_colour_change_char} )
+        )
     <<  (SchemeNode( ProjectCollection, 'projects', store_as='all_projects' )
         << SchemeNode( Project, 'project', key_attribute='name' )
         )
