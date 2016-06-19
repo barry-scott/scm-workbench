@@ -18,6 +18,8 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import wb_config
+
 import wb_tracked_qwidget
 
 def U_(s):
@@ -29,17 +31,20 @@ class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
     style_add = 2
     style_delete = 3
 
-    all_style_colours = (
-        (style_header,  '#00cc00', '#ffffff'),
-        (style_normal,  '#000000', '#ffffff'),
-        (style_add,     '#DC143C', '#ffffff'),
-        (style_delete,  '#1919c0', '#ffffff'),
-        )
 
     def __init__( self, app, title, icon ):
         self.app = app
 
         super().__init__()
+
+        prefs = app.prefs.diff_window
+
+        self.all_style_colours = (
+            (self.style_header,  prefs.colour_header.fg, '#ffffff'),
+            (self.style_normal,  prefs.colour_normal.fg, '#ffffff'),
+            (self.style_delete,  prefs.colour_delete_line.fg, '#ffffff'),
+            (self.style_add,     prefs.colour_insert_line.fg, '#ffffff'),
+            )
 
         self.setWindowTitle( title )
         if icon is not None:
@@ -49,18 +54,8 @@ class WbDiffViewText(WbDiffViewBase):
     def __init__( self, app, title, icon ):
         super().__init__( app, title, icon )
 
-        self.point_size = 14
-        # point size and face need to choosen for platform
-        if sys.platform.startswith( 'win' ):
-            self.face = 'Courier New'
-
-        elif sys.platform == 'darwin':
-            self.face = 'Monaco'
-
-        else:
-            # Assuming linux/xxxBSD
-            self.face = 'Liberation Mono'
-            self.point_size = 11
+        self.point_size = wb_config.point_size
+        self.face = wb_config.face
 
         self.font = QtGui.QFont( self.face, self.point_size )
 
@@ -75,8 +70,8 @@ class WbDiffViewText(WbDiffViewBase):
         for style, fg_colour, bg_colour in self.all_style_colours:
             format = QtGui.QTextCharFormat()
             format.setFont( self.font )
-            format.setForeground( QtGui.QBrush( QtGui.QColor( fg_colour ) ) )
-            format.setBackground( QtGui.QBrush( QtGui.QColor( bg_colour ) ) )
+            format.setForeground( QtGui.QBrush( QtGui.QColor( str(fg_colour) ) ) )
+            format.setBackground( QtGui.QBrush( QtGui.QColor( str(bg_colour) ) ) )
             self.all_text_formats[ style ] = format
 
         self.text_edit.setReadOnly( True )

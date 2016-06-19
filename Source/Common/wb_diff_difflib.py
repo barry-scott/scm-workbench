@@ -165,8 +165,6 @@ class Difference:
         lines_left = [eolRemoval( line ) for line in lines_left]
         lines_right = [eolRemoval( line ) for line in lines_right]
 
-
-
         matcher = difflib.SequenceMatcher( IS_LINE_JUNK, lines_left, lines_right )
         for tag, left_lo, left_hi, right_lo, right_hi in matcher.get_opcodes():
             if tag == 'replace':

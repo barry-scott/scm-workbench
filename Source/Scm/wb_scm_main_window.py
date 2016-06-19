@@ -14,9 +14,7 @@
 '''
 import sys
 import os
-import time
 import pathlib
-import difflib
 
 # On OS X the packager missing this import
 import sip
@@ -305,6 +303,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Show Uncontrolled files'), self.table_sortfilter.setShowUncontrolledFiles, checker=self.checkerShowUncontrolledFiles )
         self._addMenu( m, T_('Show Ignored files'), self.table_sortfilter.setShowIgnoredFiles, checker=self.checkerShowIgnoredFiles )
         self._addMenu( m, T_('Show Only changed files'), self.table_sortfilter.setShowOnlyChangedFiles, checker=self.checkerShowOnlyChangedFiles )
+
+        m.addSeparator()
+
+        self.diff_group = QtWidgets.QActionGroup( self )
+        self.diff_group.setExclusive( True )
+        self._addMenu( m, T_('Unified diff'), self.setDiffUnified, checker=self.checkerDiffUnified, group=self.diff_group )
+        self._addMenu( m, T_('Side by side diff'), self.setDiffSideBySide, checker=self.checkerDiffSideBySide, group=self.diff_group )
 
         m = mb.addMenu( T_('F&older Actions') )
         self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
@@ -599,9 +604,45 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         return cache[ key ]
 
+    def setDiffUnified( self ):
+        self.app.prefs.view.setDiffUnified()
+
+    def setDiffSideBySide( self ):
+        self.app.prefs.view.setDiffSideBySide()
+
+    def checkerDiffUnified( self, cache ):
+        key = 'checkerDiffUnified'
+        if key not in cache:
+            cache[ key ] = self.app.prefs.view.isDiffUnified()
+
+        return cache[ key ]
+
+    def checkerDiffSideBySide( self, cache ):
+        key = 'checkerDiffSideBySide'
+        if key not in cache:
+            cache[ key ] = self.app.prefs.view.isDiffSideBySide()
+
+        return cache[ key ]
+
+    def diffTwoFiles( self, old_lines, new_lines, title_unified, title_left, title_right ):
+        if self.app.prefs.view.isDiffUnified():
+            text = self.__diffUnified( old_lines, new_lines )
+
+            window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
+            window.setUnifiedDiffText( text )
+            window.show()
+
+        elif self.app.prefs.view.isDiffSideBySide():
+            window = wb_diff_side_by_side_view.DiffSideBySideView(
+                        self.app, None, 
+                        old_lines, title_left,
+                        new_lines, title_right )
+            window.show()
+
+
     #------------------------------------------------------------
     #
-    # tree actions
+    # tree actions asdasd asd asd
     #
     #------------------------------------------------------------
     def _treeSelectedScmProjectName( self ):

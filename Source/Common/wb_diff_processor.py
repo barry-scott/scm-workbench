@@ -35,13 +35,13 @@ class DiffOneSideProcessor:
 
     def moveNextChange( self ):
         self.current_changed_block += 1
-        self._moveToChange()
+        self.showCurrentChange()
 
     def movePrevChange( self ):
         self.current_changed_block -= 1
-        self._moveToChange()
+        self.showCurrentChange()
 
-    def _moveToChange( self ):
+    def showCurrentChange( self ):
         if len(self.changed_lines) == 0:
             return
 
@@ -51,14 +51,15 @@ class DiffOneSideProcessor:
         elif self.current_changed_block < 0:
             self.current_changed_block = len(self.changed_lines) - 1
 
-        line_number = self.changed_lines[self.current_changed_block]
+        line_number = self.changed_lines[ self.current_changed_block ]
 
         top_line = line_number - 3
         if top_line < 0:
             top_line = 0
 
-        self.text_body.setFirstVisibleLine( top_line )
-        self.text_body.gotoLine( line_number )
+        for control in self.text_body, self.diff_line_numbers:
+            control.setFirstVisibleLine( top_line )
+            control.gotoLine( line_number )
 
     def getCurrentChangeLine( self ):
         return self.changed_lines[ self.current_changed_block ]
@@ -182,6 +183,10 @@ class DiffProcessor:
         self.processor_right.addEnd()
         self.processor_left.text_body.setFocus( QtCore.Qt.OtherFocusReason)
 
+    def showCurrentChange( self ):
+        for proc in (self.processor_left, self.processor_right):
+            proc.showCurrentChange()
+        
     def moveNextChange( self ):
         for proc in (self.processor_left, self.processor_right):
             proc.moveNextChange()

@@ -47,7 +47,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def setupStatusBar( self, status_bar ):
         pass
 
-    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, role=QtWidgets.QAction.NoRole ):
+    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, role=QtWidgets.QAction.NoRole ):
         if icon_name is None:
             action = menu.addAction( name )
         else:
@@ -70,6 +70,9 @@ class WbMainWindow(QtWidgets.QMainWindow):
         if checker is not None:
             action.setCheckable( True )
             self.__action_state_manager.addChecker( action, checker )
+
+        if group is not None:
+            group.addAction( action )
 
     def _addToolBar( self, name, style=None ):
         bar = self.addToolBar( name )

@@ -219,15 +219,30 @@ class View(PreferencesNode):
         self.show_ignored = False
         self.show_only_changed = False
 
+        self.diff_style = 'side-by-side'
+
     def __repr__( self ):
-        return ('<View: ctl=%r unctl=%r ig=%r only=%r>' %
-                (self.show_controlled, self.show_uncontrolled, self.show_ignored, self.show_only_changed))
+        return ('<View: ctl=%r unctl=%r ig=%r only=%r diff=%r>' %
+                (self.show_controlled, self.show_uncontrolled, self.show_ignored, self.show_only_changed, self.diff_style))
+
+    def setDiffUnified( self ):
+        self.diff_style = 'unified'
+
+    def isDiffUnified( self ):
+        return self.diff_style == 'unified'
+
+    def setDiffSideBySide( self ):
+        self.diff_style = 'side-by-side'
+
+    def isDiffSideBySide( self ):
+        return self.diff_style == 'side-by-side'
 
 scheme_nodes = (
     (SchemeNode( Preferences, 'preferences',  )
     <<  SchemeNode( MainWindow, 'main_window' )
     <<  (SchemeNode( MainWindow, 'diff_window' )
         << SchemeNode( Colour, 'colour_normal', default_attributes={'fg': wb_config.diff_colour_normal} )
+        << SchemeNode( Colour, 'colour_header', default_attributes={'fg': wb_config.diff_colour_header} )
         << SchemeNode( Colour, 'colour_insert_line', default_attributes={'fg': wb_config.diff_colour_insert_line} )
         << SchemeNode( Colour, 'colour_delete_line', default_attributes={'fg': wb_config.diff_colour_delete_line} )
         << SchemeNode( Colour, 'colour_change_line', default_attributes={'fg': wb_config.diff_colour_change_line} )

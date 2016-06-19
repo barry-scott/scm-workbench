@@ -73,26 +73,6 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
             return
 
         self.setChangeCounts( 0, self.processor.getChangeCount() )
-        #self.setZoom( diff_prefs.zoom )
-
-        if False:
-            # Set up the keyboard shortcuts
-            accelerator_table = wx.AcceleratorTable(
-                [(wx.ACCEL_NORMAL, ord('p'), id_previous_command )
-                ,(wx.ACCEL_SHIFT,  wx.WXK_F7, id_previous_command )
-                ,(wx.ACCEL_NORMAL, ord('n'), id_next_command )
-                ,(wx.ACCEL_NORMAL, wx.WXK_F7, id_next_command )
-                ,(wx.ACCEL_NORMAL, ord(' '), id_whitespace_command )
-                ,(wx.ACCEL_NORMAL, ord('e'), id_expand_folds_command )
-                ,(wx.ACCEL_NORMAL, ord('c'), id_collapse_folds_command )
-                ])
-            self.setAcceleratorTable( accelerator_table )
-
-        #qqq#wx.EVT_SPLITTER_SASH_POS_CHANGED( self.splitter, -1, self.onSashPositionChanged )
-
-        # qqq # maybe zoomIn and zoomOut events?
-        #self.panel_left.zoomChanged.connect( self.handleZoomChanged )
-        #self.panel_right.zoomChanged.connect( self.handleZoomChanged )
 
         self.setCentralWidget( self.splitter )
 
@@ -102,7 +82,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
     def setupToolBar( self ):
         t = self.tool_bar_diff = self._addToolBar( T_('f') )
         self._addTool( t, T_('Expand folds'), self.actionFoldsExpand, self.enablerFoldsExpand )
-        self._addTool( t, T_('Collapse folds'), self.actionFfoldsCollapse, self.enablerFoldsCollapsed )
+        self._addTool( t, T_('Collapse folds'), self.actionFoldsCollapse, self.enablerFoldsCollapsed )
         t.addSeparator()
         self._addTool( t, T_('Toggle White Space'), self.actionToggleWhiteSpace, self.enablerAlways )
         t.addSeparator()
@@ -189,9 +169,11 @@ class DiffSideBySideView(wb_main_window.WbMainWindow):
 
     def actionFoldsExpand( self ):
         self.showAllFolds( True )
+        self.processor.showCurrentChange()
 
-    def actionFfoldsCollapse( self ):
+    def actionFoldsCollapse( self ):
         self.showAllFolds( False )
+        self.processor.showCurrentChange()
 
     def showAllFolds( self, show ):
         self.panel_left.ed.showAllFolds( show )
@@ -237,7 +219,7 @@ class DiffWidget(QtWidgets.QWidget):
 class DiffBodyText(wb_scintilla.WbScintilla):
     syncScroll = QtCore.pyqtSignal()
 
-    def __init__( self, app, parent, line_numbers=True, name=None ):
+    def __init__( self, app, parent, name=None ):
         self._debug = app._debugDiff
         self.name = name    # used for debug
         self.text_body_other = None
@@ -246,10 +228,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
         self.white_space_visible = False
 
-        if line_numbers:
-            self.diff_line_numbers = DiffLineNumbers( app, parent, name='%s-numbers' % (self.name,) )
-        else:
-            self.diff_line_numbers = None
+        self.diff_line_numbers = DiffLineNumbers( app, parent, name='%s-numbers' % (self.name,) )
 
         self.fold_margin = -1
         self.fold_start = -1
@@ -291,11 +270,10 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.indicSetFore( self.style_line_change, str(prefs.colour_change_char.fg) )
 
         self.marginClicked.connect( self.handleMarginClicked )
+        self.cursorPositionChanged.connect( self.handleCursorPositionChanged )
 
-        if line_numbers:
-            self.setupFolding( 1 )
+        self.setupFolding( 1 )
 
-        #wx.EVT_SCROLLWIN( self, self.onNeedToSyncScroll )
         self.syncScroll.connect( self.onSyncScroll )
         DiffBodyText.body_count += 1
         self.body_count = DiffBodyText.body_count
@@ -335,17 +313,22 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.setViewWhiteSpace( self.white_space_visible )
 
     #--------------------------------------------------------------------------------
-    def handleMarginClicked( self, event ):
-        if event.GetMargin() == self.fold_margin:
-            self.toggleFoldAtLine( self.lineFromPosition( event.GetPosition() ) )
+    def handleCursorPositionChanged( self, line, index ):
+        self.onSyncScroll()
+
+    def handleMarginClicked( self, margin, line, modifiers ):
+        print( 'qqq handleMarginClicked margin %r line %r modifiers %r' % (margin, line, int(modifiers)) )
+        #if event.getMargin() == self.fold_margin:
+        #    self.toggleFoldAtLine( self.lineFromPosition( event.GetPosition() ) )
 
     #--------------------------------------------------------------------------------
     def setupFolding( self, margin ):
         self.fold_margin = margin
+
         self.setProperty( 'fold', '1' )
         self.diff_line_numbers.setProperty( 'fold', '1' )
-        self.setMarginType( self.fold_margin, self.SC_MARGIN_SYMBOL )
 
+        self.setMarginType( self.fold_margin, self.SC_MARGIN_SYMBOL )
         self.setMarginMask( self.fold_margin, self.SC_MASK_FOLDERS )
         self.setMarginSensitive( self.fold_margin, True )
         self.setMarginWidth( self.fold_margin, 15 )

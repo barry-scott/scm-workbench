@@ -29,9 +29,12 @@ else:
     point_size = 12
 
 diff_colour_normal = '#000000'
+diff_colour_header = '#1919c0'
+
 diff_colour_insert_line = '#008200'
-diff_colour_delete_line = '#0000ff'
-diff_colour_change_line = '#ff0000'
-diff_colour_insert_char = '#ffb0b0'
-diff_colour_delete_char = '#ff0000'
-diff_colour_change_char = '#000000'
+diff_colour_delete_line = '#dc143c'
+diff_colour_change_line = '#0000ff'
+
+diff_colour_insert_char = '#008200'
+diff_colour_delete_char = '#dc143c'
+diff_colour_change_char = '#0000ff'

@@ -17,6 +17,7 @@ from PyQt5 import QtCore
 import difflib
 
 import wb_diff_unified_view
+import wb_diff_side_by_side_view
 
 import wb_ui_components
 
@@ -512,41 +513,35 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __actionGitDiffHeadVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
-        old_lines = file_state.getTextLinesHead()
-        new_lines = file_state.getTextLinesWorking()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff HEAD vs. Work %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
+        self.main_window.diffTwoFiles(
+                file_state.getTextLinesHead(),
+                file_state.getTextLinesWorking(),
+                T_('Diff HEAD vs. Work %s') % (filename,),
+                T_('HEAD %s') % (filename,),
+                T_('Work %s') % (filename,)
+                )
 
     def __actionGitDiffStagedVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
-        old_lines = file_state.getTextLinesStaged()
-        new_lines = file_state.getTextLinesWorking()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff Staged vs. Work %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
+        self.main_window.diffTwoFiles(
+                file_state.getTextLinesStaged(),
+                file_state.getTextLinesWorking(),
+                T_('Diff Staged vs. Work %s') % (filename,),
+                T_('Staged %s') % (filename,),
+                T_('Work %s') % (filename,)
+                )
 
     def __actionGitDiffHeadVsStaged( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
-        old_lines = file_state.getTextLinesHead()
-        new_lines = file_state.getTextLinesStaged()
-
-        text = self.__diffUnified( old_lines, new_lines )
-        title = T_('Diff HEAD vs. Staged %s') % (filename,)
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( text )
-        window.show()
+        self.main_window.diffTwoFiles(
+                file_state.getTextLinesHead(),
+                file_state.getTextLinesStaged(),
+                T_('Diff HEAD vs. Staged %s') % (filename,),
+                T_('HEAD %s') % (filename,),
+                T_('Staged %s') % (filename,)
+                )
 
     def __actionGitLogHistory( self, git_project, filename ):
         options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self.main_window )
