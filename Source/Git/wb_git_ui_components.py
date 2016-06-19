@@ -16,9 +16,6 @@ from PyQt5 import QtCore
 
 import difflib
 
-import wb_diff_unified_view
-import wb_diff_side_by_side_view
-
 import wb_ui_components
 
 import wb_git_project
@@ -506,9 +503,6 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         elif file_state.canDiffHeadVsWorking():
             self.__actionGitDiffHeadVsWorking( git_project, filename )
-
-    def __diffUnified( self, old_lines, new_lines ):
-        return list( difflib.unified_diff( old_lines, new_lines ) )
 
     def __actionGitDiffHeadVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
