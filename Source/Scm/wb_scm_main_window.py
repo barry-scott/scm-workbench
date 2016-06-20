@@ -41,6 +41,9 @@ import wb_main_window
 import wb_preferences
 import wb_tracked_qwidget
 
+import wb_diff_unified_view
+import wb_diff_side_by_side_view
+
 class WbScmMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app, all_ui_components ):
         super().__init__( app, wb_scm_images, app._debugMainWindow )
@@ -98,7 +101,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # window major widgets
         self.__log = wb_logging.WbLog( self.app )
-
 
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
@@ -390,6 +392,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     #   Enabler handlers
     #
     #------------------------------------------------------------
+    def isScmTypeActive( self, scm_type ):
+        return self.__ui_active_scm_type == scm_type
+
     def enablerFolderExists( self, cache ):
         key = 'enablerFolderExists'
         if key not in cache:

@@ -18,6 +18,7 @@ import os
 
 import wb_git_project
 import wb_hg_project
+import wb_svn_project
 
 class WbScmTreeModel(QtGui.QStandardItemModel):
     def __init__( self, app, table_model ):
@@ -40,6 +41,9 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         elif project.scm_type == 'hg':
             scm_project = wb_hg_project.HgProject( self.app, project )
+
+        elif project.scm_type == 'svn':
+            scm_project = wb_svn_project.SvnProject( self.app, project )
 
         else:
             self.log.error( 'Unsupported SCM project type %r' % (project.scm,) )
