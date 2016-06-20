@@ -198,7 +198,7 @@ class GitProject:
     def getReportUntrackedFiles( self ):
         all_untracked_files = []
         for filename, file_state in self.all_file_state.items():
-            if file_state.isUntracked():
+            if file_state.isUncontrolled():
                 all_untracked_files.append( (T_('New file'), filename) )
 
             elif file_state.isUnstagedModified():
@@ -470,6 +470,24 @@ class WbGitFileState:
         self.__calculateState()
         return self.__unstaged_abbrev
 
+    #------------------------------------------------------------
+    def isControlled( self ):
+        return self.__index_entry is not None
+
+    def isUncontrolled( self ):
+        return self.__untracked
+
+    def isIgnored( self ):
+        if self.__index_entry is not None:
+            return False
+
+        # untracked files have had ignored files striped out
+        if self.__untracked:
+            return False
+
+        return True
+
+    # ------------------------------
     def isStagedNew( self ):
         self.__calculateState()
         return self.__staged_abbrev == 'A'
@@ -490,19 +508,7 @@ class WbGitFileState:
         self.__calculateState()
         return self.__unstaged_abbrev == 'D'
 
-    def isUntracked( self ):
-        return self.__untracked
-
-    def isIgnored( self ):
-        if self.__index_entry is not None:
-            return False
-
-        # untracked files have had ignored files striped out
-        if self.__untracked:
-            return False
-
-        return True
-
+    # ------------------------------------------------------------
     def canDiffHeadVsStaged( self ):
         self.__calculateState()
         return self.__staged_is_modified

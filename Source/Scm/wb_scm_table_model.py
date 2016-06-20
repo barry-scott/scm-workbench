@@ -28,6 +28,7 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         self.show_ignored = False
         self.show_only_changed = False
 
+    # ------------------------------------------------------------
     def setFilterText( self, text ):
         self.filter_text = text
         self.invalidateFilter()
@@ -48,22 +49,55 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         self.show_only_changed = state
         self.invalidateFilter()
 
+    # ------------------------------------------------------------
+    def checkerShowControllerFiles( self, cache ):
+        key = 'checkerShowControllerFiles'
+        if key not in cache:
+            cache[ key ] = self.show_controlled
+
+        return cache[ key ]
+
+    def checkerShowUncontrolledFiles( self, cache ):
+        key = 'checkerShowUncontrolledFiles'
+        if key not in cache:
+            cache[ key ] = self.show_uncontrolled
+
+        return cache[ key ]
+
+    def checkerShowIgnoredFiles( self, cache ):
+        key = 'checkerShowIgnoredFiles'
+        if key not in cache:
+            cache[ key ] = self.show_ignored
+
+        return cache[ key ]
+
+    def checkerShowOnlyChangedFiles( self, cache ):
+        key = 'checkerShowOnlyChangedFiles'
+        if key not in cache:
+            cache[ key ] = self.show_only_changed
+
+        return cache[ key ]
+
+    # ------------------------------------------------------------
     def filterAcceptsRow( self, source_row, source_parent ):
         model = self.sourceModel()
         index = model.createIndex( source_row, WbScmTableModel.col_name )
 
         entry = model.data( index, QtCore.Qt.UserRole )
 
-        if entry.controlledFile() and not self.show_controlled:
+        if entry.is_dir():
             return False
 
-        if entry.uncontrolledFile() and not self.show_uncontrolled:
+        if entry.isControlled() and not self.show_controlled:
             return False
 
-        if entry.ignoreFile() and not self.show_ignored:
+        if entry.isUncontrolled() and not self.show_uncontrolled:
             return False
 
-        if (entry.stagedAsString() != '' or entry.statusAsString() !=0) and not self.show_only_changed:
+        if entry.isIgnore() and not self.show_ignored:
+            return False
+
+        if self.show_only_changed and entry.stagedAsString() == '' and entry.statusAsString() == '':
             return False
 
         if self.filter_text != '':
@@ -94,13 +128,13 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
             if left != right:
                 return left > right
 
-            left = left_ent.isWorkingNew()
-            right = right_ent.isWorkingNew()
+            left = left_ent.isControlled()
+            right = right_ent.isControlled()
             if left != right:
-                return left < right
+                return left > right
 
-            left = left_ent.ignoreFile()
-            right = right_ent.ignoreFile()
+            left = left_ent.isIgnore()
+            right = right_ent.isIgnore()
             if left != right:
                 return left < right
 
@@ -162,9 +196,9 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
         self.all_files = []
 
-        self.__brush_working_new = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
         self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 0, 255 ) )
-        self.__brush_is_working_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
+        self.__brush_is_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
+        self.__brush_is_uncontrolled = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
 
     def rowCount( self, parent ):
         return len( self.all_files )
@@ -227,12 +261,10 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                 return self.__brush_is_cached
 
             if working != '':
-                return self.__brush_is_working_changed
+                return self.__brush_is_changed
 
-            if entry.isWorkingNew():
-                return self.__brush_working_new
-
-            return None
+            if not entry.isControlled():
+                return self.__brush_is_uncontrolled
 
         #if role == QtCore.Qt.BackgroundRole:
 
@@ -369,25 +401,17 @@ class WbScmTableEntry:
         else:
             return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( self.dirent.stat().st_mtime ) )
 
-    def controlledFile( self ):
-        if self.status is not None and not self.status.isIgnored():
-            return True
+    # ------------------------------------------------------------
+    def isControlled( self ):
+        return self.status is not None and self.status.isControlled()
 
-        return False
+    def isUncontrolled( self ):
+        return self.status is not None and self.status.isUncontrolled()
 
-    def uncontrolledFile( self ):
-        if self.status is None:
-            return True
+    def isIgnore( self ):
+        return self.status is not None and self.status.isIgnored()
 
-    def ignoreFile( self ):
-        if self.status is None:
-            return True
-
-        if self.status.isIgnored():
-            return True
-
-        return False
-
+    # ------------------------------------------------------------
     def stagedAsString( self ):
         if self.status is None:
             return ''
@@ -400,11 +424,6 @@ class WbScmTableEntry:
 
         return self.status.getUnstagedAbbreviatedStatus()
 
-    def isWorkingNew( self ):
-        if self.status is None:
-            return False
-
-        return self.status.isUntracked()
 
 def os_scandir( path ):
     if hasattr( os, 'scandir' ):

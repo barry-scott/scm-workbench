@@ -301,10 +301,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
 
         m = mb.addMenu( T_('&View') )
-        self._addMenu( m, T_('Show Controlled files'), self.table_sortfilter.setShowControllerFiles, checker=self.checkerShowControllerFiles )
-        self._addMenu( m, T_('Show Uncontrolled files'), self.table_sortfilter.setShowUncontrolledFiles, checker=self.checkerShowUncontrolledFiles )
-        self._addMenu( m, T_('Show Ignored files'), self.table_sortfilter.setShowIgnoredFiles, checker=self.checkerShowIgnoredFiles )
-        self._addMenu( m, T_('Show Only changed files'), self.table_sortfilter.setShowOnlyChangedFiles, checker=self.checkerShowOnlyChangedFiles )
+        tsf = self.table_sortfilter
+        self._addMenu( m, T_('Show Controlled files'), tsf.setShowControllerFiles, checker=tsf.checkerShowControllerFiles )
+        self._addMenu( m, T_('Show Uncontrolled files'), tsf.setShowUncontrolledFiles, checker=tsf.checkerShowUncontrolledFiles )
+        self._addMenu( m, T_('Show Ignored files'), tsf.setShowIgnoredFiles, checker=tsf.checkerShowIgnoredFiles )
+        self._addMenu( m, T_('Show Only changed files'), tsf.setShowOnlyChangedFiles, checker=tsf.checkerShowOnlyChangedFiles )
 
         m.addSeparator()
 
@@ -581,34 +582,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # view actions
     #
     #------------------------------------------------------------
-    def checkerShowControllerFiles( self, cache ):
-        key = 'checkerShowControllerFiles'
-        if key not in cache:
-            cache[ key ] = True
-
-        return cache[ key ]
-
-    def checkerShowUncontrolledFiles( self, cache ):
-        key = 'checkerShowUncontrolledFiles'
-        if key not in cache:
-            cache[ key ] = True
-
-        return cache[ key ]
-
-    def checkerShowIgnoredFiles( self, cache ):
-        key = 'checkerShowIgnoredFiles'
-        if key not in cache:
-            cache[ key ] = False
-
-        return cache[ key ]
-
-    def checkerShowOnlyChangedFiles( self, cache ):
-        key = 'checkerShowOnlyChangedFiles'
-        if key not in cache:
-            cache[ key ] = True
-
-        return cache[ key ]
-
     def setDiffUnified( self ):
         self.app.prefs.view.setDiffUnified()
 

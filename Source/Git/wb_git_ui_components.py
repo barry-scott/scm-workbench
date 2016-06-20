@@ -16,9 +16,6 @@ from PyQt5 import QtCore
 
 import difflib
 
-import wb_diff_unified_view
-import wb_diff_side_by_side_view
-
 import wb_ui_components
 
 import wb_git_project
@@ -153,7 +150,10 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __enablerDiff( self, cache, key, predicate ):
         if key not in cache:
             focus = self.main_window._enablerFocusWidget( cache )
-            if focus == 'tree':
+            if not self.main_window.isScmTypeActive( 'git' ):
+                cache[ key ] = False
+
+            elif focus == 'tree':
                 cache[ key ] = True
 
             elif focus == 'table':
@@ -176,7 +176,11 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         key = 'enablerDiffSmart'
         if key not in cache:
             focus = self.main_window._enablerFocusWidget( cache )
-            if focus == 'tree':
+
+            if not self.main_window.isScmTypeActive( 'git' ):
+                cache[ key ] = False
+
+            elif focus == 'tree':
                 cache[ key ] = True
 
             elif focus == 'table':

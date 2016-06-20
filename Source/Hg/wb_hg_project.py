@@ -410,13 +410,18 @@ class WbHgFileState:
         # QQQ here for Git compat - bad OO design here
         return self.getAbbreviatedStatus()
 
+    # ------------------------------------------------------------
+    def isControlled( self ):
+        return self.__nodeid is not None
+
+    def isUncontrolled( self ):
+        return self.__state == '?'
+
     def isIgnored( self ):
         return self.__state == 'I'
 
-    def isTracked( self ):
-        return self.__nodeid is not None
-
-    def isNew( self ):
+    # --------------------
+    def isAdded( self ):
         return self.__state == 'A'
 
     def isModified( self ):
@@ -425,9 +430,7 @@ class WbHgFileState:
     def isDeleted( self ):
         return self.__state == 'R'
 
-    def isUntracked( self ):
-        return self.__state == '?'
-
+    # ------------------------------------------------------------
     def canDiffHeadVsWorking( self ):
         return self.isModified()
 

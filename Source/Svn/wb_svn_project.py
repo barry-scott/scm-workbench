@@ -104,15 +104,13 @@ class SvnProject:
         for state in self.client.status2( str(self.path()) ):
             filepath = self.pathForWb( state.path )
 
-            if filepath.name == '':
-                self.app.log.error( 'Skipping state.path %r' % (state.path,) )
-                continue
-
             if filepath not in self.all_file_state:
                 # filepath has been deleted
                 self.all_file_state[ filepath ] = WbSvnFileState( self, filepath )
 
             self.all_file_state[ filepath ].setState( state )
+            if state.kind == pysvn.node_kind.dir:
+                self.all_file_state[ filepath ].setIsDir()
 
             if( state.text_status != pysvn.wc_status_kind.normal
             or  state.prop_status != pysvn.wc_status_kind.normal ):
@@ -165,7 +163,7 @@ class SvnProject:
     def getReportUntrackedFiles( self ):
         all_untracked_files = []
         for filename, file_state in self.all_file_state.items():
-            if file_state.isUntracked():
+            if file_state.isUncontrolled():
                 all_untracked_files.append( (T_('New file'), filename) )
 
             elif file_state.isUnstagedModified():
@@ -256,8 +254,10 @@ class SvnProject:
         kwds = {}
         if limit is not None:
             kwds['max_count'] = limit
+
         if since is not None:
             kwds['since'] = since
+
         if since is not None:
             kwds['until'] = until
 
@@ -392,24 +392,27 @@ class WbSvnFileState:
         # QQQ here for Git compat - bad OO design here
         return self.getAbbreviatedStatus()
 
-    def isIgnored( self ):
-        return self.__state is None or self.__state.text_status == pysvn.wc_status_kind.ignored
-
-    def isTracked( self ):
+    # ------------------------------------------------------------
+    def isControlled( self ):
         return self.__state is not None and self.__state.is_versioned
 
-    def isNew( self ):
-        return self.__state is not None and self.__state.text_status == pysvn.wc_status_kind.add
+    def isUncontrolled( self ):
+        return self.__state is None or self.__state.node_status == pysvn.wc_status_kind.unversioned
+
+    def isIgnored( self ):
+        return self.__state is None or self.__state.node_status == pysvn.wc_status_kind.ignored
+
+    # --------------------
+    def isAdded( self ):
+        return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.add
 
     def isModified( self ):
-        return self.__state is not None and self.__state.text_status == pysvn.wc_status_kind.modified
+        return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.modified
 
     def isDeleted( self ):
-        return self.__state is not None and self.__state.text_status == pysvn.wc_status_kind.deleted
+        return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.deleted
 
-    def isUntracked( self ):
-        return self.__state is None or self.__state.text_status == pysvn.wc_status_kind.none
-
+    # ------------------------------------------------------------
     def canDiffHeadVsWorking( self ):
         return self.isModified()
 
@@ -502,14 +505,13 @@ class SvnProjectTreeNode:
         return '<SvnProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
 
     def addFile( self, path ):
-        assert path.name != ''
         self.__all_files[ path.name ] = path
 
     def getAllFileNames( self ):
         return self.__all_files.keys()
 
     def addFolder( self, name, node ):
-        assert type(name) == str and name != '', 'name %r, node %r' % (name, node)
+        assert type(name) == str, 'name %r, node %r' % (name, node)
         assert isinstance( node, SvnProjectTreeNode )
         self.__all_folders[ name ] = node
 

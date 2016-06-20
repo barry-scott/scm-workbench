@@ -32,7 +32,6 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def setupToolBarAtRight( self, addToolBar, addTool ):
         pass
 
-
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
