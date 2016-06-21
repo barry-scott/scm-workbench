@@ -13,31 +13,34 @@
 from PyQt5 import QtWidgets
 
 def closeAllWindows():
-    WbTrackedModelessQWidget.closeAllWindows()
+    WbTrackedModeless.closeAllWindows()
 
-class WbTrackedModelessQWidget(QtWidgets.QWidget):
+class WbTrackedModeless:
     uid = 0
     all_windows = {}
 
     @staticmethod
     def closeAllWindows():
         # use list to make a copy of the values as the all_windows is updated by close.
-        for window in list( WbTrackedModelessQWidget.all_windows.values() ):
+        for window in list( WbTrackedModeless.all_windows.values() ):
             window.close()
 
     def __init__( self ):
-        super().__init__( None )
-
         self.__trackWidget()
 
     def __trackWidget( self ):
         WbTrackedModelessQWidget.uid += 1
-        self.__window_uid = WbTrackedModelessQWidget.uid
+        self.__window_uid = WbTrackedModeless.uid
 
         # remember this window to keep the object alive
-        WbTrackedModelessQWidget.all_windows[ self.__window_uid ] = self
+        WbTrackedModeless.all_windows[ self.__window_uid ] = self
 
     def closeEvent( self, event ):
-        del WbTrackedModelessQWidget.all_windows[ self.__window_uid ]
+        del WbTrackedModeless.all_windows[ self.__window_uid ]
 
         super().closeEvent( event )
+
+class WbTrackedModelessQWidget(QtWidgets.QWidget, WbTrackedModeless):
+    def __init__( self ):
+        super().__init__( None )
+        WbTrackedModeless.__init__( self )
