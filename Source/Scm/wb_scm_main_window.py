@@ -15,6 +15,7 @@
 import sys
 import os
 import pathlib
+import difflib
 
 # On OS X the packager missing this import
 import sip
@@ -40,6 +41,8 @@ import wb_logging
 import wb_main_window
 import wb_preferences
 import wb_tracked_qwidget
+import wb_diff_unified_view
+import wb_diff_side_by_side_view
 
 import wb_diff_unified_view
 import wb_diff_side_by_side_view
@@ -601,9 +604,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def diffTwoFiles( self, old_lines, new_lines, title_unified, title_left, title_right ):
         if self.app.prefs.view.isDiffUnified():
-            text = self.__diffUnified( old_lines, new_lines )
+            text = list( difflib.unified_diff( old_lines, new_lines ) )
 
-            window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
+            window = wb_diff_unified_view.WbDiffViewText( self.app, title_unified, self.getQIcon( 'wb.png' ) )
             window.setUnifiedDiffText( text )
             window.show()
 
