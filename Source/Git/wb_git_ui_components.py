@@ -89,9 +89,9 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         super().setupTableContextMenu( m, addMenu )
 
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Staged'), self.tableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Staged vs. Working'), self.tableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
         addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
@@ -102,6 +102,10 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )
+        m.addSection( T_('Diff') )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.treeActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Staged'), self.treeActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Staged vs. Working'), self.treeActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
     #------------------------------------------------------------
     #
@@ -192,7 +196,6 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def enablerGitLogHistory( self ):
         return True
 
-
     #------------------------------------------------------------
     #
     # tree or table actions depending on focus
@@ -233,13 +236,28 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self._debug( 'treeActionGitDiffSmart()' )
 
     def treeActionGitDiffStagedVsWorking( self ):
-        self._debug( 'treeActionGitDiffStagedVsWorking()' )
+        tree_node = self.selectedGitProjectTreeNode()
+        if tree_node is None:
+            return
+
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False, staged=False )
+        self.main_window.showDiffText( T_('Diff Staged vs. Working for %s') % (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionGitDiffHeadVsStaged( self ):
-        self._debug( 'treeActionGitDiffHeadVsStaged()' )
+        tree_node = self.selectedGitProjectTreeNode()
+        if tree_node is None:
+            return
+
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=True )
+        self.main_window.showDiffText( T_('Diff Head vs. Staged for %s') % (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionGitDiffHeadVsWorking( self ):
-        self._debug( 'treeActionGitDiffHeadVsWorking()' )
+        tree_node = self.selectedGitProjectTreeNode()
+        if tree_node is None:
+            return
+
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=False )
+        self.main_window.showDiffText( T_('Diff Head vs. Working for %s') % (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionCommit( self ):
         git_project = self.__treeSelectedGitProject()
@@ -556,7 +574,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def selectedGitProjectTreeNode( self ):
-        if self.isScmTypeActive():
+        if not self.isScmTypeActive():
             return None
 
         tree_node = self.main_window.selectedScmProjectTreeNode()

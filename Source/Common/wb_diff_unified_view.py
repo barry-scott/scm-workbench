@@ -80,13 +80,13 @@ class WbDiffViewText(WbDiffViewBase):
 
     def setUnifiedDiffText( self, all_lines ):
         for line in all_lines:
-            if line[0] == '-':
+            if line.startswith('-'):
                 self.writeStyledText( line + '\n', self.style_delete )
 
-            elif line[0] == '+':
+            elif line.startswith('+'):
                 self.writeStyledText( line + '\n', self.style_add )
 
-            elif line[0] == ' ':
+            elif line.startswith(' '):
                 self.writeStyledText( line + '\n', self.style_normal )
 
             else:

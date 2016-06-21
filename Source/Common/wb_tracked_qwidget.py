@@ -38,9 +38,12 @@ class WbTrackedModeless:
     def closeEvent( self, event ):
         del WbTrackedModeless.all_windows[ self.__window_uid ]
 
-        super().closeEvent( event )
-
 class WbTrackedModelessQWidget(QtWidgets.QWidget, WbTrackedModeless):
     def __init__( self ):
         super().__init__( None )
         WbTrackedModeless.__init__( self )
+
+    def closeEvent( self, event ):
+        WbTrackedModeless.closeEvent( self, event )
+
+        super().closeEvent( event )

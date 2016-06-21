@@ -76,8 +76,22 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
+        m.addSection( T_('Diff') )
+        addMenu( m, T_('Diff Base vs. Working'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
+
+        m.addSection( T_('Status') )
+        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )
+
+        m.addSection( T_('Diff') )
+        addMenu( m, T_('Diff Base vs. Working'), self.treeActionSvnDiffBaseVsWorking, self.enablerTreeSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.treeActionSvnDiffHeadVsWorking, self.enablerTreeSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
+
+        m.addSection( T_('Status') )
+        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
     #--- Enablers ---------------------------------------------------------
     def enablerSvnAdd( self ):
@@ -222,13 +236,23 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def treeActionSvnDiffBaseVsWorking( self ):
-        pass
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
+        self.main_window.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionSvnDiffHeadVsWorking( self ):
-        pass
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
+        self.main_window.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
 
     def treeActionSvnLogHistory( self ):
-        pass
+        print( 'treeActionSvnLogHistory' )
 
     #------------------------------------------------------------
     #
@@ -273,10 +297,17 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
                     )
 
     def tableActionSvnDiffHeadVsWorking( self ):
-        pass
+        for file_state in self.tableSelectedAllFileStates():
+            self.main_window.diffTwoFiles(
+                    file_state.getTextLinesBase(),
+                    file_state.getTextLinesWorking(),
+                    T_('Diff HEAD vs. Working %s') % (file_state.filePath(),),
+                    T_('HEAD %s') % (file_state.filePath(),),
+                    T_('Working %s') % (file_state.filePath(),)
+                    )
 
     def tableActionSvnLogHistory( self ):
-        pass
+        print( 'tableActionSvnLogHistory' )
 
     # ------------------------------------------------------------
     def selectedSvnProjectTreeNode( self ):

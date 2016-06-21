@@ -12,6 +12,7 @@
 '''
 import pathlib
 import sys
+import tempfile
 
 import pysvn
 
@@ -229,12 +230,7 @@ class SvnProject:
 
         return wb_path
 
-
     # ------------------------------------------------------------
-    def cmdAdd( self, filename ):
-        path = self.pathForSvn( filenaem )
-        self.client.add( path )
-
     def cmdCat( self, filename ):
         path = self.pathForSvn( filename )
         byte_result = self.client.cat( [path] )
@@ -242,24 +238,40 @@ class SvnProject:
 
     def cmdAdd( self, filename ):
         self._debug( 'cmdAdd( %r )' % (filename,) )
-        return
 
         self.client.add( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdRevert( self, filename ):
         self._debug( 'cmdRevert( %r )' % (filename,) )
-        return
 
         self.client.revert( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdDelete( self, filename ):
-        return
-
+        self._debug( 'cmdDelete( %r )' % (filename,) )
         self.client.delete( self.pathForSvn( filename ) )
-
         self.__stale_status = True
+
+    def cmdDiffFolder( self, folder, head=False ):
+        self._debug( 'cmdDiffFolder( %r )' % (folder,) )
+        abs_folder = self.pathForSvn( folder )
+
+        if head:
+            old_rev = pysvn.Revision( pysvn.opt_revision_kind.head )
+        else:
+            old_rev = pysvn.Revision( pysvn.opt_revision_kind.base )
+
+        diff_text = self.client.diff(
+            tempfile.gettempdir(),
+            abs_folder, old_rev,
+            abs_folder, pysvn.Revision( pysvn.opt_revision_kind.working ),
+            recurse=True,
+            relative_to_dir=str( self.path() ),
+            use_git_diff_format=True
+            )
+
+        return diff_text
 
     def cmdCommit( self, message ):
         return

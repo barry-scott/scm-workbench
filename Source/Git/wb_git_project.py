@@ -265,6 +265,21 @@ class GitProject:
         (self.prefs_project.path / filename).unlink()
         self.__stale_index = True
 
+    def cmdDiffFolder( self, folder, head, staged ):
+        abs_path = self.prefs_project.path / folder
+
+        if head and staged:
+            return self.repo.git.diff( 'HEAD', str(abs_path), staged=staged )
+
+        elif staged:
+            return self.repo.git.diff( str(abs_path), staged=True )
+
+        elif head:
+            return self.repo.git.diff( 'HEAD', str(abs_path), staged=False )
+
+        else:
+            return self.repo.git.diff( str(abs_path), staged=False )
+
     def cmdCommit( self, message ):
         self.__stale_index = True
         return self.index.commit( message )
