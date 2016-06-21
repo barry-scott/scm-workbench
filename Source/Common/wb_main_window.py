@@ -128,40 +128,54 @@ class WbActionStateManager:
         # use a cache to avoid calling state queries more then once on any one update
         cache = {}
         for enabler in self.__all_action_enablers:
-            enabler.setEnableState( cache )
+            enabler.setState( cache )
 
         for checker in self.__all_action_checkers:
-            checker.setCheckedState( cache )
+            checker.setState( cache )
 
         self._debug( 'WbActionState.update done' )
         self.__update_running = False
 
-class WbActionEnabledState:
-    def __init__( self, action, enabler_handler ):
+class WbActionSetStateBase:
+    def __init__( self, action, handler ):
         self.action = action
-        self.enabler_handler = enabler_handler
-        self.__key = self.enabler_handler.__name__
+        self.handler = handler
+        self.__key = self.handler.__name__
 
     def __repr__( self ):
         return '<WbActionEnabledState: %r>' % (self.enabler_handler,)
 
-    def setEnableState( self, cache ):
-        self.action.setEnabled( self.__callHandler( cache ) )
+    def setState( self, cache ):
+        state = self.__callHandler( cache )
+        assert state in (True, False), 'setState "%r" return %r not bool' % (self.enabler_handler, state)
+
+        self.setActionState( state )
+
+    def setActionState( self, state ):
+        raise NotImplementedError()
 
     def __callHandler( self, cache ):
         if self.__key not in cache:
-            cache[ self.__key ] = self.enabler_handler()
+            cache[ self.__key ] = self.handler()
 
         return cache[ self.__key ]
 
-class WbActionCheckedState:
-    def __init__( self, action, checker_handler ):
-        self.action = action
-        self.checker_handler = checker_handler
+class WbActionEnabledState(WbActionSetStateBase):
+    def __init__( self, action, enabler_handler ):
+        super().__init__( action, enabler_handler )
 
     def __repr__( self ):
-        return '<WbActionCheckedState: %r>' % (self.checker_handler,)
+        return '<WbActionEnabledState: %r>' % (self.handler,)
 
-    def setCheckedState( self, cache ):
-        state = self.checker_handler( cache )
+    def setActionState( self, state ):
+        self.action.setEnabled( state )
+
+class WbActionCheckedState(WbActionSetStateBase):
+    def __init__( self, action, checker_handler ):
+        super().__init__( action, checker_handler )
+
+    def __repr__( self ):
+        return '<WbActionCheckedState: %r>' % (self.handler,)
+
+    def setActionState( self, state ):
         self.action.setChecked( state )

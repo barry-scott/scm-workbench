@@ -3,7 +3,7 @@
 #
 all: locale/en/LC_MESSAGES/scm_workbench.mo wb_scm_images.py
 
-locale/en/LC_MESSAGES/scm_workbench.mo: wb_scm_version.py wb_scm_images.py
+locale/en/LC_MESSAGES/scm_workbench.mo:
 	mkdir -p locale/en/LC_MESSAGES
 	./make-pot-file.sh
 	./make-po-file.sh en

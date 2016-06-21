@@ -23,7 +23,7 @@ import wb_git_status_view
 
 class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self ):
-        super().__init__()
+        super().__init__( 'git' )
 
     def setupDebug( self ):
         self._debug = self.main_window.app._debugGitUi
@@ -130,13 +130,13 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         if not self.main_window.isScmTypeActive( 'git' ):
             return False
 
-        focus = self.main_window._enablerFocusWidget( cache )
+        focus = self.main_window.focusWidget()
         if focus == 'tree':
             return True
 
         elif focus == 'table':
             # make sure all the selected entries is modified
-            all_file_states = self.main_window._enablerTableSelectedStatus( cache )
+            all_file_states = self.tableSelectedAllFileStates()
             enable = True
             for obj in all_file_states:
                 if not predicate( obj ):
@@ -152,14 +152,14 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         if not self.main_window.isScmTypeActive( 'git' ):
             return False
 
-        focus = self.main_window._enablerFocusWidget( cache )
+        focus = self.main_window.focusWidget()
 
         if focus == 'tree':
             return True
 
         elif focus == 'table':
             # make sure all the selected entries is modified
-            all_file_states = self.main_window._enablerTableSelectedStatus( cache )
+            all_file_states = self.tableSelectedAllFileStates()
             enable = True
             for obj in all_file_states:
                 if not (obj.canDiffStagedVsWorking()
@@ -199,31 +199,31 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     #
     #------------------------------------------------------------
     def treeTableActionGitDiffSmart( self ):
-        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffSmart, self.tableActionGitDiffSmart )
+        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffSmart, self.tableActionGitDiffSmart )
 
     def treeTableActionGitDiffStagedVsWorking( self ):
-        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffStagedVsWorking, self.tableActionGitDiffStagedVsWorking )
+        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffStagedVsWorking, self.tableActionGitDiffStagedVsWorking )
 
     def treeTableActionGitDiffHeadVsStaged( self ):
-        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffHeadVsStaged, self.tableActionGitDiffHeadVsStaged )
+        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffHeadVsStaged, self.tableActionGitDiffHeadVsStaged )
 
     def treeTableActionGitDiffHeadVsWorking( self ):
-        self.main_window._callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
+        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
 
     def treeTableActionGitLogHistory( self ):
-        self.main_window._callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
+        self.main_window.callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
 
     #------------------------------------------------------------
     #
     # tree actions
     #
     #------------------------------------------------------------
-
     def __treeSelectedGitProject( self ):
-        git_project = self.main_window._treeSelectedScmProject()
-        if git_project is None:
+        scm_project_tree_node = self.main_window.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
             return None
 
+        git_project = scm_project_tree_node.project
         if not isinstance( git_project, wb_git_project.GitProject ):
             return None
 
@@ -553,3 +553,12 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
             # take account of the change
             self.main_window.updateTableView()
+
+    # ------------------------------------------------------------
+    def selectedGitProjectTreeNode( self ):
+        if self.isScmTypeActive():
+            return None
+
+        tree_node = self.main_window.selectedScmProjectTreeNode()
+        assert isinstance( tree_node, wb_git_project.GitProjectTreeNode )
+        return tree_node

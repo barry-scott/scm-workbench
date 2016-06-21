@@ -42,6 +42,11 @@ argv = [
 	'../toolbar_images/commit.png',
 	'../toolbar_images/push.png',
 	'../toolbar_images/pull.png',
+
+        # for svn ui
+        '../toolbar_images/add.png',
+        '../toolbar_images/checkin.png',
+        '../toolbar_images/update.png',
         ]
 
 def main( argv ):

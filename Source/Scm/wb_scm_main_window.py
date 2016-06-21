@@ -288,6 +288,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.updateEnableStates()
 
+        # QQQZZZ # call UI updateActionEnabledStates to handle commit_dialog situations
         if self.commit_dialog is not None:
             scm_project = self._treeSelectedScmProject()
             self.commit_dialog.setStatus(
@@ -390,22 +391,37 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     #------------------------------------------------------------
     #
-    #   Enabler handlers
+    #   Accessors for main window held state
     #
     #------------------------------------------------------------
     def isScmTypeActive( self, scm_type ):
         return self.__ui_active_scm_type == scm_type
 
+    def selectedScmProjectTreeNode( self ):
+        if self.tree_model is None:
+            return None
+
+        return self.tree_model.selectedScmProjectTreeNode()
+
+    #------------------------------------------------------------
+    #
+    #   Enabler handlers
+    #
+    #------------------------------------------------------------
     def enablerFolderExists( self ):
         return self._treeSelectedAbsoluteFolder() is not None
 
-    def enablerIsProject( self, cache ):
-        return self._treeSelectedRelativeFolder() == pathlib.Path( '.' )
+    def enablerIsProject( self ):
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
+            return False
 
-    def enablerFilesExists( self, cache ):
+        return scm_project_tree_node.relativePath() == pathlib.Path( '.' )
+
+    def enablerFilesExists( self ):
         return len( self._tableSelectedExistingFiles() ) > 0
 
-    def _enablerFocusWidget( self, cache ):
+    def focusWidget( self ):
         if self.tree_view.hasFocus():
             return 'tree'
 
@@ -416,8 +432,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         else:
             return None
 
-    def _enablerTableSelectedStatus( self, cache ):
-        return self._tableSelectedStatus()
 
 
     #------------------------------------------------------------
@@ -473,7 +487,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def appActionClose( self, close=True ):
         self._debug( 'appActionClose()' )
-        scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
 
         if scm_project_tree_node is not None:
             prefs = self.app.prefs
@@ -571,7 +585,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def checkerDiffUnified( self ):
         return self.app.prefs.view.isDiffUnified()
 
-    def checkerDiffSideBySide( self, cache ):
+    def checkerDiffSideBySide( self ):
         return self.app.prefs.view.isDiffSideBySide()
 
     def diffTwoFiles( self, old_lines, new_lines, title_unified, title_left, title_right ):
@@ -592,27 +606,19 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     #------------------------------------------------------------
     #
-    # tree actions asdasd asd asd
+    # tree actions
     #
     #------------------------------------------------------------
-    def _treeSelectedScmProjectName( self ):
-        # only correct if called when the top of the tree is selected
-        # which is ensured by the enablers
-        project_tree_node = self.tree_model.selectedScmProjectTreeNode()
-        if project_tree_node is None:
-            return None
-
-        return project_tree_node.name
-
+    # QQQZZZ #  should be able to refactor this out once wb_ui has all helper functions
     def _treeSelectedScmProject( self ):
-        scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
         if scm_project_tree_node is None:
             return None
 
         return scm_project_tree_node.project
 
     def _treeSelectedAbsoluteFolder( self ):
-        scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
         if scm_project_tree_node is None:
             return None
 
@@ -624,7 +630,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         return folder_path
 
     def _treeSelectedRelativeFolder( self ):
-        scm_project_tree_node = self.tree_model.selectedScmProjectTreeNode()
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
         if scm_project_tree_node is None:
             return None
 
@@ -694,17 +700,18 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # table actions
     #
     #------------------------------------------------------------
-    def _callTreeOrTableFunction( self, fn_tree, fn_table ):
+    def callTreeOrTableFunction( self, fn_tree, fn_table, default=None ):
         if self.tree_view.hasFocus():
-            fn_tree()
+            return fn_tree()
 
         elif( self.table_view.hasFocus()
         or self.filter_text.hasFocus() ):
-            fn_table()
+            return fn_table()
 
         # else in logWidget so ignore
+        return default
 
-    def _tableSelectedFiles( self ):
+    def tableSelectedFiles( self ):
         return [index.data( QtCore.Qt.UserRole ).name
                     for index in self.table_view.selectedIndexes()
                     if index.column() == 0]
@@ -714,56 +721,19 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if folder_path is None:
             return []
 
-        all_filenames = [folder_path / name for name in self._tableSelectedFiles()]
+        all_filenames = [folder_path / name for name in self.tableSelectedFiles()]
         all_existing_filenames = [filename for filename in all_filenames if filename.exists()]
         return all_existing_filenames
-
-    def _tableSelectedWithStatus( self, with_status, without_status ):
-        folder_path = self._treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return False
-
-        all_names = self._tableSelectedFiles()
-        if len(all_names) == 0:
-            return False
-
-        scm_project = self._treeSelectedScmProject()
-
-        relative_folder = self._treeSelectedRelativeFolder()
-
-        for name in all_names:
-            status = scm_project.getStatus( relative_folder / name )
-            if (status&with_status) == 0:
-                return False
-
-            if (status&without_status) != 0:
-                return False
-
-        return True
-
-    def _tableSelectedStatus( self ):
-        folder_path = self._treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return []
-
-        all_names = self._tableSelectedFiles()
-        if len(all_names) == 0:
-            return []
-
-        scm_project = self._treeSelectedScmProject()
-
-        relative_folder = self._treeSelectedRelativeFolder()
-
-        return [scm_project.getFileState( relative_folder / name ) for name in all_names]
 
     def _tableActionViewRepo( self, are_you_sure_function, execute_function ):
         folder_path = self._treeSelectedAbsoluteFolder()
         if folder_path is None:
             return
 
-        all_names = self._tableSelectedFiles()
+        all_names = self.tableSelectedFiles()
         if len(all_names) == 0:
             return
+
         scm_project = self._treeSelectedScmProject()
 
         relative_folder = self._treeSelectedRelativeFolder()

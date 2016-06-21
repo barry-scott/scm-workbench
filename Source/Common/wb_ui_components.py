@@ -11,7 +11,9 @@
 
 '''
 class WbMainWindowComponents:
-    def __init__( self ):
+    def __init__( self, scm_type ):
+        self.scm_type = scm_type
+
         self.main_window = None
         self.app = None
         self._debug = None
@@ -75,3 +77,20 @@ class WbMainWindowComponents:
     def setupTreeContextMenu( self, m, addMenu ):
         self.tree_context_menu = m
 
+    # ------------------------------------------------------------
+    def isScmTypeActive( self ):
+        self.main_window.isScmTypeActive( self.scm_type )
+
+    def tableSelectedAllFileStates( self ):
+        tree_node = self.selectedProjectTreeNode()
+        if tree_node is None:
+            return []
+
+        all_names = self.main_window._tableSelectedFiles()
+        if len(all_names) == 0:
+            return []
+
+        scm_project = tree_node.project
+        relative_folder = tree_node.relative_folder()
+
+        return [scm_project.getFileState( relative_folder / name ) for name in all_names]

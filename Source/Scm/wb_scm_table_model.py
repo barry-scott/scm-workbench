@@ -50,33 +50,17 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         self.invalidateFilter()
 
     # ------------------------------------------------------------
-    def checkerShowControllerFiles( self, cache ):
-        key = 'checkerShowControllerFiles'
-        if key not in cache:
-            cache[ key ] = self.show_controlled
+    def checkerShowControllerFiles( self ):
+        return self.show_controlled
 
-        return cache[ key ]
+    def checkerShowUncontrolledFiles( self ):
+        return self.show_uncontrolled
 
-    def checkerShowUncontrolledFiles( self, cache ):
-        key = 'checkerShowUncontrolledFiles'
-        if key not in cache:
-            cache[ key ] = self.show_uncontrolled
+    def checkerShowIgnoredFiles( self ):
+        return self.show_ignored
 
-        return cache[ key ]
-
-    def checkerShowIgnoredFiles( self, cache ):
-        key = 'checkerShowIgnoredFiles'
-        if key not in cache:
-            cache[ key ] = self.show_ignored
-
-        return cache[ key ]
-
-    def checkerShowOnlyChangedFiles( self, cache ):
-        key = 'checkerShowOnlyChangedFiles'
-        if key not in cache:
-            cache[ key ] = self.show_only_changed
-
-        return cache[ key ]
+    def checkerShowOnlyChangedFiles( self ):
+        return self.show_only_changed
 
     # ------------------------------------------------------------
     def filterAcceptsRow( self, source_row, source_parent ):

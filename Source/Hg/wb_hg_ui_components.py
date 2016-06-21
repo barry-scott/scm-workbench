@@ -15,7 +15,7 @@ import wb_hg_project
 
 class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self ):
-        super().__init__()
+        super().__init__( 'hg' )
 
     def setupDebug( self ):
         self._debug = self.main_window.app._debugHgUi

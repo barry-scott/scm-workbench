@@ -36,7 +36,7 @@ class SvnProject:
         return 'svn'
 
     def getBranchName( self ):
-        return '-- TBD --' # QQQ missing code
+        return ''
 
     # return a new SvnProject that can be used in another thread
     def newInstance( self ):
@@ -141,6 +141,10 @@ class SvnProject:
     # functions to retrive interesting info from the repo
     #
     #------------------------------------------------------------
+    def hasFileState( self, filename ):
+        assert isinstance( filename, pathlib.Path )
+        return filename in self.all_file_state
+        
     def getFileState( self, filename ):
         assert isinstance( filename, pathlib.Path )
         # status only has enties for none CURRENT status files
