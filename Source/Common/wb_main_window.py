@@ -140,12 +140,19 @@ class WbActionEnabledState:
     def __init__( self, action, enabler_handler ):
         self.action = action
         self.enabler_handler = enabler_handler
+        self.__key = self.enabler_handler.__name__
 
     def __repr__( self ):
         return '<WbActionEnabledState: %r>' % (self.enabler_handler,)
 
     def setEnableState( self, cache ):
-        self.action.setEnabled( self.enabler_handler( cache ) )
+        self.action.setEnabled( self.__callHandler( cache ) )
+
+    def __callHandler( self, cache ):
+        if self.__key not in cache:
+            cache[ self.__key ] = self.enabler_handler()
+
+        return cache[ self.__key ]
 
 class WbActionCheckedState:
     def __init__( self, action, checker_handler ):

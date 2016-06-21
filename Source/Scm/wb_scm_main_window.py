@@ -396,48 +396,28 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def isScmTypeActive( self, scm_type ):
         return self.__ui_active_scm_type == scm_type
 
-    def enablerFolderExists( self, cache ):
-        key = 'enablerFolderExists'
-        if key not in cache:
-            cache[ key ] = self._treeSelectedAbsoluteFolder()
-
-        return cache[ key ] is not None
+    def enablerFolderExists( self ):
+        return self._treeSelectedAbsoluteFolder() is not None
 
     def enablerIsProject( self, cache ):
-        key = 'enablerIsProject'
-        if key not in cache:
-            cache[ key ] = self._treeSelectedRelativeFolder() == pathlib.Path( '.' )
-
-        return cache[ key ]
+        return self._treeSelectedRelativeFolder() == pathlib.Path( '.' )
 
     def enablerFilesExists( self, cache ):
-        key = 'enablerFilesExists'
-        if key not in cache:
-            cache[ key ] = self._tableSelectedExistingFiles()
-
-        return len( cache[ key ] ) > 0
+        return len( self._tableSelectedExistingFiles() ) > 0
 
     def _enablerFocusWidget( self, cache ):
-        key = '_enablerFocusWidget'
-        if key not in cache:
-            if self.tree_view.hasFocus():
-                cache[ key ] = 'tree'
+        if self.tree_view.hasFocus():
+            return 'tree'
 
-            elif( self.table_view.hasFocus()
-            or self.filter_text.hasFocus() ):
-                cache[ key ] = 'table'
+        elif( self.table_view.hasFocus()
+        or self.filter_text.hasFocus() ):
+            return 'table'
 
-            else:
-                cache[ key ] = None
-
-        return cache[ key ]
+        else:
+            return None
 
     def _enablerTableSelectedStatus( self, cache ):
-        key = '_enablerTableSelectedStatus'
-        if key not in cache:
-            cache[ key ] = self._tableSelectedStatus()
-
-        return cache[ key ]
+        return self._tableSelectedStatus()
 
 
     #------------------------------------------------------------
@@ -588,19 +568,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def setDiffSideBySide( self ):
         self.app.prefs.view.setDiffSideBySide()
 
-    def checkerDiffUnified( self, cache ):
-        key = 'checkerDiffUnified'
-        if key not in cache:
-            cache[ key ] = self.app.prefs.view.isDiffUnified()
-
-        return cache[ key ]
+    def checkerDiffUnified( self ):
+        return self.app.prefs.view.isDiffUnified()
 
     def checkerDiffSideBySide( self, cache ):
-        key = 'checkerDiffSideBySide'
-        if key not in cache:
-            cache[ key ] = self.app.prefs.view.isDiffSideBySide()
-
-        return cache[ key ]
+        return self.app.prefs.view.isDiffSideBySide()
 
     def diffTwoFiles( self, old_lines, new_lines, title_unified, title_left, title_right ):
         if self.app.prefs.view.isDiffUnified():

@@ -14,8 +14,6 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import difflib
-
 import wb_ui_components
 
 import wb_git_project
@@ -35,9 +33,9 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Git Information') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
 
         m.addSeparator()
         addMenu( m, T_('Status'), self.treeActionGitStatus )
@@ -46,18 +44,18 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Git Actions') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
 
         m.addSeparator()
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.enablerFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
+        addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
+        addMenu( m, T_('Push…'), self.treeActionPush, self.enablerGitPush, 'toolbar_images/push.png' )
         addMenu( m, T_('Pull…'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
@@ -71,34 +69,34 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('git info') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerGitDiffSmart, 'toolbar_images/diff.png' )
+        addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerGitLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('git state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
-        addTool( t, T_('Commit'), self.treeActionCommit, self.enablerCommit, 'toolbar_images/commit.png' )
+        addTool( t, T_('Commit'), self.treeActionCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        addTool( t, T_('Push'), self.treeActionPush, self.enablerPush, 'toolbar_images/push.png' )
+        addTool( t, T_('Push'), self.treeActionPush, self.enablerGitPush, 'toolbar_images/push.png' )
         addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerDiffStagedVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
-        addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.enablerFilesExists )
 
@@ -110,122 +108,88 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     #   Enabler handlers
     #
     #------------------------------------------------------------
-    def enablerFilesStage( self, cache ):
-        key = 'enablerFilesStage'
-        if key not in cache:
-            #with_status = (pyscm2.SCM_STATUS_WT_MODIFIED|pyscm2.SCM_STATUS_WT_NEW|pyscm2.SCM_STATUS_WT_DELETED)
-            #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
-            cache[ key ] = True
+    def enablerGitFilesStage( self ):
+        return True
 
-        return cache[ key ]
+    def enablerGitFilesUnstage( self ):
+        return True
 
-    def enablerFilesUnstage( self, cache ):
-        key = 'enablerFilesUnstage'
-        if key not in cache:
-            #with_status = pyscm2.SCM_STATUS_INDEX_MODIFIED|pyscm2.SCM_STATUS_INDEX_NEW|pyscm2.SCM_STATUS_INDEX_DELETED
-            #cache[ key ] = self.__tableSelectedWithStatus( with_status, 0 )
-            cache[ key ] = True
+    def enablerGitFilesRevert( self ):
+        return True
 
-        return cache[ key ]
+    def enablerGitDiffHeadVsWorking( self ):
+        return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffHeadVsWorking )
 
-    def enablerFilesRevert( self, cache ):
-        key = 'enablerFilesRevert'
-        if key not in cache:
-            #with_status = pyscm2.SCM_STATUS_WT_MODIFIED|pyscm2.SCM_STATUS_WT_DELETED
-            #without_status = pyscm2.SCM_STATUS_INDEX_MODIFIED
-            #cache[ key ] = self.__tableSelectedWithStatus( with_status, without_status )
-            cache[ key ] = True
+    def enablerGitDiffStagedVsWorking( self ):
+        return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffStagedVsWorking )
 
-        return cache[ key ]
+    def enablerGitDiffHeadVsStaged( self ):
+        return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffHeadVsStaged )
 
-    def enablerDiffHeadVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsWorking', wb_git_project.WbGitFileState.canDiffHeadVsWorking )
+    def __enablerDiff( self, predicate ):
+        if not self.main_window.isScmTypeActive( 'git' ):
+            return False
 
-    def enablerDiffStagedVsWorking( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffStagedVsWorking', wb_git_project.WbGitFileState.canDiffStagedVsWorking )
+        focus = self.main_window._enablerFocusWidget( cache )
+        if focus == 'tree':
+            return True
 
-    def enablerDiffHeadVsStaged( self, cache ):
-        return self.__enablerDiff( cache, 'enablerDiffHeadVsStaged', wb_git_project.WbGitFileState.canDiffHeadVsStaged )
+        elif focus == 'table':
+            # make sure all the selected entries is modified
+            all_file_states = self.main_window._enablerTableSelectedStatus( cache )
+            enable = True
+            for obj in all_file_states:
+                if not predicate( obj ):
+                    enable = False
+                    break
 
-    def __enablerDiff( self, cache, key, predicate ):
-        if key not in cache:
-            focus = self.main_window._enablerFocusWidget( cache )
-            if not self.main_window.isScmTypeActive( 'git' ):
-                cache[ key ] = False
+            return enable
 
-            elif focus == 'tree':
-                cache[ key ] = True
+        else:
+            return False
 
-            elif focus == 'table':
-                # make sure all the selected entries is modified
-                all_file_states = self.main_window._enablerTableSelectedStatus( cache )
-                enable = True
-                for obj in all_file_states:
-                    if not predicate( obj ):
-                        enable = False
-                        break
+    def enablerGitDiffSmart( self ):
+        if not self.main_window.isScmTypeActive( 'git' ):
+            return False
 
-                cache[ key ] = enable
+        focus = self.main_window._enablerFocusWidget( cache )
 
-            else:
-                cache[ key ] = False
+        if focus == 'tree':
+            return True
 
-        return cache[ key ]
+        elif focus == 'table':
+            # make sure all the selected entries is modified
+            all_file_states = self.main_window._enablerTableSelectedStatus( cache )
+            enable = True
+            for obj in all_file_states:
+                if not (obj.canDiffStagedVsWorking()
+                        or obj.canDiffHeadVsWorking()
+                        or obj.canDiffHeadVsStaged()):
+                    enable = False
+                    break
 
-    def enablerDiffSmart( self, cache ):
-        key = 'enablerDiffSmart'
-        if key not in cache:
-            focus = self.main_window._enablerFocusWidget( cache )
+            return enable
 
-            if not self.main_window.isScmTypeActive( 'git' ):
-                cache[ key ] = False
+        else:
+            return False
 
-            elif focus == 'tree':
-                cache[ key ] = True
+    def enablerGitCommit( self ):
+        # enable if any files staged
+        git_project = self.__treeSelectedGitProject()
 
-            elif focus == 'table':
-                # make sure all the selected entries is modified
-                all_file_states = self.main_window._enablerTableSelectedStatus( cache )
-                enable = True
-                for obj in all_file_states:
-                    if not (obj.canDiffStagedVsWorking()
-                            or obj.canDiffHeadVsWorking()
-                            or obj.canDiffHeadVsStaged()):
-                        enable = False
-                        break
+        can_commit = False
+        if( git_project is not None
+        and self.commit_dialog is None
+        and git_project.numStagedFiles() > 0 ):
+            can_commit = True
 
-                cache[ key ] = enable
+        return can_commit
 
-            else:
-                cache[ key ] = False
+    def enablerGitPush( self ):
+        git_project = self.__treeSelectedGitProject()
+        return git_project is not None and git_project.canPush()
 
-        return cache[ key ]
-
-    def enablerCommit( self, cache ):
-        key = 'enablerCommit'
-        if key not in cache:
-            # enable if any files staged
-            git_project = self.__treeSelectedGitProject()
-
-            can_commit = False
-            if( git_project is not None
-            and self.commit_dialog is None
-            and git_project.numStagedFiles() > 0 ):
-                can_commit = True
-
-            cache[ key ] = can_commit
-
-        return cache[ key ]
-
-    def enablerPush( self, cache ):
-        key = 'enablerPush'
-        if key not in cache:
-            git_project = self.__treeSelectedGitProject()
-            cache[ key ] = git_project is not None and git_project.canPush()
-
-        return cache[ key ]
-
-    def enablerLogHistory( self, cache ):
+    def enablerGitLogHistory( self ):
         return True
 
 
@@ -510,9 +474,6 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         elif file_state.canDiffHeadVsWorking():
             self.__actionGitDiffHeadVsWorking( git_project, filename )
-
-    def __diffUnified( self, old_lines, new_lines ):
-        return list( difflib.unified_diff( old_lines, new_lines ) )
 
     def __actionGitDiffHeadVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
