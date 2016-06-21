@@ -432,8 +432,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         else:
             return None
 
-
-
     #------------------------------------------------------------
     #
     #   Event handlers
@@ -478,9 +476,22 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         all_about_info.append( 'PyQt %s, Qt %s' % (Qt.PYQT_VERSION_STR, QtCore.QT_VERSION_STR) )
         all_about_info.append( T_('Copyright Barry Scott (c) 2016-%s. All rights reserved') % (wb_scm_version.year,) )
 
-        QtWidgets.QMessageBox.information( self,
+        box = QtWidgets.QMessageBox( 
+            QtWidgets.QMessageBox.Information,
             T_('About %s') % (' '.join( self.app.app_name_parts ),),
-            '\n'.join( all_about_info ) )
+            '\n'.join( all_about_info ),
+            QtWidgets.QMessageBox.Close,
+            parent=self )
+        box.exec_()
+
+    def errorMessage( self, title, message ):
+        box = QtWidgets.QMessageBox(
+            QtWidgets.QMessageBox.Critical,
+            title,
+            message,
+            QtWidgets.QMessageBox.Close,
+            parent=self )
+        box.exec_()
 
     def closeEvent( self, event ):
         self.appActionClose( close=False )
@@ -715,6 +726,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         return [index.data( QtCore.Qt.UserRole ).name
                     for index in self.table_view.selectedIndexes()
                     if index.column() == 0]
+
+    def tableSelectedAbsoluteFiles( self ):
+        tree_node = self.selectedScmProjectTreeNode()
+        root = tree_node.project.path()
+        return [root / filename for filename in self.tableSelectedFiles()]
 
     def _tableSelectedExistingFiles( self ):
         folder_path = self._treeSelectedAbsoluteFolder()

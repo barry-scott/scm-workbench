@@ -79,18 +79,16 @@ class WbMainWindowComponents:
 
     # ------------------------------------------------------------
     def isScmTypeActive( self ):
-        self.main_window.isScmTypeActive( self.scm_type )
+        return self.main_window.isScmTypeActive( self.scm_type )
 
     def tableSelectedAllFileStates( self ):
-        tree_node = self.selectedProjectTreeNode()
+        tree_node = self.main_window.selectedScmProjectTreeNode()
         if tree_node is None:
             return []
 
-        all_names = self.main_window._tableSelectedFiles()
-        if len(all_names) == 0:
-            return []
+        all_names = self.main_window.tableSelectedFiles()
 
         scm_project = tree_node.project
-        relative_folder = tree_node.relative_folder()
+        relative_folder = tree_node.relativePath()
 
         return [scm_project.getFileState( relative_folder / name ) for name in all_names]

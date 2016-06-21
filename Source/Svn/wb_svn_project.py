@@ -16,6 +16,9 @@ import sys
 import pysvn
 
 import wb_svn_utils
+import wb_read_file
+
+ClientError = pysvn.ClientError
 
 class SvnProject:
     def __init__( self, app, prefs_project ):
@@ -77,6 +80,7 @@ class SvnProject:
 
     def __calculateStatus( self ):
         self.all_file_state = {}
+        self.__num_uncommitted_files = 0
 
         repo_root = self.path()
 
@@ -112,8 +116,7 @@ class SvnProject:
             if state.kind == pysvn.node_kind.dir:
                 self.all_file_state[ filepath ].setIsDir()
 
-            if( state.text_status != pysvn.wc_status_kind.normal
-            or  state.prop_status != pysvn.wc_status_kind.normal ):
+            if state.node_status in (pysvn.wc_status_kind.added, pysvn.wc_status_kind.modified, pysvn.wc_status_kind.deleted):
                 self.__num_uncommitted_files += 1
 
     def __updateTree( self, path ):
@@ -141,6 +144,14 @@ class SvnProject:
     # functions to retrive interesting info from the repo
     #
     #------------------------------------------------------------
+    def clientErrorToStrList( self, e ):
+        client_error = []
+        for message, _ in e.args[1]:
+            client_error.append( message )
+
+        return client_error
+
+
     def hasFileState( self, filename ):
         assert isinstance( filename, pathlib.Path )
         return filename in self.all_file_state
@@ -217,6 +228,12 @@ class SvnProject:
             wb_path = wb_path.relative_to( self.path() )
 
         return wb_path
+
+
+    # ------------------------------------------------------------
+    def cmdAdd( self, filename ):
+        path = self.pathForSvn( filenaem )
+        self.client.add( path )
 
     def cmdCat( self, filename ):
         path = self.pathForSvn( filename )
@@ -376,6 +393,9 @@ class WbSvnFileState:
         return ('<WbSvnFileState: %s %s %s>' %
                 (self.__filepath, self.__state, self.__nodeid))
 
+    def filePath( self ):
+        return self.__filepath
+
     def setIsDir( self ):
         self.__is_dir = True
 
@@ -429,13 +449,25 @@ class WbSvnFileState:
             else:
                 return all_lines
 
+    def getTextLinesBase( self ):
+        path = pathlib.Path( self.__project.path() ) / self.__filepath
+        all_content_lines = self.__project.client.cat(
+                                    url_or_path=str(path),
+                                    revision=pysvn.Revision( pysvn.opt_revision_kind.base ) )
+
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+
+        return all_content_lines
+
     def getTextLinesHead( self ):
-        text = self.__project.cmdCat( self.__filepath )
-        all_lines = text.split('\n')
-        if all_lines[-1] == '':
-            return all_lines[:-1]
-        else:
-            return all_lines
+        path = pathlib.Path( self.__project.path() ) / self.__filepath
+        all_content_lines = self.__project.client.cat(
+                                    url_or_path=str(path),
+                                    revision=pysvn.Revision( pysvn.opt_revision_kind.head ) )
+
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+
+        return all_content_lines
 
 class SvnCommitLogNode:
     def __init__( self, commit ):

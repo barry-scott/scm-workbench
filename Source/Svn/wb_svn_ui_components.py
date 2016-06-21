@@ -36,8 +36,8 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Git Actions') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnFilesUncontrolled, 'toolbar_images/add.png' )
-        addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
 
         m.addSeparator()
         addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.enablerFilesExists )
@@ -66,8 +66,8 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), self.tableActionSvnAdd, self.enablerSvnFilesUncontrolled, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
         addTool( t, T_('Checkin'), self.treeActionSvnCheckin, self.enablerSvnCheckin, 'toolbar_images/checkin.png' )
         t.addSeparator()
@@ -80,18 +80,79 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         super().setupTreeContextMenu( m, addMenu )
 
     #--- Enablers ---------------------------------------------------------
-    def enablerSvnFilesUncontrolled( self ):
+    def enablerSvnAdd( self ):
+        # can only add uncontrolled files
+        return self.__enablerSvnFilesUncontrolled()
+
+    def enablerSvnRevert( self ):
+        # can only revert uncontrolled files
+        return self.__enablerSvnFilesControlled()
+
+    def __enablerSvnFilesUncontrolled( self ):
+        all_file_state = self.tableSelectedAllFileStates()
+        if len(all_file_state) == 0:
+            return False
+
+        for file_state in all_file_state:
+            if not file_state.isUncontrolled():
+                return False
+
         return True
 
-    def enablerSvnFilesRevert( self ):
+    def __enablerSvnFilesControlled( self ):
+        all_file_state = self.tableSelectedAllFileStates()
+        if len(all_file_state) == 0:
+            return False
+
+        for file_state in all_file_state:
+            if not file_state.isControlled():
+                return False
+
         return True
 
     def enablerSvnCheckin( self ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len( all_file_states ) == 0:
+            # check in what ever in in the tree
+            tree_node = self.selectedSvnProjectTreeNode()
+            if tree_node is None:
+                return False
+
+            return tree_node.project.numUncommittedFiles() > 0
+
+        # check in only the selected files
+        return self.__enablerSvnFilesControlled()
+
+    def __enablerSvnFilesModified( self ):
+        all_file_state = self.tableSelectedAllFileStates()
+        if len(all_file_state) == 0:
+            return False
+
+        for file_state in all_file_state:
+            if not (file_state.isAdded() or file_state.isModified() or file_state.isDeleted()):
+                return False
+
         return True
 
     #--- Actions ---------------------------------------------------------
     def tableActionSvnAdd( self ):
-        pass
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        project = tree_node.project
+
+        try:
+            for file_state in self.tableSelectedAllFileStates():
+                project.cmdAdd( file_state.filePath() )
+
+        except wb_svn_project.ClientError as e:
+            all_client_error_lines = project.clientErrorToStrList()
+            for line in all_client_error_lines:
+                self.app.log.error( line )
+
+            self.main_window.errorMessage( 'Svn Add Error', '\n'.join( all_client_error_lines ) )
+
 
     def tableActionSvnRevert( self ):
         pass
@@ -147,16 +208,16 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         return self.__enablerTreeSvnIsControlled()
 
     def __enablerTreeSvnIsControlled( self ):
-        node = self.selectedSvnProjectTreeNode()
-        if node is None:
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
             return False
 
-        node.relativePath()
+        tree_node.relativePath()
 
-        if not node.project.hasFileState( node.relativePath() ):
+        if not tree_node.project.hasFileState( tree_node.relativePath() ):
             return False
 
-        file_state = node.project.hasFileState( node.relativePath() )
+        file_state = tree_node.project.getFileState( tree_node.relativePath() )
         return file_state.isControlled()
 
     # ------------------------------------------------------------
@@ -175,17 +236,41 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     #
     #------------------------------------------------------------
     def enablerTableSvnDiffBaseVsWorking( self ):
+        if not self.isScmTypeActive():
+            return False
+
+        all_file_state = self.tableSelectedAllFileStates()
+        if len(all_file_state) == 0:
+            return False
+
+        for file_state in all_file_state:
+            if not file_state.isModified():
+                return False
+
         return True
 
     def enablerTableSvnDiffHeadVsWorking( self ):
+        if not self.isScmTypeActive():
+            return False
+
         return True
 
     def enablerTableSvnLogHistory( self ):
+        if not self.isScmTypeActive():
+            return False
+
         return True
 
     # ------------------------------------------------------------
     def tableActionSvnDiffBaseVsWorking( self ):
-        pass
+        for file_state in self.tableSelectedAllFileStates():
+            self.main_window.diffTwoFiles(
+                    file_state.getTextLinesBase(),
+                    file_state.getTextLinesWorking(),
+                    T_('Diff Base vs. Working %s') % (file_state.filePath(),),
+                    T_('Base %s') % (file_state.filePath(),),
+                    T_('Working %s') % (file_state.filePath(),)
+                    )
 
     def tableActionSvnDiffHeadVsWorking( self ):
         pass
@@ -195,7 +280,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def selectedSvnProjectTreeNode( self ):
-        if self.isScmTypeActive():
+        if not self.isScmTypeActive():
             return None
 
         tree_node = self.main_window.selectedScmProjectTreeNode()
