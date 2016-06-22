@@ -242,10 +242,10 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.style_line_delete = self.STYLE_LASTPREDEFINED + 1
         self.style_line_change = self.STYLE_LASTPREDEFINED + 2
 
-        self.style_replace_insert =  self.style_line_insert | self.INDIC1_MASK
-        self.style_replace_delete =  self.style_line_delete | self.INDIC1_MASK
-        self.style_replace_changed = self.style_line_change | self.INDIC1_MASK
-        self.style_replace_equal =   self.style_line_normal | self.INDIC1_MASK
+        # use the lexer range of indictor numbers
+        self.indictor_char_insert =  8
+        self.indictor_char_delete =  9
+        self.indictor_char_changed = 10
 
         self.emptyUndoBuffer()
 
@@ -264,12 +264,14 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.styleSetFromSpec( self.style_line_change, 'fore:%s' % (prefs.colour_change_line.fg,) )
 
         # and finally, an indicator or two
-        self.indicSetStyle( self.style_line_insert, self.INDIC_SQUIGGLE )
-        self.indicSetFore( self.style_line_insert, str(prefs.colour_insert_char.fg) )
-        self.indicSetStyle( self.style_line_delete, self.INDIC_SQUIGGLE)
-        self.indicSetFore( self.style_line_delete, str(prefs.colour_delete_char.fg) )
-        self.indicSetStyle( self.style_line_change, self.INDIC_STRIKE )
-        self.indicSetFore( self.style_line_change, str(prefs.colour_change_char.fg) )
+        self.indicSetStyle( self.indictor_char_insert,  self.INDIC_SQUIGGLE )
+        self.indicSetFore( self.indictor_char_insert,   str(prefs.colour_insert_char.fg) )
+
+        self.indicSetStyle( self.indictor_char_delete,  self.INDIC_STRIKE )
+        self.indicSetFore( self.indictor_char_delete,   str(prefs.colour_delete_char.fg) )
+
+        self.indicSetStyle( self.indictor_char_changed, self.INDIC_SQUIGGLE )
+        self.indicSetFore( self.indictor_char_changed,  str(prefs.colour_change_char.fg) )
 
         self.marginClicked.connect( self.handleMarginClicked )
         self.cursorPositionChanged.connect( self.handleCursorPositionChanged )

@@ -118,16 +118,16 @@ class DiffOneSideProcessor:
         self.text_body.setFoldLine( line_number, False )
 
     def addChangedLineReplace( self, text ):
-        self.text_body.insertStyledText( text, self.text_body.style_replace_changed )
+        self.text_body.insertStyledText( text, self.text_body.style_line_change, self.text_body.indictor_char_changed )
 
     def addChangedLineDelete( self, old ):
-        self.text_body.insertStyledText( old, self.text_body.style_replace_delete )
+        self.text_body.insertStyledText( old, self.text_body.style_line_delete, self.text_body.indictor_char_delete )
 
     def addChangedLineInsert( self, new ):
-        self.text_body.insertStyledText( new, self.text_body.style_replace_insert )
+        self.text_body.insertStyledText( new, self.text_body.style_line_insert, self.text_body.indictor_char_insert )
 
     def addChangedLineEqual( self, text ):
-        self.text_body.insertStyledText( text, self.text_body.style_replace_equal )
+        self.text_body.insertStyledText( text, self.text_body.style_line_normal  )
 
     def addChangedLineEnd( self ):
         self.text_body.insertStyledText( '\n', self.text_body.style_line_normal )
