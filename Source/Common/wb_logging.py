@@ -175,7 +175,6 @@ class WbLog:
     def write( self, msg ):
         # only allowed to use GUI objects on the foreground thread
         if not self.app.isMainThread():
-            print( 'qqq moving WbLog.write to main thread' )
             self.app.foregroundProcess( self.write, (msg,) )
             return
 
