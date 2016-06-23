@@ -60,11 +60,11 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.panel_left.ed.setMirrorEditor( self.panel_right.ed )
         self.panel_right.ed.setMirrorEditor( self.panel_left.ed )
 
+        self.panel_left.ed.setProcessKeyHandler( self.processKeyHandler )
+        self.panel_right.ed.setProcessKeyHandler( self.processKeyHandler )
+
         self.splitter.addWidget( self.panel_left )
         self.splitter.addWidget( self.panel_right )
-
-        #self.splitter.SetMinimumPaneSize( 150 )
-        #self.splitter.SetSashPosition( 150 )
 
         # Create the editor and calculate all the differences
         self.processor = wb_diff_processor.DiffProcessor( self.panel_left.ed, self.panel_right.ed )
@@ -82,6 +82,30 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.actionFoldsCollapse()
         # show first diff
         self.actionDiffNext()
+
+    def processKeyHandler( self, key ):
+        if key in ('n', 'N'):
+            self.actionDiffNext()
+            return True
+
+        elif key in ('p', 'P'):
+            self.actionDiffPrev()
+            return True
+
+        elif key == '.':
+            self.actionToggleWhiteSpace()
+            return True
+
+        elif key == '+':
+            self.actionFoldsExpand()
+            return True
+
+        elif key == '-':
+            self.actionFoldsCollapse()
+            return True
+
+        else:
+            return False
 
     def setupToolBar( self ):
         t = self.tool_bar_diff = self._addToolBar( T_('f') )
@@ -114,6 +138,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.status_bar_key_field = key
         s.addPermanentWidget( self.status_bar_key_field )
 
+    #------------------------------------------------------------
     def enablerAlways( self ):
         return True
 
@@ -228,6 +253,8 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.name = name    # used for debug
         self.text_body_other = None
 
+        self.process_key_handler = None
+
         super().__init__( parent )
 
         self.white_space_visible = False
@@ -296,6 +323,15 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
         assert( self.text_body_other )
         self.syncScroll.emit()
+
+    def setProcessKeyHandler( self, handler ):
+        self.process_key_handler = handler
+
+    def keyPressEvent( self, event ):
+        if self.process_key_handler( event.text() ):
+            return
+
+        super().keyPressEvent( event )
 
     def onNeedToSyncScroll( self, event ):
         if self.text_body_other is not None:
