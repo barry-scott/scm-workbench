@@ -78,6 +78,8 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         self.setCentralWidget( self.splitter )
 
+        # start with folds collapsed
+        self.actionFoldsCollapse()
         # show first diff
         self.actionDiffNext()
 
