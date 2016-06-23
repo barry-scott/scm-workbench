@@ -259,9 +259,12 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         prefs = app.prefs.diff_window
         self.styleSetFromSpec( self.style_line_normal,
                 'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_normal.fg) )
-        self.styleSetFromSpec( self.style_line_insert, 'fore:%s' % (prefs.colour_insert_line.fg,) )
-        self.styleSetFromSpec( self.style_line_delete, 'fore:%s' % (prefs.colour_delete_line.fg,) )
-        self.styleSetFromSpec( self.style_line_change, 'fore:%s' % (prefs.colour_change_line.fg,) )
+        self.styleSetFromSpec( self.style_line_insert,
+                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_insert_line.fg) )
+        self.styleSetFromSpec( self.style_line_delete,
+                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_delete_line.fg) )
+        self.styleSetFromSpec( self.style_line_change,
+                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_change_line.fg) )
 
         # and finally, an indicator or two
         self.indicSetStyle( self.indictor_char_insert,  self.INDIC_SQUIGGLE )
