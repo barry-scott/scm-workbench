@@ -49,7 +49,7 @@ pysvn.wc_status_kind.none:          ' ',
 pysvn.wc_status_kind.normal:        ' ',
 pysvn.wc_status_kind.obstructed:    '~',
 pysvn.wc_status_kind.replaced:      'R',
-pysvn.wc_status_kind.unversioned:   '?',
+pysvn.wc_status_kind.unversioned:   ' ',
 }
 
 # lookup the status and see if it means the file will be checked in
@@ -266,16 +266,20 @@ if version_info.notify_action_has_upgrade_events:
 #    format the concise status from file
 #
 def svnStatusFormat( state ):
-    text_code = wc_status_kind_map[ state.text_status ]
+    if state.node_status == pysvn.wc_status_kind.modified:
+        node_code = wc_status_kind_map[ state.text_status ]
+    else:
+        node_code = wc_status_kind_map[ state.node_status ]
     prop_code = wc_status_kind_map[ state.prop_status ]
-    if text_code == ' ' and prop_code != ' ':
-        text_code = '_'
+
+    if node_code == ' ' and prop_code != ' ':
+        node_code = '_'
 
     if (state.is_copied or state.is_switched) and prop_code == ' ':
         prop_code = '_'
 
     lock_state = 'K' if state.lock is not None else ' '
-    state = '%s%s%s%s%s%s' % (text_code, prop_code,
+    state = '%s%s%s%s%s%s' % (node_code, prop_code,
             ' L'[ state.wc_is_locked ],
             ' +'[ state.is_copied ],
             ' S'[ state.is_switched ],

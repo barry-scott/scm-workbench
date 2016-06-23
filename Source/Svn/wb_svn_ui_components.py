@@ -149,7 +149,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         return True
 
     #--- Actions ---------------------------------------------------------
-    def tableActionSvnAdd( self ):
+    def __tableActionSvnCmd( self, cmd ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -158,21 +158,34 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         try:
             for file_state in self.tableSelectedAllFileStates():
-                project.cmdAdd( file_state.filePath() )
+                cmd( project, file_state.filePath() )
 
         except wb_svn_project.ClientError as e:
-            all_client_error_lines = project.clientErrorToStrList()
+            all_client_error_lines = project.clientErrorToStrList( e )
             for line in all_client_error_lines:
                 self.app.log.error( line )
 
-            self.main_window.errorMessage( 'Svn Add Error', '\n'.join( all_client_error_lines ) )
+            self.main_window.errorMessage( 'Svn Error', '\n'.join( all_client_error_lines ) )
 
+        self.main_window.updateTableView()
+
+    def tableActionSvnAdd( self ):
+        def action( project, filename ):
+            project.cmdAdd( filename )
+
+        self.__tableActionSvnCmd( action )
 
     def tableActionSvnRevert( self ):
-        pass
+        def action( project, filename ):
+            project.cmdRevert( filename )
+
+        self.__tableActionSvnCmd( action )
 
     def tableActionSvnDelete( self ):
-        pass
+        def action( project, filename ):
+            project.cmdDelete( filename )
+
+        self.__tableActionSvnCmd( action )
 
     def treeActionSvnCheckin( self ):
         pass

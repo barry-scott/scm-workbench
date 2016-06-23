@@ -28,6 +28,8 @@ class SvnProject:
 
         self.prefs_project = prefs_project
         self.client = pysvn.Client()
+        self.client.exception_style = 1
+        self.commit_info_style = 2
 
         self.tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
