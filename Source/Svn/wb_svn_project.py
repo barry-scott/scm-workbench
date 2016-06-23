@@ -77,7 +77,7 @@ class SvnProject:
         self.__calculateStatus()
 
         for path in self.all_file_state:
-            self.__updateTree( path )
+            self.__updateTree( path, self.all_file_state[ path ].isDir() )
 
         #self.dumpTree()
 
@@ -95,7 +95,6 @@ class SvnProject:
 
             for filename in folder.iterdir():
                 abs_path = folder / filename
-
                 repo_relative = abs_path.relative_to( repo_root )
 
                 if abs_path.is_dir():
@@ -107,7 +106,7 @@ class SvnProject:
 
                 else:
                     self.all_file_state[ repo_relative ] = WbSvnFileState( self, repo_relative )
-            
+
         for state in self.client.status2( str(self.path()) ):
             filepath = self.pathForWb( state.path )
 
@@ -122,13 +121,19 @@ class SvnProject:
             if state.node_status in (pysvn.wc_status_kind.added, pysvn.wc_status_kind.modified, pysvn.wc_status_kind.deleted):
                 self.__num_uncommitted_files += 1
 
-    def __updateTree( self, path ):
+    def __updateTree( self, path, is_dir ):
         self._debug( '__updateTree path %r' % (path,) )
         node = self.tree
 
         self._debug( '__updateTree path.parts %r' % (path.parts,) )
 
-        for index, name in enumerate( path.parts[0:-1] ):
+        if is_dir:
+            parts = path.parts[:]
+
+        else:
+            parts = path.parts[0:-1]
+
+        for index, name in enumerate( parts ):
             self._debug( '__updateTree name %r at node %r' % (name,node) )
 
             if not node.hasFolder( name ):
@@ -137,7 +142,8 @@ class SvnProject:
             node = node.getFolder( name )
 
         self._debug( '__updateTree addFile %r to node %r' % (path, node) )
-        node.addFile( path )
+        if not is_dir:
+            node.addFile( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )
@@ -586,6 +592,7 @@ class SvnProjectTreeNode:
     def addFolder( self, name, node ):
         assert type(name) == str, 'name %r, node %r' % (name, node)
         assert isinstance( node, SvnProjectTreeNode )
+
         self.__all_folders[ name ] = node
 
     def getFolder( self, name ):
