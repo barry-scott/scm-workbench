@@ -32,6 +32,9 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionSvnDiffHeadVsWorking, self.enablerTreeTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSeparator()
+        addMenu( m, T_('Info'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
+        m.addSeparator()
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
         addMenu( m, T_('Status'), self.treeActionSvnStatus )
 
@@ -85,6 +88,10 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff Base vs. Working'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
+        m.addSection( T_('Info' ) )
+        addMenu( m, T_('Information'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
+
         m.addSection( T_('Status') )
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
@@ -94,6 +101,10 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m.addSection( T_('Diff') )
         addMenu( m, T_('Diff Base vs. Working'), self.treeActionSvnDiffBaseVsWorking, self.enablerTreeSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeActionSvnDiffHeadVsWorking, self.enablerTreeSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
+
+        m.addSection( T_('Info' ) )
+        addMenu( m, T_('Information'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         m.addSection( T_('Status') )
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
@@ -204,9 +215,9 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         project = tree_node.project
         filename = tree_node.relativePath()
-        info = project.cmdInfo( filename )
+        prop_dict = project.cmdPropList( filename )
 
-        dialog = wb_svn_properties_dialog.FolderPropertiesDialog( self.app, self.main_window, filename, info )
+        dialog = wb_svn_properties_dialog.FolderPropertiesDialog( self.app, self.main_window, filename, prop_dict )
         if dialog.exec_():
             for is_present, name, value in dialog.getModifiedProperties():
                 if not is_present:

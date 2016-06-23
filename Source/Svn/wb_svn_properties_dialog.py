@@ -202,8 +202,6 @@ class PropertiesDialogBase(QtWidgets.QDialog):
 
 class FilePropertiesDialog(PropertiesDialogBase):
     def __init__( self, app, parent, path, prop_dict ):
-        print( 'FilePropertiesDialog prop_dict %r' % (prop_dict,) )
-
         self.known_properties_names = set( ['svn:eol-style'
                                            ,'svn:executable'
                                            ,'svn:mime-type'

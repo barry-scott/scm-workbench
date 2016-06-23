@@ -34,11 +34,9 @@ class InfoDialog(QtWidgets.QDialog):
         self.initFromInfo( info )
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
+        self.buttons.addButton( self.buttons.Close )
 
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
+        self.buttons.rejected.connect( self.close )
 
         self.v_layout.addWidget( self.buttons )
 
