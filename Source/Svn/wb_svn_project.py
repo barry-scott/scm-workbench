@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_hg_project.py
+    wb_svn_project.py
 
 '''
 import pathlib
@@ -274,6 +274,29 @@ class SvnProject:
             )
 
         return diff_text
+
+    def cmdPropList( self, filename ):
+        prop_list = self.client.proplist( self.pathForSvn( filename ),
+                            revision=pysvn.Revision( pysvn.opt_revision_kind.working ) )
+
+        if len(prop_list) == 0:
+            prop_dict = {}
+
+        else:
+            Q, prop_dict = prop_list[0]
+
+        return prop_dict
+
+    def cmdPropDel( self, prop_name, filename ):
+        self.client.propdel( prop_name, self.pathForSvn( filename ) )
+
+    def cmdPropSet( self, prop_name, prop_value, filename ):
+        self.client.propset( prop_name, prop_value, self.pathForSvn( filename ) )
+
+    def cmdInfo( self, filename ):
+        info = self.client.info2( self.pathForSvn( filename ), recurse=False )
+        # info is list of (path, entry)
+        return info[0][1]
 
     def cmdCommit( self, message ):
         return

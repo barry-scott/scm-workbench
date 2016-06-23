@@ -12,6 +12,9 @@
 '''
 import wb_ui_components
 import wb_svn_project
+import wb_svn_properties_dialog
+import wb_svn_info_dialog
+
 
 class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self ):
@@ -61,6 +64,8 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         addTool( t, T_('Diff'), self.treeTableActionSvnDiffBaseVsWorking, self.enablerTreeTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addTool( t, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Info'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addTool( t, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('svn state') )
@@ -94,6 +99,175 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
     #--- Enablers ---------------------------------------------------------
+
+    #------------------------------------------------------------
+    #
+    # tree or table actions depending on focus
+    #
+    #------------------------------------------------------------
+    def enablerTreeTableSvnInfo( self ):
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnInfo, self.enablerTableSvnInfo, default=False )
+
+    def enablerTreeTableSvnProperties( self ):
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnProperties, self.enablerTableSvnProperties, default=False )
+
+    def enablerTreeTableSvnDiffBaseVsWorking( self ):
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, default=False )
+
+    def enablerTreeTableSvnDiffHeadVsWorking( self ):
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, default=False )
+
+    def enablerTreeTableSvnLogHistory( self ):
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
+
+    # ------------------------------------------------------------
+    def treeTableActionSvnDiffBaseVsWorking( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionSvnDiffBaseVsWorking, self.tableActionSvnDiffBaseVsWorking )
+
+    def treeTableActionSvnDiffHeadVsWorking( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionSvnDiffHeadVsWorking, self.tableActionSvnDiffHeadVsWorking )
+
+    def treeTableActionSvnLogHistory( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionSvnLogHistory, self.tableActionSvnLogHistory )
+
+    def treeTableActionSvnInfo( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionSvnInfo, self.tableActionSvnInfo )
+
+    def treeTableActionSvnProperties( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionSvnProperties, self.tableActionSvnProperties )
+
+    #------------------------------------------------------------
+    #
+    # tree actions
+    #
+    #------------------------------------------------------------
+    def enablerTreeSvnDiffBaseVsWorking( self ):
+        return self.__enablerTreeSvnIsControlled()
+
+    def enablerTreeSvnDiffHeadVsWorking( self ):
+        return self.__enablerTreeSvnIsControlled()
+
+    def enablerTreeSvnLogHistory( self ):
+        return self.__enablerTreeSvnIsControlled()
+
+    def enablerTreeSvnInfo( self ):
+        return self.__enablerTreeSvnIsControlled()
+
+    def enablerTreeSvnProperties( self ):
+        return self.__enablerTreeSvnIsControlled()
+
+    def __enablerTreeSvnIsControlled( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return False
+
+        tree_node.relativePath()
+
+        if not tree_node.project.hasFileState( tree_node.relativePath() ):
+            return False
+
+        file_state = tree_node.project.getFileState( tree_node.relativePath() )
+        return file_state.isControlled()
+
+    # ------------------------------------------------------------
+    def treeActionSvnDiffBaseVsWorking( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
+        self.main_window.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+
+    def treeActionSvnDiffHeadVsWorking( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
+        self.main_window.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
+
+    def treeActionSvnInfo( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        project = tree_node.project
+        info = project.cmdInfo( tree_node.relativePath() )
+
+        dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, tree_node.relativePath(), tree_node.absolutePath(), info )
+        dialog.exec_()
+
+    def treeActionSvnProperties( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        project = tree_node.project
+        filename = tree_node.relativePath()
+        info = project.cmdInfo( filename )
+
+        dialog = wb_svn_properties_dialog.FolderPropertiesDialog( self.app, self.main_window, filename, info )
+        if dialog.exec_():
+            for is_present, name, value in dialog.getModifiedProperties():
+                if not is_present:
+                    # delete name
+                    project.cmdPropDel( name, filename )
+
+                else:
+                    # add/update name value
+                    project.cmdPropSet( name, value, filename )
+
+        self.main_window.updateTableView()
+
+    def treeActionSvnLogHistory( self ):
+        print( 'treeActionSvnLogHistory' )
+
+    def treeActionSvnCheckin( self ):
+        pass
+
+    def treeActionSvnUpdate( self ):
+        pass
+
+    def treeActionSvnStatus( self ):
+        pass
+
+    #------------------------------------------------------------
+    #
+    # table actions
+    #
+    #------------------------------------------------------------
+    def enablerTableSvnDiffBaseVsWorking( self ):
+        if not self.isScmTypeActive():
+            return False
+
+        all_file_state = self.tableSelectedAllFileStates()
+        if len(all_file_state) == 0:
+            return False
+
+        for file_state in all_file_state:
+            if not file_state.isModified():
+                return False
+
+        return True
+
+    def enablerTableSvnDiffHeadVsWorking( self ):
+        if not self.isScmTypeActive():
+            return False
+
+        return True
+
+    def enablerTableSvnLogHistory( self ):
+        if not self.isScmTypeActive():
+            return False
+
+        return True
+
+    def enablerTableSvnInfo( self ):
+        return self.__enablerSvnFilesControlled()
+
+    def enablerTableSvnProperties( self ):
+        return self.__enablerSvnFilesControlled()
+
     def enablerSvnAdd( self ):
         # can only add uncontrolled files
         return self.__enablerSvnFilesUncontrolled()
@@ -148,156 +322,6 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         return True
 
-    #--- Actions ---------------------------------------------------------
-    def __tableActionSvnCmd( self, cmd ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
-            return
-
-        project = tree_node.project
-
-        try:
-            for file_state in self.tableSelectedAllFileStates():
-                cmd( project, file_state.filePath() )
-
-        except wb_svn_project.ClientError as e:
-            all_client_error_lines = project.clientErrorToStrList( e )
-            for line in all_client_error_lines:
-                self.app.log.error( line )
-
-            self.main_window.errorMessage( 'Svn Error', '\n'.join( all_client_error_lines ) )
-
-        self.main_window.updateTableView()
-
-    def tableActionSvnAdd( self ):
-        def action( project, filename ):
-            project.cmdAdd( filename )
-
-        self.__tableActionSvnCmd( action )
-
-    def tableActionSvnRevert( self ):
-        def action( project, filename ):
-            project.cmdRevert( filename )
-
-        self.__tableActionSvnCmd( action )
-
-    def tableActionSvnDelete( self ):
-        def action( project, filename ):
-            project.cmdDelete( filename )
-
-        self.__tableActionSvnCmd( action )
-
-    def treeActionSvnCheckin( self ):
-        pass
-
-    def treeActionSvnUpdate( self ):
-        pass
-
-    def treeActionSvnStatus( self ):
-        pass
-
-    #------------------------------------------------------------
-    #
-    # tree or table actions depending on focus
-    #
-    #------------------------------------------------------------
-    def enablerTreeTableSvnDiffBaseVsWorking( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, default=False )
-
-    def enablerTreeTableSvnDiffHeadVsWorking( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, default=False )
-
-    def enablerTreeTableSvnLogHistory( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
-
-    # ------------------------------------------------------------
-    def treeTableActionSvnDiffBaseVsWorking( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionSvnDiffBaseVsWorking, self.tableActionSvnDiffBaseVsWorking )
-
-    def treeTableActionSvnDiffHeadVsWorking( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionSvnDiffHeadVsWorking, self.tableActionSvnDiffHeadVsWorking )
-
-    def treeTableActionSvnLogHistory( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionSvnLogHistory, self.tableActionSvnLogHistory )
-
-    #------------------------------------------------------------
-    #
-    # tree actions
-    #
-    #------------------------------------------------------------
-    def enablerTreeSvnDiffBaseVsWorking( self ):
-        return self.__enablerTreeSvnIsControlled()
-
-    def enablerTreeSvnDiffHeadVsWorking( self ):
-        return self.__enablerTreeSvnIsControlled()
-
-    def enablerTreeSvnLogHistory( self ):
-        return self.__enablerTreeSvnIsControlled()
-
-    def __enablerTreeSvnIsControlled( self ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
-            return False
-
-        tree_node.relativePath()
-
-        if not tree_node.project.hasFileState( tree_node.relativePath() ):
-            return False
-
-        file_state = tree_node.project.getFileState( tree_node.relativePath() )
-        return file_state.isControlled()
-
-    # ------------------------------------------------------------
-    def treeActionSvnDiffBaseVsWorking( self ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
-            return
-
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
-        self.main_window.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
-
-    def treeActionSvnDiffHeadVsWorking( self ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
-            return
-
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
-        self.main_window.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
-
-    def treeActionSvnLogHistory( self ):
-        print( 'treeActionSvnLogHistory' )
-
-    #------------------------------------------------------------
-    #
-    # table actions
-    #
-    #------------------------------------------------------------
-    def enablerTableSvnDiffBaseVsWorking( self ):
-        if not self.isScmTypeActive():
-            return False
-
-        all_file_state = self.tableSelectedAllFileStates()
-        if len(all_file_state) == 0:
-            return False
-
-        for file_state in all_file_state:
-            if not file_state.isModified():
-                return False
-
-        return True
-
-    def enablerTableSvnDiffHeadVsWorking( self ):
-        if not self.isScmTypeActive():
-            return False
-
-        return True
-
-    def enablerTableSvnLogHistory( self ):
-        if not self.isScmTypeActive():
-            return False
-
-        return True
-
     # ------------------------------------------------------------
     def tableActionSvnDiffBaseVsWorking( self ):
         for file_state in self.tableSelectedAllFileStates():
@@ -319,8 +343,74 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
                     T_('Working %s') % (file_state.filePath(),)
                     )
 
+    def tableActionSvnInfo( self ):
+        def action( project, filename ):
+            info = project.cmdInfo( filename )
+
+            dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, filename, project.pathForSvn( filename ), info )
+            dialog.exec_()
+
+        self.__tableActionSvnCmd( action )
+
+    def tableActionSvnProperties( self ):
+        def action( project, filename ):
+            prop_dict = project.cmdPropList( filename )
+
+            dialog = wb_svn_properties_dialog.FilePropertiesDialog( self.app, self.main_window, filename, prop_dict )
+            if dialog.exec_():
+                for is_present, name, value in dialog.getModifiedProperties():
+                    if not is_present:
+                        # delete name
+                        project.cmdPropDel( name, filename )
+                    else:
+                        # add/update name value
+                        project.cmdPropSet( name, value, filename )
+
+            self.main_window.updateTableView()
+
+        self.__tableActionSvnCmd( action )
+
     def tableActionSvnLogHistory( self ):
         print( 'tableActionSvnLogHistory' )
+
+    def tableActionSvnAdd( self ):
+        def action( project, filename ):
+            project.cmdAdd( filename )
+
+        self.__tableActionSvnCmd( action )
+
+    def tableActionSvnRevert( self ):
+        def action( project, filename ):
+            project.cmdRevert( filename )
+
+        self.__tableActionSvnCmd( action )
+
+    def tableActionSvnDelete( self ):
+        def action( project, filename ):
+            project.cmdDelete( filename )
+
+        self.__tableActionSvnCmd( action )
+
+    def __tableActionSvnCmd( self, cmd ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        project = tree_node.project
+
+        try:
+            for file_state in self.tableSelectedAllFileStates():
+                cmd( project, file_state.filePath() )
+
+        except wb_svn_project.ClientError as e:
+            all_client_error_lines = project.clientErrorToStrList( e )
+            for line in all_client_error_lines:
+                self.app.log.error( line )
+
+            self.main_window.errorMessage( 'Svn Error', '\n'.join( all_client_error_lines ) )
+
+        self.main_window.updateTableView()
+
 
     # ------------------------------------------------------------
     def selectedSvnProjectTreeNode( self ):

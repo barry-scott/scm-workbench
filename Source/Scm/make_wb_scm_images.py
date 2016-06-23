@@ -47,6 +47,8 @@ argv = [
         '../toolbar_images/add.png',
         '../toolbar_images/checkin.png',
         '../toolbar_images/update.png',
+        '../toolbar_images/info.png',
+        '../toolbar_images/property.png',
         ]
 
 def main( argv ):

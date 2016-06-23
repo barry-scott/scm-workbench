@@ -183,6 +183,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             self.tree_view.scrollTo( index )
 
+
         # timer used to wait for focus to be set after app is activated
         self.timer_update_enable_states = QtCore.QTimer()
         self.timer_update_enable_states.timeout.connect( self.updateActionEnabledStates )
@@ -196,6 +197,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def completeStatupInitialisation( self ):
         self._debug( 'completeStatupInitialisation()' )
+
+        self.tree_view.setFocus()
 
         # set splitter position
         tree_size_ratio = 0.3
@@ -287,6 +290,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
         if self.tree_model is None:
+            print( 'QQQ updateActionEnabledStates NO TREE' )
             return
 
         self.updateEnableStates()
