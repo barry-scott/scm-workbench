@@ -45,7 +45,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
             self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
 
         else:
-            self.resize( 800, 600 )
+            self.resize( 1100, 600 )
 
         self.setupToolBar()
         self.setupStatusBar( self.statusBar() )
