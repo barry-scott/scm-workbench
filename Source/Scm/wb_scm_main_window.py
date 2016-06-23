@@ -290,7 +290,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
         if self.tree_model is None:
-            print( 'QQQ updateActionEnabledStates NO TREE' )
             return
 
         self.updateEnableStates()
