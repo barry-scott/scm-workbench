@@ -294,12 +294,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.updateEnableStates()
 
-        # QQQZZZ # call UI updateActionEnabledStates to handle commit_dialog situations
         if self.commit_dialog is not None:
-            scm_project = self._treeSelectedScmProject()
-            self.commit_dialog.setStatus(
-                    scm_project.getReportStagedFiles(),
-                    scm_project.getReportUntrackedFiles() )
+            self.commit_dialog.updateState()
 
     def setupMenuBar( self, mb ):
         # --- setup common menus

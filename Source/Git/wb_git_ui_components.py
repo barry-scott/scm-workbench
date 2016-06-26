@@ -182,12 +182,16 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         git_project = self.__treeSelectedGitProject()
 
         can_commit = False
-        if( git_project is not None
-        and self.commit_dialog is None
-        and git_project.numStagedFiles() > 0 ):
-            can_commit = True
+        if git_project is None:
+            return False
 
-        return can_commit
+        if self.commit_dialog is not None:
+            return False
+
+        if git_project.numStagedFiles() == 0:
+            return False
+
+        return True
 
     def enablerGitPush( self ):
         git_project = self.__treeSelectedGitProject()
@@ -241,7 +245,8 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return
 
         diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False, staged=False )
-        self.main_window.showDiffText( T_('Diff Staged vs. Working for %s') % (tree_node.relativePath(),), diff_text.split('\n') )
+        self.main_window.showDiffText( T_('Diff Staged vs. Working for %s') %
+                                        (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionGitDiffHeadVsStaged( self ):
         tree_node = self.selectedGitProjectTreeNode()
@@ -249,7 +254,8 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return
 
         diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=True )
-        self.main_window.showDiffText( T_('Diff Head vs. Staged for %s') % (tree_node.relativePath(),), diff_text.split('\n') )
+        self.main_window.showDiffText( T_('Diff Head vs. Staged for %s') %
+                                        (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionGitDiffHeadVsWorking( self ):
         tree_node = self.selectedGitProjectTreeNode()
@@ -257,36 +263,43 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return
 
         diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=False )
-        self.main_window.showDiffText( T_('Diff Head vs. Working for %s') % (tree_node.relativePath(),), diff_text.split('\n') )
+        self.main_window.showDiffText( T_('Diff Head vs. Working for %s') %
+                                        (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionCommit( self ):
+        if self.commit_dialog is not None:
+            self.log.error( 'Commit dialog is already open' )
+            return
+
         git_project = self.__treeSelectedGitProject()
 
-        self.commit_dialog = wb_git_commit_dialog.WbGitCommitDialog(
-                    self.app, self.main_window,
-                    T_('Commit %s') % (git_project.projectName(),) )
-        self.commit_dialog.setStatus(
-                    git_project.getReportStagedFiles(),
-                    git_project.getReportUntrackedFiles() )
-        self.commit_dialog.finished.connect( self.__commitDialogFinished )
+        self.commit_dialog = wb_git_commit_dialog.WbGitCommitDialog( self.app, git_project )
+        self.commit_dialog.commitAccepted.connect( self.__commitAccepted )
+        self.commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user
         self.commit_dialog.show()
 
-    def __commitDialogFinished( self, result ):
-        if result:
-            git_project = self.__treeSelectedGitProject()
-            message = self.commit_dialog.getMessage()
-            commit_id = git_project.cmdCommit( message )
+        # enabled states may have changed
+        self.main_window.updateActionEnabledStates()
 
-            # take account of the change
-            self.main_window.updateTableView()
+    def __commitAccepted( self ):
+        git_project = self.__treeSelectedGitProject()
+        message = self.commit_dialog.getMessage()
+        commit_id = git_project.cmdCommit( message )
 
-            headline = message.split('\n')[0]
+        headline = message.split('\n')[0]
+        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
-            self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
+        self.__commitClosed()
 
+    def __commitClosed( self ):
+        # get rid of the window
+        self.commit_dialog.close()
         self.commit_dialog = None
+
+        # take account of any changes
+        self.main_window.updateTableView()
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
