@@ -30,10 +30,10 @@ import wb_scm_version
 import wb_scm_images
 import wb_scm_preferences
 import wb_scm_preferences_dialog
+import wb_scm_table_view
 
 import wb_scm_tree_model
 
-import wb_scm_table_model
 import wb_scm_project_dialogs
 
 import wb_shell_commands
@@ -66,17 +66,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # models and views
         self.__ui_active_scm_type = None
 
-        # short cut keys in the table view
-        self.table_keys_edit = ['\r', 'e', 'E']
-        self.table_keys_open = ['o', 'O']
-
-        self.all_table_keys = []
-        self.all_table_keys.extend( self.table_keys_edit )
-        self.all_table_keys.extend( self.table_keys_open )
-
-        # on Qt on macOS table will tigger selectionChanged that needs tree_model
-        self.tree_model = None
-        self.__setupTableViewAndModel()
+        # on Qt on macOS table will trigger selectionChanged that needs tree_model
+        self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
         self.__setupTreeViewAndModel()
 
         # setup the chrome
@@ -110,7 +101,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.filter_text.setMaxLength( 256 )
         self.filter_text.setPlaceholderText( T_('Filter  by name') )
 
-        self.filter_text.textChanged.connect( self.table_sortfilter.setFilterText )
+        self.filter_text.textChanged.connect( self.table_view.table_sortfilter.setFilterText )
 
         self.branch_text = QtWidgets.QLineEdit()
         self.branch_text.setReadOnly( True )
@@ -183,7 +174,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             self.tree_view.scrollTo( index )
 
-
         # timer used to wait for focus to be set after app is activated
         self.timer_update_enable_states = QtCore.QTimer()
         self.timer_update_enable_states.timeout.connect( self.updateActionEnabledStates )
@@ -216,58 +206,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def setStatusText( self, text ):
         self.status_message.setText( text )
 
-    def __setupTableViewAndModel( self ):
-        self._debug( '__setupTableViewAndModel' )
-
-        self.table_model = wb_scm_table_model.WbScmTableModel( self.app )
-
-        self.table_sortfilter = wb_scm_table_model.WbScmTableSortFilter( self.app )
-        self.table_sortfilter.setSourceModel( self.table_model )
-        self.table_sortfilter.setDynamicSortFilter( False )
-
-        self.table_sort_column = self.table_model.col_status
-        self.table_sort_order = QtCore.Qt.AscendingOrder
-
-        self.table_view = WbTableView( self, self.all_table_keys, self.tableKeyHandler )
-
-        self._debug( '__setupTableViewAndModel view a' )
-
-        # setModel triggers a selectionChanged event
-        self.table_view.setModel( self.table_sortfilter )
-
-        self._debug( '__setupTableViewAndModel view b' )
-
-        # allow Tab/Shift-Tab to move between tree/filter/table and log widgets
-        self.table_view.setTabKeyNavigation( False )
-
-        # set sort params
-        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
-        # and enable to apply
-        self.table_view.setSortingEnabled( True )
-
-        # always select a whole row
-        self.table_view.setSelectionBehavior( self.table_view.SelectRows )
-        self.table_view.doubleClicked.connect( self.tableDoubleClicked )
-
-        # connect up signals
-        self.table_view.horizontalHeader().sectionClicked.connect( self.tableHeaderClicked )
-        self.table_view.customContextMenuRequested.connect( self.tableContextMenu )
-        self.table_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
-
-        # size columns
-        char_width = 10
-        self.table_view.setColumnWidth( self.table_model.col_staged, char_width*4 )
-        self.table_view.setColumnWidth( self.table_model.col_status, char_width*4 )
-        self.table_view.setColumnWidth( self.table_model.col_name, char_width*32 )
-        self.table_view.setColumnWidth( self.table_model.col_date, char_width*16 )
-        self.table_view.setColumnWidth( self.table_model.col_type, char_width*6 )
-
-        self._debug( '__setupTableViewAndModel Done' )
-
     def __setupTreeViewAndModel( self ):
         self._debug( '__setupTreeViewAndModel' )
 
-        self.tree_model = wb_scm_tree_model.WbScmTreeModel( self.app, self.table_model )
+        self.tree_model = wb_scm_tree_model.WbScmTreeModel( self.app, self.table_view.table_model )
 
         self.tree_view = QtWidgets.QTreeView()
         self.tree_view.setModel( self.tree_model )
@@ -282,7 +224,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_model.refreshTree()
 
         # sort filter is now invalid
-        self.table_sortfilter.invalidate()
+        self.table_view.table_sortfilter.invalidate()
+
+        if self.commit_dialog is not None:
+            self.commit_dialog.updateTableView()
 
         # enabled states will have changed
         self.updateActionEnabledStates()
@@ -294,9 +239,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.updateEnableStates()
 
-        if self.commit_dialog is not None:
-            self.commit_dialog.updateState()
-
     def setupMenuBar( self, mb ):
         # --- setup common menus
         m = mb.addMenu( T_('&File') )
@@ -304,7 +246,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
 
         m = mb.addMenu( T_('&View') )
-        tsf = self.table_sortfilter
+        tsf = self.table_view.table_sortfilter
         self._addMenu( m, T_('Show Controlled files'), tsf.setShowControllerFiles, checker=tsf.checkerShowControllerFiles )
         self._addMenu( m, T_('Show Uncontrolled files'), tsf.setShowUncontrolledFiles, checker=tsf.checkerShowUncontrolledFiles )
         self._addMenu( m, T_('Show Ignored files'), tsf.setShowIgnoredFiles, checker=tsf.checkerShowIgnoredFiles )
@@ -322,8 +264,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
         m = mb.addMenu( T_('File &Actions') )
-        self._addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         # --- setup scm_type specific menus
         for scm_type in self.all_ui_components:
@@ -362,8 +304,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             m = QtWidgets.QMenu( self )
 
             m.addSection( T_('File Actions') )
-            self._addMenu( m, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-            self._addMenu( m, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+            self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+            self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
             self.all_ui_components[ scm_type ].setupTableContextMenu( m, self._addMenu )
 
@@ -379,8 +321,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addTool( t, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
         t = self.tool_bar_table = self._addToolBar( T_('table') )
-        self._addTool( t, T_('Edit'), self.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self._addTool( t, T_('Open'), self.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        self._addTool( t, T_('Edit'), self.table_view.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
+        self._addTool( t, T_('Open'), self.table_view.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
 
         # --- setup scm_type specific tool bars
         for scm_type in self.all_ui_components:
@@ -446,7 +388,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_model.refreshTree()
 
         # sort filter is now invalid
-        self.table_sortfilter.invalidate()
+        self.table_view.table_sortfilter.invalidate()
 
         # enabled states will have changed
         self.timer_update_enable_states.start( 0 )
@@ -769,78 +711,3 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             execute_function( scm_project, filename )
 
         return True
-
-    def tableKeyHandler( self, key ):
-        if key in self.table_keys_edit:
-            self.tableActionEdit()
-
-        elif key in self.table_keys_open:
-            self.tableActionOpen()
-
-    def tableContextMenu( self, pos ):
-        self._debug( 'tableContextMenu( %r )' % (pos,) )
-        global_pos = self.table_view.viewport().mapToGlobal( pos )
-
-        if self.__ui_active_scm_type is not None:
-            self.all_ui_components[ self.__ui_active_scm_type ].getTableContextMenu().exec_( global_pos )
-
-    def tableHeaderClicked( self, column ):
-        if column == self.table_sort_column:
-            if self.table_sort_order == QtCore.Qt.DescendingOrder:
-                self.table_sort_order = QtCore.Qt.AscendingOrder
-            else:
-                self.table_sort_order = QtCore.Qt.DescendingOrder
-
-        else:
-            self.table_sort_column = column
-            self.table_sort_order = QtCore.Qt.AscendingOrder
-
-        self.table_view.sortByColumn( self.table_sort_column, self.table_sort_order )
-
-    def tableDoubleClicked( self, index ):
-        self.tableActionEdit()
-
-    def tableActionOpen( self ):
-        all_filenames = self._tableSelectedExistingFiles()
-        if len(all_filenames) > 0:
-            wb_shell_commands.ShellOpen( self.app, self._treeSelectedAbsoluteFolder(), all_filenames )
-
-    def tableActionEdit( self ):
-        all_filenames = self._tableSelectedExistingFiles()
-        if len(all_filenames) > 0:
-            wb_shell_commands.EditFile( self.app, self._treeSelectedAbsoluteFolder(), all_filenames )
-
-class WbTableView(QtWidgets.QTableView):
-    def __init__( self, main_window, all_keys, key_handler ):
-        self.main_window = main_window
-        self.all_keys = all_keys
-        self.key_handler = key_handler
-
-        self._debug = main_window._debug
-
-        super().__init__()
-
-    def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbTableView.selectionChanged()' )
-
-        self.main_window.updateActionEnabledStates()
-
-        # allow the table to redraw the selected row highlights
-        super().selectionChanged( selected, deselected )
-
-    def keyPressEvent( self, event ):
-        text = event.text()
-        if text != '' and text in self.all_keys:
-            self.key_handler( text )
-
-        else:
-            super().keyPressEvent( event )
-
-    def keyReleaseEvent( self, event ):
-        text = event.text()
-
-        if text != '' and text in self.all_keys:
-            return
-
-        else:
-            super().keyReleaseEvent( event )

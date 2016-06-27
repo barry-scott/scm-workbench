@@ -17,6 +17,7 @@ from PyQt5 import QtCore
 import wb_main_window
 import wb_tracked_qwidget
 
+import wb_scm_table_view
 import wb_scm_images
 
 class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
@@ -33,30 +34,56 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.setWindowTitle( T_('Commit %s') % (git_project.projectName(),) )
         self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
 
-        self.label_staged = QtWidgets.QLabel( T_('Staged Files') )
-        self.staged = QtWidgets.QPlainTextEdit( '' )
-        self.staged.setReadOnly( True )
+        # on Qt on macOS table will trigger selectionChanged that needs tree_model
+        self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
 
-        self.label_untracked = QtWidgets.QLabel( T_('Untracked Files') )
-        self.untracked = QtWidgets.QPlainTextEdit( '' )
-        self.untracked.setReadOnly( True )
+        self.filter_text = QtWidgets.QLineEdit()
+        self.filter_text.setClearButtonEnabled( True )
+        self.filter_text.setMaxLength( 256 )
+        self.filter_text.setPlaceholderText( T_('Filter  by name') )
+
+        self.filter_text.textChanged.connect( self.table_view.table_sortfilter.setFilterText )
+
+        self.h_filter_layout = QtWidgets.QHBoxLayout()
+        self.h_filter_widget = QtWidgets.QWidget()
+        self.h_filter_widget.setLayout( self.h_filter_layout )
+
+        row = 0
+        self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Filter:') ), 0 )
+        self.h_filter_layout.addWidget( self.filter_text, 1 )
+
+        self.v_table_layout = QtWidgets.QVBoxLayout()
+        self.v_table_layout.addWidget( self.h_filter_widget )
+        self.v_table_layout.addWidget( self.table_view )
+
+        self.v_table_widget = QtWidgets.QWidget()
+        self.v_table_widget.setLayout( self.v_table_layout )
 
         self.label_message = QtWidgets.QLabel( T_('Commit Log Message') )
         self.message = QtWidgets.QPlainTextEdit( '' )
+
+        self.v_message_layout = QtWidgets.QVBoxLayout()
+        self.v_message_layout.addWidget( self.label_message )
+        self.v_message_layout.addWidget( self.message )
+        self.v_message_widget = QtWidgets.QWidget()
+        self.v_message_widget.setLayout( self.v_message_layout )
 
         self.buttons = QtWidgets.QDialogButtonBox()
         self.ok_button = self.buttons.addButton( self.buttons.Ok )
         self.buttons.addButton( self.buttons.Cancel )
 
+        # ----------------------------------------
+        self.v_split = QtWidgets.QSplitter()
+        self.v_split.setOrientation( QtCore.Qt.Vertical )
+        self.v_split.addWidget( self.v_table_widget )
+        self.v_split.addWidget( self.v_message_widget )
+
+        # ----------------------------------------
         self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget( self.label_staged )
-        self.layout.addWidget( self.staged )
-        self.layout.addWidget( self.label_untracked )
-        self.layout.addWidget( self.untracked )
-        self.layout.addWidget( self.label_message )
-        self.layout.addWidget( self.message )
+        self.layout.addWidget( self.v_split )
         self.layout.addWidget( self.buttons )
 
+        # ----------------------------------------
         self.widget = QtWidgets.QWidget()
         self.widget.setLayout( self.layout )
 
@@ -75,7 +102,7 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         # set focus
         self.message.setFocus()
 
-        self.updateState()
+        self.updateTableView()
 
     def closeEvent( self, event ):
         super().closeEvent( event )
@@ -92,12 +119,9 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def getMessage( self ):
         return self.message.toPlainText().strip()
 
-    def updateState( self ):
-        all_staged_files = self.git_project.getReportStagedFiles()
-        all_untracked_files = self.git_project.getReportUntrackedFiles()
+    def updateTableView( self ):
+        # call will have updated the git project state already
+        self.table_view.setScmProjectTreeNode( self.git_project.flat_tree )
 
-        staged_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_staged_files )] )
-        untracked_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_untracked_files )] )
-
-        self.staged.setPlainText( staged_text )
-        self.untracked.setPlainText( untracked_text )
+    def updateActionEnabledStates( self ):
+        print( 'qqq WbGitCommitDialog.updateActionEnabledStates' )

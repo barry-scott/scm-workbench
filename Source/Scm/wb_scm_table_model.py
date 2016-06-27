@@ -255,6 +255,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         return None
 
     def setScmProjectTreeNode( self, scm_project_tree_node ):
+        print( 'setScmProjectTreeNode %r' % (scm_project_tree_node,) )
         self.refreshTable( scm_project_tree_node )
 
     def refreshTable( self, scm_project_tree_node=None ):
@@ -269,7 +270,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         for dirent in os_scandir( str( scm_project_tree_node.absolutePath() ) ):
             entry = WbScmTableEntry( dirent.name )
             entry.updateFromDirEnt( dirent )
-            
+
             all_files[ entry.name ] = entry
 
         for name in scm_project_tree_node.getAllFileNames():
@@ -408,7 +409,6 @@ class WbScmTableEntry:
 
         return self.status.getUnstagedAbbreviatedStatus()
 
-
 def os_scandir( path ):
     if hasattr( os, 'scandir' ):
         return os.scandir( path )
@@ -427,3 +427,4 @@ class DirEntPre35:
     def is_dir( self ):
         import stat
         return stat.S_ISDIR( self.__stat.st_mode )
+

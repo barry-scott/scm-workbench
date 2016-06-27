@@ -28,6 +28,7 @@ class GitProject:
         self.index = None
 
         self.tree = GitProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+        self.flat_tree = GitProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
         self.all_file_state = {}
 
@@ -78,6 +79,7 @@ class GitProject:
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
+        self.flat_tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
         self.__calculateStatus()
 
@@ -167,6 +169,7 @@ class GitProject:
 
         self._debug( '__updateTree addFile %r to node %r' % (path, node) )
         node.addFile( path )
+        self.flat_tree.addFile( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )
