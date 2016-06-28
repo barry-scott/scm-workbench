@@ -143,7 +143,7 @@ class SvnProject:
 
         self._debug( '__updateTree addFile %r to node %r' % (path, node) )
         if not is_dir:
-            node.addFile( path )
+            node.addFileByName( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )
@@ -576,6 +576,7 @@ class SvnProjectTreeNode:
     def __init__( self, project, name, path ):
         self.project = project
         self.name = name
+        self.is_by_path = False
         self.__path = path
         self.__all_folders = {}
         self.__all_files = {}
@@ -583,8 +584,18 @@ class SvnProjectTreeNode:
     def __repr__( self ):
         return '<SvnProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
 
-    def addFile( self, path ):
+    def isByPath( self ):
+        return self.is_by_path
+
+    def addFileByName( self, path ):
+        assert path.name != ''
         self.__all_files[ path.name ] = path
+
+    def addFileByPath( self, path ):
+        assert path.name != ''
+        self.is_by_path = True
+        path = path
+        self.__all_files[ path ] = path
 
     def getAllFileNames( self ):
         return self.__all_files.keys()

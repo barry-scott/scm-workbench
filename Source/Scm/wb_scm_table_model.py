@@ -23,44 +23,18 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
 
         self.filter_text = ''
 
-        self.show_controlled = True
+        self.show_controlled_and_changed = True
+        self.show_controlled_and_not_changed = True
         self.show_uncontrolled = True
         self.show_ignored = False
-        self.show_only_changed = False
 
     # ------------------------------------------------------------
     def setFilterText( self, text ):
         self.filter_text = text
-        self.invalidateFilter()
-
-    def setShowControllerFiles( self, state ):
-        self.show_controlled = state
-        self.invalidateFilter()
-
-    def setShowUncontrolledFiles( self, state ):
-        self.show_uncontrolled = state
-        self.invalidateFilter()
-
-    def setShowIgnoredFiles( self, state ):
-        self.show_ignored = state
-        self.invalidateFilter()
-
-    def setShowOnlyChangedFiles( self, state ):
-        self.show_only_changed = state
-        self.invalidateFilter()
-
-    # ------------------------------------------------------------
-    def checkerShowControllerFiles( self ):
-        return self.show_controlled
-
-    def checkerShowUncontrolledFiles( self ):
-        return self.show_uncontrolled
-
-    def checkerShowIgnoredFiles( self ):
-        return self.show_ignored
-
-    def checkerShowOnlyChangedFiles( self ):
-        return self.show_only_changed
+        # invalidateFilter is documented to update the view with the
+        # filter conditions are changed but it does not work
+        # when filter puts more items into the result
+        self.invalidate()
 
     # ------------------------------------------------------------
     def filterAcceptsRow( self, source_row, source_parent ):
@@ -69,10 +43,16 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
 
         entry = model.data( index, QtCore.Qt.UserRole )
 
+        changed = entry.stagedAsString() != '' or entry.statusAsString() != ''
+        not_changed = entry.stagedAsString() == '' and entry.statusAsString() == ''
+
         if entry.is_dir():
             return False
 
-        if entry.isControlled() and not self.show_controlled:
+        if entry.isControlled() and changed and not self.show_controlled_and_changed:
+            return False
+
+        if entry.isControlled() and not_changed and not self.show_controlled_and_not_changed:
             return False
 
         if entry.isUncontrolled() and not self.show_uncontrolled:
@@ -81,11 +61,8 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         if entry.isIgnore() and not self.show_ignored:
             return False
 
-        if self.show_only_changed and entry.stagedAsString() == '' and entry.statusAsString() == '':
-            return False
-
         if self.filter_text != '':
-            return self.filter_text.lower() in entry.name.lower()
+            return self.filter_text.lower() in str(entry.name).lower()
 
         return True
 
@@ -93,7 +70,6 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         model = self.sourceModel()
         left_ent = model.entry( source_left )
         right_ent = model.entry( source_right )
-
         column = source_left.column()
 
         if column == model.col_name:
@@ -184,6 +160,9 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         self.__brush_is_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
         self.__brush_is_uncontrolled = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
 
+    def isByPath( self ):
+        return self.scm_project_tree_node is not None and self.scm_project_tree_node.isByPath()
+
     def rowCount( self, parent ):
         return len( self.all_files )
 
@@ -226,7 +205,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     return entry.name + os.sep
 
                 else:
-                    return entry.name
+                    return str(entry.name)
 
             elif col == self.col_date:
                 return entry.fileDate()
@@ -255,7 +234,6 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         return None
 
     def setScmProjectTreeNode( self, scm_project_tree_node ):
-        print( 'setScmProjectTreeNode %r' % (scm_project_tree_node,) )
         self.refreshTable( scm_project_tree_node )
 
     def refreshTable( self, scm_project_tree_node=None ):
@@ -267,11 +245,14 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
         # find all the files know to the SCM and the folder
         all_files = {}
-        for dirent in os_scandir( str( scm_project_tree_node.absolutePath() ) ):
-            entry = WbScmTableEntry( dirent.name )
-            entry.updateFromDirEnt( dirent )
+        if not scm_project_tree_node.isByPath():
+            # skip scanning the file system for now
+            folder = scm_project_tree_node.absolutePath()
+            for dirent in os_scandir( str( folder ) ):
+                entry = WbScmTableEntry( dirent.name )
+                entry.updateFromDirEnt( dirent )
 
-            all_files[ entry.name ] = entry
+                all_files[ entry.name ] = entry
 
         for name in scm_project_tree_node.getAllFileNames():
             if name not in all_files:
@@ -352,6 +333,21 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
         self.scm_project_tree_node = scm_project_tree_node
         self._debug( 'WbScmTableModel.refreshTable() done self.scm_project_tree_node %r' % (self.scm_project_tree_node,) )
+
+    def selectedScmProjectTreeNode( self ):
+        return self.scm_project_tree_node
+
+    def absoluteNodePath( self ):
+        if self.scm_project_tree_node is None:
+            return None
+
+        return self.scm_project_tree_node.absolutePath()
+
+    def relativeNodePath( self ):
+        if self.scm_project_tree_node is None:
+            return None
+
+        return self.scm_project_tree_node.relativePath()
 
 class WbScmTableEntry:
     def __init__( self, name ):

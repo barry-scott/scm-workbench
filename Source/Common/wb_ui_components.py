@@ -10,11 +10,15 @@
     wb_ui_components.py.py
 
 '''
+import wb_diff_unified_view
+import wb_diff_side_by_side_view
+
 class WbMainWindowComponents:
     def __init__( self, scm_type ):
         self.scm_type = scm_type
 
         self.main_window = None
+        self.table_view = None
         self.app = None
         self._debug = None
 
@@ -27,7 +31,11 @@ class WbMainWindowComponents:
         self.tree_context_menu = None
 
     def setMainWindow( self, main_window ):
+        assert main_window is not None
         self.main_window = main_window
+
+        assert main_window.table_view is not None
+        self.table_view = main_window.table_view
 
         self.app = self.main_window.app
         self.log = self.app.log
@@ -81,14 +89,30 @@ class WbMainWindowComponents:
     def isScmTypeActive( self ):
         return self.main_window.isScmTypeActive( self.scm_type )
 
+    # qqqzzz: is this right to put here?
     def tableSelectedAllFileStates( self ):
-        tree_node = self.main_window.selectedScmProjectTreeNode()
-        if tree_node is None:
+        if self.table_view is None:
             return []
 
-        all_names = self.main_window.tableSelectedFiles()
+        return self.table_view.selectedAllFileStates()
 
-        scm_project = tree_node.project
-        relative_folder = tree_node.relativePath()
+    # ------------------------------------------------------------
+    def diffTwoFiles( self, old_lines, new_lines, title_unified, title_left, title_right ):
+        if self.app.prefs.view.isDiffUnified():
+            all_lines = list( difflib.unified_diff( old_lines, new_lines ) )
 
-        return [scm_project.getFileState( relative_folder / name ) for name in all_names]
+            self.showdiffText( title_unified, all_lines )
+
+        elif self.app.prefs.view.isDiffSideBySide():
+            window = wb_diff_side_by_side_view.DiffSideBySideView(
+                        self.app, None, 
+                        old_lines, title_left,
+                        new_lines, title_right )
+            window.show()
+
+    def showDiffText( self, title, all_lines ):
+        assert type(all_lines) == list
+
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
+        window.setUnifiedDiffText( all_lines )
+        window.show()

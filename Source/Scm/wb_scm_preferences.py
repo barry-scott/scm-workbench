@@ -64,8 +64,6 @@ class PreferencesManager(wb_preferences.PreferencesManager):
 
 
 if __name__ == '__main__':
-    import pprint
-
     class FakeLog:
         def __init__( self ):
             pass

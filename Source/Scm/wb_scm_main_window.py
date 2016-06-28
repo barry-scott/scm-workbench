@@ -41,19 +41,12 @@ import wb_logging
 import wb_main_window
 import wb_preferences
 import wb_tracked_qwidget
-import wb_diff_unified_view
-import wb_diff_side_by_side_view
-
-import wb_diff_unified_view
-import wb_diff_side_by_side_view
 
 class WbScmMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app, all_ui_components ):
-        super().__init__( app, wb_scm_images, app._debugMainWindow )
+        self.table_view = None
 
-        self.all_ui_components = all_ui_components
-        for scm_type in self.all_ui_components:
-            self.all_ui_components[ scm_type ].setMainWindow( self )
+        super().__init__( app, wb_scm_images, app._debugMainWindow )
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
@@ -69,6 +62,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # on Qt on macOS table will trigger selectionChanged that needs tree_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
         self.__setupTreeViewAndModel()
+
+        self.all_ui_components = all_ui_components
+        for scm_type in self.all_ui_components:
+            self.all_ui_components[ scm_type ].setMainWindow( self )
 
         # setup the chrome
         self.setupMenuBar( self.menuBar() )
@@ -234,7 +231,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
-        if self.tree_model is None:
+        if self.table_view is None or self.table_view.table_model is None:
             return
 
         self.updateEnableStates()
@@ -246,11 +243,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
 
         m = mb.addMenu( T_('&View') )
-        tsf = self.table_view.table_sortfilter
-        self._addMenu( m, T_('Show Controlled files'), tsf.setShowControllerFiles, checker=tsf.checkerShowControllerFiles )
-        self._addMenu( m, T_('Show Uncontrolled files'), tsf.setShowUncontrolledFiles, checker=tsf.checkerShowUncontrolledFiles )
-        self._addMenu( m, T_('Show Ignored files'), tsf.setShowIgnoredFiles, checker=tsf.checkerShowIgnoredFiles )
-        self._addMenu( m, T_('Show Only changed files'), tsf.setShowOnlyChangedFiles, checker=tsf.checkerShowOnlyChangedFiles )
+        tv = self.table_view
+        self._addMenu( m, T_('Show Controlled and Changed files'), tv.setShowControlledAndChangedFiles, checker=tv.checkerShowControlledAndChangedFiles )
+        self._addMenu( m, T_('Show Controlled and Not Changed files'), tv.setShowControlledAndNotChangedFiles, checker=tv.checkerShowControlledAndNotChangedFiles )
+        self._addMenu( m, T_('Show Uncontrolled files'), tv.setShowUncontrolledFiles, checker=tv.checkerShowUncontrolledFiles )
+        self._addMenu( m, T_('Show Ignored files'), tv.setShowIgnoredFiles, checker=tv.checkerShowIgnoredFiles )
 
         m.addSeparator()
 
@@ -264,8 +261,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
         m = mb.addMenu( T_('File &Actions') )
-        self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.table_view.enablerTableFilesExists, 'toolbar_images/edit.png' )
+        self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.table_view.enablerTableFilesExists, 'toolbar_images/open.png' )
 
         # --- setup scm_type specific menus
         for scm_type in self.all_ui_components:
@@ -304,8 +301,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             m = QtWidgets.QMenu( self )
 
             m.addSection( T_('File Actions') )
-            self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-            self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+            self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.table_view.enablerTableFilesExists, 'toolbar_images/edit.png' )
+            self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.table_view.enablerTableFilesExists, 'toolbar_images/open.png' )
 
             self.all_ui_components[ scm_type ].setupTableContextMenu( m, self._addMenu )
 
@@ -321,8 +318,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addTool( t, T_('File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
 
         t = self.tool_bar_table = self._addToolBar( T_('table') )
-        self._addTool( t, T_('Edit'), self.table_view.tableActionEdit, self.enablerFilesExists, 'toolbar_images/edit.png' )
-        self._addTool( t, T_('Open'), self.table_view.tableActionOpen, self.enablerFilesExists, 'toolbar_images/open.png' )
+        self._addTool( t, T_('Edit'), self.table_view.tableActionEdit, self.table_view.enablerTableFilesExists, 'toolbar_images/edit.png' )
+        self._addTool( t, T_('Open'), self.table_view.tableActionOpen, self.table_view.enablerTableFilesExists, 'toolbar_images/open.png' )
 
         # --- setup scm_type specific tool bars
         for scm_type in self.all_ui_components:
@@ -353,7 +350,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     #
     #------------------------------------------------------------
     def enablerFolderExists( self ):
-        return self._treeSelectedAbsoluteFolder() is not None
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
+            return False
+
+        return scm_project_tree_node.absolutePath() is not None
 
     def enablerIsProject( self ):
         scm_project_tree_node = self.selectedScmProjectTreeNode()
@@ -362,10 +363,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         return scm_project_tree_node.relativePath() == pathlib.Path( '.' )
 
-    def enablerFilesExists( self ):
-        return len( self._tableSelectedExistingFiles() ) > 0
-
-    def focusWidget( self ):
+    def scmFocusWidget( self ):
         if self.tree_view.hasFocus():
             return 'tree'
 
@@ -441,6 +439,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.appActionClose( close=False )
 
     def appActionClose( self, close=True ):
+        print( 'qqq appActionClose' )
+
         self._debug( 'appActionClose()' )
         scm_project_tree_node = self.selectedScmProjectTreeNode()
 
@@ -495,7 +495,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self.tree_view.scrollTo( index )
 
     def projectActionDelete( self ):
-        project_name = self.__treeSelectedProjectName()
+        project_name = self.tree_view.selectedProject().projectName()
 
         default_button = QtWidgets.QMessageBox.No
 
@@ -543,58 +543,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def checkerDiffSideBySide( self ):
         return self.app.prefs.view.isDiffSideBySide()
 
-    def diffTwoFiles( self, old_lines, new_lines, title_unified, title_left, title_right ):
-        if self.app.prefs.view.isDiffUnified():
-            all_lines = list( difflib.unified_diff( old_lines, new_lines ) )
-
-            self.showdiffText( title_unified, all_lines )
-
-        elif self.app.prefs.view.isDiffSideBySide():
-            window = wb_diff_side_by_side_view.DiffSideBySideView(
-                        self.app, None, 
-                        old_lines, title_left,
-                        new_lines, title_right )
-            window.show()
-
-    def showDiffText( self, title, all_lines ):
-        assert type(all_lines) == list
-
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.getQIcon( 'wb.png' ) )
-        window.setUnifiedDiffText( all_lines )
-        window.show()
-
     #------------------------------------------------------------
     #
     # tree actions
     #
     #------------------------------------------------------------
-    # QQQZZZ #  should be able to refactor this out once wb_ui has all helper functions
-    def _treeSelectedScmProject( self ):
-        scm_project_tree_node = self.selectedScmProjectTreeNode()
-        if scm_project_tree_node is None:
-            return None
-
-        return scm_project_tree_node.project
-
-    def _treeSelectedAbsoluteFolder( self ):
-        scm_project_tree_node = self.selectedScmProjectTreeNode()
-        if scm_project_tree_node is None:
-            return None
-
-        folder_path = scm_project_tree_node.absolutePath()
-
-        if not folder_path.exists():
-            return None
-
-        return folder_path
-
-    def _treeSelectedRelativeFolder( self ):
-        scm_project_tree_node = self.selectedScmProjectTreeNode()
-        if scm_project_tree_node is None:
-            return None
-
-        return scm_project_tree_node.relativePath()
-
     def treeContextMenu( self, pos ):
         self._debug( 'treeContextMenu( %r )' % (pos,) )
         global_pos = self.tree_view.viewport().mapToGlobal( pos )
@@ -607,7 +560,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.filter_text.clear()
 
-        scm_project = self._treeSelectedScmProject()
+        scm_project = self.table_view.selectedScmProject()
         if self.__ui_active_scm_type != scm_project.scmType():
             if self.__ui_active_scm_type is not None:
                 self._debug( 'treeSelectionChanged hiding UI for %s' % (self.__ui_active_scm_type,) )
@@ -625,7 +578,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.updateActionEnabledStates()
 
-        folder = self._treeSelectedAbsoluteFolder()
+        folder = self.table_view.selectedAbsoluteFolder()
         if folder is None:                                                          
              self.folder_text.clear()
 
@@ -641,14 +594,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.folder_text.setText( folder )
 
     def treeActionShell( self ):
-        folder_path = self._treeSelectedAbsoluteFolder()
+        folder_path = self.table_view.selectedAbsoluteFolder()
         if folder_path is None:
             return
 
         wb_shell_commands.CommandShell( self.app, folder_path )
 
     def treeActionFileBrowse( self ):
-        folder_path = self._treeSelectedAbsoluteFolder()
+        folder_path = self.table_view.selectedAbsoluteFolder()
         if folder_path is None:
             return
 
@@ -670,44 +623,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # else in logWidget so ignore
         return default
 
-    def tableSelectedFiles( self ):
-        return [index.data( QtCore.Qt.UserRole ).name
-                    for index in self.table_view.selectedIndexes()
-                    if index.column() == 0]
-
     def tableSelectedAbsoluteFiles( self ):
         tree_node = self.selectedScmProjectTreeNode()
         root = tree_node.project.path()
         return [root / filename for filename in self.tableSelectedFiles()]
-
-    def _tableSelectedExistingFiles( self ):
-        folder_path = self._treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return []
-
-        all_filenames = [folder_path / name for name in self.tableSelectedFiles()]
-        all_existing_filenames = [filename for filename in all_filenames if filename.exists()]
-        return all_existing_filenames
-
-    def _tableActionViewRepo( self, are_you_sure_function, execute_function ):
-        folder_path = self._treeSelectedAbsoluteFolder()
-        if folder_path is None:
-            return
-
-        all_names = self.tableSelectedFiles()
-        if len(all_names) == 0:
-            return
-
-        scm_project = self._treeSelectedScmProject()
-
-        relative_folder = self._treeSelectedRelativeFolder()
-
-        all_filenames = [relative_folder / name for name in all_names]
-
-        if not are_you_sure_function( all_filenames ):
-            return False
-
-        for filename in all_filenames:
-            execute_function( scm_project, filename )
-
-        return True

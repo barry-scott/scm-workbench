@@ -20,6 +20,52 @@ import wb_tracked_qwidget
 import wb_scm_table_view
 import wb_scm_images
 
+import wb_git_ui_actions
+
+#
+#   add tool bars and menu for use in the commit window
+#
+class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
+    def __init__( self ):
+        super().__init__()
+
+    def setupTableContextMenu( self, m, addMenu ):
+        super().setupTableContextMenu( m, addMenu )
+
+        m.addSection( T_('Diff') )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Staged'), self.tableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Staged vs. Working'), self.tableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
+
+        m.addSection( T_('Git Actions') )
+        addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        m.addSeparator()
+        addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
+
+    def setupToolBarAtLeft( self, addToolBar, addTool ):
+        t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 32px; color: #cc0000' )
+        self.all_toolbars.append( t )
+
+        addTool( t, 'Git', self.main_window.projectActionSettings )
+
+    def setupToolBarAtRight( self, addToolBar, addTool ):
+        # ----------------------------------------
+        t = addToolBar( T_('git info') )
+        self.all_toolbars.append( t )
+
+        addTool( t, T_('Diff'), self.tableActionGitDiffSmart, self.enablerGitDiffSmart, 'toolbar_images/diff.png' )
+        addTool( t, T_('Commit History'), self.tableActionGitLogHistory, self.enablerGitLogHistory, 'toolbar_images/history.png' )
+
+        # ----------------------------------------
+        t = addToolBar( T_('git state') )
+        self.all_toolbars.append( t )
+
+        addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+
 class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()
     commitClosed = QtCore.pyqtSignal()
@@ -27,16 +73,30 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def __init__( self, app, git_project ):
         self.app = app
         self.git_project = git_project
+        self.table_view = None
 
-        super().__init__( app, wb_scm_images, app._debugDiff )
+        super().__init__( app, wb_scm_images, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
+
+        self.ui_component = GitCommitWindowComponents()
 
         self.setWindowTitle( T_('Commit %s') % (git_project.projectName(),) )
         self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
 
-        # on Qt on macOS table will trigger selectionChanged that needs tree_model
+        # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
 
+        # unchanged files should not be interesting for a commit
+        self.table_view.setShowControlledAndNotChangedFiles( False )
+
+        self.ui_component.setMainWindow( self )
+
+        # setup the chrome
+        self.setupMenuBar( self.menuBar() )
+        self.setupToolBar()
+        self.__setupTableContextMenu()
+
+        # ----------------------------------------
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
         self.filter_text.setMaxLength( 256 )
@@ -89,7 +149,7 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.setCentralWidget( self.widget )
 
-        self.resize( 800, 600 )
+        self.resize( 800, 700 )
 
         self.ok_button.setEnabled( False )
 
@@ -99,10 +159,72 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.message.textChanged.connect( self.enableOkButton )
 
+        # The rest of init has to be done after the widgets are rendered
+        self.timer_init = QtCore.QTimer()
+        self.timer_init.timeout.connect( self.completeStatupInitialisation )
+        self.timer_init.setSingleShot( True )
+        self.timer_init.start( 0 )
+
+    def scmFocusWidget( self ):
+        return 'table'
+
+    def completeStatupInitialisation( self ):
+        self._debug( 'completeStatupInitialisation()' )
+
         # set focus
         self.message.setFocus()
 
         self.updateTableView()
+
+        # set splitter position
+        table_size_ratio = 0.7
+        height = sum( self.v_split.sizes() )
+        table_height = int( height * table_size_ratio )
+        message_height = height - table_height
+        self.v_split.setSizes( [table_height, message_height] )
+
+        self.updateActionEnabledStates()
+
+        self.timer_init = None
+
+    def setupMenuBar( self, mb ):
+        m = mb.addMenu( T_('&View') )
+        tv = self.table_view
+        self._addMenu( m, T_('Show Controlled and Changed files'), tv.setShowControlledAndChangedFiles, checker=tv.checkerShowControlledAndChangedFiles )
+        self._addMenu( m, T_('Show Controlled and Not Changed files'), tv.setShowControlledAndNotChangedFiles, checker=tv.checkerShowControlledAndNotChangedFiles )
+        self._addMenu( m, T_('Show Uncontrolled files'), tv.setShowUncontrolledFiles, checker=tv.checkerShowUncontrolledFiles )
+        self._addMenu( m, T_('Show Ignored files'), tv.setShowIgnoredFiles, checker=tv.checkerShowIgnoredFiles )
+
+        m = mb.addMenu( T_('File &Actions') )
+        self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.table_view.enablerTableFilesExists, 'toolbar_images/edit.png' )
+        self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.table_view.enablerTableFilesExists, 'toolbar_images/open.png' )
+
+        self.ui_component.setupMenuBar( mb, self._addMenu )
+
+    def __setupTableContextMenu( self ):
+        self._debug( '__setupTableContextMenu' )
+
+        # --- setup scm_type specific menu
+
+        m = QtWidgets.QMenu( self )
+
+        m.addSection( T_('File Actions') )
+        self._addMenu( m, T_('Edit'), self.table_view.tableActionEdit, self.table_view.enablerTableFilesExists, 'toolbar_images/edit.png' )
+        self._addMenu( m, T_('Open'), self.table_view.tableActionOpen, self.table_view.enablerTableFilesExists, 'toolbar_images/open.png' )
+
+        self.ui_component.setupTableContextMenu( m, self._addMenu )
+
+    def setupToolBar( self ):
+        # --- setup common toolbars
+        t = self.tool_bar_table = self._addToolBar( T_('table') )
+        self._addTool( t, T_('Edit'), self.table_view.tableActionEdit, self.table_view.enablerTableFilesExists, 'toolbar_images/edit.png' )
+        self._addTool( t, T_('Open'), self.table_view.tableActionOpen, self.table_view.enablerTableFilesExists, 'toolbar_images/open.png' )
+
+        # --- setup scm_type specific tool bars
+        self.ui_component.setupToolBarAtRight( self._addToolBar, self._addTool )
+
+    def setStatusText( self, msg ):
+        pass
 
     def closeEvent( self, event ):
         super().closeEvent( event )
@@ -123,5 +245,12 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         # call will have updated the git project state already
         self.table_view.setScmProjectTreeNode( self.git_project.flat_tree )
 
+    def isScmTypeActive( self, scm_type ):
+        return scm_type == 'git'
+
     def updateActionEnabledStates( self ):
-        print( 'qqq WbGitCommitDialog.updateActionEnabledStates' )
+        # can be called during __init__ on macOS version
+        if self.table_view is None or self.table_view.table_model is None:
+            return
+
+        self.updateEnableStates()

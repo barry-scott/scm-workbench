@@ -39,14 +39,14 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Status'), self.treeActionSvnStatus )
 
         # ----------------------------------------
-        m = mb.addMenu( T_('&Git Actions') )
+        m = mb.addMenu( T_('&Svn Actions') )
         self.all_menus.append( m )
 
         addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
         addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.enablerFilesExists )
+        addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
         addMenu( m, T_('Checkin…'), self.treeActionSvnCheckin, self.enablerSvnCheckin, 'toolbar_images/checkin.png' )
@@ -428,7 +428,6 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         if not self.isScmTypeActive():
             return None
 
-        tree_node = self.main_window.selectedScmProjectTreeNode()
+        tree_node = self.table_view.table_model.selectedScmProjectTreeNode()
         assert isinstance( tree_node, wb_svn_project.SvnProjectTreeNode )
         return tree_node
-

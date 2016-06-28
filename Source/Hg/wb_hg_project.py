@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2016 Barry A Scott.  All rights reserved.
+x Copyright (c) 2016 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -134,7 +134,7 @@ class HgProject:
             node = node.getFolder( name )
 
         self._debug( '__updateTree addFile %r to node %r' % (path, node) )
-        node.addFile( path )
+        node.addFileByName( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )
@@ -515,6 +515,7 @@ class HgProjectTreeNode:
     def __init__( self, project, name, path ):
         self.project = project
         self.name = name
+        self.is_by_path = False
         self.__path = path
         self.__all_folders = {}
         self.__all_files = {}
@@ -522,9 +523,18 @@ class HgProjectTreeNode:
     def __repr__( self ):
         return '<HgProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
 
-    def addFile( self, path ):
+    def isByPath( self ):
+        return self.is_by_path
+
+    def addFileByName( self, path ):
         assert path.name != ''
         self.__all_files[ path.name ] = path
+
+    def addFileByPath( self, path ):
+        assert path.name != ''
+        self.is_by_path = True
+        path = path
+        self.__all_files[ path ] = path
 
     def getAllFileNames( self ):
         return self.__all_files.keys()

@@ -31,7 +31,6 @@ class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
     style_add = 2
     style_delete = 3
 
-
     def __init__( self, app, title, icon ):
         self.app = app
 

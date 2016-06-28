@@ -170,13 +170,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
     #------------------------------------------------------------
     def closeEvent( self, event ):
         #qqq# save geometry
-
         super().closeEvent( event )
-
-    def OnSashPositionChanged( self, event ):
-        w, h = self.splitter.GetClientSizeTuple()
-        self.sash_ratio = float( event.GetSashPosition() ) / float( w )
-        event.Skip()
 
     def actionDiffNext( self ):
         if self.total_change_number == 0:

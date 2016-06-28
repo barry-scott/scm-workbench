@@ -29,7 +29,7 @@ class WbTrackedModeless:
         self.__trackWidget()
 
     def __trackWidget( self ):
-        WbTrackedModelessQWidget.uid += 1
+        WbTrackedModeless.uid += 1
         self.__window_uid = WbTrackedModeless.uid
 
         # remember this window to keep the object alive
@@ -40,8 +40,8 @@ class WbTrackedModeless:
 
 class WbTrackedModelessQWidget(QtWidgets.QWidget, WbTrackedModeless):
     def __init__( self ):
-        super().__init__( None )
-        WbTrackedModeless.__init__( self )
+        # Warning: Qwidget.__init__ will call WbTrackedModeless.__init__
+        QtWidgets.QWidget.__init__( self, None )
 
     def closeEvent( self, event ):
         WbTrackedModeless.closeEvent( self, event )

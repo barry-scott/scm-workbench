@@ -20,6 +20,8 @@ import wb_git_project
 import wb_hg_project
 import wb_svn_project
 
+import git
+
 class WbScmTreeModel(QtGui.QStandardItemModel):
     def __init__( self, app, table_model ):
         self.app = app
@@ -37,7 +39,12 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
     def addProject( self, project ):
         if project.scm_type == 'git':
-            scm_project = wb_git_project.GitProject( self.app, project )
+            try:
+                scm_project = wb_git_project.GitProject( self.app, project )
+            except git.exc.InvalidGitRepositoryError as e:
+                self.app.log.error( 'Failed to add Git repo %r' % (project.path,) )
+                self.app.log.error( 'Git error: %s' % (e,) )
+                return
 
         elif project.scm_type == 'hg':
             scm_project = wb_hg_project.HgProject( self.app, project )
@@ -46,7 +53,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
             scm_project = wb_svn_project.SvnProject( self.app, project )
 
         else:
-            self.log.error( 'Unsupported SCM project type %r' % (project.scm,) )
+            self.app.log.error( 'Unsupported SCM project type %r' % (project.scm,) )
             return
 
         scm_project.updateState()

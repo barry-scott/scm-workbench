@@ -168,8 +168,8 @@ class GitProject:
             node = node.getFolder( name )
 
         self._debug( '__updateTree addFile %r to node %r' % (path, node) )
-        node.addFile( path )
-        self.flat_tree.addFile( path )
+        node.addFileByName( path )
+        self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )
@@ -388,8 +388,8 @@ class GitProject:
 
 class WbGitFileState:
     def __init__( self, project, filepath ):
-        assert isinstance( project, GitProject )
-        assert isinstance( filepath, pathlib.Path )
+        assert isinstance( project, GitProject ),'expecting GitProject got %r' % (project,)
+        assert isinstance( filepath, pathlib.Path ), 'expecting pathlib.Path got %r' % (filepath,)
 
         self.__project = project
         self.__filepath = filepath
@@ -527,6 +527,16 @@ class WbGitFileState:
         return self.__unstaged_abbrev == 'D'
 
     # ------------------------------------------------------------
+    def canStage( self ):
+        return self.__unstaged_abbrev != ''
+
+    def canUnstage( self ):
+        return self.__staged_abbrev != ''
+
+    def canRevert( self ):
+        return self.__unstaged_abbrev != '' or self.__staged_abbrev != ''
+
+    # ------------------------------------------------------------
     def canDiffHeadVsStaged( self ):
         self.__calculateState()
         return self.__staged_is_modified
@@ -638,6 +648,7 @@ class GitProjectTreeNode:
     def __init__( self, project, name, path ):
         self.project = project
         self.name = name
+        self.is_by_path = False
         self.__path = path
         self.__all_folders = {}
         self.__all_files = {}
@@ -645,9 +656,18 @@ class GitProjectTreeNode:
     def __repr__( self ):
         return '<GitProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
 
-    def addFile( self, path ):
+    def isByPath( self ):
+        return self.is_by_path
+
+    def addFileByName( self, path ):
         assert path.name != ''
         self.__all_files[ path.name ] = path
+
+    def addFileByPath( self, path ):
+        assert path.name != ''
+        self.is_by_path = True
+        path = path
+        self.__all_files[ path ] = path
 
     def getAllFileNames( self ):
         return self.__all_files.keys()
