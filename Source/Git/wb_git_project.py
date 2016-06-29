@@ -528,7 +528,7 @@ class WbGitFileState:
 
     # ------------------------------------------------------------
     def canStage( self ):
-        return self.__unstaged_abbrev != ''
+        return self.__unstaged_abbrev != '' or self.__untracked
 
     def canUnstage( self ):
         return self.__staged_abbrev != ''
