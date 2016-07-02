@@ -52,7 +52,7 @@ class GitProject:
     def projectName( self ):
         return self.prefs_project.name
 
-    def path( self ):
+    def projectPath( self ):
         return pathlib.Path( self.prefs_project.path )
 
     def getBranchName( self ):
@@ -91,7 +91,7 @@ class GitProject:
     def __calculateStatus( self ):
         self.all_file_state = {}
 
-        repo_root = self.path()
+        repo_root = self.projectPath()
 
         git_dir = repo_root / '.git'
 
@@ -550,7 +550,7 @@ class WbGitFileState:
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
-        path = self.__project.path() / self.__unstaged_diff.a_path
+        path = self.__project.projectPath() / self.__unstaged_diff.a_path
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -711,7 +711,7 @@ class GitProjectTreeNode:
         return self.__path
 
     def absolutePath( self ):
-        return self.project.path() / self.__path
+        return self.project.projectPath() / self.__path
 
     def getStatusEntry( self, name ):
         path = self.__all_files[ name ]

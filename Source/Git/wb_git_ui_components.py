@@ -21,6 +21,8 @@ import wb_git_commit_dialog
 import wb_git_log_history
 import wb_git_status_view
 
+import git.cmd
+
 #
 #   Add tool bars and menu for use in the Main Window
 #
@@ -29,6 +31,10 @@ import wb_git_status_view
 class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def __init__( self ):
         super().__init__()
+
+    def about( self ):
+        return ['GitPython %s' % (git.__version__,)
+               ,'git %d.%d.%d' % git.cmd.Git().version_info]
 
     def setupMenuBar( self, mb, addMenu ):
         # ----------------------------------------

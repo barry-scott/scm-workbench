@@ -19,6 +19,7 @@ import os
 import wb_git_project
 import wb_hg_project
 import wb_svn_project
+import wb_scm_project_place_holder
 
 import git
 
@@ -38,23 +39,37 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
             self.addProject( project )
 
     def addProject( self, project ):
+        scm_project = None
+
         if project.scm_type == 'git':
             try:
                 scm_project = wb_git_project.GitProject( self.app, project )
+
             except git.exc.InvalidGitRepositoryError as e:
                 self.app.log.error( 'Failed to add Git repo %r' % (project.path,) )
                 self.app.log.error( 'Git error: %s' % (e,) )
-                return
 
         elif project.scm_type == 'hg':
-            scm_project = wb_hg_project.HgProject( self.app, project )
+            try:
+                scm_project = wb_hg_project.HgProject( self.app, project )
+
+            except hglib.error.ServerError as e:
+                self.app.log.error( 'Failed to add Hg repo %r' % (project.path,) )
+                self.app.log.error( 'hg error: %s' % (e,) )
 
         elif project.scm_type == 'svn':
-            scm_project = wb_svn_project.SvnProject( self.app, project )
+            try:
+                scm_project = wb_svn_project.SvnProject( self.app, project )
+
+            except wb_svn_project.ClientError as e:
+                self.app.log.error( 'Failed to add SVN repo %r' % (project.path,) )
+                self.app.log.error( 'SVN error: %s' % (e,) )
 
         else:
             self.app.log.error( 'Unsupported SCM project type %r' % (project.scm,) )
-            return
+
+        if scm_project is None:
+            scm_project = wb_scm_project_place_holder.ScmProjectPlaceholder( self.app, project )
 
         scm_project.updateState()
 

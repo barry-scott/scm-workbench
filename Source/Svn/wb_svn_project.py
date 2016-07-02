@@ -74,7 +74,7 @@ class SvnProject:
     def projectName( self ):
         return self.prefs_project.name
 
-    def path( self ):
+    def projectPath( self ):
         return self.prefs_project.path
 
     def headRefName( self ):
@@ -103,7 +103,7 @@ class SvnProject:
         self.all_file_state = {}
         self.__num_uncommitted_files = 0
 
-        repo_root = self.path()
+        repo_root = self.projectPath()
 
         svn_dir = repo_root / '.svn'
 
@@ -125,7 +125,7 @@ class SvnProject:
                 else:
                     self.all_file_state[ repo_relative ] = WbSvnFileState( self, repo_relative )
 
-        for state in self.client_fg.status2( str(self.path()) ):
+        for state in self.client_fg.status2( str(self.projectPath()) ):
             filepath = self.pathForWb( state.path )
 
             if filepath not in self.all_file_state:
@@ -197,13 +197,13 @@ class SvnProject:
     def pathForSvn( self, path ):
         assert isinstance( path, pathlib.Path )
         # return abs path
-        return str( self.path() / path )
+        return str( self.projectPath() / path )
 
     def pathForWb( self, str_path ):
         assert type( str_path ) == str
         wb_path = pathlib.Path( str_path )
         if wb_path.is_absolute():
-            wb_path = wb_path.relative_to( self.path() )
+            wb_path = wb_path.relative_to( self.projectPath() )
 
         return wb_path
 
@@ -240,7 +240,7 @@ class SvnProject:
             abs_folder, old_rev,
             abs_folder, self.svn_rev_working,
             recurse=True,
-            relative_to_dir=str( self.path() ),
+            relative_to_dir=str( self.projectPath() ),
             use_git_diff_format=True
             )
 
@@ -273,7 +273,7 @@ class SvnProject:
         if all_filenames is None:
             # checkin all changes in the working copy
             all_revisions = self.client_fg.checkin(
-                self.pathForSvn( self.path() ),
+                self.pathForSvn( self.projectPath() ),
                 message,
                 recurse=True )
 
@@ -517,7 +517,7 @@ class WbSvnFileState:
         return self.isModified()
 
     def getTextLinesWorking( self ):
-        path = pathlib.Path( self.__project.path() ) / self.__filepath
+        path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -526,7 +526,7 @@ class WbSvnFileState:
                 return all_lines
 
     def getTextLinesBase( self ):
-        path = pathlib.Path( self.__project.path() ) / self.__filepath
+        path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         all_content_lines = self.__project.client_fg.cat(
                                     url_or_path=str(path),
                                     revision=self.svn_rev_base )
@@ -536,7 +536,7 @@ class WbSvnFileState:
         return all_content_lines
 
     def getTextLinesHead( self ):
-        path = pathlib.Path( self.__project.path() ) / self.__filepath
+        path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         all_content_lines = self.__project.client_fg.cat(
                                     url_or_path=str(path),
                                     revision=self.svn_rev_head )
@@ -673,7 +673,7 @@ class SvnProjectTreeNode:
         return self.__path
 
     def absolutePath( self ):
-        return self.project.path() / self.__path
+        return self.project.projectPath() / self.__path
 
     def getStatusEntry( self, name ):
         path = self.__all_files[ name ]

@@ -49,7 +49,7 @@ class HgProject:
     def projectName( self ):
         return self.prefs_project.name
 
-    def path( self ):
+    def projectPath( self ):
         return self.prefs_project.path
 
     def headRefName( self ):
@@ -76,7 +76,7 @@ class HgProject:
     def __calculateStatus( self ):
         self.all_file_state = {}
 
-        repo_root = self.path()
+        repo_root = self.projectPath()
 
         hg_dir = repo_root / '.hg'
 
@@ -217,7 +217,7 @@ class HgProject:
     def pathForHg( self, path ):
         assert isinstance( path, pathlib.Path )
         # return abs path
-        return str( self.path() / path ).encode( sys.getfilesystemencoding() )
+        return str( self.projectPath() / path ).encode( sys.getfilesystemencoding() )
 
     def pathForWb( self, bytes_path ):
         assert type( bytes_path ) == bytes
@@ -435,7 +435,7 @@ class WbHgFileState:
         return self.isModified()
 
     def getTextLinesWorking( self ):
-        path = pathlib.Path( self.__project.path() ) / self.__filepath
+        path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -578,7 +578,7 @@ class HgProjectTreeNode:
         return self.__path
 
     def absolutePath( self ):
-        return self.project.path() / self.__path
+        return self.project.projectPath() / self.__path
 
     def getStatusEntry( self, name ):
         path = self.__all_files[ name ]

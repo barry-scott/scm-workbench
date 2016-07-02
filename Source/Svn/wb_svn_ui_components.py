@@ -21,6 +21,7 @@ import wb_svn_commit_dialog
 import wb_svn_properties_dialog
 import wb_svn_info_dialog
 
+import pysvn
 #
 #   Add tool bars and menu for use in the Main Window
 #
@@ -29,6 +30,10 @@ import wb_svn_info_dialog
 class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
     def __init__( self ):
         super().__init__()
+
+    def about( self ):
+        return ['PySVN %d.%d.%d-%d' % pysvn.version
+               ,'SVN %d.%d.%d %s' % pysvn.svn_version]
 
     def setupMenuBar( self, mb, addMenu ):
         # ----------------------------------------

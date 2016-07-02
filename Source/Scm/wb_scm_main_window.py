@@ -22,6 +22,7 @@ import sip
 
 ellipsis = '…'
 
+from PyQt5 import Qt
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -425,7 +426,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.app.writePreferences()
 
     def appActionAbout( self ):
-        from PyQt5 import Qt
         all_about_info = []
         all_about_info.append( "%s %d.%d.%d-%d" %
                                 (' '.join( self.app.app_name_parts )
@@ -438,6 +438,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                                 ,sys.version_info.releaselevel
                                 ,sys.version_info.serial) )
         all_about_info.append( 'PyQt %s, Qt %s' % (Qt.PYQT_VERSION_STR, QtCore.QT_VERSION_STR) )
+
+        for scm_type in self.all_ui_components:
+            all_about_info.extend( self.all_ui_components[ scm_type ].about() )
+
         all_about_info.append( T_('Copyright Barry Scott (c) 2016-%s. All rights reserved') % (wb_scm_version.year,) )
 
         box = QtWidgets.QMessageBox( 
@@ -515,7 +519,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self.tree_view.scrollTo( index )
 
     def projectActionDelete( self ):
-        project_name = self.tree_view.selectedProject().projectName()
+        tree_node = self.selectedScmProjectTreeNode()
+        if tree_node is None:
+            return
+
+        project_name = tree_node.project.projectName()
 
         default_button = QtWidgets.QMessageBox.No
 
@@ -645,5 +653,5 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def tableSelectedAbsoluteFiles( self ):
         tree_node = self.selectedScmProjectTreeNode()
-        root = tree_node.project.path()
+        root = tree_node.project.projectPath()
         return [root / filename for filename in self.tableSelectedFiles()]
