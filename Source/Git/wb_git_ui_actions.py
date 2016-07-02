@@ -265,15 +265,12 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if message != '':
             status = '%s - %s' % (status, message)
            
-        self.setStatusGeneral( status )
+        self.setStatusProgress( status )
         if is_end:
             self.log.info( status )
 
     # ------------------------------------------------------------
     def treeActionGitPull( self, checked ):
-        print( 'qqq treeActionGitPull top_window %r' % (self.top_window,) )
-        print( 'qqq treeActionGitPull main_window %r' % (self.main_window,) )
-
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
 
@@ -324,12 +321,12 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 status = 'Pull %s %d' % (stage_name, int(cur_count))
 
         else:
-            status = 'Push %s' % (stage_name,)
+            status = 'Pull %s' % (stage_name,)
 
         if message != '':
             status = '%s - %s' % (status, message)
            
-        self.setStatusGeneral( status )
+        self.setStatusProgress( status )
         if is_end:
             self.log.info( status )
 
