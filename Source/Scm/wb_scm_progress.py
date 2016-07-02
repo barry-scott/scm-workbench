@@ -15,7 +15,7 @@ class WbScmProgress:
 
         self.status_widget.setText( '' )
 
-    def start( self, fmt, total ):
+    def start( self, fmt, total=0 ):
         self.progress_format = fmt
 
         self.__total = 0
