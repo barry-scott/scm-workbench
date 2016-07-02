@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_commit_dialog.py
+    wb_svn_commit_dialog.py
 
 '''
 from PyQt5 import QtWidgets
@@ -20,67 +20,59 @@ import wb_tracked_qwidget
 import wb_scm_table_view
 import wb_scm_images
 
-import wb_git_ui_actions
+import wb_svn_ui_actions
 
 #
 #   add tool bars and menu for use in the commit window
 #
-class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
+class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
     def __init__( self ):
         super().__init__()
+
+    def setupToolBarAtRight( self, addToolBar, addTool ):
+        # ----------------------------------------
+        t = addToolBar( T_('svn info') )
+        addTool( t, T_('Diff'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
+        addTool( t, T_('Log History'), self.tableActionSvnLogHistory, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Info'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
+        addTool( t, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
+
+        # ----------------------------------------
+        t = addToolBar( T_('svn state') )
+        self.all_toolbars.append( t )
+
+        addTool( t, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff HEAD vs. Staged'), self.tableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff Staged vs. Working'), self.tableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Base vs. Working'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
-        m.addSection( T_('Git Actions') )
-        addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
-        m.addSeparator()
-        addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
+        m.addSection( T_('Info' ) )
+        addMenu( m, T_('Information'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
 
-    def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 32px; color: #cc0000' )
-        self.all_toolbars.append( t )
+        m.addSection( T_('Status') )
+        addMenu( m, T_('Log History'), self.tableActionSvnLogHistory, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
-        addTool( t, 'Git', self.main_window.projectActionSettings )
-
-    def setupToolBarAtRight( self, addToolBar, addTool ):
-        # ----------------------------------------
-        t = addToolBar( T_('git info') )
-        self.all_toolbars.append( t )
-
-        addTool( t, T_('Diff'), self.tableActionGitDiffSmart, self.enablerGitDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.tableActionGitLogHistory, self.enablerGitLogHistory, 'toolbar_images/history.png' )
-
-        # ----------------------------------------
-        t = addToolBar( T_('git state') )
-        self.all_toolbars.append( t )
-
-        addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
-
-class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
+class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()
     commitClosed = QtCore.pyqtSignal()
 
-    def __init__( self, app, git_project ):
+    def __init__( self, app, svn_project ):
         self.app = app
-        self.git_project = git_project
+        self.svn_project = svn_project
         self.table_view = None
 
         super().__init__( app, wb_scm_images, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
-        self.ui_component = GitCommitWindowComponents()
+        self.ui_component = SvnCommitWindowComponents()
 
-        self.setWindowTitle( T_('Commit %s') % (git_project.projectName(),) )
+        self.setWindowTitle( T_('Commit %s') % (svn_project.projectName(),) )
         self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
@@ -240,11 +232,11 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         return self.message.toPlainText().strip()
 
     def updateTableView( self ):
-        # call will have updated the git project state already
-        self.table_view.setScmProjectTreeNode( self.git_project.flat_tree )
+        # caller will have updated the svn project state already
+        self.table_view.setScmProjectTreeNode( self.svn_project.flat_tree )
 
     def isScmTypeActive( self, scm_type ):
-        return scm_type == 'git'
+        return scm_type == 'svn'
 
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version

@@ -55,7 +55,9 @@ class WbScmApp(wb_app.WbApp,
                     wb_platform_specific.getPreferencesFilename() )
 
     def createMainWindow( self ):
-        return wb_scm_main_window.WbScmMainWindow( self,
+        self.top_window = wb_scm_main_window.WbScmMainWindow( self,
             {'git': wb_git_ui_components.GitMainWindowComponents()
             ,'hg':  wb_hg_ui_components.HgMainWindowComponents()
             ,'svn': wb_svn_ui_components.SvnMainWindowComponents()} )
+
+        return self.top_window

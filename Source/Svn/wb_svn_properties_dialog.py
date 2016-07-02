@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_subversion_properties_dialog.py
+    wb_svn_properties_dialog.py
 
 '''
 from PyQt5 import QtWidgets
@@ -55,7 +55,7 @@ class SingleProperty:
         return self.isPresent() and self.starting_value != self.getValue()
 
     def isPresent( self ):
-        return self.checkbox.checkedState() == QtCore.Qt.Checked
+        return self.checkbox.checkState() == QtCore.Qt.Checked
 
     def getName( self ):
         return self.name
@@ -75,7 +75,7 @@ class SinglePropertyText(SingleProperty):
         if not self.isPresent():
             return True
 
-        text = self.value_ctrl.getText()
+        text = self.value_ctrl.text()
         if text.strip() == '':
             warningMessage( self.name )
             return False
@@ -83,7 +83,7 @@ class SinglePropertyText(SingleProperty):
         return True
 
     def getValue( self ):
-        return self.value_ctrl.getText()
+        return self.value_ctrl.text()
 
 class SinglePropertyMultiLine(SingleProperty):
     def __init__( self, dialog, name, present, value ):
@@ -101,7 +101,7 @@ class SinglePropertyMultiLine(SingleProperty):
         if not self.isPresent():
             return True
 
-        text = self.value_ctrl.getText()
+        text = self.value_ctrl.text()
         if text.strip() == '':
             warningMessage( self.name )
             return False
@@ -109,7 +109,7 @@ class SinglePropertyMultiLine(SingleProperty):
         return True
 
     def getValue( self ):
-        return self.value_ctrl.getText()
+        return self.value_ctrl.text()
 
 class SinglePropertyChoice(SingleProperty):
     def __init__( self, dialog, name, present, value, all_choices ):
@@ -127,7 +127,7 @@ class SinglePropertyChoice(SingleProperty):
         self.setValueCtrl( value_ctrl, value )
 
     def getValue( self ):
-        return self.value_ctrl.getCurrentText()
+        return self.value_ctrl.currentText()
 
 class SinglePropertyNoValue(SingleProperty):
     def __init__( self, dialog, name, present ):
@@ -176,12 +176,12 @@ class PropertiesDialogBase(QtWidgets.QDialog):
         self.grid.addWidget( checkbox, row, 0 )
         self.grid.addWidget( value_ctrl, row, 1 )
 
-    def accept( self, event ):
+    def accept( self ):
         for prop_ctrl in self.property_ctrls.values():
             if not prop_ctrl.isValid():
                 return
 
-        super().accept( event )
+        super().accept()
 
     def getModifiedProperties( self ):
         modified_properties = []
@@ -192,8 +192,8 @@ class PropertiesDialogBase(QtWidgets.QDialog):
                     ,prop_ctrl.getName()
                     ,prop_ctrl.getValue()) )
 
-        new_name = self.new_name_ctrl.getText()
-        new_value = self.new_value_ctrl.getText()
+        new_name = self.new_name_ctrl.text()
+        new_value = self.new_value_ctrl.text()
 
         if new_name.strip() != '':
             modified_properties.append( (True, new_name.strip(), new_value.strip()) )

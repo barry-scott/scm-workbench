@@ -16,6 +16,7 @@
 import sys
 import os
 import logging
+import traceback
 
 import wb_platform_specific
 
@@ -98,38 +99,48 @@ class ThreadSafeLogFacade:
         self.__app = app
         self.__log = thread_unsafe_log
 
-    def __dispatch( self, func, msg ):
-        if self.__app.isMainThread():
-            func( msg )
-
-        else:
-            self.__app.foregroundProcess( func, (msg,) )
-
     def info( self, msg ):
-        self.__dispatch( self.__log.info, msg )
+        self.__dispatch( self.__log.info, (msg,) )
 
     def warning( self, msg ):
-        self.__dispatch( self.__log.warning, msg )
+        self.__dispatch( self.__log.warning, (msg,) )
 
     def error( self, msg ):
-        self.__dispatch( self.__log.error, msg )
+        self.__dispatch( self.__log.error, (msg,) )
 
     def critical( self, msg ):
-        self.__dispatch( self.__log.critical, msg )
+        self.__dispatch( self.__log.critical, (msg,) )
 
     def debug( self, msg ):
-        self.__dispatch( self.__log.debug, msg )
+        self.__dispatch( self.__log.debug, (msg,) )
 
     def exception( self, msg ):
-        assert self.__app.isMainThread()
-        self.__log.exception( msg )
+        tb_list = traceback.format_exception( *sys.exc_info() )
+
+        if self.__app.isForegroundThread():
+            self.__printErrorList( msg, tb_list )
+
+        else:
+            self.__dispatch( self.__printErrorList, (msg, tb_list) )
+
+    def __printErrorList( self, msg, tb_list ):
+        self.error( msg )
+        for line in tb_list:
+            self.error( line )
+
+    def __dispatch( self, func, args ):
+        if self.__app.isForegroundThread():
+            func( *args )
+
+        else:
+            self.__app.runInForeground( func, args )
 
     def setLevel( self, level ):
-        assert self.__app.isMainThread()
+        assert self.__app.isForegroundThread()
         self.__log.setLevel( level )
 
     def addHandler( self, handler ):
-        assert self.__app.isMainThread()
+        assert self.__app.isForegroundThread()
         self.__log.addHandler( handler )
 
 #--------------------------------------------------------------------------------
@@ -174,8 +185,8 @@ class WbLog:
     #---------- look like a file object -------------------------
     def write( self, msg ):
         # only allowed to use GUI objects on the foreground thread
-        if not self.app.isMainThread():
-            self.app.foregroundProcess( self.write, (msg,) )
+        if not self.app.isForegroundThread():
+            self.app.runInForeground( self.write, (msg,) )
             return
 
         self.__line = self.__line + msg

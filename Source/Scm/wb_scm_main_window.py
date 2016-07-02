@@ -31,10 +31,9 @@ import wb_scm_images
 import wb_scm_preferences
 import wb_scm_preferences_dialog
 import wb_scm_table_view
-
 import wb_scm_tree_model
-
 import wb_scm_project_dialogs
+import wb_scm_progress
 
 import wb_shell_commands
 import wb_logging
@@ -77,6 +76,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # tell all scm ui to hide all compoents
         for scm_type in self.all_ui_components:
+            self.all_ui_components[ scm_type ].setTopWindow( self )
             self.all_ui_components[ scm_type ].hideUiComponents()
 
         geometry = win_prefs.geometry
@@ -199,9 +199,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.log.debug( 'Debug messages are enabled' )
 
         self.timer_init = None
-
-    def setStatusText( self, text ):
-        self.status_message.setText( text )
 
     def __setupTreeViewAndModel( self ):
         self._debug( '__setupTreeViewAndModel' )
@@ -327,8 +324,33 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.all_ui_components[ scm_type ].setupToolBarAtRight( self._addToolBar, self._addTool )
 
     def setupStatusBar( self, s ):
-        self.status_message = QtWidgets.QLabel()
-        s.addWidget( self.status_message )
+        self.status_general = QtWidgets.QLabel()
+        self.status_progress = QtWidgets.QLabel()
+        self.status_action = QtWidgets.QLabel()
+
+        self.status_progress.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        self.status_action.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+
+        s.addWidget( self.status_general, 1 )
+        s.addWidget( self.status_progress, 1 )
+        s.addWidget( self.status_action, 1 )
+
+        self.setStatusGeneral()
+        self.setStatusAction()
+
+        self.progress = wb_scm_progress.WbScmProgress( self.status_progress )
+
+    def setStatusGeneral( self, msg=None ):
+        if msg is None:
+            msg = T_('Work bench')
+
+        self.status_general.setText( msg )
+
+    def setStatusAction( self, msg=None ):
+        if msg is None:
+            msg = T_('Ready')
+
+        self.status_action.setText( msg )
 
     #------------------------------------------------------------
     #
@@ -439,8 +461,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.appActionClose( close=False )
 
     def appActionClose( self, close=True ):
-        print( 'qqq appActionClose' )
-
         self._debug( 'appActionClose()' )
         scm_project_tree_node = self.selectedScmProjectTreeNode()
 

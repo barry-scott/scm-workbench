@@ -47,7 +47,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def setupStatusBar( self, status_bar ):
         pass
 
-    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, role=QtWidgets.QAction.NoRole ):
+    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, thread_switcher=False, role=QtWidgets.QAction.NoRole ):
         if icon_name is None:
             action = menu.addAction( name )
         else:
@@ -55,6 +55,9 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action = menu.addAction( icon, name )
 
         if handler is not None:
+            if thread_switcher:
+                handler = self.app.threadSwitcher( handler )
+
             if checker is not None:
                 action.toggled.connect( handler )
 
@@ -81,7 +84,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
             bar.setStyleSheet( 'QToolButton{%s}' % (style,) )
         return bar
 
-    def _addTool( self, bar, name, handler, enabler=None, icon_name=None, checker=None ):
+    def _addTool( self, bar, name, handler, enabler=None, icon_name=None, checker=None, thread_switcher=False ):
         if icon_name is None:
             action = bar.addAction( name )
 
@@ -90,6 +93,9 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action = bar.addAction( icon, name )
 
         if handler is not None:
+            if thread_switcher:
+                handler = self.app.threadSwitcher( handler )
+
             if checker is not None:
                 action.toggled.connect( handler )
 

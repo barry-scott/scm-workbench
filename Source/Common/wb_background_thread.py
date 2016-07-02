@@ -12,6 +12,20 @@
 '''
 import threading
 import queue
+import types
+
+from PyQt5 import QtCore
+
+class MarshalledCall:
+    def __init__( self, function, args ):
+        self.function = function
+        self.args = args
+
+    def __call__( self ):
+        self.function( *self.args )
+
+    def __repr__( self ):
+        return '<MarshalledCall: fn=%s nargs=%d>' % (self.function.__name__, len(self.args))
 
 class BackgroundThread(threading.Thread):
     def __init__( self, app ):
@@ -26,11 +40,11 @@ class BackgroundThread(threading.Thread):
 
     def run( self ):
         while self.running:
-            function, args = self.work_queue.get( block=True, timeout=None )
-            self.app._debugThreading( 'BackgroundThread.run dispatching %r, %r' % (function, args) )
+            function = self.work_queue.get( block=True, timeout=None )
+            self.app._debugThreading( 'BackgroundThread.run dispatching %r' % (function,) )
 
             try:
-                function( *args )
+                function()
 
             except:
                 self.app.log.exception( 'function failed on background thread' )
@@ -38,10 +52,117 @@ class BackgroundThread(threading.Thread):
     def addWork( self, function, args ):
         self.app._debugThreading( 'BackgroundThread.addWork( %r, %r )' % (function, args) )
         assert self.running
-        self.work_queue.put( (function, args), block=False, timeout=None )
+        self.work_queue.put( MarshalledCall( function, args ), block=False, timeout=None )
 
     def shutdown( self ):
         self.addWork( self.__shutdown )
 
     def __shutdown( self ):
         self.running = 0
+
+#
+#   BackgroundWorkMixin
+#
+#   Add features that allow processing to switch
+#   easily from foreground to background threads
+#
+#   runInBackground - call function on the background thread
+#   runInForeground - call function on the foreground thread
+
+#   deferRunInForeground
+#       - used to move a callback made in the background
+#         into the foreground with the args provided in the 
+#         background call back.
+#
+#   threadSwitcher - call function that is allowed to yield to move between threads.
+#       - function starts in the foreground
+#       - switch to the background by yield switchToBackground
+#       - switch to the foreground by yield switchToForeground
+#
+
+# assumes that self is app
+class BackgroundWorkMixin:
+    foregroundProcessSignal = QtCore.pyqtSignal( [MarshalledCall] )
+
+    def __init__( self ):
+        self.foreground_thread = threading.currentThread()
+        self.background_thread = BackgroundThread( self )
+
+        self.foregroundProcessSignal.connect( self.__runInForeground, type=QtCore.Qt.QueuedConnection )
+
+    def isForegroundThread( self ):
+        # return true if the caller is running on the main thread
+        return self.foreground_thread is threading.currentThread()
+
+    def deferRunInForeground( self, function ):
+        return DeferRunInForeground( self, function )
+
+    def runInBackground( self, function, args ):
+        self._debugThreading( 'switchToBackground( %r, %r )' % (function, args) )
+        self.background_thread.addWork( function, args )
+
+    def runInForeground( self, function, args ):
+        # cannot call logging from here as this will cause the log call to be marshelled
+        self.foregroundProcessSignal.emit( MarshalledCall( function, args ) )
+
+    def threadSwitcher( self, function ):
+        return ThreadSwitchScheduler( self, function )
+
+    # alias that are better names when used from the threadSwitcher function
+    switchToForeground = runInForeground
+    switchToBackground = runInBackground
+
+    def __runInForeground( self, function ):
+        self._debugThreading( '__runInForeground( %r )' % (function,) )
+
+        try:
+            function()
+
+        except:
+            self.log.exception( 'foregroundProcess function failed' )
+
+class DeferRunInForeground:
+    def __init__( self, app, function ):
+        self.app = app
+        self.function = function
+
+    def __call__( self, *args ):
+        self.app.runInForeground( self.function, args )
+
+class ThreadSwitchScheduler:
+    def __init__( self, app, function ):
+        self.app = app
+        self.function = function
+
+    def __call__( self, *args, **kwds ):
+        self.app._debugThreading( 'ThreadSwitchScheduler: __call__( %r, %r )' % (args, kwds) )
+
+        try:
+            # call the function
+            result = self.function( *args, **kwds )
+
+            # did the function run or make a generator?
+            if type(result) != types.GeneratorType:
+                # it ran - we are all done
+                return
+
+            # step the generator
+            self.queueNextSwitch( result )
+
+        except:
+            self.app.log.exception( 'ThreadSwitchScheduler' )
+
+    def queueNextSwitch( self, generator ):
+        self.app._debugThreading( 'queueNextSwitch<%r>()' % (generator,) )
+
+        # result tells where to schedule the generator to next
+        try:
+            where_to_go_next = next( generator )
+            self.app._debugThreading( 'queueNextSwitch<%r>() next=>%r' % (generator, where_to_go_next) )
+
+        except StopIteration:
+            # no problem all done
+            return
+
+        # will be one of app.runInForeground or app.runInForeground
+        where_to_go_next( self.queueNextSwitch, (generator,) )

@@ -17,6 +17,7 @@ class WbMainWindowComponents:
     def __init__( self, scm_type ):
         self.scm_type = scm_type
 
+        self.top_window = None
         self.main_window = None
         self.table_view = None
         self.app = None
@@ -30,6 +31,15 @@ class WbMainWindowComponents:
         self.table_context_menu = None
         self.tree_context_menu = None
 
+    def setTopWindow( self, top_window ):
+        self.top_window = top_window
+
+        # short cuts
+        self.setStatusGeneral = top_window.setStatusGeneral
+        self.setStatusAction =  top_window.setStatusAction
+
+        self.progress =         top_window.progress
+
     def setMainWindow( self, main_window ):
         assert main_window is not None
         self.main_window = main_window
@@ -40,10 +50,10 @@ class WbMainWindowComponents:
         self.app = self.main_window.app
         self.log = self.app.log
 
-        self.setStatusText = self.main_window.setStatusText
-
         # shorts cut to main window functions
-        self.setStatusText = self.main_window.setStatusText
+        self.switchToForeground = self.app.switchToForeground
+        self.switchToBackground = self.app.switchToBackground
+        self.deferRunInForeground = self.app.deferRunInForeground
 
         self.setupDebug()
 

@@ -35,23 +35,12 @@ for name in dir(QtCore.QEvent):
     if isinstance( value, int ):
         qt_event_type_names[ int(value) ] = name
 
-class MarshalledCall:
-    def __init__( self, function, args ):
-        self.function = function
-        self.args = args
-
-    def dispatch( self ):
-        self.function( *self.args )
-
-    def __repr__( self ):
-        return 'MarshalledCall: fn=%s nargs=%d' % (self.function.__name__,len(self.args))
-
 class WbApp(QtWidgets.QApplication,
-             wb_logging.AppLoggingMixin):
-
-    foregroundProcessSignal = QtCore.pyqtSignal( [MarshalledCall] )
+             wb_logging.AppLoggingMixin,
+             wb_background_thread.BackgroundWorkMixin):
 
     def __init__( self, app_name_parts, args, extra_loggers=None ):
+        self.top_window = None
         self.main_window = None
         # used to set the names of files and windows for this app
         self.app_name_parts = app_name_parts
@@ -60,7 +49,9 @@ class WbApp(QtWidgets.QApplication,
 
         if extra_loggers is None:
             extra_loggers = []
+
         wb_logging.AppLoggingMixin.__init__( self, extra_loggers )
+        wb_background_thread.BackgroundWorkMixin.__init__( self )
 
         self.may_quit = False
 
@@ -138,15 +129,7 @@ class WbApp(QtWidgets.QApplication,
         if self.app_dir == '':
             self.app_dir = self.startup_dir
 
-        self.__call_gui_result = None
-        self.__call_gui_result_event = threading.Event()
-
-        self.main_thread = threading.currentThread()
-
-        self.background_thread = wb_background_thread.BackgroundThread( self )
         self.background_thread.start()
-
-        self.foregroundProcessSignal.connect( self.__foregroundProcessHandler, type=QtCore.Qt.QueuedConnection )
 
         locale_path = wb_platform_specific.getLocalePath()
         self.translation = gettext.translation(
@@ -227,27 +210,6 @@ class WbApp(QtWidgets.QApplication,
     def applicationStateChangedHandler( self, state ):
         if state == QtCore.Qt.ApplicationActive:
             self.main_window.appActiveHandler()
-
-    def isMainThread( self ):
-        # return true if the caller is running on the main thread
-        return self.main_thread is threading.currentThread()
-
-    def backgroundProcess( self, function, args ):
-        self._debugThreading( 'backgroundProcess( %r, %r )' % (function, args) )
-        self.background_thread.addWork( function, args )
-
-    def foregroundProcess( self, function, args ):
-        # cannot call logging from here as this will cause the log call to be marshelled
-        self.foregroundProcessSignal.emit( MarshalledCall( function, args ) )
-
-    def __foregroundProcessHandler( self, function_args ):
-        self._debugThreading( '__foregroundProcessHandler( %r )' % (function_args,) )
-
-        try:
-            function_args.dispatch()
-
-        except:
-            self.log.exception( 'foregroundProcess failed' )
 
     def writePreferences( self ):
         self.log.info( 'Writing preferences' )

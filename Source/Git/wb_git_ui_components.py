@@ -54,11 +54,11 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Commit…'), self.treeActionCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
+        addMenu( m, T_('Commit…'), self.treeActionGitCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), self.treeActionPush, self.enablerGitPush, 'toolbar_images/push.png' )
-        addMenu( m, T_('Pull…'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
+        addMenu( m, T_('Push…'), self.treeActionGitPush, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
+        addMenu( m, T_('Pull…'), self.treeActionGitPull, icon_name='toolbar_images/pull.png', thread_switcher=True )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
         t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 32px; color: #cc0000' )
@@ -82,10 +82,10 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
         addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
-        addTool( t, T_('Commit'), self.treeActionCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
+        addTool( t, T_('Commit'), self.treeActionGitCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        addTool( t, T_('Push'), self.treeActionPush, self.enablerGitPush, 'toolbar_images/push.png' )
-        addTool( t, T_('Pull'), self.treeActionPull, icon_name='toolbar_images/pull.png' )
+        addTool( t, T_('Push'), self.treeActionGitPush, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
+        addTool( t, T_('Pull'), self.treeActionGitPull, icon_name='toolbar_images/pull.png', thread_switcher=True )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -109,7 +109,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Diff HEAD vs. Staged'), self.treeActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff Staged vs. Working'), self.treeActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
-    def treeActionCommit( self ):
+    def treeActionGitCommit( self ):
         if self.commit_dialog is not None:
             self.log.error( 'Commit dialog is already open' )
             return

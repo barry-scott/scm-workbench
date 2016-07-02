@@ -228,30 +228,28 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 self.log.error( line )
 
     # ------------------------------------------------------------
-    def treeActionPush( self ):
+    def treeActionGitPush( self, checked ):
         git_project = self.selectedGitProject().newInstance()
-        self.setStatusText( 'Push…' )
+        self.setStatusAction( T_('Push %s') % (git_project.projectName(),) )
 
-        self.app.backgroundProcess( self.treeActionPushBg, (git_project,) )
+        yield self.switchToBackground
 
-    def treeActionPushBg( self, git_project ):
         try:
-            git_project.cmdPush( self.pushProgressHandlerBg, self.pushInfoHandlerBg )
+            git_project.cmdPush(
+                self.deferRunInForeground( self.pushProgressHandler ),
+                self.deferRunInForeground( self.pushInfoHandler ) )
 
         except wb_git_project.GitCommandError as e:
             self.__logGitCommandError( e )
 
-        self.app.foregroundProcess( self.setStatusText, ('',) )
-        self.app.foregroundProcess( self.main_window.updateActionEnabledStates, () )
+        yield self.switchToForeground
 
-    def pushInfoHandlerBg( self, info ):
-        self.app.foregroundProcess( self.pushInfoHandler, (info,) )
+        self.setStatusAction( T_('Ready') )
+        self.setStatusGeneral( T_('Workbench') )
+        self.main_window.updateActionEnabledStates()
 
     def pushInfoHandler( self, info ):
         self.log.info( 'Push summary: %s' % (info.summary,) )
-
-    def pushProgressHandlerBg( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        self.app.foregroundProcess( self.pushProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
 
     def pushProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
         if type(cur_count) in (int,float):
@@ -267,29 +265,33 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if message != '':
             status = '%s - %s' % (status, message)
            
-        self.setStatusText( status )
+        self.setStatusGeneral( status )
         if is_end:
             self.log.info( status )
 
     # ------------------------------------------------------------
-    def treeActionPull( self ):
+    def treeActionGitPull( self, checked ):
+        print( 'qqq treeActionGitPull top_window %r' % (self.top_window,) )
+        print( 'qqq treeActionGitPull main_window %r' % (self.main_window,) )
+
         git_project = self.selectedGitProject().newInstance()
-        self.setStatusText( 'Pull...' )
+        self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
 
-        self.app.backgroundProcess( self.treeActionPullBg, (git_project,) )
+        yield self.switchToBackground
 
-    def treeActionPullBg( self, git_project ):
         try:
-            git_project.cmdPull( self.pullProgressHandlerBg, self.pullInfoHandlerBg )
+            git_project.cmdPull(
+                self.deferRunInForeground( self.pullProgressHandler ),
+                self.deferRunInForeground( self.pullInfoHandler ) )
 
         except wb_git_project.GitCommandError as e:
             self.__logGitCommandError( e )
 
-        self.app.foregroundProcess( self.setStatusText, ('',) )
-        self.app.foregroundProcess( self.main_window.updateActionEnabledStates, () )
+        yield self.switchToForeground
 
-    def pullInfoHandlerBg( self, info ):
-        self.app.foregroundProcess( self.pullInfoHandler, (info,) )
+        self.setStatusAction( T_('Ready') )
+        self.setStatusGeneral( T_('Workbench') )
+        self.main_window.updateActionEnabledStates()
 
     def pullInfoHandler( self, info ):
         if info.note != '':
@@ -313,9 +315,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             if (info.flags&state) != 0:
                 self.log.error( T_('Pull status: %(state_name)s') % {'state_name': state_name} )
 
-    def pullProgressHandlerBg( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        self.app.foregroundProcess( self.pullProgressHandler, (is_begin, is_end, stage_name, cur_count, max_count, message) )
-
     def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
         if type(cur_count) in (int,float):
             if type(max_count) in (int,float):
@@ -330,7 +329,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if message != '':
             status = '%s - %s' % (status, message)
            
-        self.setStatusText( status )
+        self.setStatusGeneral( status )
         if is_end:
             self.log.info( status )
 

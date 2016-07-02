@@ -18,6 +18,7 @@ class WbScmDebug(wb_debug.WbDebug):
         self._debug_git_project = False
         self._debug_hg_project = False
         self._debug_svn_project = False
+        self._debug_svn_update_tree = False
 
         self._debug_git_ui = False
         self._debug_hg_ui = False
@@ -50,6 +51,10 @@ class WbScmDebug(wb_debug.WbDebug):
     def _debugSvnProject( self, msg ):
         if self._debug_svn_project:
             self.log.debug( 'SVN-PROJECT %s' % (msg,) )
+
+    def _debugSvnUpdateTree( self, msg ):
+        if self._debug_svn_update_tree:
+            self.log.debug( 'SVN-UPDATE-TREE %s' % (msg,) )
 
     def _debugLogHistory( self, msg ):
         if self._debug_log_history:

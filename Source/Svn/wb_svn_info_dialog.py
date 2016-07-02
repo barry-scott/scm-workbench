@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_subversion_list_handler.py
+    wb_svn_info_dialog.py
 
 '''
 from PyQt5 import QtWidgets
