@@ -244,8 +244,10 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         yield self.switchToForeground
 
-        self.setStatusAction( T_('Ready') )
-        self.setStatusGeneral( T_('Workbench') )
+        self.progress.end()
+        self.setStatusAction()
+        self.setStatusGeneral()
+
         self.main_window.updateActionEnabledStates()
 
     def pushInfoHandler( self, info ):
@@ -263,9 +265,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             status = 'Push %s' % (stage_name,)
 
         if message != '':
-            status = '%s - %s' % (status, message)
+            self.log.info( message )
            
-        self.setStatusProgress( status )
+        self.progress.begin( status, 0 )
         if is_end:
             self.log.info( status )
 
@@ -286,8 +288,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         yield self.switchToForeground
 
-        self.setStatusAction( T_('Ready') )
-        self.setStatusGeneral( T_('Workbench') )
+        self.progress.end()
+        self.setStatusAction()
+        self.setStatusGeneral()
         self.main_window.updateActionEnabledStates()
 
     def pullInfoHandler( self, info ):
@@ -324,9 +327,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             status = 'Pull %s' % (stage_name,)
 
         if message != '':
-            status = '%s - %s' % (status, message)
+            self.log.info( message )
            
-        self.setStatusProgress( status )
+        self.progress.begin( status, 0 )
         if is_end:
             self.log.info( status )
 
