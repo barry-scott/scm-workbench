@@ -161,7 +161,6 @@ class StdoutLogHandler(logging.Handler):
 class WbLog:
     def __init__( self, app ):
         self.app = app
-        self.log = app.log
         self.__log_widget = WbLogTextWidget( self.app )
 
         self.__line = ''
@@ -192,7 +191,7 @@ class WbLog:
         self.__line = self.__line + msg
         while '\n' in self.__line:
             msg, self.__line = self.__line.split( '\n', 1 )
-            self.log.error( msg )
+            self.app.log.error( msg )
 
     def close( self ):
         if self.__line != '':

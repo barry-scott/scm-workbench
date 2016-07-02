@@ -92,8 +92,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.commit_dialog = None
 
         # window major widgets
-        self.__log = wb_logging.WbLog( self.app )
-
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
         self.filter_text.setMaxLength( 256 )
@@ -149,7 +147,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.h_split.addWidget( self.v_table_widget )
 
         self.v_split.addWidget( self.h_split )
-        self.v_split.addWidget( self.__log.logWidget() )
+        self.v_split.addWidget( self.app.logWidget() )
 
         # setup selection on the tree
         selection_model = self.tree_view.selectionModel()

@@ -156,11 +156,15 @@ class WbApp(QtWidgets.QApplication,
         # and logging
         self.setupLogging()
 
+        # these messages just go into the log file not the log widget
         self.log.info( 'startup_dir %s' % (self.startup_dir,) )
         self.log.info( 'locale_path %s' % (locale_path,) )
         # qqq: what should the arg to find be? wb wb-git, wb-hg?
         self.log.info( 'find %r' % (gettext.find( 'wb', str(locale_path) ),) )
         self.log.info( 'info %r' % (self.translation.info(),) )
+
+        # and capture logs into the log widget
+        self.__wb_log = wb_logging.WbLog( self )
 
         self.prefs_manager = self.createPreferencesManager()
         try:
@@ -177,6 +181,9 @@ class WbApp(QtWidgets.QApplication,
         self.main_window = self.createMainWindow()
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
+
+    def logWidget( self ):
+        return self.__wb_log.logWidget()
 
     # called to parse option supported by the derived class
     def optionParse( self, args ):
