@@ -21,6 +21,7 @@ import wb_svn_info_dialog
 import wb_svn_properties_dialog
 
 import pysvn
+import pathlib
 
 #
 #   Start with the main window components interface
@@ -178,8 +179,17 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if tree_node is None:
             return
 
-        self.setStatusAction( T_('Update %s...') % (tree_node.relativePath(),) )
-        self.progress.start( T_('Updated %(count)d'), 0 )
+        path = tree_node.relativePath()
+        if path == pathlib.Path( '.' ):
+            self.setStatusAction( T_('Update %(project)s') %
+                                        {'project': tree_node.project.projectName()} )
+
+        else:
+            self.setStatusAction( T_('Update %(project)s:%(filename)s') %
+                                        {'project': tree_node.project.projectName()
+                                        ,'filename': path} )
+
+        self.progress.start( T_('Updated %(count)d') )
 
         yield self.switchToBackground
         rev_list = self.__updateToRevision(
@@ -218,13 +228,15 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 if rev.number > 0:
                     count = self.progress.getEventCount()
                     if count == 0:
-                        self.log.info( T_('Updated %(filename)s to revision %(rev)d, no new updates') %
-                                                {'filename': filename
+                        self.log.info( T_('Updated %(project)s:%(filename)s to revision %(rev)d, no new updates') %
+                                                {'project': project.projectName()
+                                                ,'filename': filename
                                                 ,'rev': rev.number} )
                     else:
-                        self.log.info( S_('Updated %(filename)s to revision %(rev)d, %(count)d new update', 
-                                          'Updated %(filename)s to revision %(rev)d, %(count)d new updates', count) %
-                                                {'filename': filename
+                        self.log.info( S_('Updated %(project)s:%(filename)s to revision %(rev)d, %(count)d new update', 
+                                          'Updated %(project)s:%(filename)s to revision %(rev)d, %(count)d new updates', count) %
+                                                {'project': project.projectName()
+                                                ,'filename': filename
                                                 ,'rev': rev.number
                                                 ,'count': count} )
                 else:
