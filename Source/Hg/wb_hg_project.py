@@ -109,6 +109,9 @@ class HgProject:
 
         for state, filepath in self.repo.status( all=True, ignored=True ):
             state = state.decode( 'utf-8' )
+            if state == 'C':
+                state = ''
+
             filepath = self.pathForWb( filepath )
             if filepath not in self.all_file_state:
                 # filepath has been deleted
