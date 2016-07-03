@@ -93,7 +93,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
         self.filter_text.setMaxLength( 256 )
-        self.filter_text.setPlaceholderText( T_('Filter  by name') )
+        self.filter_text.setPlaceholderText( T_('Filter by name') )
 
         self.filter_text.textChanged.connect( self.table_view.table_sortfilter.setFilterText )
 
