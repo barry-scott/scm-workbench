@@ -31,6 +31,8 @@ class SvnProject:
 
     def __init__( self, app, prefs_project ):
         self.app = app
+        self.log = self.app.log
+
         self._debug = self.app._debugSvnProject
         self._debugUpdateTree = self.app._debugSvnUpdateTree
 
@@ -426,7 +428,7 @@ class SvnProject:
         and arg_dict['prop_state'] == pysvn.wc_notify_state.unknown ):
             return
 
-        if wb_svn_utils.wc_notify_type_lookup( action ) == 'U':
+        if wb_svn_utils.wcNotifyTypeLookup( action ) == 'U':
             # count the interesting update event
             self.app.runInForeground( self.progress.incEventCount, () )
 
@@ -438,14 +440,9 @@ class SvnProject:
             self.app.runInForeground( self.progress.incInConflictCount, () )
 
         # print anything that gets through the filter
-        try:
-            path = arg_dict['path'].decode( 'utf-8' )
-
-        except ValueError:
-            path = arg_dict['path']
-
-        msg = u'%s %s\n' % (action_letter, path)
-        self.log.info( msg.encode( 'utf-8' ) )
+        
+        path = arg_dict['path']
+        self.log.info( u'%s %s\n' % (action_letter, path) )
 
     def initNotificationOfFilesInConflictCount( self ):
         self.__notification_of_files_in_conflict = 0
