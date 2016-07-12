@@ -31,7 +31,6 @@ class SvnProject:
 
     def __init__( self, app, prefs_project ):
         self.app = app
-        self.log = self.app.log
 
         self._debug = self.app._debugSvnProject
         self._debugUpdateTree = self.app._debugSvnUpdateTree
@@ -410,12 +409,12 @@ class SvnProject:
         action = arg_dict['action']
         if( action == pysvn.wc_notify_action.commit_postfix_txdelta
         or action == pysvn.wc_notify_action.annotate_revision ):
-            self.app.runInForeground( self.progress.incEventCount, () )
+            self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
             return
 
         if action in [pysvn.wc_notify_action.failed_lock,
                         pysvn.wc_notify_action.failed_unlock]:
-            self.app.runInForeground( self.progress.incEventCount, () )
+            self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
             return
 
         # see if we want to handle this action
@@ -430,19 +429,20 @@ class SvnProject:
 
         if wb_svn_utils.wcNotifyTypeLookup( action ) == 'U':
             # count the interesting update event
-            self.app.runInForeground( self.progress.incEventCount, () )
+            self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
 
         # count the number of files in conflict
         action_letter = wb_svn_utils.wcNotifyTypeLookup( action )
         if( arg_dict['content_state'] == pysvn.wc_notify_state.conflicted
         or arg_dict['prop_state'] == pysvn.wc_notify_state.conflicted ):
             action_letter = 'C'
-            self.app.runInForeground( self.progress.incInConflictCount, () )
+            self.app.runInForeground( self.app.top_window.progress.incInConflictCount, () )
 
         # print anything that gets through the filter
         
         path = arg_dict['path']
-        self.log.info( u'%s %s\n' % (action_letter, path) )
+
+        self.app.log.info( u'%s %s\n' % (action_letter, path) )
 
     def initNotificationOfFilesInConflictCount( self ):
         self.__notification_of_files_in_conflict = 0
