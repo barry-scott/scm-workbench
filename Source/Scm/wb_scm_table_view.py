@@ -153,7 +153,8 @@ class WbScmTableView(QtWidgets.QTableView):
 
         all_filenames = [relative_folder / name for name in all_names]
 
-        if not are_you_sure_function( all_filenames ):
+        if( are_you_sure_function is not None
+        and not are_you_sure_function( all_filenames ) ):
             return False
 
         for filename in all_filenames:

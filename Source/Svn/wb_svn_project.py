@@ -28,6 +28,7 @@ class SvnProject:
     svn_rev_head = pysvn.Revision( pysvn.opt_revision_kind.head )
     svn_rev_base = pysvn.Revision( pysvn.opt_revision_kind.base )
     svn_rev_working = pysvn.Revision( pysvn.opt_revision_kind.working )
+    svn_rev_r0 = pysvn.Revision( pysvn.opt_revision_kind.number, 0 )
 
     def __init__( self, app, prefs_project ):
         self.app = app
@@ -298,45 +299,28 @@ class SvnProject:
 
         return all_revisions
 
-    def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
-        return []
-
-        all_commit_logs = []
-
-        kwds = {}
-        if limit is not None:
-            kwds['max_count'] = limit
-
-        if since is not None:
-            kwds['since'] = since
-
-        if since is not None:
-            kwds['until'] = until
-
-        for commit in self.client_fg.iter_commits( None, **kwds ):
-            all_commit_logs.append( SvnCommitLogNode( commit ) )
-
-        self.__addCommitChangeInformation( all_commit_logs )
-        return all_commit_logs
-
     def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
-        return []
+        if limit is None:
+            limit = 0
 
-        all_commit_logs = []
+        if until is not None:
+            rev_start = pysvn.Revision( pysvn_revision_kind.date, until )
+        else:
+            rev_start = self.svn_rev_head
 
-        kwds = {}
-        if limit is not None:
-            kwds['max_count'] = limit
         if since is not None:
-            kwds['since'] = since
-        if since is not None:
-            kwds['until'] = until
+            rev_end = pysvn.Revision( pysvn_revision_kind.date, since )
+        else:
+            rev_end = self.svn_rev_r0
 
-        for commit in self.client_fg.iter_commits( None, str(filename), **kwds ):
-            all_commit_logs.append( SvnCommitLogNode( commit ) )
+        all_logs = self.client_fg.log(
+                        self.pathForSvn( filename ),
+                        revision_start=rev_start,
+                        revision_end=rev_end,
+                        limit=limit,
+                        discover_changed_paths=True )
 
-        self.__addCommitChangeInformation( all_commit_logs )
-        return all_commit_logs
+        return all_logs
 
     def __addCommitChangeInformation( self, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit

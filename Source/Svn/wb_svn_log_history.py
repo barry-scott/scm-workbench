@@ -187,6 +187,7 @@ class WbSvnLogHistoryView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         # size columns
         char_width = 10
+        self.table_view.setColumnWidth( self.log_model.col_revision, char_width*6 )
         self.table_view.setColumnWidth( self.log_model.col_author, char_width*16 )
         self.table_view.setColumnWidth( self.log_model.col_date, char_width*16 )
         self.table_view.setColumnWidth( self.log_model.col_message, char_width*40 )
@@ -195,18 +196,12 @@ class WbSvnLogHistoryView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.commit_message.setReadOnly( True )
         self.commit_message.setCurrentFont( self.font )
 
-        self.commit_id = QtWidgets.QLineEdit()
-        self.commit_id.setReadOnly( True )
-        self.commit_id.setFont( self.font )
-
         self.commit_changes = QtWidgets.QTextEdit()
         self.commit_changes.setReadOnly( True )
         self.commit_changes.setCurrentFont( self.font )
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget( self.table_view )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Commit ID') ) )
-        self.layout.addWidget( self.commit_id )
         self.layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
         self.layout.addWidget( self.commit_message )
         self.layout.addWidget( QtWidgets.QLabel( T_('Changed Files') ) )
@@ -215,9 +210,6 @@ class WbSvnLogHistoryView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.setLayout( self.layout )
 
         self.resize( 800, 600 )
-
-    def showCommitLogForRepository( self, svn_project, options ):
-        self.log_model.loadCommitLogForRepository( svn_project, options.getLimit(), options.getSince(), options.getUntil() )
 
     def showCommitLogForFile( self, svn_project, filename, options ):
         self.log_model.loadCommitLogForFile( svn_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
@@ -230,19 +222,16 @@ class WbSvnLogHistoryView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         index = all_indices[0]
 
         node = self.log_model.commitNode( index )
-        self.commit_id.clear()
-        self.commit_id.setText( node.commitIdString() )
-
         self.commit_message.clear()
-        self.commit_message.insertPlainText( node.commitMessage() )
+        self.commit_message.insertPlainText( node.message )
 
         self.commit_changes.clear()
-        for type_, filename, old_filename in node.commitFileChanges():
-            if type_ in ('A', 'D', 'M'):
-                self.commit_changes.insertPlainText( '%s %s\n' % (type_, filename) )
+        for detail in node.changed_paths:
+            if detail.copyfrom_path is not None:
+                self.commit_changes.insertPlainText( '%s %s from %s@%d\n' % (detail.action, detail.path, detail.copyfrom_path, detail.copyfrom_revision.number) )
 
             else:
-                self.commit_changes.insertPlainText( '%s %s from %s\n' % (type_, filename, old_filename) )
+                self.commit_changes.insertPlainText( '%s %s\n' % (detail.action, detail.path) )
 
 class WbLogTableView(QtWidgets.QTableView):
     def __init__( self, log_view ):
@@ -262,11 +251,12 @@ class WbLogTableView(QtWidgets.QTableView):
 
 
 class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
-    col_author = 0
-    col_date = 1
-    col_message = 2
+    col_revision = 0
+    col_author = 1
+    col_date = 2
+    col_message = 3
 
-    column_titles = (U_('Author'), U_('Date'), U_('Message'))
+    column_titles = (U_('Revision'), U_('Author'), U_('Date'), U_('Message'))
 
     def __init__( self, app ):
         self.app = app
@@ -276,11 +266,6 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
         super().__init__()
 
         self.all_commit_nodes  = []
-
-    def loadCommitLogForRepository( self, svn_project, limit, since, until ):
-        self.beginResetModel()
-        self.all_commit_nodes = svn_project.cmdCommitLogForRepository( limit, since, until )
-        self.endResetModel()
 
     def loadCommitLogForFile( self, svn_project, filename, limit, since, until ):
         self.beginResetModel()
@@ -313,19 +298,23 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.UserRole:
             return self.all_commit_nodes[ index.row() ]
 
+
         if role == QtCore.Qt.DisplayRole:
             node = self.all_commit_nodes[ index.row() ]
 
             col = index.column()
 
-            if col == self.col_author:
-                return '%s <%s>' % (node.commitAuthor(), node.commitAuthorEmail())
+            if col == self.col_revision:
+                return '%d' % (node.revision.number,)
+
+            elif col == self.col_author:
+                return node.author
 
             elif col == self.col_date:
-                return node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
+                return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( node.date ) )
 
             elif col == self.col_message:
-                return node.commitMessage().split('\n')[0]
+                return node.message.split('\n')[0]
 
             assert False
 

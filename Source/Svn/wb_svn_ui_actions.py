@@ -19,6 +19,7 @@ import wb_ui_components
 import wb_svn_project
 import wb_svn_info_dialog
 import wb_svn_properties_dialog
+import wb_svn_log_history
 
 import pysvn
 import pathlib
@@ -172,7 +173,22 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.main_window.updateTableView()
 
     def treeActionSvnLogHistory( self ):
-        print( 'treeActionSvnLogHistory' )
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        options = wb_svn_log_history.WbSvnLogHistoryOptions( self.app, self.main_window )
+
+        if options.exec_():
+            svn_project = self.selectedSvnProject()
+
+            log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
+                    self.app,
+                    T_('Commit Log for %s:%s') % (svn_project.projectName(), tree_node.relativePath()),
+                    self.main_window.getQIcon( 'wb.png' ) )
+
+            log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), options )
+            log_history_view.show()
 
     def treeActionSvnUpdate( self, checked ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -397,7 +413,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.__tableActionSvnCmd( action )
 
     def tableActionSvnLogHistory( self ):
-        print( 'tableActionSvnLogHistory' )
+        self.table_view.tableActionViewRepo( None, self.__actionSvnLogHistory )
 
     def tableActionSvnAdd( self ):
         def action( project, filename ):
@@ -416,6 +432,18 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             project.cmdDelete( filename )
 
         self.__tableActionSvnCmd( action )
+
+    def __actionSvnLogHistory( self, svn_project, filename ):
+        options = wb_svn_log_history.WbSvnLogHistoryOptions( self.app, self.main_window )
+
+        if options.exec_():
+            commit_log_view = wb_svn_log_history.WbSvnLogHistoryView(
+                    self.app,
+                    T_('Commit Log for %s:%s') % (svn_project.projectName(), filename),
+                    self.main_window.getQIcon( 'wb.png' ) )
+
+            commit_log_view.showCommitLogForFile( svn_project, filename, options )
+            commit_log_view.show()
 
     def __tableActionSvnCmd( self, cmd ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -436,7 +464,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             self.top_window.errorMessage( 'Svn Error', '\n'.join( all_client_error_lines ) )
 
         self.main_window.updateTableView()
-
 
     # ------------------------------------------------------------
     def selectedSvnProjectTreeNode( self ):
