@@ -10,6 +10,8 @@
     wb_ui_components.py.py
 
 '''
+import difflib
+
 import wb_diff_unified_view
 import wb_diff_side_by_side_view
 
@@ -40,12 +42,11 @@ class WbMainWindowComponents:
 
         self.progress =         top_window.progress
 
-    def setMainWindow( self, main_window ):
+    def setMainWindow( self, main_window, table_view ):
         assert main_window is not None
         self.main_window = main_window
 
-        assert main_window.table_view is not None
-        self.table_view = main_window.table_view
+        self.table_view = table_view
 
         self.app = self.main_window.app
         self.log = self.app.log
@@ -111,7 +112,7 @@ class WbMainWindowComponents:
         if self.app.prefs.view.isDiffUnified():
             all_lines = list( difflib.unified_diff( old_lines, new_lines ) )
 
-            self.showdiffText( title_unified, all_lines )
+            self.showDiffText( title_unified, all_lines )
 
         elif self.app.prefs.view.isDiffSideBySide():
             window = wb_diff_side_by_side_view.DiffSideBySideView(

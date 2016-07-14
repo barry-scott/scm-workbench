@@ -14,8 +14,9 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import wb_git_ui_actions
+import wb_log_history_options_dialog
 
+import wb_git_ui_actions
 import wb_git_project
 import wb_git_commit_dialog
 import wb_git_log_history
@@ -114,6 +115,30 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Staged'), self.treeActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff Staged vs. Working'), self.treeActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
+
+    # ------------------------------------------------------------
+    def treeActionGitLogHistory( self ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if options.exec_():
+            git_project = self.selectedGitProject()
+
+            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+                    self.app,
+                    T_('Commit Log for %s') % (git_project.projectName(),),
+                    self.main_window.getQIcon( 'wb.png' ) )
+            commit_log_view.showCommitLogForRepository( git_project, options )
+            commit_log_view.show()
+
+    def _actionGitLogHistory( self, git_project, filename ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if options.exec_():
+            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+                    self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
+
+            commit_log_view.showCommitLogForFile( git_project, filename, options )
+            commit_log_view.show()
 
     def treeActionGitCommit( self ):
         if self.commit_dialog is not None:

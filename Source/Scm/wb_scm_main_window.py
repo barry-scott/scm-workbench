@@ -65,7 +65,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.all_ui_components = all_ui_components
         for scm_type in self.all_ui_components:
-            self.all_ui_components[ scm_type ].setMainWindow( self )
+            self.all_ui_components[ scm_type ].setMainWindow( self, self.table_view )
 
         # setup the chrome
         self.setupMenuBar( self.menuBar() )

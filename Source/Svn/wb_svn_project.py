@@ -304,12 +304,12 @@ class SvnProject:
             limit = 0
 
         if until is not None:
-            rev_start = pysvn.Revision( pysvn_revision_kind.date, until )
+            rev_start = pysvn.Revision( pysvn.opt_revision_kind.date, until )
         else:
             rev_start = self.svn_rev_head
 
         if since is not None:
-            rev_end = pysvn.Revision( pysvn_revision_kind.date, since )
+            rev_end = pysvn.Revision( pysvn.opt_revision_kind.date, since )
         else:
             rev_end = self.svn_rev_r0
 
@@ -450,8 +450,11 @@ class WbSvnFileState:
         return ('<WbSvnFileState: %s %s %s>' %
                 (self.__filepath, self.__state, self.__nodeid))
 
-    def filePath( self ):
+    def relativePath( self ):
         return self.__filepath
+
+    def absolutePath( self ):
+        return self.__project.projectPath() / self.__filepath
 
     def setIsDir( self ):
         self.__is_dir = True
@@ -525,6 +528,17 @@ class WbSvnFileState:
         all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
 
         return all_content_lines
+
+    def getTextLinesForRevision( self, revision ):
+        path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
+        all_content_lines = self.__project.client_fg.cat(
+                                    url_or_path=str(path),
+                                    revision=revision )
+
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+
+        return all_content_lines
+
 
 class SvnCommitLogNode:
     def __init__( self, commit ):

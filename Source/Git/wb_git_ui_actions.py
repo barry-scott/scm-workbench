@@ -17,7 +17,6 @@ from PyQt5 import QtCore
 import wb_ui_components
 
 import wb_git_project
-import wb_git_log_history
 import wb_git_status_view
 
 #
@@ -333,20 +332,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if is_end:
             self.log.info( status )
 
-    # ------------------------------------------------------------
-    def treeActionGitLogHistory( self ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self.main_window )
-
-        if options.exec_():
-            git_project = self.selectedGitProject()
-
-            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %s') % (git_project.projectName(),),
-                    self.main_window.getQIcon( 'wb.png' ) )
-            commit_log_view.showCommitLogForRepository( git_project, options )
-            commit_log_view.show()
-
     def treeActionGitStatus( self ):
         git_project = self.selectedGitProject()
 
@@ -390,7 +375,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsWorking )
 
     def tableActionGitLogHistory( self ):
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitLogHistory )
+        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self._actionGitLogHistory )
 
     def __actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )
@@ -448,16 +433,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 T_('HEAD %s') % (filename,),
                 T_('Staged %s') % (filename,)
                 )
-
-    def __actionGitLogHistory( self, git_project, filename ):
-        options = wb_git_log_history.WbGitLogHistoryOptions( self.app, self.main_window )
-
-        if options.exec_():
-            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                    self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
-
-            commit_log_view.showCommitLogForFile( git_project, filename, options )
-            commit_log_view.show()
 
     #------------------------------------------------------------
     def __areYouSureAlways( self, all_filenames ):

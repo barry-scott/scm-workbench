@@ -15,11 +15,12 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_svn_ui_actions
+import wb_log_history_options_dialog
 
 import wb_svn_project
 import wb_svn_commit_dialog
-import wb_svn_properties_dialog
 import wb_svn_info_dialog
+import wb_svn_log_history
 
 import pysvn
 #
@@ -120,6 +121,55 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         m.addSection( T_('Status') )
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+
+    def treeActionSvnLogHistory( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if options.exec_():
+            svn_project = self.selectedSvnProject()
+
+            log_history_view = wb_log_history_options_dialog.WbLogHistoryView(
+                    self.app,
+                    T_('Commit Log for %s:%s') % (svn_project.projectName(), tree_node.relativePath()),
+                    self.main_window.getQIcon( 'wb.png' ) )
+
+            log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), options )
+            log_history_view.show()
+
+    def enablerTreeTableSvnLogHistory( self ):
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
+
+    def enablerTreeSvnLogHistory( self ):
+        return self._enablerTreeSvnIsControlled()
+
+    def enablerTableSvnLogHistory( self ):
+        if not self.isScmTypeActive():
+            return False
+
+        return True
+
+    def tableActionSvnLogHistory( self ):
+        self.table_view.tableActionViewRepo( None, self.__actionSvnLogHistory )
+
+    def treeTableActionSvnLogHistory( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionSvnLogHistory, self.tableActionSvnLogHistory )
+
+    def __actionSvnLogHistory( self, svn_project, filename ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if options.exec_():
+            commit_log_view = wb_svn_log_history.WbSvnLogHistoryView(
+                    self.app,
+                    T_('Commit Log for %s:%s') % (svn_project.projectName(), filename),
+                    self.main_window.getQIcon( 'wb.png' ) )
+
+            commit_log_view.showCommitLogForFile( svn_project, filename, options )
+            commit_log_view.show()
+
 
     def treeActionSvnCheckin( self, checked ):
         if self.commit_dialog is not None:

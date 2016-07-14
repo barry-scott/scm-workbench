@@ -283,6 +283,9 @@ class GitProject:
         else:
             return self.repo.git.diff( str(abs_path), staged=False )
 
+    def cmdShow( self, what ):
+        return self.repo.git.show( what )
+
     def cmdCommit( self, message ):
         self.__stale_index = True
         return self.index.commit( message )
@@ -572,6 +575,14 @@ class WbGitFileState:
         blob = self.getStagedBlob()
         data = blob.data_stream.read()
         text = data.decode( 'utf-8' )
+        all_lines = text.split('\n')
+        if all_lines[-1] == '':
+            return all_lines[:-1]
+        else:
+            return all_lines
+
+    def getTextLinesForCommit( self, commit_id ):
+        text = self.__project.cmdShow( '%s:%s' % (commit_id, self.__filepath) )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
             return all_lines[:-1]

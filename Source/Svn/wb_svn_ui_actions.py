@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
+  (c) 2003-2016 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -19,7 +19,6 @@ import wb_ui_components
 import wb_svn_project
 import wb_svn_info_dialog
 import wb_svn_properties_dialog
-import wb_svn_log_history
 
 import pysvn
 import pathlib
@@ -54,14 +53,12 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def enablerTreeTableSvnProperties( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnProperties, self.enablerTableSvnProperties, default=False )
 
+
     def enablerTreeTableSvnDiffBaseVsWorking( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, default=False )
 
     def enablerTreeTableSvnDiffHeadVsWorking( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, default=False )
-
-    def enablerTreeTableSvnLogHistory( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
 
     # ------------------------------------------------------------
     def treeTableActionSvnDiffBaseVsWorking( self ):
@@ -69,9 +66,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     def treeTableActionSvnDiffHeadVsWorking( self ):
         self.main_window.callTreeOrTableFunction( self.treeActionSvnDiffHeadVsWorking, self.tableActionSvnDiffHeadVsWorking )
-
-    def treeTableActionSvnLogHistory( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionSvnLogHistory, self.tableActionSvnLogHistory )
 
     def treeTableActionSvnInfo( self ):
         self.main_window.callTreeOrTableFunction( self.treeActionSvnInfo, self.tableActionSvnInfo )
@@ -95,21 +89,18 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         return scm_project
 
     def enablerTreeSvnDiffBaseVsWorking( self ):
-        return self.__enablerTreeSvnIsControlled()
+        return self._enablerTreeSvnIsControlled()
 
     def enablerTreeSvnDiffHeadVsWorking( self ):
-        return self.__enablerTreeSvnIsControlled()
-
-    def enablerTreeSvnLogHistory( self ):
-        return self.__enablerTreeSvnIsControlled()
+        return self._enablerTreeSvnIsControlled()
 
     def enablerTreeSvnInfo( self ):
-        return self.__enablerTreeSvnIsControlled()
+        return self._enablerTreeSvnIsControlled()
 
     def enablerTreeSvnProperties( self ):
-        return self.__enablerTreeSvnIsControlled()
+        return self._enablerTreeSvnIsControlled()
 
-    def __enablerTreeSvnIsControlled( self ):
+    def _enablerTreeSvnIsControlled( self ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return False
@@ -171,24 +162,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                     project.cmdPropSet( name, value, filename )
 
         self.main_window.updateTableView()
-
-    def treeActionSvnLogHistory( self ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
-            return
-
-        options = wb_svn_log_history.WbSvnLogHistoryOptions( self.app, self.main_window )
-
-        if options.exec_():
-            svn_project = self.selectedSvnProject()
-
-            log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %s:%s') % (svn_project.projectName(), tree_node.relativePath()),
-                    self.main_window.getQIcon( 'wb.png' ) )
-
-            log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), options )
-            log_history_view.show()
 
     def treeActionSvnUpdate( self, checked ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -304,11 +277,8 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         return True
 
-    def enablerTableSvnLogHistory( self ):
-        if not self.isScmTypeActive():
-            return False
-
-        return True
+    def enablerTableSvnAnnotate( self ):
+        return self.__enablerSvnFilesControlled()
 
     def enablerTableSvnInfo( self ):
         return self.__enablerSvnFilesControlled()
@@ -370,9 +340,9 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             self.diffTwoFiles(
                     file_state.getTextLinesBase(),
                     file_state.getTextLinesWorking(),
-                    T_('Diff Base vs. Working %s') % (file_state.filePath(),),
-                    T_('Base %s') % (file_state.filePath(),),
-                    T_('Working %s') % (file_state.filePath(),)
+                    T_('Diff Base vs. Working %s') % (file_state.relativePath(),),
+                    T_('Base %s') % (file_state.relativePath(),),
+                    T_('Working %s') % (file_state.relativePath(),)
                     )
 
     def tableActionSvnDiffHeadVsWorking( self ):
@@ -380,10 +350,19 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             self.diffTwoFiles(
                     file_state.getTextLinesBase(),
                     file_state.getTextLinesWorking(),
-                    T_('Diff HEAD vs. Working %s') % (file_state.filePath(),),
-                    T_('HEAD %s') % (file_state.filePath(),),
-                    T_('Working %s') % (file_state.filePath(),)
+                    T_('Diff HEAD vs. Working %s') % (file_state.relativePath(),),
+                    T_('HEAD %s') % (file_state.relativePath(),),
+                    T_('Working %s') % (file_state.relativePath(),)
                     )
+
+    def tableActionSvnAnnotate( self ):
+        def action( project, filename ):
+            all_lines = project.cmdAnnotate( filename )
+
+            dialog = wb_svn_info_dialog.Annotate( self.app, self.main_window, filename, project.pathForSvn( filename ), info )
+            dialog.exec_()
+
+        self.__tableActionSvnCmd( action )
 
     def tableActionSvnInfo( self ):
         def action( project, filename ):
@@ -412,9 +391,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         self.__tableActionSvnCmd( action )
 
-    def tableActionSvnLogHistory( self ):
-        self.table_view.tableActionViewRepo( None, self.__actionSvnLogHistory )
-
     def tableActionSvnAdd( self ):
         def action( project, filename ):
             project.cmdAdd( filename )
@@ -433,18 +409,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         self.__tableActionSvnCmd( action )
 
-    def __actionSvnLogHistory( self, svn_project, filename ):
-        options = wb_svn_log_history.WbSvnLogHistoryOptions( self.app, self.main_window )
-
-        if options.exec_():
-            commit_log_view = wb_svn_log_history.WbSvnLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %s:%s') % (svn_project.projectName(), filename),
-                    self.main_window.getQIcon( 'wb.png' ) )
-
-            commit_log_view.showCommitLogForFile( svn_project, filename, options )
-            commit_log_view.show()
-
     def __tableActionSvnCmd( self, cmd ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
@@ -454,7 +418,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         try:
             for file_state in self.tableSelectedAllFileStates():
-                cmd( project, file_state.filePath() )
+                cmd( project, file_state.relativePath() )
 
         except wb_svn_project.ClientError as e:
             all_client_error_lines = project.clientErrorToStrList( e )

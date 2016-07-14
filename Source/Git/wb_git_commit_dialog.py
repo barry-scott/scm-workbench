@@ -90,7 +90,7 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.table_view.setShowControlledAndNotChangedFiles( False )
 
         self.ui_component.setTopWindow( self.app.top_window )
-        self.ui_component.setMainWindow( self )
+        self.ui_component.setMainWindow( self, self.table_view )
 
         # setup the chrome
         self.setupMenuBar( self.menuBar() )
