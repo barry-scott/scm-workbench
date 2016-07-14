@@ -234,7 +234,7 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
     def enableOkButton( self ):
         text = self.message.toPlainText()
-        self.ok_button.setEnabled( text.strip() != '' )
+        self.ok_button.setEnabled( text.strip() != '' and self.git_project.numStagedFiles() != 0 )
 
     def getMessage( self ):
         return self.message.toPlainText().strip()
@@ -252,3 +252,4 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
             return
 
         self.updateEnableStates()
+        self.enableOkButton()

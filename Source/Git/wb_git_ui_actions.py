@@ -138,7 +138,11 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if self.commit_dialog is not None:
             return False
 
-        if git_project.numStagedFiles() == 0:
+        # allow the commit dialog to appear
+        # if there are staged files or modified files
+        # which can be staged using the commit dialog
+        if( git_project.numStagedFiles() == 0
+        and git_project.numModifiedFiles() == 0 ):
             return False
 
         return True

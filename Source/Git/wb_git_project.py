@@ -35,6 +35,7 @@ class GitProject:
         self.__dirty_index = False
         self.__stale_index = False
         self.__num_staged_files = 0
+        self.__num_modified_files = 0
 
     def scmType( self ):
         return 'git'
@@ -60,6 +61,9 @@ class GitProject:
 
     def numStagedFiles( self ):
         return self.__num_staged_files
+
+    def numModifiedFiles( self ):
+        return self.__num_modified_files
 
     def saveChanges( self ):
         self._debug( 'saveChanges() __dirty_index %r __stale_index %r' % (self.__dirty_index, self.__stale_index) )
@@ -139,7 +143,9 @@ class GitProject:
                 self.all_file_state[ filepath ] = WbGitFileState( self, filepath )
             self.all_file_state[ filepath ]._addStaged( diff )
 
+        self.__num_modified_files = 0
         for diff in index_vs_working:
+            self.__num_modified_files += 1
             filepath = pathlib.Path( diff.a_path )
             if filepath not in self.all_file_state:
                 self.all_file_state[ filepath ] = WbGitFileState( self, filepath )
