@@ -593,7 +593,7 @@ class WbGitFileState:
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
-        path = self.projectPath() / self.__unstaged_diff.a_path
+        path = self.__project.projectPath() / self.__unstaged_diff.a_path
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
