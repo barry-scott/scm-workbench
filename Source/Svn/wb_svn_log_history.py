@@ -231,7 +231,8 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
             heading_old = 'r%d' % (rev_old.number,)
 
         if filestate.isDir():
-            print( 'qqq folder diff' )
+            text = self.svn_project.cmdDiffRevisionVsRevision( self.filename, rev_old, rev_new )
+            self.ui_component.showDiffText( title, text.split('\n') )
 
         else:
             if rev_new == self.svn_project.svn_rev_working:

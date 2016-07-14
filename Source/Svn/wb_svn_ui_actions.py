@@ -120,7 +120,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             return
 
         diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
-        self.main_window.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+        self.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionSvnDiffHeadVsWorking( self ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -128,7 +128,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             return
 
         diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
-        self.main_window.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
+        self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
 
     def treeActionSvnInfo( self ):
         tree_node = self.selectedSvnProjectTreeNode()

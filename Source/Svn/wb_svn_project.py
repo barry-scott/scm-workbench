@@ -248,6 +248,22 @@ class SvnProject:
 
         return diff_text
 
+    def cmdDiffRevisionVsRevision( self, filename, old_rev, new_rev ):
+        self._debug( 'cmdDiffRevisionVsRevision( %r )' % (filename,) )
+        abs_filename = self.pathForSvn( filename )
+
+        diff_text = self.client_fg.diff(
+            tempfile.gettempdir(),
+            abs_filename, old_rev,
+            abs_filename, new_rev,
+            recurse=True,
+            relative_to_dir=str( self.projectPath() ),
+            use_git_diff_format=True
+            )
+
+        return diff_text
+
+
     def cmdPropList( self, filename ):
         prop_list = self.client_fg.proplist( self.pathForSvn( filename ),
                             revision=self.svn_rev_working )
@@ -513,7 +529,7 @@ class WbSvnFileState:
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         all_content_lines = self.__project.client_fg.cat(
                                     url_or_path=str(path),
-                                    revision=self.svn_rev_base )
+                                    revision=self.__project.svn_rev_base )
 
         all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
 
@@ -523,7 +539,7 @@ class WbSvnFileState:
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         all_content_lines = self.__project.client_fg.cat(
                                     url_or_path=str(path),
-                                    revision=self.svn_rev_head )
+                                    revision=self.__project.svn_rev_head )
 
         all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
 

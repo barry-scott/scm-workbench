@@ -132,7 +132,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         if options.exec_():
             svn_project = self.selectedSvnProject()
 
-            log_history_view = wb_log_history_options_dialog.WbLogHistoryView(
+            log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
                     self.app,
                     T_('Commit Log for %s:%s') % (svn_project.projectName(), tree_node.relativePath()),
                     self.main_window.getQIcon( 'wb.png' ) )
