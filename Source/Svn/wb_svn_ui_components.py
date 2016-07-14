@@ -196,7 +196,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         self.commit_dialog.hide()
 
         self.setStatusAction( T_('Check in %s') % (svn_project.projectName(),) )
-        self.setProgress( T_('Sent %(count)d'), 0 )
+        self.progress.start( T_('Sent %(count)d'), 0 )
 
         yield self.switchToBackground
 
@@ -209,7 +209,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
                 {'headline': headline, 'commit_id': commit_id} )
 
         self.setStatusAction( T_('Ready') )
-        self.clearProgress()
+        self.progress.end()
 
         self.__commitClosed()
 

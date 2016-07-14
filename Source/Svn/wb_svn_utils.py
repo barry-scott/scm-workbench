@@ -122,6 +122,7 @@ wc_notify_action_map = {
     pysvn.wc_notify_action.commit_modified: 'M',
     pysvn.wc_notify_action.commit_postfix_txdelta: None,
     pysvn.wc_notify_action.commit_replaced: 'R',
+    pysvn.wc_notify_action.commit_finalizing: None,
     pysvn.wc_notify_action.copy: 'c',
     pysvn.wc_notify_action.delete: 'D',
     pysvn.wc_notify_action.exclude: 'exclude',
@@ -156,8 +157,6 @@ wc_notify_action_map = {
     pysvn.wc_notify_action.revprop_set: 'revprop_set',
     pysvn.wc_notify_action.skip: '?',
     pysvn.wc_notify_action.skip_conflicted: 'skip_conflicted',
-    pysvn.wc_notify_action.status_completed: None,
-    pysvn.wc_notify_action.status_external: 'E',
     pysvn.wc_notify_action.tree_conflict: 'tree_conflict',
     pysvn.wc_notify_action.unlocked: 'Unlocked',
     pysvn.wc_notify_action.update_add: 'A',
@@ -181,7 +180,7 @@ def wcNotifyTypeLookup( action ):
     if action in wc_notify_type_map:
         return wc_notify_type_map[ action ]
 
-    return '?',
+    return repr(action)
 
 wc_notify_type_map = {
     pysvn.wc_notify_action.add: 'A',
@@ -191,6 +190,7 @@ wc_notify_type_map = {
     pysvn.wc_notify_action.commit_copied_replaced: None,
     pysvn.wc_notify_action.commit_deleted: 'C',
     pysvn.wc_notify_action.commit_modified: 'C',
+    pysvn.wc_notify_action.commit_finalizing: None,
     pysvn.wc_notify_action.commit_postfix_txdelta: None,
     pysvn.wc_notify_action.commit_replaced: 'C',
     pysvn.wc_notify_action.copy: 'A',
@@ -228,7 +228,7 @@ wc_notify_type_map = {
     pysvn.wc_notify_action.skip: '?',
     pysvn.wc_notify_action.skip_conflicted: '?',
     pysvn.wc_notify_action.status_completed: None,
-    pysvn.wc_notify_action.status_external: 'A',
+    pysvn.wc_notify_action.status_external: None,
     pysvn.wc_notify_action.tree_conflict: None,
     pysvn.wc_notify_action.unlocked: None,
     pysvn.wc_notify_action.update_add: 'U',

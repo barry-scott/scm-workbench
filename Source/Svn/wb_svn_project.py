@@ -304,7 +304,7 @@ class SvnProject:
 
         self.__stale_status = True
 
-        return 'R%d' % (all_revisions[0].revision.number,)
+        return 'r%d' % (all_revisions[0].revision.number,)
 
     def cmdUpdateBg( self, filename, revision, depth ):
         self._debug( 'cmdUpdateBg( %r, %r, %r )' % (filename, revision, depth) )
@@ -400,26 +400,33 @@ class SvnProject:
         # on the background thread.
         #
 
-        #print( 'QQQ Notify: %r' % (arg_dict,) )
-
         # nothing to print if no path
         if arg_dict['path'] == '':
             return
 
         action = arg_dict['action']
-        if( action == pysvn.wc_notify_action.commit_postfix_txdelta
-        or action == pysvn.wc_notify_action.annotate_revision ):
+
+        if action in (pysvn.wc_notify_action.commit_postfix_txdelta
+                      ,pysvn.wc_notify_action.commit_modified
+                      ,pysvn.wc_notify_action.commit_added
+                      ,pysvn.wc_notify_action.commit_copied
+                      ,pysvn.wc_notify_action.commit_copied_replaced
+                      ,pysvn.wc_notify_action.commit_deleted
+                      ,pysvn.wc_notify_action.commit_replaced
+                      ,pysvn.wc_notify_action.annotate_revision):
             self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
             return
 
-        if action in [pysvn.wc_notify_action.failed_lock,
-                        pysvn.wc_notify_action.failed_unlock]:
+        if action in [pysvn.wc_notify_action.failed_lock
+                     ,pysvn.wc_notify_action.failed_unlock]:
             self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
             return
 
         # see if we want to handle this action
-        if wb_svn_utils.wcNotifyTypeLookup( arg_dict['action'] ) is None:
+        if wb_svn_utils.wcNotifyTypeLookup( action ) is None:
             return
+
+        print( 'qqq1 %r' % (action,) )
 
         # reject updates for paths that have no change
         if( action == pysvn.wc_notify_action.update_update
