@@ -269,7 +269,7 @@ class GitProject:
         self.__stale_index = True
 
     def cmdDiffFolder( self, folder, head, staged ):
-        abs_path = self.prefs_project.path / folder
+        abs_path = str( self.prefs_project.path / folder )
 
         if head and staged:
             return self.repo.git.diff( 'HEAD', str(abs_path), staged=staged )
@@ -282,6 +282,18 @@ class GitProject:
 
         else:
             return self.repo.git.diff( str(abs_path), staged=False )
+
+    def cmdDiffWorkingVsCommit( self, filename, commit ):
+        abs_path = str( self.projectPath() / filename )
+        return self.repo.git.diff( commit, abs_path, staged=False )
+
+    def cmdDiffStagedVSCommit( self, filename, commit ):
+        abs_path = str( self.projectPath() / filename )
+        return self.repo.git.diff( commit, abs_path, staged=True )
+
+    def cmdDiffCommitVsCommit( self, filename, old_commit, new_commit ):
+        abs_path = str( self.projectPath() / filename )
+        return self.repo.git.diff( old_commit, new_commit, '--', abs_path )
 
     def cmdShow( self, what ):
         return self.repo.git.show( what )
@@ -575,7 +587,7 @@ class WbGitFileState:
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
-        path = self.__project.projectPath() / self.__unstaged_diff.a_path
+        path = self.projectPath() / self.__unstaged_diff.a_path
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':

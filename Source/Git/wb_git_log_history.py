@@ -269,7 +269,13 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
             heading_old = commit_old
 
         if self.filename is None:
-            print( 'qqq repo diff' )
+            if commit_new is None:
+                text = self.git_project.cmdDiffWorkingVsCommit( '.', commit_old )
+                self.ui_component.showDiffText( title, text.split('\n') )
+
+            else:
+                text = self.git_project.cmdDiffCommitVsCommit( '.', commit_old, commit_new )
+                self.ui_component.showDiffText( title, text.split('\n') )
 
         else:
             filestate = self.git_project.getFileState( self.filename )

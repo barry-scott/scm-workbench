@@ -138,7 +138,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(
                     self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
 
-            func = swlf.app.threadSwitcher( commit_log_view.showCommitLogForFile )
+            func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile )
             func( git_project, filename, options )
 
     def treeActionGitCommit( self ):
