@@ -127,8 +127,9 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
                     self.app,
                     T_('Commit Log for %s') % (git_project.projectName(),),
                     self.main_window.getQIcon( 'wb.png' ) )
-            commit_log_view.showCommitLogForRepository( git_project, options )
-            commit_log_view.show()
+
+            func = self.app.threadSwitcher( commit_log_view.showCommitLogForRepository )
+            func( git_project, options )
 
     def _actionGitLogHistory( self, git_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
@@ -137,8 +138,8 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(
                     self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
 
-            commit_log_view.showCommitLogForFile( git_project, filename, options )
-            commit_log_view.show()
+            func = swlf.app.threadSwitcher( commit_log_view.showCommitLogForFile )
+            func( git_project, filename, options )
 
     def treeActionGitCommit( self ):
         if self.commit_dialog is not None:

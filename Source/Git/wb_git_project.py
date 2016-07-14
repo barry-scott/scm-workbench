@@ -290,7 +290,7 @@ class GitProject:
         self.__stale_index = True
         return self.index.commit( message )
 
-    def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
+    def cmdCommitLogForRepository( self, progress_callback, limit=None, since=None, until=None ):
         all_commit_logs = []
 
         kwds = {}
@@ -304,10 +304,15 @@ class GitProject:
         for commit in self.repo.iter_commits( None, **kwds ):
             all_commit_logs.append( GitCommitLogNode( commit ) )
 
-        self.__addCommitChangeInformation( all_commit_logs )
+        total = len(all_commit_logs)
+        progress_callback( 0, total )
+
+        self.__addCommitChangeInformation( progress_callback, all_commit_logs )
+        progress_callback( total, total )
+
         return all_commit_logs
 
-    def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
+    def cmdCommitLogForFile( self, progress_callback, filename, limit=None, since=None, until=None ):
         all_commit_logs = []
 
         kwds = {}
@@ -318,15 +323,23 @@ class GitProject:
         if since is not None:
             kwds['until'] = until
 
+        progress_callback( 0, 0 )
         for commit in self.repo.iter_commits( None, str(filename), **kwds ):
             all_commit_logs.append( GitCommitLogNode( commit ) )
 
-        self.__addCommitChangeInformation( all_commit_logs )
+        total = len(all_commit_logs)
+        progress_callback( 0, total )
+
+        self.__addCommitChangeInformation( progress_callback, all_commit_logs )
+        progress_callback( total, total )
+
         return all_commit_logs
 
-    def __addCommitChangeInformation( self, all_commit_logs ):
+    def __addCommitChangeInformation( self, progress_callback, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
-        for offset in range( len(all_commit_logs) ):
+        total = len(all_commit_logs)
+        for offset in range( total ):
+            progress_callback( offset, total )
             new_tree = all_commit_logs[ offset ].commitTree()
             old_tree = all_commit_logs[ offset ].commitPreviousTree()
 

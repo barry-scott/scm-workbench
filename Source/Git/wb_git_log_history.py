@@ -63,6 +63,16 @@ class GitLogHistoryWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def tableActionGitAnnotateLogHistory( self ):
         self.main_window.annotateLogHistory()
 
+    def __logHistoryProgress( self, count, total ):
+        if total > 0:
+            if count == 0:
+                self.progress.start( '%(count)s of %(total)d commits loaded. %(percent)d%%', total )
+
+            else:
+                self.progress.incEventCount()
+
+    def deferedLogHistoryProgress( self ):
+        return self.app.deferRunInForeground( self.__logHistoryProgress )
 
 class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, title, icon ):
@@ -187,15 +197,29 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.filename = None
         self.git_project = git_project
 
-        self.log_model.loadCommitLogForRepository( git_project, options.getLimit(), options.getSince(), options.getUntil() )
+        yield self.app.switchToBackground
+
+        self.log_model.loadCommitLogForRepository( self.ui_component.deferedLogHistoryProgress(), git_project, options.getLimit(), options.getSince(), options.getUntil() )
+
+        yield self.app.switchToForeground
+
+        self.ui_component.progress.end()
         self.updateEnableStates()
+        self.show()
 
     def showCommitLogForFile( self, git_project, filename, options ):
         self.filename = filename
         self.git_project = git_project
 
-        self.log_model.loadCommitLogForFile( git_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
+        yield self.app.switchToBackground
+
+        self.log_model.loadCommitLogForFile( self.ui_component.deferedLogHistoryProgress(), git_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
+
+        yield self.app.switchToForeground
+
+        self.ui_component.progress.end()
         self.updateEnableStates()
+        self.show()
 
     def selectionChangedCommit( self ):
         self.current_commit_selections = [index.row() for index in self.log_table.selectedIndexes() if index.column() == 0]
@@ -298,14 +322,14 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
         self.all_commit_nodes  = []
 
-    def loadCommitLogForRepository( self, git_project, limit, since, until ):
+    def loadCommitLogForRepository( self, progress_callback, git_project, limit, since, until ):
         self.beginResetModel()
-        self.all_commit_nodes = git_project.cmdCommitLogForRepository( limit, since, until )
+        self.all_commit_nodes = git_project.cmdCommitLogForRepository( progress_callback, limit, since, until )
         self.endResetModel()
 
-    def loadCommitLogForFile( self, git_project, filename, limit, since, until ):
+    def loadCommitLogForFile( self, progress_callback, git_project, filename, limit, since, until ):
         self.beginResetModel()
-        self.all_commit_nodes = git_project.cmdCommitLogForFile( filename, limit, since, until )
+        self.all_commit_nodes = git_project.cmdCommitLogForFile( progress_callback, filename, limit, since, until )
         self.endResetModel()
 
     def commitForRow( self, row ):

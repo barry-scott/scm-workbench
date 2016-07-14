@@ -18,7 +18,7 @@ class WbScmProgress:
     def start( self, fmt, total=0 ):
         self.progress_format = fmt
 
-        self.__total = 0
+        self.__total = total
         self.__event_count = 0
         self.__in_conflict = 0
 
@@ -34,7 +34,7 @@ class WbScmProgress:
             'total':    self.__total,
             }
         if self.__total > 0:
-            self.progress_values['percent'] = self.__event_count*100/self.__total
+            progress_values['percent'] = self.__event_count*100/self.__total
 
         self.status_widget.setText( self.progress_format % progress_values )
 
