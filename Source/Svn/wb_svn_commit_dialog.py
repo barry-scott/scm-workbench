@@ -33,7 +33,6 @@ class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         # ----------------------------------------
         t = addToolBar( T_('svn info') )
         addTool( t, T_('Diff'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
-        addTool( t, T_('Log History'), self.tableActionSvnLogHistory, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
         addTool( t, T_('Info'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
         addTool( t, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
 
@@ -54,9 +53,6 @@ class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         m.addSection( T_('Info' ) )
         addMenu( m, T_('Information'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
         addMenu( m, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
-
-        m.addSection( T_('Status') )
-        addMenu( m, T_('Log History'), self.tableActionSvnLogHistory, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
 class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()
