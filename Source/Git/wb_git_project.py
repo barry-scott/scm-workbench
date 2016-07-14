@@ -334,6 +334,7 @@ class GitProject:
             self.__treeToDict( new_tree, all_new )
             new_set = set(all_new)
 
+
             if old_tree is None:
                 all_commit_logs[ offset ]._addChanges( new_set, set(), [], set() )
 
@@ -358,9 +359,17 @@ class GitProject:
                         id_ = all_new[ name ]
 
                         if id_ in all_old_id_to_name:
-                            all_added.remove( name )
-                            all_deleted.remove( all_old_id_to_name[ id_ ] )
-                            all_renamed.append( (name, all_old_id_to_name[ id_ ]) )
+                            old_name = all_old_id_to_name[ id_ ]
+
+                            # converted svn repos can have trees that cannot
+                            # be used to figure out the rename
+                            # for example when the checkin deletes a folder
+                            # which cannot be expressed in git trees
+                            if( old_name in all_added
+                            and old_name in all_deleted ):
+                                all_added.remove( name )
+                                all_deleted.remove( old_name )
+                                all_renamed.append( (name, old_name) )
 
                 all_modified = set()
 
