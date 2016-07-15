@@ -638,6 +638,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # table actions
     #
     #------------------------------------------------------------
+    def tableContextMenu( self, global_pos ):
+        self._debug( 'tableContextMenu( %r )' % (global_pos,) )
+
+        if self.__ui_active_scm_type is not None:
+            self.all_ui_components[ self.__ui_active_scm_type ].getTableContextMenu().exec_( global_pos )
+
     def callTreeOrTableFunction( self, fn_tree, fn_table, default=None ):
         if self.tree_view.hasFocus():
             return fn_tree()

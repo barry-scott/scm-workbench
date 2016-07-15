@@ -71,6 +71,12 @@ class WbScmTableView(QtWidgets.QTableView):
         self.setColumnWidth( self.table_model.col_date, char_width*16 )
         self.setColumnWidth( self.table_model.col_type, char_width*6 )
 
+    def tableContextMenu( self, pos ):
+        self._debug( 'tableContextMenu( %r )' % (pos,) )
+        global_pos = self.viewport().mapToGlobal( pos )
+
+        self.main_window.tableContextMenu( global_pos )
+
     def setShowControlledAndChangedFiles( self, state ):
         self.table_sortfilter.show_controlled_and_changed = state
         self.table_sortfilter.invalidate()
@@ -184,12 +190,6 @@ class WbScmTableView(QtWidgets.QTableView):
 
         elif key in self.table_keys_open:
             self.tableActionOpen()
-
-    def tableContextMenu( self, pos ):
-        self._debug( 'tableContextMenu( %r )' % (pos,) )
-        global_pos = self.viewport().mapToGlobal( pos )
-
-        self.main_window.all_ui_components[ 'git' ].getTableContextMenu().exec_( global_pos )
 
     def tableDoubleClicked( self, index ):
         self.tableActionEdit()
