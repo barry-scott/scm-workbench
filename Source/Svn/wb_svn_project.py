@@ -39,15 +39,15 @@ class SvnProject:
         self.__notification_of_files_in_conflict = 0
 
         self.prefs_project = prefs_project
-        self.client_fg = pysvn.Client()
-        self.client_fg.exception_style = 1
-        self.client_fg.commit_info_style = 2
-        self.client_fg.callback_notify = self.svnCallbackNotify
+        self.__client_fg = pysvn.Client()
+        self.__client_fg.exception_style = 1
+        self.__client_fg.commit_info_style = 2
+        self.__client_fg.callback_notify = self.svnCallbackNotify
 
-        self.client_bg = pysvn.Client()
-        self.client_bg.exception_style = 1
-        self.client_bg.commit_info_style = 2
-        self.client_bg.callback_notify = self.svnCallbackNotify
+        self.__client_bg = pysvn.Client()
+        self.__client_bg.exception_style = 1
+        self.__client_bg.commit_info_style = 2
+        self.__client_bg.callback_notify = self.svnCallbackNotify
 
         self.tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
@@ -56,6 +56,12 @@ class SvnProject:
         self.__stale_status = False
 
         self.__num_uncommitted_files = 0
+
+    def client( self ):
+        if self.app.isForegroundThread():
+            return self.__client_fg
+        else:
+            return self.__client_bg
 
     def scmType( self ):
         return 'svn'
@@ -127,7 +133,7 @@ class SvnProject:
                 else:
                     self.all_file_state[ repo_relative ] = WbSvnFileState( self, repo_relative )
 
-        for state in self.client_fg.status2( str(self.projectPath()) ):
+        for state in self.client().status2( str(self.projectPath()) ):
             filepath = self.pathForWb( state.path )
 
             if filepath not in self.all_file_state:
@@ -213,18 +219,18 @@ class SvnProject:
     def cmdAdd( self, filename ):
         self._debug( 'cmdAdd( %r )' % (filename,) )
 
-        self.client_fg.add( self.pathForSvn( filename ) )
+        self.client().add( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdRevert( self, filename ):
         self._debug( 'cmdRevert( %r )' % (filename,) )
 
-        self.client_fg.revert( self.pathForSvn( filename ) )
+        self.client().revert( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdDelete( self, filename ):
         self._debug( 'cmdDelete( %r )' % (filename,) )
-        self.client_fg.delete( self.pathForSvn( filename ) )
+        self.client().delete( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdDiffFolder( self, folder, head=False ):
@@ -237,7 +243,7 @@ class SvnProject:
         else:
             old_rev = self.svn_rev_base
 
-        diff_text = self.client_fg.diff(
+        diff_text = self.client().diff(
             tempfile.gettempdir(),
             abs_folder, old_rev,
             abs_folder, self.svn_rev_working,
@@ -252,7 +258,7 @@ class SvnProject:
         self._debug( 'cmdDiffRevisionVsRevision( %r )' % (filename,) )
         abs_filename = self.pathForSvn( filename )
 
-        diff_text = self.client_fg.diff(
+        diff_text = self.client().diff(
             tempfile.gettempdir(),
             abs_filename, old_rev,
             abs_filename, new_rev,
@@ -265,7 +271,7 @@ class SvnProject:
 
 
     def cmdPropList( self, filename ):
-        prop_list = self.client_fg.proplist( self.pathForSvn( filename ),
+        prop_list = self.client().proplist( self.pathForSvn( filename ),
                             revision=self.svn_rev_working )
 
         if len(prop_list) == 0:
@@ -277,27 +283,27 @@ class SvnProject:
         return prop_dict
 
     def cmdPropDel( self, prop_name, filename ):
-        self.client_fg.propdel( prop_name, self.pathForSvn( filename ) )
+        self.client().propdel( prop_name, self.pathForSvn( filename ) )
 
     def cmdPropSet( self, prop_name, prop_value, filename ):
-        self.client_fg.propset( prop_name, prop_value, self.pathForSvn( filename ) )
+        self.client().propset( prop_name, prop_value, self.pathForSvn( filename ) )
 
     def cmdInfo( self, filename ):
-        info = self.client_fg.info2( self.pathForSvn( filename ), recurse=False )
+        info = self.client().info2( self.pathForSvn( filename ), recurse=False )
         # info is list of (path, entry)
         return info[0][1]
 
-    def cmdCommitBg( self, message, all_filenames=None ):
+    def cmdCommit( self, message, all_filenames=None ):
         if all_filenames is None:
             # checkin all changes in the working copy
-            all_revisions = self.client_fg.checkin(
+            all_revisions = self.client().checkin(
                 self.pathForSvn( self.projectPath() ),
                 message,
                 recurse=True )
 
         else:
             # checkin selected files only
-            all_revisions = self.client_bg.checkin(
+            all_revisions = self.client().checkin(
                 [self.pathForSvn( path ) for path in all_filenames],
                 message,
                 recurse=False )
@@ -306,9 +312,9 @@ class SvnProject:
 
         return 'r%d' % (all_revisions[0].revision.number,)
 
-    def cmdUpdateBg( self, filename, revision, depth ):
-        self._debug( 'cmdUpdateBg( %r, %r, %r )' % (filename, revision, depth) )
-        all_revisions = self.client_bg.update(
+    def cmdUpdate( self, filename, revision, depth ):
+        self._debug( 'cmdUpdate( %r, %r, %r )' % (filename, revision, depth) )
+        all_revisions = self.client().update(
                 self.pathForSvn( filename ),
                 revision=revision,
                 depth=depth )
@@ -329,7 +335,7 @@ class SvnProject:
         else:
             rev_end = self.svn_rev_r0
 
-        all_logs = self.client_fg.log(
+        all_logs = self.client().log(
                         self.pathForSvn( filename ),
                         revision_start=rev_start,
                         revision_end=rev_end,

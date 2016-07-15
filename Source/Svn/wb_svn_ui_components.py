@@ -173,7 +173,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
     def treeActionSvnCheckin( self, checked ):
         if self.commit_dialog is not None:
-            self.log.error( 'Commit dialog is already open' )
+            self.log.error( T_('Commit dialog is already open') )
             return
 
         svn_project = self.selectedSvnProject()
@@ -200,7 +200,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         yield self.switchToBackground
 
-        commit_id = svn_project.cmdCommitBg( message )
+        commit_id = svn_project.cmdCommit( message )
 
         yield self.switchToForeground
 

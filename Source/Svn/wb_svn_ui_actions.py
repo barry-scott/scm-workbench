@@ -196,7 +196,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         try:
             project.initNotificationOfFilesInConflictCount()
 
-            rev_list = project.cmdUpdateBg( filename, depth=svndepth, revision=rev )
+            rev_list = project.cmdUpdate( filename, depth=svndepth, revision=rev )
 
             return rev_list
 
