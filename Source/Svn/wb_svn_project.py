@@ -432,8 +432,6 @@ class SvnProject:
         if wb_svn_utils.wcNotifyTypeLookup( action ) is None:
             return
 
-        print( 'qqq1 %r' % (action,) )
-
         # reject updates for paths that have no change
         if( action == pysvn.wc_notify_action.update_update
         and arg_dict['content_state'] == pysvn.wc_notify_state.unknown
@@ -455,7 +453,7 @@ class SvnProject:
         
         path = arg_dict['path']
 
-        self.app.log.info( u'%s %s\n' % (action_letter, path) )
+        self.app.log.info( u'%s   %s' % (action_letter, path) )
 
     def initNotificationOfFilesInConflictCount( self ):
         self.__notification_of_files_in_conflict = 0
