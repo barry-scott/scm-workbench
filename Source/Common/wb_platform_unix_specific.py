@@ -25,10 +25,13 @@ def setupPlatformSpecific( all_name_parts ):
 def getApplicationDir():
     name = ''.join( __all_name_parts )
     folder = '.%s' % (name,)
-    return pathlib.Path( os.environ['HOME'] ) / folder
+    return getHomeFolder() / folder
 
 def getLocalePath():
     return getApplicationDir() / 'locale'
 
 def getNullDevice():
     return pathlib.Path( '/dev/null' )
+
+def getHomeFolder():
+    return pathlib.Path( os.environ['HOME'] )

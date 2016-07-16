@@ -12,6 +12,7 @@
     wb_platform_win32_specific.py
 
 '''
+import os
 import pathlib
 
 import ctypes
@@ -40,6 +41,9 @@ def getLocalePath():
 
 def getNullDevice():
     return pathlib.Path( 'NUL' )
+
+def getHomeFolder():
+    return pathlib.Path( os.environ['USERPROFILE'] )
 
 if __name__ == '__main__':
     print( getApplicationDir() )

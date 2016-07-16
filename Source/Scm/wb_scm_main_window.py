@@ -20,6 +20,8 @@ import difflib
 # On OS X the packager missing this import
 import sip
 
+import wb_platform_specific
+
 ellipsis = '…'
 
 from PyQt5 import Qt
@@ -611,8 +613,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         else:
             try:
                 # try to convert to ~ form
-                folder = folder.relative_to( pathlib.Path( os.environ['HOME'] ) )
-                folder = '~/%s' % (folder,)
+                if wb_platform_specific.isWindows():
+                    folder = folder.relative_to( wb_platform_specific.getHomeFolder() )
+                    folder = '~\\%s' % (folder,)
+
+                else:
+                    folder = folder.relative_to( wb_platform_specific.getHomeFolder() )
+                    folder = '~/%s' % (folder,)
 
             except ValueError:
                 folder = str( folder )
