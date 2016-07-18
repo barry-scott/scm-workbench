@@ -7,7 +7,18 @@ from PyQt5 import QtCore
 
 app =QtWidgets.QApplication( sys.argv )
 
-scintilla = wb_scintilla.WbScintilla( None )
+class MySintilla(wb_scintilla.WbScintilla):
+    def __init__( self ):
+        super().__init__( None )
+
+    def keyPressEvent( self, event ):
+        if event.text() == 'Q':
+            self.close()
+
+        else:
+            super().keyPressEvent( event )
+
+scintilla = MySintilla()
 
 if False:
     for name in sorted( dir(scintilla) ):
@@ -22,5 +33,8 @@ scintilla.setIndicatorValue( 0 )
 scintilla.indicatorFillRange( 5, 4 )
 
 scintilla.resize( 400, 300 )
+
+scintilla.setReadOnly( True )
+
 scintilla.show()
 app.exec_()
