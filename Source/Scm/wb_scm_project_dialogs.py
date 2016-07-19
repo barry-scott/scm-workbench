@@ -554,6 +554,12 @@ if __name__ == '__main__':
     def T_(s):
         return s
 
+    def S_(s, p, n):
+        if n == 1:
+            return s
+        else:
+            return p
+
     app = QtWidgets.QApplication( ['foo'] )
 
     wiz = WbScmAddProjectWizard( None )
