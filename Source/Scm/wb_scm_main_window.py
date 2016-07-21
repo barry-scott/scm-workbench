@@ -163,12 +163,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         if index is not None:
             self._debug( 'Selecting project in tree' )
-            selection_model.select( index,
-                        selection_model.Clear |
-                        selection_model.Select |
-                        selection_model.Current )
-
-            self.tree_view.scrollTo( index )
+            self.tree_view.setCurrentIndex( index )
 
         # timer used to wait for focus to be set after app is activated
         self.timer_update_enable_states = QtCore.QTimer()
