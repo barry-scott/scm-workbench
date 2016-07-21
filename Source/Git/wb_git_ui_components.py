@@ -67,8 +67,13 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Push…'), self.treeActionGitPush, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
         addMenu( m, T_('Pull…'), self.treeActionGitPull, icon_name='toolbar_images/pull.png', thread_switcher=True )
 
+        if hasattr( self, 'treeActionGitDebug1' ):
+            m = mb.addMenu( T_('&Git Debug') )
+            self.all_menus.append( m )
+            addMenu( m, T_('Debug 1'), self.treeActionGitDebug1 )
+
     def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 32px; color: #cc0000' )
+        t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
         self.all_toolbars.append( t )
 
         addTool( t, 'Git', self.main_window.projectActionSettings )

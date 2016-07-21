@@ -149,9 +149,10 @@ def CreateProcess( app, command_list, working_dir ):
     p_info = PROCESS_INFORMATION( None, None, 0, 0 )
 
     working_dir = str(working_dir)
-    command_line = ' '.join( ["%s" % (arg,) for arg in command_list] )
+    command_line = ' '.join( ['"%s"' % (arg,) for arg in command_list] )
 
     app.log.info( command_line )
+
     rc = ctypes.windll.kernel32.CreateProcessW(
             command_list[0],                # LPCTSTR lpApplicationName,
             command_line,                   # LPTSTR lpCommandLine,

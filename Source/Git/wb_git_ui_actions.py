@@ -147,6 +147,17 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         return True
 
+    def treeActionGitDebug1( self ):
+        self.log.error( '  enablerGitCommit -> %r' % (self.enablerGitCommit(),) )
+        git_project = self.selectedGitProject()
+        self.log.error( '       git_project -> %r' % (git_project,) )
+        if git_project is None:
+            return
+
+        self.log.error( '     commit_dialog -> %r' % (self.commit_dialog,) )
+        self.log.error( '    numStagedFiles -> %r' % (git_project.numStagedFiles(),) )
+        self.log.error( '  numModifiedFiles -> %r' % (git_project.numModifiedFiles(),) )
+
     def enablerGitPush( self ):
         git_project = self.selectedGitProject()
         return git_project is not None and git_project.canPush()
