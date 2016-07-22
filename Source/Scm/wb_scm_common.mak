@@ -5,4 +5,4 @@ run:
 	$(PYTHON) -u wb_scm_main.py
 
 clean::
-	rm -f wb_scm_images.py
+	$(DEL) -f wb_scm_images.py

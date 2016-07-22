@@ -26,10 +26,13 @@ def getApplicationDir():
     name = '-'.join( [part.lower() for part in __all_name_parts] )
     folder = 'Library/Preferences/org.barrys-emacs.%s' % (name,)
 
-    return pathlib.Path( os.environ['HOME'] ) / folder
+    return getHomeFolder() / folder
 
 def getLocalePath():
     return pathlib.Path( os.environ.get( 'PYTHONHOME', getApplicationDir() ) ) / 'locale'
 
 def getNullDevice():
     return pathlib.Path( '/dev/null' )
+
+def getHomeFolder():
+    return pathlib.Path( os.environ['HOME'] )

@@ -1,6 +1,7 @@
 #
 #	makefile WorkBench
 #
+DEL=rm
 all: locale/en/LC_MESSAGES/scm_workbench.mo wb_scm_images.py
 
 locale/en/LC_MESSAGES/scm_workbench.mo:

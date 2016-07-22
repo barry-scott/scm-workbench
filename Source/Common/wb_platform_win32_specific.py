@@ -12,13 +12,15 @@
     wb_platform_win32_specific.py
 
 '''
+import os
 import pathlib
 
 import ctypes
 import ctypes.wintypes
 
-CSIDL_APPDATA = 0x1a     # Application Data
-SHGFP_TYPE_CURRENT = 0   # Want current, not default value
+CSIDL_APPDATA = 0x1a    # Application Data
+CSIDL_WINDOWS = 0x24    # windows folder
+SHGFP_TYPE_CURRENT = 0  # Want current, not default value
 
 __all_name_parts = None
 
@@ -35,11 +37,20 @@ def getApplicationDir():
 
     return pathlib.Path( buf.value )
 
+def getWindowsDir():
+    buf = ctypes.create_unicode_buffer( ctypes.wintypes.MAX_PATH )
+    ctypes.windll.shell32.SHGetFolderPathW( 0, CSIDL_WINDOWS, 0, SHGFP_TYPE_CURRENT, buf )
+
+    return pathlib.Path( buf.value )
+
 def getLocalePath():
     return getApplicationDir() / 'locale'
 
 def getNullDevice():
     return pathlib.Path( 'NUL' )
+
+def getHomeFolder():
+    return pathlib.Path( os.environ['USERPROFILE'] )
 
 if __name__ == '__main__':
     print( getApplicationDir() )

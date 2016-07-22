@@ -27,7 +27,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         pass
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 32px; color: #000099' )
+        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: #000099' )
         self.all_toolbars.append( t )
 
         addTool( t, 'Hg', self.main_window.projectActionSettings )

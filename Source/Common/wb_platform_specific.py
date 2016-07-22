@@ -26,6 +26,15 @@ elif sys.platform == 'darwin':
 else:
     from wb_platform_unix_specific import *
 
+def isWindows():
+    return sys.platform == 'win32'
+
+def isMacOs():
+    return sys.platform == 'darwin'
+
+def isUnix():
+    return not isWindows() and not isMacOs()
+
 def getPreferencesFilename():
     name = ''.join( __all_name_parts )
     filename = '%s.xml'   % (name,)

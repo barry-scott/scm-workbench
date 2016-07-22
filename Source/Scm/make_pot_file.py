@@ -4,7 +4,8 @@ import os
 import glob
 
 all_py_files = set( glob.glob( '*.py' )+glob.glob('../Common/*.py' ) )
-all_py_files.remove( 'wb_scm_images.py' )
+if 'wb_scm_images.py' in all_py_files:
+    all_py_files.remove( 'wb_scm_images.py' )
 
 f = open( 'wb_files.tmp', 'wt' )
 for py_file in all_py_files:
