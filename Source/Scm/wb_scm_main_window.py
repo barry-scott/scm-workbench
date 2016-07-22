@@ -505,13 +505,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self.tree_model.addProject( project )
                 index = self.tree_model.indexFromProject( project )
 
-                selection_model = self.tree_view.selectionModel()
-                selection_model.select( index,
-                            selection_model.Clear |
-                            selection_model.Select |
-                            selection_model.Current )
-
-                self.tree_view.scrollTo( index )
+                self.tree_view.setCurrentIndex( index )
 
     def projectActionDelete( self ):
         tree_node = self.selectedScmProjectTreeNode()
@@ -538,13 +532,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             index = self.tree_model.getFirstProjectIndex()
 
             if index is not None:
-                selection_model = self.tree_view.selectionModel()
-                selection_model.select( index,
-                            selection_model.Clear |
-                            selection_model.Select |
-                            selection_model.Current )
-
-            self.tree_view.scrollTo( index )
+                self.tree_view.setCurrentIndex( index )
 
     def projectActionSettings( self ):
         pass
@@ -602,7 +590,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.updateActionEnabledStates()
 
         folder = self.table_view.selectedAbsoluteFolder()
-        if folder is None:                                                          
+        if folder is None:
              self.folder_text.clear()
 
         else:
