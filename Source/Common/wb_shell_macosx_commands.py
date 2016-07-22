@@ -228,7 +228,7 @@ def FileBrowser( app, working_dir ):
     __run_command( app, u'/usr/bin/open', [u'-a', u'Finder', working_dir] )
 
 def __run_command( app, cmd, args ):
-    app.log.info( '%s %s' % (cmd, ' '.join( args ) ) )
+    app.log.info( '%s %s' % (cmd, ' '.join( [str(arg) for arg in args] ) ) )
 
     env = os.environ.copy()
     cmd = asUtf8( cmd )
