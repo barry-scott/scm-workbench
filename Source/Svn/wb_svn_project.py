@@ -538,7 +538,7 @@ class WbSvnFileState:
 
     def getTextLinesBase( self ):
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
-        all_content_lines = self.__project.client_fg.cat(
+        all_content_lines = self.__project.client().cat(
                                     url_or_path=str(path),
                                     revision=self.__project.svn_rev_base )
 
@@ -548,7 +548,7 @@ class WbSvnFileState:
 
     def getTextLinesHead( self ):
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
-        all_content_lines = self.__project.client_fg.cat(
+        all_content_lines = self.__project.client().cat(
                                     url_or_path=str(path),
                                     revision=self.__project.svn_rev_head )
 
@@ -558,7 +558,7 @@ class WbSvnFileState:
 
     def getTextLinesForRevision( self, revision ):
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
-        all_content_lines = self.__project.client_fg.cat(
+        all_content_lines = self.__project.clietn().cat(
                                     url_or_path=str(path),
                                     revision=revision )
 
