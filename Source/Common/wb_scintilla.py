@@ -18,7 +18,7 @@ from PyQt5 import Qsci
 _colour_names = {
     'white':    '#ffffff',
     'black':    '#000000',
-    'grey':     '#cccccc',    
+    'grey':     '#cccccc',
     }
 
 def parseColourToRgbInt( colour ):
