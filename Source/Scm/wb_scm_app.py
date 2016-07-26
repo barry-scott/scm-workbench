@@ -10,6 +10,8 @@
     wb_scm_app.py
 
 '''
+import sys
+
 import wb_app
 import wb_platform_specific
 
@@ -20,6 +22,8 @@ import wb_scm_debug
 import wb_git_ui_components
 import wb_hg_ui_components
 import wb_svn_ui_components
+
+from PyQt5 import QtGui
 
 class WbScmApp(wb_app.WbApp,
                wb_scm_debug.WbScmDebug):
@@ -55,6 +59,10 @@ class WbScmApp(wb_app.WbApp,
                     wb_platform_specific.getPreferencesFilename() )
 
     def createMainWindow( self ):
+        if self.prefs.font.face is not None:
+            font = QtGui.QFont( self.prefs.font.face, self.prefs.font.point_size, 50, False )
+            self.setFont( font )
+
         self.top_window = wb_scm_main_window.WbScmMainWindow( self,
             {'git': wb_git_ui_components.GitMainWindowComponents()
             ,'hg':  wb_hg_ui_components.HgMainWindowComponents()

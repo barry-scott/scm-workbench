@@ -68,6 +68,7 @@ class Preferences(PreferencesNode):
     def __init__( self ):
         super().__init__()
 
+        self.font = None
         self.main_window = None
         self.diff_window = None
         self.last_position_bookmark = None
@@ -116,19 +117,8 @@ class Font(PreferencesNode):
     def __init__( self ):
         super().__init__()
 
-        # point size and face need to chosen by platform
-        if sys.platform.startswith( 'win' ):
-            self.face = 'Courier New'
-            self.point_size = 14
-
-        elif sys.platform == 'darwin':
-            self.face = 'Monaco'
-            self.point_size = 14
-
-        else:
-            # Assuming linux/xxxBSD
-            self.face = 'Liberation Mono'
-            self.point_size = 11
+        self.face = None
+        self.point_size = None
 
 class NamedColour(PreferencesNode):
     xml_attribute_info = (('fg', RGB), ('bg', RGB))
@@ -242,6 +232,7 @@ class View(PreferencesNode):
 
 scheme_nodes = (
     (SchemeNode( Preferences, 'preferences',  )
+    <<  SchemeNode( Font, 'font' )
     <<  SchemeNode( MainWindow, 'main_window' )
     <<  (SchemeNode( MainWindow, 'diff_window' )
         << SchemeNode( Colour, 'colour_normal', default_attributes={'fg': wb_config.diff_colour_normal} )

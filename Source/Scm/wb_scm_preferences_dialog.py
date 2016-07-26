@@ -30,11 +30,13 @@ class WbScmPreferencesDialog(QtWidgets.QDialog):
         self.editor_page = EditorPage( self.app )
         self.shell_page = ShellPage( self.app )
         self.log_history_page = LogHistoryPage( self.app )
+        self.font_page = FontPage( self.app )
 
         self.tabs = QtWidgets.QTabWidget()
         self.tabs.addTab( self.editor_page, T_('Editor') )
         self.tabs.addTab( self.shell_page, T_('Shell') )
         self.tabs.addTab( self.log_history_page, T_('Log History') )
+        self.tabs.addTab( self.font_page, T_('Font') )
 
         self.buttons = QtWidgets.QDialogButtonBox()
         self.buttons.addButton( self.buttons.Ok )
@@ -55,6 +57,7 @@ class WbScmPreferencesDialog(QtWidgets.QDialog):
         self.editor_page.savePreferences()
         self.shell_page.savePreferences()
         self.log_history_page.savePreferences()
+        self.font_page.savePreferences()
 
 class EditorPage(QtWidgets.QWidget):
     def __init__( self, app ):
@@ -236,6 +239,77 @@ class LogHistoryPage(QtWidgets.QWidget):
 
         self.prefs.default_since_days_interval = self.default_since.value()
         self.prefs.use_default_since_days_interval = self.use_default_since.isChecked()
+
+class FontPage(QtWidgets.QWidget):
+    def __init__( self, app ):
+        super().__init__()
+
+        self.app = app
+
+        self.initControls()
+
+    def initControls( self ):
+        p =  self.app.prefs.font
+
+        if p.face is None or p.point_size is None:
+            font = self.app.font()
+            self.face = font.family()
+            self.point_size = font.pointSize()
+
+        else:
+            self.face = p.face
+            self.point_size = p.point_size
+
+        self.static_text1 = QtWidgets.QLabel( T_('Font:') )
+        self.static_text2 = QtWidgets.QLabel( '%s %dpt ' % (self.face, self.point_size) )
+        self.static_text2.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Fixed )
+        self.static_text2.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+
+        font = QtGui.QFont( self.face, self.point_size )
+        self.static_text2.setFont( font )
+
+        self.btn_select_font = QtWidgets.QPushButton( T_(' Select Font... ') )
+
+        self.grid_sizer = QtWidgets.QGridLayout()
+        self.grid_sizer.addWidget( self.static_text1, 0, 0 )
+        self.grid_sizer.addWidget( self.static_text2, 0, 1 )
+        self.grid_sizer.addWidget( self.btn_select_font, 0, 2 )
+        self.grid_sizer.setColumnStretch( 1, 2 )
+        self.grid_sizer.setRowStretch( 1, 2 )
+
+        self.btn_select_font.clicked.connect( self.onSelectFont )
+
+        self.setLayout( self.grid_sizer )
+
+    def savePreferences( self ):
+        p =  self.app.prefs.font
+
+        p.face = self.face
+        p.point_size = self.point_size
+
+    def validate( self ):
+        valid = True
+
+        if not valid:
+            wx.MessageBox(
+                T_('You must enter a valid something'),
+                T_('Warning'),
+                wx.OK | wx.ICON_EXCLAMATION,
+                self )
+            return False
+
+        return True
+
+    def onSelectFont( self, *args ):
+        font = QtGui.QFont( self.face, self.point_size )
+        font, ok = QtWidgets.QFontDialog.getFont( font, self, T_('Choose font') )
+
+        if ok:
+            self.face = font.family()
+            self.point_size = font.pointSize()
+
+            self.static_text2.setText( '%s %dpt ' % (self.face, self.point_size) )
+            self.static_text2.setFont( font )
 
 if __name__ == '__main__':
     def T_(s):
