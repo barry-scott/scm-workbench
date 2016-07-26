@@ -154,6 +154,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.v_split.addWidget( self.h_split )
         self.v_split.addWidget( self.app.logWidget() )
 
+        # everything is setup now - events can be processed
+        self.__init_done = True
+
         # select the first project
         bookmark = self.app.prefs.last_position_bookmark
         if bookmark is not None:
@@ -178,7 +181,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.timer_init.setSingleShot( True )
         self.timer_init.start( 0 )
 
-        self.__init_done = True
 
     def completeStatupInitialisation( self ):
         self._debug( 'completeStatupInitialisation()' )
@@ -603,6 +605,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def treeSelectionChanged( self, selected, deselected ):
         if not self.__init_done:
+            print( 'qqq treeSelectionChanged dropped' )
             return
 
         # set the table view to the selected item in the tree
