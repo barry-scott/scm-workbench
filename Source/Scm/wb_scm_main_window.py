@@ -345,7 +345,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def setStatusGeneral( self, msg=None ):
         if msg is None:
-            msg = T_('Work bench')
+            msg = T_('Workbench')
 
         self.status_general.setText( msg )
 
