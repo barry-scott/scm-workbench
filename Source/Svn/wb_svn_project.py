@@ -558,14 +558,13 @@ class WbSvnFileState:
 
     def getTextLinesForRevision( self, revision ):
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
-        all_content_lines = self.__project.clietn().cat(
+        all_content_lines = self.__project.client().cat(
                                     url_or_path=str(path),
                                     revision=revision )
 
         all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
 
         return all_content_lines
-
 
 class SvnCommitLogNode:
     def __init__( self, commit ):
