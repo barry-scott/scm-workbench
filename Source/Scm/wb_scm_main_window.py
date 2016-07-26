@@ -49,6 +49,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app, all_ui_components ):
         self.table_view = None
 
+        self.__init_done = False
+
         super().__init__( app, wb_scm_images, app._debugMainWindow )
 
         # need to fix up how this gets translated
@@ -176,6 +178,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.timer_init.setSingleShot( True )
         self.timer_init.start( 0 )
 
+        self.__init_done = True
+
     def completeStatupInitialisation( self ):
         self._debug( 'completeStatupInitialisation()' )
 
@@ -206,6 +210,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view = wb_scm_tree_view.WbScmTreeView( self.app, self )
         self.tree_view.setModel( self.tree_sortfilter )
         self.tree_view.setExpandsOnDoubleClick( True )
+        self.tree_view.setSortingEnabled( True )
 
         # connect up signals
         self.tree_view.customContextMenuRequested.connect( self.treeContextMenu )
@@ -504,10 +509,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
                 self.app.writePreferences()
 
+                self.tree_view.setSortingEnabled( False )
                 self.tree_model.addProject( project )
                 index = self.tree_model.indexFromProject( project )
-
+                index = self.tree_sortfilter.mapFromSource( index )
                 self.tree_view.setCurrentIndex( index )
+                self.tree_view.setSortingEnabled( True )
 
     def projectActionDelete( self ):
         tree_node = self.selectedScmProjectTreeNode()
@@ -534,6 +541,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             index = self.tree_model.getFirstProjectIndex()
 
             if index is not None:
+                index = self.tree_sortfilter.mapFromSource( index )
                 self.tree_view.setCurrentIndex( index )
 
     def projectActionSettings( self ):
@@ -541,23 +549,28 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if tree_node is None:
             return
 
-        project_name = tree_node.project.projectName()
-        project = self.app.prefs.getProject( project_name )
+        old_project_name = tree_node.project.projectName()
+        project = self.app.prefs.getProject( old_project_name )
 
-        dialog = wb_scm_project_dialogs.ProjectSettingsDialog( self.app, self, project_name )
+        dialog = wb_scm_project_dialogs.ProjectSettingsDialog( self.app, self, old_project_name )
         if dialog.exec_():
             dialog.updateProject()
 
             self.app.writePreferences()
 
+            self.tree_view.setSortingEnabled( False )
+
             # remove from the tree model
-            self.tree_model.delProject( project_name )
+            self.tree_model.delProject( old_project_name )
 
             # add under the new name
             self.tree_model.addProject( project )
-            index = self.tree_model.indexFromProject( project )
 
+            index = self.tree_model.indexFromProject( project )
+            index = self.tree_sortfilter.mapFromSource( index )
             self.tree_view.setCurrentIndex( index )
+
+            self.tree_view.setSortingEnabled( True )
 
     #------------------------------------------------------------
     #
@@ -589,6 +602,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.all_ui_components[ self.__ui_active_scm_type ].getTreeContextMenu().exec_( global_pos )
 
     def treeSelectionChanged( self, selected, deselected ):
+        if not self.__init_done:
+            return
+
         # set the table view to the selected item in the tree
         self.tree_model.selectionChanged( selected, deselected )
 

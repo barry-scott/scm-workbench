@@ -35,7 +35,7 @@ class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
         left_ent = model.itemFromIndex( source_left )
         right_ent = model.itemFromIndex( source_right )
 
-        return left_ent.text().lower() < right_ent.text().lower()
+        return left_ent.text().lower() > right_ent.text().lower()
 
     def selectionChanged( self, selected, deselected ):
         self.main_window.treeSelectionChanged(
@@ -91,7 +91,6 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
             scm_project = wb_scm_project_place_holder.ScmProjectPlaceholder( self.app, project )
 
         scm_project.updateState()
-
         tree_node = ProjectTreeNode( self, scm_project.tree )
         self.all_scm_projects[ scm_project.tree.name ] = (scm_project, tree_node)
         self.appendRow( tree_node )

@@ -29,8 +29,6 @@ class Preferences(wb_preferences.Preferences):
         super().__init__()
         self.log_history = None
 
-
-
 class LogHistory(PreferencesNode):
     xml_attribute_info = (('default_limit', int)
                          ,('use_default_limit', Bool)
