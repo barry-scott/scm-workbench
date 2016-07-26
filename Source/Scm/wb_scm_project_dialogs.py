@@ -73,7 +73,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
             prefs = self.app.prefs
 
             for project in prefs.getAllProjects():
-                self.all_existing_project_names.add( project.name )
+                self.all_existing_project_names.add( project.name.lower() )
                 self.all_existing_project_paths.add( project.path )
 
         if sys.platform == 'win32':
@@ -284,7 +284,6 @@ class PageAddProjectGitClone(QtWidgets.QWizardPage):
 
         return True
 
-
 class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
     def __init__( self ):
         super().__init__()
@@ -434,7 +433,7 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
 
     def __scanCompleted( self ):
         self.completeChanged.emit()
-        
+
         self.__setFeedback( complete=True )
 
     def isComplete( self ):
@@ -536,7 +535,7 @@ class PageAddProjectName(QtWidgets.QWizardPage):
     def isComplete( self ):
         name = self.name.text().strip()
 
-        if name in self.wizard().all_existing_project_names:
+        if name.lower() in self.wizard().all_existing_project_names:
             self.feedback.setText( T_('Project name %s is already in use') % (name,) )
             return False
 
@@ -549,6 +548,63 @@ class PageAddProjectName(QtWidgets.QWizardPage):
         self.wizard().setProjectName( self.name.text().strip() )
 
         return True
+
+#------------------------------------------------------------
+class ProjectSettingsDialog(QtWidgets.QDialog):
+    def __init__( self, app, parent, project_name ):
+        self.app = app
+        self.project_name = project_name
+
+        prefs = self.app.prefs
+
+        self.all_other_existing_project_names = set()
+
+        for project in prefs.getAllProjects():
+            if project_name != project.name:
+                self.all_other_existing_project_names.add( project.name )
+
+        self.project = prefs.getProject( project_name )
+
+        super().__init__( parent )
+
+        self.name = QtWidgets.QLineEdit( self.project.name )
+
+        self.buttons = QtWidgets.QDialogButtonBox()
+        self.ok_button = self.buttons.addButton( self.buttons.Ok )
+        cancel_button = self.buttons.addButton( self.buttons.Cancel )
+
+        l = self.layout = QtWidgets.QGridLayout()
+        l.setAlignment( QtCore.Qt.AlignTop )
+        row = 0
+        l.addWidget( QtWidgets.QLabel( T_('Name:') ), row, 0 )
+        l.addWidget( self.name, row, 1 )
+        row += 1
+        l.addWidget( QtWidgets.QLabel( T_('SCM Type:') ), row, 0 )
+        l.addWidget( QtWidgets.QLabel( scm_presentation_names.get( self.project.scm_type, self.project.scm_type ) ), row, 1 )
+        row += 1
+        l.addWidget( QtWidgets.QLabel( T_('Path:') ), row, 0 )
+        l.addWidget( QtWidgets.QLabel( str(self.project.path) ), row, 1 )
+        row += 1
+        l.addWidget( self.buttons, row, 0, 1, 2 )
+
+        self.setLayout( l )
+
+        self.ok_button.clicked.connect( self.accept )
+        cancel_button.clicked.connect( self.reject )
+
+        self.ok_button.setEnabled( False )
+        self.name.textChanged.connect( self.enableOkButton )
+
+    def enableOkButton( self, text ):
+        name = self.name.text().strip().lower()
+
+        # need a name that is not blank, is different and not in use
+        self.ok_button.setEnabled( name != '' and
+                                    name != self.project_name.lower() and
+                                    name not in self.all_other_existing_project_names )
+
+    def updateProject( self ):
+        self.project.name = self.name.text().strip()
 
 if __name__ == '__main__':
     def T_(s):

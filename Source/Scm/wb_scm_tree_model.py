@@ -23,6 +23,25 @@ import wb_scm_project_place_holder
 
 import git
 
+class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
+    def __init__( self, app, main_window, parent=None ):
+        self.app = app
+        self.main_window = main_window
+
+        super().__init__( parent )
+
+    def lessThan( self, source_left, source_right ):
+        model = self.sourceModel()
+        left_ent = model.itemFromIndex( source_left )
+        right_ent = model.itemFromIndex( source_right )
+
+        return left_ent.text().lower() < right_ent.text().lower()
+
+    def selectionChanged( self, selected, deselected ):
+        self.main_window.treeSelectionChanged(
+                self.mapSelectionToSource( selected ),
+                self.mapSelectionToSource( deselected ) )
+
 class WbScmTreeModel(QtGui.QStandardItemModel):
     def __init__( self, app, table_model ):
         self.app = app
@@ -164,17 +183,23 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         return super().flags( index ) & ~QtCore.Qt.ItemIsEditable
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'selectChanged()' )
+        self._debug( 'selectionChanged()' )
         all_selected = selected.indexes()
+        self._debug( 'selectionChanged() all_selected %r' % (all_selected,) )
         if len( all_selected ) == 0:
             self.selected_node = None
+            self._debug( 'selectChanged() nothing selected' )
             return
 
         index = selected.indexes()[0]
+        self._debug( 'selectionChanged() index row %r col %r' % (index.row(), index.column()) )
         selected_node = self.itemFromIndex( index )
 
         if selected_node is None:
+            self._debug( 'selectionChanged() cannot get item' )
             return
+
+        self._debug( 'selectionChanged() selected_node %r' % (selected_node,) )
 
         need_to_refresh = False
         if self.selected_node is not None:

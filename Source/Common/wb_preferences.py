@@ -74,6 +74,9 @@ class Preferences(PreferencesNode):
         self.all_bookmarks = None
         self.all_projects = None
 
+    def getProject( self, name ):
+        return self.all_projects[ name ]
+
     def getAllProjects( self ):
         return self.all_projects.values()
 
@@ -202,7 +205,7 @@ class Project(PreferencesNode):
         return self.name.lower() < other.name.lower()
 
     def __repr__( self ):
-        return '<Project: name=%r scm=%r path=%r>' % (self.name, self.scm, self.path)
+        return '<Project: name=%r scm=%r path=%r>' % (self.name, self.scm_type, self.path)
 
 class ProjectCollection(PreferencesMapNode):
     def __init__( self ):

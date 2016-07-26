@@ -34,6 +34,7 @@ import wb_scm_images
 import wb_scm_preferences
 import wb_scm_preferences_dialog
 import wb_scm_table_view
+import wb_scm_tree_view
 import wb_scm_tree_model
 import wb_scm_project_dialogs
 import wb_scm_progress
@@ -151,10 +152,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.v_split.addWidget( self.h_split )
         self.v_split.addWidget( self.app.logWidget() )
 
-        # setup selection on the tree
-        selection_model = self.tree_view.selectionModel()
-        selection_model.selectionChanged.connect( self.treeSelectionChanged )
-
         # select the first project
         bookmark = self.app.prefs.last_position_bookmark
         if bookmark is not None:
@@ -164,6 +161,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             index = self.tree_model.getFirstProjectIndex()
 
         if index is not None:
+            index = self.tree_sortfilter.mapFromSource( index )
             self._debug( 'Selecting project in tree' )
             self.tree_view.setCurrentIndex( index )
 
@@ -201,8 +199,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.tree_model = wb_scm_tree_model.WbScmTreeModel( self.app, self.table_view.table_model )
 
-        self.tree_view = QtWidgets.QTreeView()
-        self.tree_view.setModel( self.tree_model )
+        self.tree_sortfilter = wb_scm_tree_model.WbScmTreeSortFilter( self.app, self )
+        self.tree_sortfilter.setSourceModel( self.tree_model )
+        self.tree_sortfilter.setDynamicSortFilter( False )
+
+        self.tree_view = wb_scm_tree_view.WbScmTreeView( self.app, self )
+        self.tree_view.setModel( self.tree_sortfilter )
         self.tree_view.setExpandsOnDoubleClick( True )
 
         # connect up signals
@@ -463,8 +465,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._debug( 'appActionClose()' )
         scm_project_tree_node = self.selectedScmProjectTreeNode()
 
+        prefs = self.app.prefs
         if scm_project_tree_node is not None:
-            prefs = self.app.prefs
             bookmark = wb_preferences.Bookmark(
                         'last position',
                         scm_project_tree_node.project.projectName(),
@@ -525,7 +527,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.app.prefs.delProject( project_name )
             self.app.writePreferences()
 
-            # remove from the tree model
+            # remove from the tree model under the old name
             self.tree_model.delProject( project_name )
 
             # setup on a new selection
@@ -535,7 +537,27 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self.tree_view.setCurrentIndex( index )
 
     def projectActionSettings( self ):
-        pass
+        tree_node = self.selectedScmProjectTreeNode()
+        if tree_node is None:
+            return
+
+        project_name = tree_node.project.projectName()
+        project = self.app.prefs.getProject( project_name )
+
+        dialog = wb_scm_project_dialogs.ProjectSettingsDialog( self.app, self, project_name )
+        if dialog.exec_():
+            dialog.updateProject()
+
+            self.app.writePreferences()
+
+            # remove from the tree model
+            self.tree_model.delProject( project_name )
+
+            # add under the new name
+            self.tree_model.addProject( project )
+            index = self.tree_model.indexFromProject( project )
+
+            self.tree_view.setCurrentIndex( index )
 
     #------------------------------------------------------------
     #
@@ -567,12 +589,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.all_ui_components[ self.__ui_active_scm_type ].getTreeContextMenu().exec_( global_pos )
 
     def treeSelectionChanged( self, selected, deselected ):
+        # set the table view to the selected item in the tree
         self.tree_model.selectionChanged( selected, deselected )
 
         self.filter_text.clear()
 
         scm_project = self.table_view.selectedScmProject()
-        if self.__ui_active_scm_type != scm_project.scmType():
+        if( scm_project is not None
+        and self.__ui_active_scm_type != scm_project.scmType() ):
             if self.__ui_active_scm_type is not None:
                 self._debug( 'treeSelectionChanged hiding UI for %s' % (self.__ui_active_scm_type,) )
                 self.all_ui_components[ self.__ui_active_scm_type ].hideUiComponents()
