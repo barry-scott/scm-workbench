@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Comment=SCM Workbench
+Type=Application
+Name=SCM Workbench
+Exec=/usr/bin/scm-workbench %F
+Icon=/usr/share/scm-workbench/scm-workbench.png
+Categories=Development;
