@@ -22,19 +22,24 @@ echo "Info: Exporting source code"
 set -x
 
 (cd ${BUILDER_TOP_DIR}; git archive --format=tar --prefix=${KIT_BASENAME}/ master) | tar xf -
+# create a version file based on the GIT head commit
+${PYTHON} -u ${BUILDER_TOP_DIR}/Source/Scm/make_wb_scm_version.py \
+    ${BUILDER_TOP_DIR}/Builder/version.dat \
+    ${KIT_BASENAME}/Source/Scm/wb_scm_version.py
 
+# package until fedora does
 mkdir -p ${KIT_BASENAME}/Import/GitPython
 (cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C ${KIT_BASENAME}/Import
 rm -rf ${KIT_BASENAME}/Import/GitPython/git/ext
 
+# make the source kit
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
 popd
 
 echo "Info: creating ${KITNAME}.spec"
-python3 spec_set_version.py ${KITNAME}.spec ${V}
+PYTHONPATH=${BUILDER_TOP_DIR}/Source/Scm python3 spec_set_version.py ${KITNAME}.spec ${V}
 
 echo "Info: Creating SRPM for ${KIT_BASENAME}"
-
 sudo \
     mock \
         --buildsrpm --dnf \
@@ -71,8 +76,8 @@ ls -l ${MOCK_BUILD_DIR}/RPMS
 
 cp -v "${MOCK_BUILD_DIR}/RPMS/${SRPM_BASENAME}.noarch.rpm" tmp
 
-echo "Info: Results in ${PWD}/tmp:"
-ls -l tmp
+echo "Info: Results:"
+ls -l ${PWD}/tmp
 
 if [ "$CMD" = "--install" ]
 then

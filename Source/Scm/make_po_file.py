@@ -44,11 +44,11 @@ all_po_lines = open( po_filename, 'r', encoding='utf-8' ).readlines()
 
 for index, line in enumerate( all_po_lines ):
     if line.startswith( '"Project-Id-Version:' ):
-        all_po_lines[ index ] = ('"Project-Id-Version: Scm WorkBench %d.%d.%d.%d\\n"\n' % 
+        all_po_lines[ index ] = ('"Project-Id-Version: SCM Workbench %d.%d.%d %s\\n"\n' % 
             (wb_scm_version.major
             ,wb_scm_version.minor
             ,wb_scm_version.patch
-            ,wb_scm_version.build))
+            ,wb_scm_version.commit))
 
     elif line.startswith( '"PO-Revision-Date:' ):
         all_po_lines[ index ] = '"PO-Revision-Date: %s\\n"\n' % (datetime.datetime.now().isoformat(' '),)
