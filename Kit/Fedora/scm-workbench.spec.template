@@ -7,6 +7,8 @@ License:        ASL 2.0
 URL:            https://github.com/barry-scott/scm-workbench
 Source0:        https://github.com/barry-scott/scm-workbench/%{name}-%{version}.tar.gz
 
+BuildArch:      noarch
+
 Requires:       python3 >= 3.4
 Requires:       python3-qt5 >= 5.5.1
 Requires:       subversion >= 1.9
@@ -31,6 +33,7 @@ true
 echo Info: Install PWD $( pwd )
 
 export BUILDER_TOP_DIR=$( pwd )
+export PYTHON=/usr/bin/python3
 
 cd ${BUILDER_TOP_DIR}/Kit/Fedora
 ./build-install-tree.sh \

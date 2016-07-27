@@ -67,7 +67,7 @@ sudo \
 
 ls -l ${MOCK_BUILD_DIR}/RPMS
 
-cp -v "${MOCK_BUILD_DIR}/RPMS/${SRPM_BASENAME}.x86_64.rpm" tmp
+cp -v "${MOCK_BUILD_DIR}/RPMS/${SRPM_BASENAME}.noarch.rpm" tmp
 
 echo "Info: Results in ${PWD}/tmp:"
 ls -l tmp
@@ -76,5 +76,5 @@ if [ "$CMD" = "--install" ]
 then
     echo "Info: Installing RPM"
     sudo dnf -y remove ${KITNAME}
-    sudo dnf -y install "tmp/${SRPM_BASENAME}.x86_64.rpm"
+    sudo dnf -y install "tmp/${SRPM_BASENAME}.noarch.rpm"
 fi
