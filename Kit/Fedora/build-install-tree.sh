@@ -27,6 +27,9 @@ chmod +x ${BUILD_ROOT}${BIN}/scm-workbench
 pushd ${BUILDER_TOP_DIR}/Source/Scm
 make -f linux.mak
 popd
+pushd ${BUILDER_TOP_DIR}/Source/Common
+make -f linux.mak
+popd
 
 for LIBSRC in \
     ${BUILDER_TOP_DIR}/Source/Common \

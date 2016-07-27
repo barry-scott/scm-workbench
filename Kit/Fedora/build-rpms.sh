@@ -23,8 +23,7 @@ set -x
 
 (cd ${BUILDER_TOP_DIR}; git archive --format=tar --prefix=${KIT_BASENAME}/ master) | tar xf -
 
-mkdir -p ${BUILDER_TOP_DIR}/Import
-rm -rf ${KIT_BASENAME}/Import/GitPython
+mkdir -p ${KIT_BASENAME}/Import/GitPython
 (cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C ${KIT_BASENAME}/Import
 
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
@@ -64,6 +63,7 @@ echo "Info: Creating RPM"
 sudo \
     mock \
         --rebuild --dnf \
+        --arch=noarch \
             "tmp/${SRPM_BASENAME}.src.rpm"
 
 ls -l ${MOCK_BUILD_DIR}/RPMS
