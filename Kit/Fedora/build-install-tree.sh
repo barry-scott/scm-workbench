@@ -9,8 +9,8 @@ DESKTOPFILES=${3? desktop files folder}
 
 mkdir -p ${BIN} ${LIB} ${MAN1} ${DESKTOPFILES}
 
-gzip -c ${BUILDER_TOP_DIR}/Kits/Fedora/scm-workbench.1 > ${MAN1}/scm-workbench.1.gz
-cp ${BUILDER_TOP_DIR}/Kits/Fedora/scm-workbench.desktop ${DESKTOPFILES}
+gzip -c ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.1 > ${MAN1}/scm-workbench.1.gz
+cp ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.desktop ${DESKTOPFILES}
 
 cat <<EOF >${BIN}/scm-workbench
 #!/usr/bin/python3
