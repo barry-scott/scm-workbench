@@ -25,6 +25,7 @@ set -x
 
 mkdir -p ${KIT_BASENAME}/Import/GitPython
 (cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C ${KIT_BASENAME}/Import
+rm -rf ${KIT_BASENAME}/Import/GitPython/git/ext
 
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
 popd
