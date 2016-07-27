@@ -40,6 +40,7 @@ export PYTHON=/usr/bin/python3
 
 cd ${BUILDER_TOP_DIR}/Kit/Fedora
 ./build-install-tree.sh \
+    %{buildroot} \
     %{_bindir} \
     %{_datarootdir}/scm-workbench/lib \
     %{_mandir}/man1 \
