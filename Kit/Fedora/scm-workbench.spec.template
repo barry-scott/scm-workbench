@@ -48,9 +48,9 @@ cd ${BUILDER_TOP_DIR}/Kit/Fedora
 
 %files
 %defattr(-, root, root, -)
-%{_bindir}/scm-workbench
-%{_datarootdir}/scm-workbench/lib/*
-%{_datarootdir}/applications/scm-workbench.desktop
+%attr(0655,root,root) %{_bindir}/scm-workbench
+%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/*
+%attr(0644,root,root) %{_datarootdir}/applications/scm-workbench.desktop
 %attr(0644,root,root) %{_mandir}/man1/scm-workbench.1.gz
 
 %changelog
