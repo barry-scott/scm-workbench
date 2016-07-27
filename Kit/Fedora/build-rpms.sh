@@ -24,8 +24,8 @@ set -x
 (cd ${BUILDER_TOP_DIR}; git archive --format=tar --prefix=${KIT_BASENAME}/ master) | tar xf -
 
 mkdir -p ${BUILDER_TOP_DIR}/Import
-rm -rf ${BUILDER_TOP_DIR}/Import/GitPython
-(cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C Import
+rm -rf ${KIT_BASENAME}/Import/GitPython
+(cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C ${KIT_BASENAME}/Import
 
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
 popd
