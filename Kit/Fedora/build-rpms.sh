@@ -19,12 +19,13 @@ rm -rf tmp
 mkdir -p tmp
 pushd tmp
 echo "Info: Exporting source code"
+set -x
 
 (cd ${BUILDER_TOP_DIR}; git archive --format=tar --prefix=${KIT_BASENAME}/ master) | tar xf -
 
 mkdir -p ${BUILDER_TOP_DIR}/Import
 rm -rf ${BUILDER_TOP_DIR}/Import/GitPython
-(cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C ${BUILDER_TOP_DIR}/Import
+(cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C Import
 
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
 popd
