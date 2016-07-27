@@ -47,20 +47,12 @@ cd ${BUILDER_TOP_DIR}/Kit/Fedora
     %{_datarootdir}/applications
 
 %files
-%defattr(-, root, root, -)
-%attr(0655,root,root) %{_bindir}/scm-workbench
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/*.py
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/*.png
-%attr(0644,root,root) %{_datarootdir}/applications/scm-workbench.desktop
-%attr(0644,root,root) %{_mandir}/man1/scm-workbench.1.gz
-
-# GitPython files
-%attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git
-%attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/index
-%attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/refs
-%attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/repo
-%attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/objects
-%attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/objects/submodule
+%defattr(0644, root, root, 0755)
+%attr(755, root, root) %{_bindir}/scm-workbench
+%{_datarootdir}/applications/scm-workbench.desktop
+%{_mandir}/man1/scm-workbench.1.gz
+# include all files in the _datarootdir
+%{_datarootdir}/scm-workbench
 
 %changelog
 * Wed Jul 27 2016 barry scott <barry@barrys-emacs.org> - 0.5.0-1
