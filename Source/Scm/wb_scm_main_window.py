@@ -431,7 +431,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def appActionAbout( self ):
         all_about_info = []
-        all_about_info.append( "%s %d.%d.%d (%s)" %
+        all_about_info.append( "%s %d.%d.%d %s" %
                                 (' '.join( self.app.app_name_parts )
                                 ,wb_scm_version.major, wb_scm_version.minor
                                 ,wb_scm_version.patch, wb_scm_version.commit) )

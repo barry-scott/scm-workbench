@@ -18,6 +18,6 @@ with open( sys.argv[1], 'r' ) as f:
 result = subprocess.run( ['git', 'show-ref', '--head', '--hash', 'head'], stdout=subprocess.PIPE )
 
 with open( sys.argv[2], 'w' ) as f:
-    f.write( 'commit="%s"\n' % (result.stdout.strip(),) )
+    f.write( 'commit="%s"\n' % (result.stdout.decode('utf-8').strip(),) )
     for key in sorted( v.keys() ):
         f.write( '%s=%s\n' % (key, v[ key ]) )
