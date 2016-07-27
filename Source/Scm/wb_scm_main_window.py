@@ -605,7 +605,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def treeSelectionChanged( self, selected, deselected ):
         if not self.__init_done:
-            print( 'qqq treeSelectionChanged dropped' )
             return
 
         # set the table view to the selected item in the tree
