@@ -32,7 +32,7 @@ echo Info: Install PWD $( pwd )
 
 export BUILDER_TOP_DIR=$( pwd )
 
-cd ${BUILDER_TOP_DIR}/Kit
+cd ${BUILDER_TOP_DIR}/Kit/Fedora
 ./build-install-tree.sh \
     %{buildroot}/usr/bin \
     %{buildroot}/usr/share/scm-workbench/lib \
