@@ -3,23 +3,27 @@
 #   build-rpms.sh
 #
 set -e
+set -x
 
 CMD="$1"
 
 echo "Info: Creating source tarball"
+rm -rf tmp
+mkdir -p tmp
 
 KITNAME=scm-workbench
 
-V=$( cat ${BUILDER_TOP_DIR}/Builder/version.dat )
-rm -rf ${TMPDIR:-/tmp}/${NAME}-${V}
+# create a version file for the build process
+${PYTHON} -u ${BUILDER_TOP_DIR}/Source/Scm/make_wb_scm_version.py \
+    ${BUILDER_TOP_DIR}/Builder/version.dat \
+    tmp/wb_scm_version.py
+
+V=$( PYTHONPATH=tmp ${PYTHON} -c "import wb_scm_version;print( '%d.%d.%d' % (wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch) )" )
 
 KIT_BASENAME=${KITNAME}-${V}
 
-rm -rf tmp
-mkdir -p tmp
 pushd tmp
 echo "Info: Exporting source code"
-set -x
 
 (cd ${BUILDER_TOP_DIR}; git archive --format=tar --prefix=${KIT_BASENAME}/ master) | tar xf -
 # create a version file based on the GIT head commit
@@ -37,7 +41,7 @@ tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
 popd
 
 echo "Info: creating ${KITNAME}.spec"
-PYTHONPATH=${BUILDER_TOP_DIR}/Source/Scm python3 spec_set_version.py ${KITNAME}.spec ${V}
+PYTHONPATH=tmp python3 spec_set_version.py ${KITNAME}.spec ${V}
 
 echo "Info: Creating SRPM for ${KIT_BASENAME}"
 sudo \

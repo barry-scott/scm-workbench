@@ -56,17 +56,11 @@ cd ${BUILDER_TOP_DIR}/Kit/Fedora
 
 # GitPython files
 %attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/git/*.py
 %attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/index
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/git/index/*.py
 %attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/refs
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/git/refs/*.py
 %attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/repo
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/git/repo/*.py
 %attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/objects
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/git/objects/*.py
 %attr(0755,root,root) %{_datarootdir}/scm-workbench/lib/git/objects/submodule
-%attr(0644,root,root) %{_datarootdir}/scm-workbench/lib/git/objects/submodule/*.py
 
 %changelog
 * Wed Jul 27 2016 barry scott <barry@barrys-emacs.org> - 0.5.0-1
