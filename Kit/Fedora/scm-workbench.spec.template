@@ -9,6 +9,8 @@ Source0:        https://github.com/barry-scott/scm-workbench/%{name}-%{version}.
 
 BuildArch:      noarch
 
+BuildRequires:  python3 >= 3.4
+
 Requires:       python3 >= 3.4
 Requires:       python3-qt5 >= 5.5.1
 Requires:       subversion >= 1.9
