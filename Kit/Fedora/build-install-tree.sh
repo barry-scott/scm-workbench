@@ -21,6 +21,10 @@ EOF
 cat ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_main.py >>${BIN}/scm-workbench
 chmod +x ${BIN}/scm-workbench
 
+pushd ${BUILDER_TOP_DIR}/Source/Scm
+make -f linux.mak
+popd
+
 for LIBSRC in \
     ${BUILDER_TOP_DIR}/Source/Common \
     ${BUILDER_TOP_DIR}/Source/Git \
