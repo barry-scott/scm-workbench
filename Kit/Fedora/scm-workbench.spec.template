@@ -40,16 +40,16 @@ export PYTHON=/usr/bin/python3
 
 cd ${BUILDER_TOP_DIR}/Kit/Fedora
 ./build-install-tree.sh \
-    %{buildroot}/usr/bin \
-    %{buildroot}/usr/share/scm-workbench/lib \
-    %{buildroot}%{_mandir}/man1 \
-    %{buildroot}/usr/share/applications
+    %{_bindir} \
+    %{_datarootdir}/scm-workbench/lib \
+    %{_mandir}/man1 \
+    %{_datarootdir}/applications
 
 %files
 %defattr(-, root, root, -)
-/usr/bin/scm-workbench
-/usr/share/scm-workbench/lib/*
-/usr/share/applications/scm-workbench.desktop
+%{_bindir}/scm-workbench
+%{_datarootdir}/scm-workbench/lib/*
+%{_datarootdir}/applications/scm-workbench.desktop
 %attr(0644,root,root) %{_mandir}/man1/scm-workbench.1.gz
 
 %changelog
