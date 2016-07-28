@@ -2,9 +2,9 @@
 #	makefile WorkBench
 #
 DEL=rm
-all: locale/en/LC_MESSAGES/scm_workbench.mo wb_scm_images.py
+all: locale/en/LC_MESSAGES/scm_workbench.mo all_common
 
-locale/en/LC_MESSAGES/scm_workbench.mo:
+locale/en/LC_MESSAGES/scm_workbench.mo: wb_scm_version.py
 	mkdir -p locale/en/LC_MESSAGES
 	./make-pot-file.sh
 	./make-po-file.sh en

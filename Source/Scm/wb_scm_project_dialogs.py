@@ -19,9 +19,6 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-class UpdateProject():
-    pass
-
 scm_folder_detection = [('.git', 'git'), ('.hg', 'hg'), ('.svn', 'svn'), ('_svn', 'svn')]
 
 scm_presentation_names = {
@@ -551,19 +548,19 @@ class PageAddProjectName(QtWidgets.QWizardPage):
 
 #------------------------------------------------------------
 class ProjectSettingsDialog(QtWidgets.QDialog):
-    def __init__( self, app, parent, project_name ):
+    def __init__( self, app, parent, old_project_name ):
         self.app = app
-        self.project_name = project_name
+        self.old_project_name = old_project_name
 
         prefs = self.app.prefs
 
         self.all_other_existing_project_names = set()
 
         for project in prefs.getAllProjects():
-            if project_name != project.name:
+            if old_project_name != project.name:
                 self.all_other_existing_project_names.add( project.name )
 
-        self.project = prefs.getProject( project_name )
+        self.project = prefs.getProject( old_project_name )
 
         super().__init__( parent )
 
@@ -600,11 +597,18 @@ class ProjectSettingsDialog(QtWidgets.QDialog):
 
         # need a name that is not blank, is different and not in use
         self.ok_button.setEnabled( name != '' and
-                                    name != self.project_name.lower() and
+                                    name != self.old_project_name.lower() and
                                     name not in self.all_other_existing_project_names )
 
     def updateProject( self ):
+        prefs = self.app.prefs
+
+        # remove under the old name
+        prefs.delProject( self.old_project_name )
+
+        # add back in under the updated name
         self.project.name = self.name.text().strip()
+        prefs.addProject( self.project )
 
 if __name__ == '__main__':
     def T_(s):

@@ -1,0 +1,59 @@
+Name:           scm-workbench
+Version:        SPEC-FILE-VERSION
+Release:        1%{?dist}
+Summary:        SCM Workbench
+
+License:        ASL 2.0
+URL:            https://github.com/barry-scott/scm-workbench
+Source0:        https://github.com/barry-scott/scm-workbench/%{name}-%{version}.tar.gz
+
+BuildArch:      noarch
+
+BuildRequires:  python3 >= 3.4
+BuildRequires:  gettext
+
+Requires:       python3 >= 3.4
+Requires:       python3-qt5 >= 5.5.1
+Requires:       subversion >= 1.9
+Requires:       git-core >= 2.7
+Requires:       python3-hglib >= 2.0
+#Requires:       GitPython >= 2.0.7
+
+%description
+SCM Workbench is a GUI to easily work with Git, Mercurial (hg) and Subversion (svn) repositories.
+Inspired by PySVN WorkBench.
+%prep
+# unpack Source0
+echo Info: prep start
+%setup
+echo Info: prep done
+
+%build
+echo Info: build PWD $( pwd )
+true
+
+%install
+echo Info: Install PWD $( pwd )
+
+export BUILDER_TOP_DIR=$( pwd )
+export PYTHON=/usr/bin/python3
+
+cd ${BUILDER_TOP_DIR}/Kit/Fedora
+./build-install-tree.sh \
+    %{buildroot} \
+    %{_bindir} \
+    %{_datarootdir}/scm-workbench/lib \
+    %{_mandir}/man1 \
+    %{_datarootdir}/applications
+
+%files
+%defattr(0644, root, root, 0755)
+%attr(755, root, root) %{_bindir}/scm-workbench
+%{_datarootdir}/applications/scm-workbench.desktop
+%{_mandir}/man1/scm-workbench.1.gz
+# include all files in the _datarootdir
+%{_datarootdir}/scm-workbench
+
+%changelog
+* Wed Jul 27 2016 barry scott <barry@barrys-emacs.org> - 0.5.0-1
+- First version

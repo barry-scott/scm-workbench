@@ -83,6 +83,8 @@ class Preferences(PreferencesNode):
 
     def addProject( self, project ):
         assert isinstance( project, Project )
+        assert project.name not in self.all_projects
+
         self.all_projects[ project.name ] = project
 
     def delProject( self, project_name ):
