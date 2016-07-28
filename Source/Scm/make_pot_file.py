@@ -3,7 +3,11 @@ import sys
 import os
 import glob
 
-all_py_files = set( glob.glob( '*.py' )+glob.glob('../Common/*.py' ) )
+all_py_files = set( glob.glob( 'wb*.py' )
+                    +glob.glob('../Git/wb*.py' )
+                    +glob.glob('../Svn/wb*.py' )
+                    +glob.glob('../Hg/wb*.py' )
+                    +glob.glob('../Common/wb*.py' ) )
 if 'wb_scm_images.py' in all_py_files:
     all_py_files.remove( 'wb_scm_images.py' )
 

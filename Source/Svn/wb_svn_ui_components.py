@@ -134,7 +134,9 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
             log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
                     self.app,
-                    T_('Commit Log for %s:%s') % (svn_project.projectName(), tree_node.relativePath()),
+                    T_('Commit Log for %(project)s:%(path)s') %
+                            {'project': svn_project.projectName()
+                            ,'path': tree_node.relativePath()},
                     self.main_window.getQIcon( 'wb.png' ) )
 
             log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), options )
@@ -164,7 +166,9 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         if options.exec_():
             commit_log_view = wb_svn_log_history.WbSvnLogHistoryView(
                     self.app,
-                    T_('Commit Log for %s:%s') % (svn_project.projectName(), filename),
+                    T_('Commit Log for %(project)s:%(path)s') %
+                            {'project': svn_project.projectName()
+                            ,'path': tree_node.relativePath()},
                     self.main_window.getQIcon( 'wb.png' ) )
 
             commit_log_view.showCommitLogForFile( svn_project, filename, options )
