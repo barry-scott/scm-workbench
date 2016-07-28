@@ -420,9 +420,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         file_state = git_project.getFileState( filename )
 
         self.diffTwoFiles(
+                T_('Diff HEAD vs. Work %s') % (filename,),
                 file_state.getTextLinesHead(),
                 file_state.getTextLinesWorking(),
-                T_('Diff HEAD vs. Work %s') % (filename,),
                 T_('HEAD %s') % (filename,),
                 T_('Work %s') % (filename,)
                 )
@@ -431,9 +431,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         file_state = git_project.getFileState( filename )
 
         self.diffTwoFiles(
+                T_('Diff Staged vs. Work %s') % (filename,),
                 file_state.getTextLinesStaged(),
                 file_state.getTextLinesWorking(),
-                T_('Diff Staged vs. Work %s') % (filename,),
                 T_('Staged %s') % (filename,),
                 T_('Work %s') % (filename,)
                 )
@@ -442,9 +442,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         file_state = git_project.getFileState( filename )
 
         self.diffTwoFiles(
+                T_('Diff HEAD vs. Staged %s') % (filename,),
                 file_state.getTextLinesHead(),
                 file_state.getTextLinesStaged(),
-                T_('Diff HEAD vs. Staged %s') % (filename,),
                 T_('HEAD %s') % (filename,),
                 T_('Staged %s') % (filename,)
                 )

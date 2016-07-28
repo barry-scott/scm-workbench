@@ -28,18 +28,16 @@ import wb_diff_images
 import wb_tracked_qwidget
 
 class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
-    def __init__( self, app, parent, file_left, title_left, file_right, title_right, ):
+    def __init__( self, app, parent, title, file_left, header_left, file_right, header_right, ):
         super().__init__( app, wb_diff_images, app._debugDiff, parent=parent )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         prefs = self.app.prefs.diff_window
         geometry = prefs.geometry
 
-        self.setWindowTitle( T_('Diff %(title1)s and %(title2)s') %
-                                {'title1': title_left
-                                ,'title2': title_right} )
-
+        self.setWindowTitle( title )
         self.setWindowIcon( wb_diff_images.getQIcon( 'wb.png' ) )
+
         if geometry is not None:
             geometry = QtCore.QByteArray( geometry.encode('utf-8') )
             self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
@@ -54,8 +52,8 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.splitter.setOrientation( QtCore.Qt.Horizontal )
         self.sash_ratio = 0.5
 
-        self.panel_left = DiffWidget( app, self.splitter, title_left, name='left' )
-        self.panel_right = DiffWidget( app, self.splitter, title_right, name='right' )
+        self.panel_left = DiffWidget( app, self.splitter, header_left, name='left' )
+        self.panel_right = DiffWidget( app, self.splitter, header_right, name='right' )
 
         self.panel_left.ed.setMirrorEditor( self.panel_right.ed )
         self.panel_right.ed.setMirrorEditor( self.panel_left.ed )

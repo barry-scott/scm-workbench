@@ -81,7 +81,6 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         super().__init__( app, wb_scm_images, app._debugMainWindow )
 
-
         self.current_commit_selections = []
         self.current_file_selection = []
 
@@ -251,36 +250,68 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         node = self.changes_model.changesNode( self.current_file_selection[0] )
 
     def diffLogHistory( self ):
+        #
+        #   Figure out the refs for the diff and set up title and headings
+        #
         if len( self.current_commit_selections ) == 1:
             # diff working against rev
             commit_new = None
             commit_old = self.log_model.commitForRow( self.current_commit_selections[0] )
+            date_old = self.log_model.dateStringForRow( self.current_commit_selections[0] )
 
-            title = T_('Working vs. %s') % (commit_old,)
-            heading_new = 'Working'
-            heading_old = commit_old
+            title_vars = {'commit_old': commit_old
+                         ,'date_old': date_old}
+
+            if self.filename is not None:
+                filestate = self.git_project.getFileState( self.filename )
+
+                if filestate.isStagedModified():
+                    heading_new = 'Staged'
+
+                elif filestate.isUnstagedModified():
+                    heading_new = 'Working'
+
+                else:
+                    heading_new = 'HEAD'
+
+            else: # Repository
+                heading_new = 'Working'
 
         else:
             commit_new = self.log_model.commitForRow( self.current_commit_selections[0] )
+            date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
             commit_old = self.log_model.commitForRow( self.current_commit_selections[-1] )
+            date_old = self.log_model.dateStringForRow( self.current_commit_selections[-1] )
 
-            title = T_('%s vs. %s') % (commit_old, commit_new)
-            heading_new = commit_new
-            heading_old = commit_old
+            title_vars = {'commit_old': commit_old
+                         ,'date_old': date_old
+                         ,'commit_new': commit_new
+                         ,'date_new': date_new}
 
-        if self.filename is None:
-            if commit_new is None:
-                text = self.git_project.cmdDiffWorkingVsCommit( '.', commit_old )
-                self.ui_component.showDiffText( title, text.split('\n') )
 
-            else:
-                text = self.git_project.cmdDiffCommitVsCommit( '.', commit_old, commit_new )
-                self.ui_component.showDiffText( title, text.split('\n') )
+            heading_new = T_('%(date_new)s commit %(commit_new)s') % title_vars
+
+        if self.filename is not None:
+            title = T_('Diff File %s') % (self.filename,)
 
         else:
+            title = T_('Diff Project %s' % (self.git_project.projectName(),) )
+
+        heading_old = T_('%(date_old)s commit %(commit_old)s') % title_vars
+
+        #
+        #   figure out the text to diff
+        #
+        if self.filename is not None:
             filestate = self.git_project.getFileState( self.filename )
+
             if commit_new is None:
-                text_new = filestate.getTextLinesWorking()
+                if filestate.isStagedModified():
+                    text_new = filestate.getTextLinesStaged()
+
+                else:
+                    # either we want HEAD or the modified working
+                    text_new = filestate.getTextLinesWorking()
 
             else:
                 text_new = filestate.getTextLinesForCommit( commit_new )
@@ -288,12 +319,21 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
             text_old = filestate.getTextLinesForCommit( commit_old )
 
             self.ui_component.diffTwoFiles(
+                    title,
                     text_old,
                     text_new,
-                    title,
                     heading_old,
                     heading_new
                     )
+
+        else: # folder
+            if commit_new is None:
+                text = self.git_project.cmdDiffWorkingVsCommit( '.', commit_old )
+                self.ui_component.showDiffText( title, text.split('\n') )
+
+            else:
+                text = self.git_project.cmdDiffCommitVsCommit( '.', commit_old, commit_new )
+                self.ui_component.showDiffText( title, text.split('\n') )
 
 class WbLogTableView(QtWidgets.QTableView):
     def __init__( self, main_window ):
@@ -310,7 +350,6 @@ class WbLogTableView(QtWidgets.QTableView):
 
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
-
 
 class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
@@ -341,6 +380,10 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     def commitForRow( self, row ):
         node = self.all_commit_nodes[ row ]
         return node.commitIdString()
+
+    def dateStringForRow( self, row ):
+        node = self.all_commit_nodes[ row ]
+        return node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
 
     def rowCount( self, parent ):
         return len( self.all_commit_nodes )

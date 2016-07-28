@@ -593,7 +593,7 @@ class WbGitFileState:
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
-        path = self.__project.projectPath() / self.__unstaged_diff.a_path
+        path = self.__project.projectPath() / self.__filepath
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -602,17 +602,12 @@ class WbGitFileState:
                 return all_lines
 
     def getTextLinesHead( self ):
-        blob = self.getHeadBlob()
-        data = blob.data_stream.read()
-        text = data.decode( 'utf-8' )
-        all_lines = text.split('\n')
-        if all_lines[-1] == '':
-            return all_lines[:-1]
-        else:
-            return all_lines
+        return self.__getTextLinesFromBlob( self.getHeadBlob() )
 
     def getTextLinesStaged( self ):
-        blob = self.getStagedBlob()
+        return self.__getTextLinesFromBlob( self.getStagedBlob() )
+
+    def __getTextLinesFromBlob( self, blob ):
         data = blob.data_stream.read()
         text = data.decode( 'utf-8' )
         all_lines = text.split('\n')

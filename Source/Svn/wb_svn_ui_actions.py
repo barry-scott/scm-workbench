@@ -338,9 +338,9 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def tableActionSvnDiffBaseVsWorking( self ):
         for file_state in self.tableSelectedAllFileStates():
             self.diffTwoFiles(
+                    T_('Diff Base vs. Working %s') % (file_state.relativePath(),),
                     file_state.getTextLinesBase(),
                     file_state.getTextLinesWorking(),
-                    T_('Diff Base vs. Working %s') % (file_state.relativePath(),),
                     T_('Base %s') % (file_state.relativePath(),),
                     T_('Working %s') % (file_state.relativePath(),)
                     )
@@ -348,9 +348,9 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def tableActionSvnDiffHeadVsWorking( self ):
         for file_state in self.tableSelectedAllFileStates():
             self.diffTwoFiles(
+                    T_('Diff HEAD vs. Working %s') % (file_state.relativePath(),),
                     file_state.getTextLinesBase(),
                     file_state.getTextLinesWorking(),
-                    T_('Diff HEAD vs. Working %s') % (file_state.relativePath(),),
                     T_('HEAD %s') % (file_state.relativePath(),),
                     T_('Working %s') % (file_state.relativePath(),)
                     )

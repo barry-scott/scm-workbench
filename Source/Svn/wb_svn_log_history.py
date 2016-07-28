@@ -244,9 +244,9 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
             text_old = filestate.getTextLinesForRevision( rev_old )
 
             self.ui_component.diffTwoFiles(
+                    title,
                     text_old,
                     text_new,
-                    title,
                     heading_old,
                     heading_new
                     )

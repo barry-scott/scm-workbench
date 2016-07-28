@@ -108,17 +108,18 @@ class WbMainWindowComponents:
         return self.table_view.selectedAllFileStates()
 
     # ------------------------------------------------------------
-    def diffTwoFiles( self, old_lines, new_lines, title_unified, title_left, title_right ):
+    def diffTwoFiles( self, title, old_lines, new_lines, header_left, header_right ):
         if self.app.prefs.view.isDiffUnified():
             all_lines = list( difflib.unified_diff( old_lines, new_lines ) )
 
-            self.showDiffText( title_unified, all_lines )
+            self.showDiffText( title, all_lines )
 
         elif self.app.prefs.view.isDiffSideBySide():
             window = wb_diff_side_by_side_view.DiffSideBySideView(
-                        self.app, None, 
-                        old_lines, title_left,
-                        new_lines, title_right )
+                        self.app, None,
+                        title,
+                        old_lines, header_left,
+                        new_lines, header_right )
             window.show()
 
     def showDiffText( self, title, all_lines ):
