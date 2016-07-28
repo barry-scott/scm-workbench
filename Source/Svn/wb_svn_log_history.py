@@ -218,7 +218,6 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
             rev_new = self.svn_project.svn_rev_working
             rev_old = self.log_model.revForRow( self.current_commit_selections[0] )
 
-            title = T_('Working vs. r%d') % (rev_old.number,)
             heading_new = 'Working'
             heading_old = 'r%d' % (rev_old.number,)
 
@@ -226,15 +225,16 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
             rev_new = self.log_model.revForRow( self.current_commit_selections[0] )
             rev_old = self.log_model.revForRow( self.current_commit_selections[-1] )
 
-            title = T_('r%d vs. r%d') % (rev_old.number, rev_new.number)
             heading_new = 'r%d' % (rev_new.number,)
             heading_old = 'r%d' % (rev_old.number,)
 
         if filestate.isDir():
+            title = T_('Diff %s') % (self.filename,)
             text = self.svn_project.cmdDiffRevisionVsRevision( self.filename, rev_old, rev_new )
             self.ui_component.showDiffText( title, text.split('\n') )
 
         else:
+            title = T_('Diff %s') % (self.filename,)
             if rev_new == self.svn_project.svn_rev_working:
                 text_new = filestate.getTextLinesWorking()
 
