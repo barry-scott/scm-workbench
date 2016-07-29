@@ -12,8 +12,8 @@
     provide a nice python3 friendly wrapper arouns the raw Scintilla control
 
 '''
+from PyQt5 import QtPrintSupport    # import missed by py2app
 from PyQt5 import Qsci
-
 #------------------------------------------------------------------------------------------
 _colour_names = {
     'white':    '#ffffff',
