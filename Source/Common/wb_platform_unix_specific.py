@@ -17,10 +17,29 @@ import types
 import pathlib
 
 __all_name_parts = None
+app_dir
 
-def setupPlatformSpecific( all_name_parts ):
+def setupPlatformSpecific( all_name_parts, argv0 ):
     global __all_name_parts
     __all_name_parts = all_name_parts
+
+    global app_dir
+
+    if argv0.startswith( '/' ):
+        app_dir = pathlib.Path( argv0 ).parent
+
+    elif '/' in argv0:
+        app_dir = pathlib.Path( argv0 ).resolve().parent
+
+    else:
+        for folder in [pathlib.Path( s.strip() ) for s in os.environ.get( 'PATH', '' ).split( ':' )]:
+            app_path = folder / argv0
+            if app_path.exists():
+                app_dir = app_path.parent
+                break
+
+    if app_dir is None:
+        app_dir = pathlib.Path( os.getcwd() )
 
 def getApplicationDir():
     name = ''.join( __all_name_parts )

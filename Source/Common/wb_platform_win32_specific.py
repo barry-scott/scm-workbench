@@ -21,15 +21,35 @@ import ctypes.wintypes
 CSIDL_APPDATA = 0x1a    # Application Data
 CSIDL_WINDOWS = 0x24    # windows folder
 SHGFP_TYPE_CURRENT = 0  # Want current, not default value
+SHGFP_TYPE_DEFAULT = 1
+
+
+app_dir = None
 
 __all_name_parts = None
 
-def setupPlatformSpecific( all_name_parts ):
+def setupPlatformSpecific( all_name_parts, argv0 ):
     global __all_name_parts
     __all_name_parts = all_name_parts
 
-SHGFP_TYPE_CURRENT = 0
-SHGFP_TYPE_DEFAULT = 1
+    global app_dir
+
+    if argv0[1:3] ==':\\':
+        app_dir = pathlib.Path( argv0 ).parent
+
+    elif '\\' in argv0:
+        app_dir = pathlib.Path( argv0 ).resolve().parent
+
+    else:
+        for folder in [os.getcwd()] + [p.strip() for p in os.environ.get( 'PATH', '' ).split( ';' )]:
+            app_path = pathlib.Path( folder ) / argv0
+            if app_path.exists():
+                app_dir = app_path.parent
+                break
+
+def getAppDir():
+    assert app_dir is not None, 'call setupPlatformSpecific() first'
+    return app_dir
 
 def getApplicationDir():
     buf = ctypes.create_unicode_buffer( ctypes.wintypes.MAX_PATH )

@@ -51,8 +51,9 @@ def getLastCheckinMessageFilename():
 def getLastLockMessageFilename():
     return getApplicationDir() / 'lock_message.txt'
 
-def setupPlatform( all_name_parts ):
-    setupPlatformSpecific( all_name_parts )
+def setupPlatform( all_name_parts, argv0 ):
+    setupPlatformSpecific( all_name_parts, argv0 )
+
     global __all_name_parts
     __all_name_parts = all_name_parts
 

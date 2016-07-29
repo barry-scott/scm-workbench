@@ -45,6 +45,14 @@ class WbApp(QtWidgets.QApplication,
         # used to set the names of files and windows for this app
         self.app_name_parts = app_name_parts
 
+        # setup the platform specific support
+        wb_platform_specific.setupPlatform( self.app_name_parts, sys.argv[0] )
+
+        # plugins folder exists when win_app_packager creates an .EXE
+        qt_plugin_dir = wb_platform_specific.getAppDir() / 'plugins'
+        if qt_plugin_dir.exists():
+            QtWidgets.QApplication.setLibraryPaths( [str(qt_plugin_dir)] )
+
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
         if extra_loggers is None:
@@ -61,9 +69,6 @@ class WbApp(QtWidgets.QApplication,
 
         self.all_temp_files = []
         self.all_processes = []
-
-        wb_platform_specific.setupPlatform( self.app_name_parts )
-        #wb_shell_commands.setupCommands()
 
         # on the Mac the app's cwd is the resource folder
         if sys.platform == 'darwin':
