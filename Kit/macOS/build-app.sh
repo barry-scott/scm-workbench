@@ -13,7 +13,8 @@ else
     DIST_DIR=dist
 fi
 
-rm -rf build ${DIST_DIR}
+rm -rf build
+rm -rf ${DIST_DIR}
 rm -rf tmp
 
 mkdir -p ${DIST_DIR}
