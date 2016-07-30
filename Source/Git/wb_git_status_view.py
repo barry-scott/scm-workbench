@@ -50,7 +50,14 @@ class WbGitStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
     def setStatus( self, all_unpushed_commits, all_staged_files, all_untracked_files ):
         unpushed_text = '\n'.join( ['"%s" id %s' % (commit.message.split('\n')[0], commit.hexsha) for commit in all_unpushed_commits] )
-        staged_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_staged_files )] )
+        all_staged_text = []
+        for status, filename, renamed_to in sorted( all_staged_files ):
+            if renamed_to is None:
+                all_staged_text.append( '%s: %s' % (status, filename) )
+            else:
+                all_staged_text.append( '%s: %s -> %s' % (status, filename, renamed_to) )
+
+        staged_text = '\n'.join( all_staged_text )
         untracked_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_untracked_files )] )
 
         self.unpushed.setPlainText( unpushed_text )

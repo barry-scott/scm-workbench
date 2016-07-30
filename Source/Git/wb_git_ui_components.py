@@ -58,6 +58,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
 
         m.addSeparator()
+        addMenu( m, T_('Rename…'), self.tableActionGitRename, self.main_window.table_view.enablerTableFilesExists )
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
@@ -112,6 +113,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
         addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
+        addMenu( m, T_('Rename…'), self.tableActionGitRename, self.main_window.table_view.enablerTableFilesExists )
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
 
     def setupTreeContextMenu( self, m, addMenu ):

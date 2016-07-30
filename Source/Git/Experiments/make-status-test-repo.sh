@@ -25,7 +25,8 @@ EOF
 
 echo 1 deleted-sh-rm.txt >Folder1/deleted-sh-rm.txt
 echo 1 deleted-git-rm.txt >Folder1/deleted-git-rm.txt
-echo 1 renamed.txt >Folder1/renamed.txt
+echo 1 renamed1.txt >Folder1/renamed1.txt
+echo 1 renamed2.txt >Folder1/renamed2.txt
 echo 1 changed-staged.txt >Folder1/changed-staged.txt
 echo 1 changed-working.txt >Folder1/changed-working.txt
 echo 1 changed-staged-and-working.txt >Folder1/changed-staged-and-working.txt
@@ -34,7 +35,8 @@ git add \
     .gitignore \
     Folder1/deleted-sh-rm.txt \
     Folder1/deleted-git-rm.txt \
-    Folder1/renamed.txt \
+    Folder1/renamed1.txt \
+    Folder1/renamed2.txt \
     Folder1/changed-staged.txt \
     Folder1/changed-working.txt \
     Folder1/changed-staged-and-working.txt \
@@ -47,7 +49,8 @@ rm Folder1/deleted-sh-rm.txt
 git rm Folder1/deleted-git-rm.txt
 
 # rename file
-git mv Folder1/renamed.txt Folder2/renamed2.txt
+git mv Folder1/renamed1.txt Folder1/renamed3.txt
+git mv Folder1/renamed2.txt Folder2/renamed4.txt
 
 # modify files
 cp Folder1/changed-staged.txt Folder1/changed-staged.txt~
