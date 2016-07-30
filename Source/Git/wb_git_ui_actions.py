@@ -343,7 +343,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         if message != '':
             self.log.info( message )
-           
+
         self.progress.start( status )
         if is_end:
             self.log.info( status )
