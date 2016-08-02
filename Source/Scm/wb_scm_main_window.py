@@ -40,7 +40,6 @@ import wb_scm_project_dialogs
 import wb_scm_progress
 
 import wb_shell_commands
-import wb_logging
 import wb_main_window
 import wb_preferences
 import wb_tracked_qwidget
