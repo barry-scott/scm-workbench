@@ -10,11 +10,14 @@
     wb_git_ui_components.py.py
 
 '''
+import sys
+
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_ui_components
+import wb_rename_dialog
 
 import wb_git_project
 import wb_git_status_view
@@ -234,7 +237,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.log.error( "'%s' returned with exit code %i" %
                         (' '.join(str(i) for i in e.command), e.status) )
         if e.stderr:
-            all_lines = e.stderr.split('\n')
+            all_lines = e.stderr.decode( sys.getdefaultencoding() ).split('\n')
             if all_lines[-1] == '':
                 del all_lines[-1]
 
@@ -329,7 +332,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             if (info.flags&state) != 0:
                 self.log.error( T_('Pull status: %(state_name)s') % {'state_name': state_name} )
 
-    def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
+    def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count=None, message='' ):
         if type(cur_count) in (int,float):
             if type(max_count) in (int,float):
                 status = 'Pull %s %d/%d' % (stage_name, int(cur_count), int(max_count))
@@ -342,7 +345,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         if message != '':
             self.log.info( message )
-           
+
         self.progress.start( status )
         if is_end:
             self.log.info( status )
@@ -372,6 +375,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     def tableActionGitDelete( self ):
         self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionGitDelete )
+
+    def tableActionGitRename( self ):
+        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitRename )
 
     def tableActionGitDiffSmart( self ):
         self._debug( 'tableActionGitDiffSmart()' )
@@ -403,6 +409,16 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     def __actionGitDelete( self, git_project, filename ):
         git_project.cmdDelete( filename )
+
+    def __actionGitRename( self, git_project, filename ):
+        filestate = git_project.getFileState( filename )
+
+        rename = wb_rename_dialog.WbRenameFilenameDialog( self.app, self.main_window )
+        rename.setName( filename.name )
+
+        if rename.exec_():
+            # handles rename for controlled and uncontrolled files
+            git_project.cmdRename( filename, filename.with_name( rename.getName() ) )
 
     def __actionGitDiffSmart( self, git_project, filename ):
         file_state = git_project.getFileState( filename )

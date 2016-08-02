@@ -31,7 +31,7 @@ class WbScmApp(wb_app.WbApp,
         self.__git_debug = False
 
         wb_scm_debug.WbScmDebug.__init__( self )
-        wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args )
+        wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args, ['git.cmd'] )
 
     def optionParse( self, args ):
         if args[1] == '--git-debug':
@@ -48,8 +48,13 @@ class WbScmApp(wb_app.WbApp,
     def setupScmDebug( self ):
         # turn on ScmPython debug is required
         import git
+        import logging
+
         if self.__git_debug:
             git.Git.GIT_PYTHON_TRACE = 'full'
+            git_log = logging.getLogger( 'git.cmd' )
+            git_log.setLevel( logging.DEBUG )
+
         else:
             git.Git.GIT_PYTHON_TRACE = False
 

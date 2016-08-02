@@ -15,6 +15,7 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_ui_components
+import wb_rename_dialog
 
 import wb_svn_project
 import wb_svn_info_dialog
@@ -406,6 +407,17 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def tableActionSvnDelete( self ):
         def action( project, filename ):
             project.cmdDelete( filename )
+
+        self.__tableActionSvnCmd( action )
+
+    def tableActionSvnRename( self ):
+        def action( project, filename ):
+            rename = wb_rename_dialog.WbRenameFilenameDialog( self.app, self.main_window )
+            rename.setName( filename.name )
+
+            if rename.exec_():
+                # handles rename for controlled and uncontrolled files
+                project.cmdRename( filename, filename.with_name( rename.getName() ) )
 
         self.__tableActionSvnCmd( action )
 

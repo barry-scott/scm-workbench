@@ -194,13 +194,16 @@ class GitProject:
         all_staged_files = []
         for filename, file_state in self.all_file_state.items():
             if file_state.isStagedNew():
-                all_staged_files.append( (T_('New file'), filename) )
+                all_staged_files.append( (T_('New file'), filename, None) )
 
             elif file_state.isStagedModified():
-                all_staged_files.append( (T_('Modified'), filename) )
+                all_staged_files.append( (T_('Modified'), filename, None) )
 
             elif file_state.isStagedDeleted():
-                all_staged_files.append( (T_('Deleted'), filename) )
+                all_staged_files.append( (T_('Deleted'), filename, None) )
+
+            elif file_state.isStagedRenamed():
+                all_staged_files.append( (T_('Renamed'), filename, file_state.renamedToFilename()) )
 
         return all_staged_files
 
@@ -219,22 +222,12 @@ class GitProject:
         return all_untracked_files
 
     def canPush( self ):
-        for commit in self.repo.iter_commits( None, max_count=1 ):
-            commit_id = commit.hexsha
-
-            for remote in self.repo.remotes:
-                for ref in remote.refs:
-                    remote_id = ref.commit.hexsha
-
-                    return commit_id != remote_id
-
-        return False
+        head_commit = self.repo.head.ref.commit
+        remote_commit = self.repo.head.ref.tracking_branch().commit
+        return head_commit != remote_commit
 
     def getUnpushedCommits( self ):
-        last_pushed_commit_id = ''
-        for remote in self.repo.remotes:
-            for ref in remote.refs:
-                last_pushed_commit_id = ref.commit.hexsha
+        last_pushed_commit_id = self.repo.head.ref.tracking_branch().commit.hexsha
 
         all_unpushed_commits = []
         for commit in self.repo.iter_commits( None ):
@@ -272,6 +265,22 @@ class GitProject:
 
     def cmdDelete( self, filename ):
         (self.prefs_project.path / filename).unlink()
+        self.__stale_index = True
+
+    def cmdRename( self, filename, new_filename ):
+        filestate = self.getFileState( filename )
+        if filestate.isControlled():
+            self.repo.git.mv( filename, new_filename )
+
+        else:
+            abs_path = filestate.absolutePath()
+            new_abs_path = self.prefs_project.path / new_filename
+            try:
+                abs_path.rename( new_abs_path )
+
+            except IOError as e:
+                self.app.log.error( 'Renamed failed - %s' % (e,) )
+
         self.__stale_index = True
 
     def cmdDiffFolder( self, folder, head, staged ):
@@ -420,14 +429,30 @@ class GitProject:
             self.__treeToDict( child, all_entries )
 
     def cmdPull( self, progress_callback, info_callback ):
-        for remote in self.repo.remotes:
-            for info in remote.pull( progress=Progress( progress_callback ) ):
-                info_callback( info )
+        tracking_branch = self.repo.head.ref.tracking_branch()
+        remote = self.repo.remote( tracking_branch.remote_name )
+
+        self.app.log.info( T_('Pull %s') % (tracking_branch.name,) )
+        for info in remote.pull( progress=progress_callback ):
+            info_callback( info )
 
     def cmdPush( self, progress_callback, info_callback ):
-        for remote in self.repo.remotes:
-            for info in remote.push( progress=Progress( progress_callback ) ):
+        tracking_branch = self.repo.head.ref.tracking_branch()
+        remote = self.repo.remote( tracking_branch.remote_name )
+
+        progress = Progress( progress_callback )
+
+        try:
+            self.app.log.info( T_('Push %s') % (tracking_branch.name,) )
+            for info in remote.push( progress=progress ):
                 info_callback( info )
+
+        except GitCommandError:
+            for line in progress.error_lines():
+                self.app.log.error( line )
+
+            raise
+
 
 class WbGitFileState:
     def __init__( self, project, filepath ):
@@ -459,6 +484,13 @@ class WbGitFileState:
     def __repr__( self ):
         return ('<WbGitFileState: calc %r, S=%r, U=%r' %
                 (self.__state_calculated, self.__staged_abbrev, self.__unstaged_abbrev))
+
+    def absolutePath( self ):
+        return self.__project.projectPath() / self.__filepath
+
+    def renamedToFilename( self ):
+        assert self.isStagedRenamed()
+        return self.__staged_diff.rename_from
 
     def setIsDir( self ):
         self.__is_dir = True
@@ -533,12 +565,18 @@ class WbGitFileState:
 
     #------------------------------------------------------------
     def isControlled( self ):
+        if self.__staged_diff is not None and self.__staged_diff.renamed:
+            return True
+
         return self.__index_entry is not None
 
     def isUncontrolled( self ):
         return self.__untracked
 
     def isIgnored( self ):
+        if self.__staged_diff is not None and self.__staged_diff.renamed:
+            return False
+
         if self.__index_entry is not None:
             return False
 
@@ -560,6 +598,10 @@ class WbGitFileState:
     def isStagedDeleted( self ):
         self.__calculateState()
         return self.__staged_abbrev == 'D'
+
+    def isStagedRenamed( self ):
+        self.__calculateState()
+        return self.__staged_abbrev == 'R'
 
     def isUnstagedModified( self ):
         self.__calculateState()
@@ -593,7 +635,7 @@ class WbGitFileState:
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
-        path = self.__project.projectPath() / self.__filepath
+        path = self.absolutePath()
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':
@@ -768,9 +810,10 @@ class GitProjectTreeNode:
 
         return entry
 
-class Progress:
+class Progress(git.RemoteProgress):
     def __init__( self, progress_call_back ):
         self.progress_call_back = progress_call_back
+        super().__init__()
 
     all_update_stages = {
         git.RemoteProgress.COUNTING:        'Counting',
@@ -782,8 +825,11 @@ class Progress:
         git.RemoteProgress.CHECKING_OUT:    'Checking Out',
         }
 
-    def __call__( self, op_code, cur_count, max_count=None, message='' ):
+    def update( self, op_code, cur_count, max_count=None, message='' ):
         stage_name = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
         is_begin = op_code&git.RemoteProgress.BEGIN != 0
         is_end = op_code&git.RemoteProgress.END != 0
         self.progress_call_back( is_begin, is_end, stage_name, cur_count, max_count, message )
+
+    def line_dropped( self, line ):
+        self._error_lines.append( line )
