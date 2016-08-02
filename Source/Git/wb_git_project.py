@@ -421,13 +421,25 @@ class GitProject:
 
     def cmdPull( self, progress_callback, info_callback ):
         for remote in self.repo.remotes:
-            for info in remote.pull( progress=Progress( progress_callback ) ):
+            self.app.log.info( T_('Pull %s') % (remote.name,) )
+            for info in remote.pull( progress=progress_callback ):
                 info_callback( info )
 
     def cmdPush( self, progress_callback, info_callback ):
         for remote in self.repo.remotes:
-            for info in remote.push( progress=Progress( progress_callback ) ):
-                info_callback( info )
+            progress = Progress( progress_callback )
+
+            try:
+                self.app.log.info( T_('Push %s') % (remote.name,) )
+                for info in remote.push( progress=progress ):
+                    info_callback( info )
+
+            except GitCommandError:
+                for line in progress.error_lines():
+                    self.app.log.error( line )
+
+                raise
+
 
 class WbGitFileState:
     def __init__( self, project, filepath ):
@@ -768,9 +780,10 @@ class GitProjectTreeNode:
 
         return entry
 
-class Progress:
+class Progress(git.RemoteProgress):
     def __init__( self, progress_call_back ):
         self.progress_call_back = progress_call_back
+        super().__init__()
 
     all_update_stages = {
         git.RemoteProgress.COUNTING:        'Counting',
@@ -782,8 +795,11 @@ class Progress:
         git.RemoteProgress.CHECKING_OUT:    'Checking Out',
         }
 
-    def __call__( self, op_code, cur_count, max_count=None, message='' ):
+    def update( self, op_code, cur_count, max_count=None, message='' ):
         stage_name = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
         is_begin = op_code&git.RemoteProgress.BEGIN != 0
         is_end = op_code&git.RemoteProgress.END != 0
         self.progress_call_back( is_begin, is_end, stage_name, cur_count, max_count, message )
+
+    def line_dropped( self, line ):
+        self._error_lines.append( line )
