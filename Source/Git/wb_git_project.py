@@ -219,22 +219,12 @@ class GitProject:
         return all_untracked_files
 
     def canPush( self ):
-        for commit in self.repo.iter_commits( None, max_count=1 ):
-            commit_id = commit.hexsha
-
-            for remote in self.repo.remotes:
-                for ref in remote.refs:
-                    remote_id = ref.commit.hexsha
-
-                    return commit_id != remote_id
-
-        return False
+        head_commit = self.repo.head.ref.commit
+        remote_commit = self.repo.head.ref.tracking_branch().commit
+        return head_commit != remote_commit
 
     def getUnpushedCommits( self ):
-        last_pushed_commit_id = ''
-        for remote in self.repo.remotes:
-            for ref in remote.refs:
-                last_pushed_commit_id = ref.commit.hexsha
+        last_pushed_commit_id = self.repo.head.ref.tracking_branch().commit.hexsha
 
         all_unpushed_commits = []
         for commit in self.repo.iter_commits( None ):
@@ -420,25 +410,29 @@ class GitProject:
             self.__treeToDict( child, all_entries )
 
     def cmdPull( self, progress_callback, info_callback ):
-        for remote in self.repo.remotes:
-            self.app.log.info( T_('Pull %s') % (remote.name,) )
-            for info in remote.pull( progress=progress_callback ):
-                info_callback( info )
+        tracking_branch = self.repo.head.ref.tracking_branch()
+        remote = self.repo.remote( tracking_branch.remote_name )
+
+        self.app.log.info( T_('Pull %s') % (tracking_branch.name,) )
+        for info in remote.pull( progress=progress_callback ):
+            info_callback( info )
 
     def cmdPush( self, progress_callback, info_callback ):
-        for remote in self.repo.remotes:
-            progress = Progress( progress_callback )
+        tracking_branch = self.repo.head.ref.tracking_branch()
+        remote = self.repo.remote( tracking_branch.remote_name )
 
-            try:
-                self.app.log.info( T_('Push %s') % (remote.name,) )
-                for info in remote.push( progress=progress ):
-                    info_callback( info )
+        progress = Progress( progress_callback )
 
-            except GitCommandError:
-                for line in progress.error_lines():
-                    self.app.log.error( line )
+        try:
+            self.app.log.info( T_('Push %s') % (tracking_branch.name,) )
+            for info in remote.push( progress=progress ):
+                info_callback( info )
 
-                raise
+        except GitCommandError:
+            for line in progress.error_lines():
+                self.app.log.error( line )
+
+            raise
 
 
 class WbGitFileState:
