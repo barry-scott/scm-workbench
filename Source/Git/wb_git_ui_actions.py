@@ -137,7 +137,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if git_project is None:
             return False
 
-        if self.app.getSingleton( self.commit_key ):
+        if self.app.hasSingleton( self.commit_key ):
             return False
 
         # allow the commit dialog to appear

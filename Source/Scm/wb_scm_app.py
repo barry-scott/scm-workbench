@@ -29,11 +29,10 @@ class WbScmApp(wb_app.WbApp,
                wb_scm_debug.WbScmDebug):
     def __init__( self, args ):
         self.__git_debug = False
+        self.__all_singletons = {}
 
         wb_scm_debug.WbScmDebug.__init__( self )
         wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args, ['git.cmd'] )
-
-        self.__all_singletons = {}
 
     def addSingleton( self, name, value ):
         assert name not in self.__all_singletons

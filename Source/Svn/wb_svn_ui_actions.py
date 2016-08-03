@@ -321,6 +321,9 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if tree_node is None:
             return False
 
+        if self.app.hasSingleton( self.commit_key ):
+            return False
+
         return tree_node.project.numUncommittedFiles() > 0
 
     def __enablerSvnFilesModified( self ):
