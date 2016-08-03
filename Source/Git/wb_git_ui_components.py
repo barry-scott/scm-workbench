@@ -10,17 +10,12 @@
     wb_git_ui_components.py.py
 
 '''
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-
 import wb_log_history_options_dialog
 
 import wb_git_ui_actions
 import wb_git_project
 import wb_git_commit_dialog
 import wb_git_log_history
-import wb_git_status_view
 
 import git.cmd
 

@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_ui_components.py.py
+    wb_hg_ui_components.py.py
 
 '''
 import sys
@@ -18,8 +18,8 @@ from PyQt5 import QtCore
 
 import wb_ui_components
 
-import wb_git_project
-import wb_git_status_view
+import wb_hg_project
+import wb_hg_status_view
 
 #
 #   Start with the main window components interface
@@ -29,29 +29,26 @@ import wb_git_status_view
 #   then derive to add tool bars and menus
 #   appropiate to each context
 #
-class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
+class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def __init__( self ):
-        super().__init__( 'git' )
+        super().__init__( 'hg' )
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debugGitUi
+        self._debug = self.main_window.app._debugHgUi
 
     #------------------------------------------------------------
     #
     #   Enabler handlers
     #
     #------------------------------------------------------------
-    def enablerGitFilesStage( self ):
-        return self.__enablerGitFiles( wb_git_project.WbGitFileState.canStage )
+    def enablerHgFilesAdd( self ):
+        return self.__enablerHgFiles( wb_hg_project.WbHgFileState.canAdd )
 
-    def enablerGitFilesUnstage( self ):
-        return self.__enablerGitFiles( wb_git_project.WbGitFileState.canUnstage )
+    def enablerHgFilesRevert( self ):
+        return self.__enablerHgFiles( wb_hg_project.WbHgFileState.canRevert )
 
-    def enablerGitFilesRevert( self ):
-        return self.__enablerGitFiles( wb_git_project.WbGitFileState.canRevert )
-
-    def __enablerGitFiles( self, predicate ):
-        if not self.main_window.isScmTypeActive( 'git' ):
+    def __enablerHgFiles( self, predicate ):
+        if not self.main_window.isScmTypeActive( 'hg' ):
             return False
 
         focus = self.main_window.scmFocusWidget()
@@ -73,17 +70,11 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         else:
             return False
 
-    def enablerGitDiffHeadVsWorking( self ):
-        return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffHeadVsWorking )
-
-    def enablerGitDiffStagedVsWorking( self ):
-        return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffStagedVsWorking )
-
-    def enablerGitDiffHeadVsStaged( self ):
-        return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffHeadVsStaged )
+    def enablerHgDiffHeadVsWorking( self ):
+        return self.__enablerDiff( wb_hg_project.WbHgFileState.canDiffHeadVsWorking )
 
     def __enablerDiff( self, predicate ):
-        if not self.main_window.isScmTypeActive( 'git' ):
+        if not self.main_window.isScmTypeActive( 'hg' ):
             return False
 
         focus = self.main_window.scmFocusWidget()
@@ -104,8 +95,8 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         else:
             return False
 
-    def enablerGitDiffSmart( self ):
-        if not self.main_window.isScmTypeActive( 'git' ):
+    def enablerHgDiffSmart( self ):
+        if not self.main_window.isScmTypeActive( 'hg' ):
             return False
 
         focus = self.main_window.scmFocusWidget()
@@ -118,9 +109,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             all_file_states = self.tableSelectedAllFileStates()
             enable = True
             for obj in all_file_states:
-                if not (obj.canDiffStagedVsWorking()
-                        or obj.canDiffHeadVsWorking()
-                        or obj.canDiffHeadVsStaged()):
+                if not obj.canDiffHeadVsWorking():
                     enable = False
                     break
 
@@ -129,42 +118,40 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         else:
             return False
 
-    def enablerGitCommit( self ):
-        # enable if any files staged
-        git_project = self.selectedGitProject()
+    def enablerHgCommit( self ):
+        # enable if any files modified
+        hg_project = self.selectedHgProject()
 
         can_commit = False
-        if git_project is None:
+        if hg_project is None:
             return False
 
         if self.app.hasSingleton( self.commit_key ):
             return False
 
         # allow the commit dialog to appear
-        # if there are staged files or modified files
-        # which can be staged using the commit dialog
-        if( git_project.numStagedFiles() == 0
-        and git_project.numModifiedFiles() == 0 ):
+        # if there are modified files
+        # which can be added using the commit dialog
+        if hg_project.numModifiedFiles() == 0:
             return False
 
         return True
 
-    def treeActionGitDebug1( self ):
-        self.log.error( '  enablerGitCommit -> %r' % (self.enablerGitCommit(),) )
-        git_project = self.selectedGitProject()
-        self.log.error( '       git_project -> %r' % (git_project,) )
-        if git_project is None:
+    def treeActionHgDebug1( self ):
+        self.log.error( '  enablerHgCommit -> %r' % (self.enablerHgCommit(),) )
+        hg_project = self.selectedHgProject()
+        self.log.error( '       hg_project -> %r' % (hg_project,) )
+        if hg_project is None:
             return
 
         self.log.error( '     commit_dialog -> %r' % (self.app.hasSingleton( self.commit_key ),) )
-        self.log.error( '    numStagedFiles -> %r' % (git_project.numStagedFiles(),) )
-        self.log.error( '  numModifiedFiles -> %r' % (git_project.numModifiedFiles(),) )
+        self.log.error( '  numModifiedFiles -> %r' % (hg_project.numModifiedFiles(),) )
 
-    def enablerGitPush( self ):
-        git_project = self.selectedGitProject()
-        return git_project is not None and git_project.canPush()
+    def enablerHgPush( self ):
+        hg_project = self.selectedHgProject()
+        return hg_project is not None and hg_project.canPush()
 
-    def enablerGitLogHistory( self ):
+    def enablerHgLogHistory( self ):
         return True
 
     #------------------------------------------------------------
@@ -172,67 +159,43 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
     # tree or table actions depending on focus
     #
     #------------------------------------------------------------
-    def treeTableActionGitDiffSmart( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffSmart, self.tableActionGitDiffSmart )
+    def treeTableActionHgDiffSmart( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionHgDiffSmart, self.tableActionHgDiffSmart )
 
-    def treeTableActionGitDiffStagedVsWorking( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffStagedVsWorking, self.tableActionGitDiffStagedVsWorking )
+    def treeTableActionHgDiffHeadVsWorking( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionHgDiffHeadVsWorking, self.tableActionHgDiffHeadVsWorking )
 
-    def treeTableActionGitDiffHeadVsStaged( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffHeadVsStaged, self.tableActionGitDiffHeadVsStaged )
-
-    def treeTableActionGitDiffHeadVsWorking( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
-
-    def treeTableActionGitLogHistory( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
+    def treeTableActionHgLogHistory( self ):
+        self.main_window.callTreeOrTableFunction( self.treeActionHgLogHistory, self.tableActionHgLogHistory )
 
     #------------------------------------------------------------
     #
     # tree actions
     #
     #------------------------------------------------------------
-    def selectedGitProject( self ):
+    def selectedHgProject( self ):
         scm_project = self.table_view.selectedScmProject()
         if scm_project is None:
             return None
 
-        if not isinstance( scm_project, wb_git_project.GitProject ):
+        if not isinstance( scm_project, wb_hg_project.HgProject ):
             return None
 
         return scm_project
 
-    def treeActionGitDiffSmart( self ):
-        self._debug( 'treeActionGitDiffSmart()' )
+    def treeActionHgDiffSmart( self ):
+        self._debug( 'treeActionHgDiffSmart()' )
 
-    def treeActionGitDiffStagedVsWorking( self ):
-        tree_node = self.selectedGitProjectTreeNode()
+    def treeActionHgDiffHeadVsWorking( self ):
+        tree_node = self.selectedHgProjectTreeNode()
         if tree_node is None:
             return
 
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False, staged=False )
-        self.showDiffText( T_('Diff Staged vs. Working for %s') %
-                                        (tree_node.relativePath(),), diff_text.split('\n') )
-
-    def treeActionGitDiffHeadVsStaged( self ):
-        tree_node = self.selectedGitProjectTreeNode()
-        if tree_node is None:
-            return
-
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=True )
-        self.showDiffText( T_('Diff Head vs. Staged for %s') %
-                                        (tree_node.relativePath(),), diff_text.split('\n') )
-
-    def treeActionGitDiffHeadVsWorking( self ):
-        tree_node = self.selectedGitProjectTreeNode()
-        if tree_node is None:
-            return
-
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=False )
+        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath() )
         self.showDiffText( T_('Diff Head vs. Working for %s') %
                                         (tree_node.relativePath(),), diff_text.split('\n') )
 
-    def __logGitCommandError( self, e ):
+    def __logHgCommandError( self, e ):
         self.log.error( "'%s' returned with exit code %i" %
                         (' '.join(str(i) for i in e.command), e.status) )
         if e.stderr:
@@ -244,19 +207,19 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 self.log.error( line )
 
     # ------------------------------------------------------------
-    def treeActionGitPush( self, checked ):
-        git_project = self.selectedGitProject().newInstance()
-        self.setStatusAction( T_('Push %s') % (git_project.projectName(),) )
+    def treeActionHgPush( self, checked ):
+        hg_project = self.selectedHgProject().newInstance()
+        self.setStatusAction( T_('Push %s') % (hg_project.projectName(),) )
 
         yield self.switchToBackground
 
         try:
-            git_project.cmdPush(
+            hg_project.cmdPush(
                 self.deferRunInForeground( self.pushProgressHandler ),
                 self.deferRunInForeground( self.pushInfoHandler ) )
 
-        except wb_git_project.GitCommandError as e:
-            self.__logGitCommandError( e )
+        except wb_hg_project.HgCommandError as e:
+            self.__logHgCommandError( e )
 
         yield self.switchToForeground
 
@@ -282,25 +245,25 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         if message != '':
             self.log.info( message )
-           
+
         self.progress.start( status )
         if is_end:
             self.log.info( status )
 
     # ------------------------------------------------------------
-    def treeActionGitPull( self, checked ):
-        git_project = self.selectedGitProject().newInstance()
-        self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
+    def treeActionHgPull( self, checked ):
+        hg_project = self.selectedHgProject().newInstance()
+        self.setStatusAction( T_('Pull %s') % (hg_project.projectName(),) )
 
         yield self.switchToBackground
 
         try:
-            git_project.cmdPull(
+            hg_project.cmdPull(
                 self.deferRunInForeground( self.pullProgressHandler ),
                 self.deferRunInForeground( self.pullInfoHandler ) )
 
-        except wb_git_project.GitCommandError as e:
-            self.__logGitCommandError( e )
+        except wb_hg_project.HgCommandError as e:
+            self.__logHgCommandError( e )
 
         yield self.switchToForeground
 
@@ -349,77 +312,57 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if is_end:
             self.log.info( status )
 
-    def treeActionGitStatus( self ):
-        git_project = self.selectedGitProject()
+    def treeActionHgStatus( self ):
+        hg_project = self.selectedHgProject()
 
-        commit_status_view = wb_git_status_view.WbGitStatusView(
+        commit_status_view = wb_hg_status_view.WbHgStatusView(
                 self.app,
-                T_('Status for %s') % (git_project.projectName(),),
+                T_('Status for %s') % (hg_project.projectName(),),
                 self.main_window.getQIcon( 'wb.png' ) )
         commit_status_view.setStatus(
-                    git_project.getUnpushedCommits(),
-                    git_project.getReportStagedFiles(),
-                    git_project.getReportUntrackedFiles() )
+                    hg_project.getUnpushedCommits(),
+                    hg_project.getReportModifiedFiles(),
+                    hg_project.getReportUntrackedFiles() )
         commit_status_view.show()
 
     # ------------------------------------------------------------
-    def tableActionGitStage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitStage )
+    def tableActionHgAdd( self ):
+        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionHgAdd )
 
-    def tableActionGitUnstage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitUnStage )
+    def tableActionHgRevert( self ):
+        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionHgRevert )
 
-    def tableActionGitRevert( self ):
-        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionGitRevert )
+    def tableActionHgDelete( self ):
+        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionHgDelete )
 
-    def tableActionGitDelete( self ):
-        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionGitDelete )
+    def tableActionHgDiffSmart( self ):
+        self._debug( 'tableActionHgDiffSmart()' )
+        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffSmart )
 
-    def tableActionGitDiffSmart( self ):
-        self._debug( 'tableActionGitDiffSmart()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffSmart )
+    def tableActionHgDiffHeadVsWorking( self ):
+        self._debug( 'tableActionHgDiffHeadVsWorking()' )
+        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffHeadVsWorking )
 
-    def tableActionGitDiffStagedVsWorking( self ):
-        self._debug( 'tableActionGitDiffStagedVsWorking()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffStagedVsWorking )
+    def tableActionHgLogHistory( self ):
+        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self._actionHgLogHistory )
 
-    def tableActionGitDiffHeadVsStaged( self ):
-        self._debug( 'tableActionGitDiffHeadVsStaged()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsStaged )
+    def __actionHgAdd( self, hg_project, filename ):
+        hg_project.cmdAdd( filename )
 
-    def tableActionGitDiffHeadVsWorking( self ):
-        self._debug( 'tableActionGitDiffHeadVsWorking()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsWorking )
+    def __actionHgRevert( self, hg_project, filename ):
+        hg_project.cmdRevert( 'HEAD', filename )
 
-    def tableActionGitLogHistory( self ):
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self._actionGitLogHistory )
+    def __actionHgDelete( self, hg_project, filename ):
+        hg_project.cmdDelete( filename )
 
-    def __actionGitStage( self, git_project, filename ):
-        git_project.cmdStage( filename )
+    def __actionHgDiffSmart( self, hg_project, filename ):
+        file_state = hg_project.getFileState( filename )
 
-    def __actionGitUnStage( self, git_project, filename ):
-        git_project.cmdUnstage( 'HEAD', filename )
+        if file_state.canDiffHeadVsWorking():
+            self.__actionHgDiffHeadVsWorking( hg_project, filename )
 
-    def __actionGitRevert( self, git_project, filename ):
-        git_project.cmdRevert( 'HEAD', filename )
-
-    def __actionGitDelete( self, git_project, filename ):
-        git_project.cmdDelete( filename )
-
-    def __actionGitDiffSmart( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
-
-        if file_state.canDiffStagedVsWorking():
-            self.__actionGitDiffStagedVsWorking( git_project, filename )
-
-        elif file_state.canDiffHeadVsStaged():
-            self.__actionGitDiffHeadVsStaged( git_project, filename )
-
-        elif file_state.canDiffHeadVsWorking():
-            self.__actionGitDiffHeadVsWorking( git_project, filename )
-
-    def __actionGitDiffHeadVsWorking( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
+    def __actionHgDiffHeadVsWorking( self, hg_project, filename ):
+        file_state = hg_project.getFileState( filename )
 
         self.diffTwoFiles(
                 T_('Diff HEAD vs. Work %s') % (filename,),
@@ -427,28 +370,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 file_state.getTextLinesWorking(),
                 T_('HEAD %s') % (filename,),
                 T_('Work %s') % (filename,)
-                )
-
-    def __actionGitDiffStagedVsWorking( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
-
-        self.diffTwoFiles(
-                T_('Diff Staged vs. Work %s') % (filename,),
-                file_state.getTextLinesStaged(),
-                file_state.getTextLinesWorking(),
-                T_('Staged %s') % (filename,),
-                T_('Work %s') % (filename,)
-                )
-
-    def __actionGitDiffHeadVsStaged( self, git_project, filename ):
-        file_state = git_project.getFileState( filename )
-
-        self.diffTwoFiles(
-                T_('Diff HEAD vs. Staged %s') % (filename,),
-                file_state.getTextLinesHead(),
-                file_state.getTextLinesStaged(),
-                T_('HEAD %s') % (filename,),
-                T_('Staged %s') % (filename,)
                 )
 
     #------------------------------------------------------------
@@ -481,17 +402,16 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
         if self.table_view.tableActionViewRepo( are_you_sure_function, execute_function ):
-            git_project = self.selectedGitProject()
-            git_project.saveChanges()
+            hg_project = self.selectedHgProject()
 
             # take account of the change
             self.top_window.updateTableView()
 
     # ------------------------------------------------------------
-    def selectedGitProjectTreeNode( self ):
+    def selectedHgProjectTreeNode( self ):
         if not self.isScmTypeActive():
             return None
 
         tree_node = self.main_window.selectedScmProjectTreeNode()
-        assert isinstance( tree_node, wb_git_project.GitProjectTreeNode )
+        assert isinstance( tree_node, wb_hg_project.HgProjectTreeNode )
         return tree_node

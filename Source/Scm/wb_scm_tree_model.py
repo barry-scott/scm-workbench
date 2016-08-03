@@ -22,6 +22,7 @@ import wb_svn_project
 import wb_scm_project_place_holder
 
 import git
+import hglib
 
 class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
     def __init__( self, app, main_window, parent=None ):
