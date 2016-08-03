@@ -137,7 +137,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if git_project is None:
             return False
 
-        if self.commit_dialog is not None:
+        if self.app.getSingleton( self.commit_key ):
             return False
 
         # allow the commit dialog to appear
@@ -485,8 +485,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             git_project.saveChanges()
 
             # take account of the change
-            self.main_window.updateTableView()
-            self.main_window.updateActionEnabledStates()
+            self.top_window.updateTableView()
 
     # ------------------------------------------------------------
     def selectedGitProjectTreeNode( self ):

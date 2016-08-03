@@ -146,26 +146,31 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile )
             func( git_project, filename, options )
 
+    commit_key = 'git-commit-dialog'
     def treeActionGitCommit( self ):
-        if self.commit_dialog is not None:
+        if self.app.hasSingleton( self.commit_key ):
             self.log.error( 'Commit dialog is already open' )
             return
 
         git_project = self.selectedGitProject()
 
-        self.commit_dialog = wb_git_commit_dialog.WbGitCommitDialog( self.app, git_project )
-        self.commit_dialog.commitAccepted.connect( self.__commitAccepted )
-        self.commit_dialog.commitClosed.connect( self.__commitClosed )
+        commit_dialog = wb_git_commit_dialog.WbGitCommitDialog( self.app, git_project )
+        commit_dialog.commitAccepted.connect( self.__commitAccepted )
+        commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user
-        self.commit_dialog.show()
+        commit_dialog.show()
+
+        self.app.addSingleton( self.commit_key, commit_dialog )
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
     def __commitAccepted( self ):
+        commit_dialog = self.app.getSingleton( self.commit_key )
+
         git_project = self.selectedGitProject()
-        message = self.commit_dialog.getMessage()
+        message = commit_dialog.getMessage()
         commit_id = git_project.cmdCommit( message )
 
         headline = message.split('\n')[0]
@@ -174,10 +179,10 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         self.__commitClosed()
 
     def __commitClosed( self ):
-        # get rid of the window
-        if self.commit_dialog is not None:
-            self.commit_dialog.close()
-            self.commit_dialog = None
+        # on top window close the commit_key may already have been pop'ed
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.popSingleton( self.commit_key )
+            commit_dialog.close()
 
         # take account of any changes
         self.main_window.updateTableView()

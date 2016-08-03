@@ -27,7 +27,6 @@ class WbScmDebug(wb_debug.WbDebug):
         self._debug_log_history = False
 
         super().__init__()
-
     def _debugHgUi( self, msg ):
         if self._debug_hg_ui:
             self.log.debug( 'HG-UI %s' % (msg,) )

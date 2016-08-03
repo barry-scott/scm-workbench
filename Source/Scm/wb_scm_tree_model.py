@@ -32,6 +32,7 @@ class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
 
     def lessThan( self, source_left, source_right ):
         model = self.sourceModel()
+
         left_ent = model.itemFromIndex( source_left )
         right_ent = model.itemFromIndex( source_right )
 

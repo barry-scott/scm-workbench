@@ -92,9 +92,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         else:
             self.resize( 800, 600 )
 
-        # the singleton commit dialog
-        self.commit_dialog = None
-
         # window major widgets
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
@@ -180,7 +177,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.timer_init.setSingleShot( True )
         self.timer_init.start( 0 )
 
-
     def completeStatupInitialisation( self ):
         self._debug( 'completeStatupInitialisation()' )
 
@@ -218,17 +214,23 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
     def updateTableView( self ):
+        # need to turn sort on and off to have the view sorted on an update
+        self.tree_view.setSortingEnabled( False )
+
         # load in the latest status
         self.tree_model.refreshTree()
 
         # sort filter is now invalid
         self.table_view.table_sortfilter.invalidate()
 
-        if self.commit_dialog is not None:
-            self.commit_dialog.updateTableView()
+        # tall all the singletons to update
+        for singleton in self.app.getAllSingletons():
+            singleton.updateSingleton()
+
+        self.tree_view.setSortingEnabled( True )
 
         # enabled states will have changed
-        self.updateActionEnabledStates()
+        self.timer_update_enable_states.start( 0 )
 
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
@@ -408,14 +410,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def appActiveHandler( self ):
         self._debug( 'appActiveHandler()' )
 
-        # update the selected projects data
-        self.tree_model.refreshTree()
-
-        # sort filter is now invalid
-        self.table_view.table_sortfilter.invalidate()
-
-        # enabled states will have changed
-        self.timer_update_enable_states.start( 0 )
+        self.updateTableView()
 
     #------------------------------------------------------------
     #
