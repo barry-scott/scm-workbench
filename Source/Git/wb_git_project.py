@@ -194,13 +194,16 @@ class GitProject:
         all_staged_files = []
         for filename, file_state in self.all_file_state.items():
             if file_state.isStagedNew():
-                all_staged_files.append( (T_('New file'), filename) )
+                all_staged_files.append( (T_('New file'), filename, None) )
 
             elif file_state.isStagedModified():
-                all_staged_files.append( (T_('Modified'), filename) )
+                all_staged_files.append( (T_('Modified'), filename, None) )
 
             elif file_state.isStagedDeleted():
-                all_staged_files.append( (T_('Deleted'), filename) )
+                all_staged_files.append( (T_('Deleted'), filename, None) )
+
+            elif file_state.isStagedRenamed():
+                all_staged_files.append( (T_('Renamed'), filename, file_state.renamedToFilename()) )
 
         return all_staged_files
 
@@ -262,6 +265,22 @@ class GitProject:
 
     def cmdDelete( self, filename ):
         (self.prefs_project.path / filename).unlink()
+        self.__stale_index = True
+
+    def cmdRename( self, filename, new_filename ):
+        filestate = self.getFileState( filename )
+        if filestate.isControlled():
+            self.repo.git.mv( filename, new_filename )
+
+        else:
+            abs_path = filestate.absolutePath()
+            new_abs_path = self.prefs_project.path / new_filename
+            try:
+                abs_path.rename( new_abs_path )
+
+            except IOError as e:
+                self.app.log.error( 'Renamed failed - %s' % (e,) )
+
         self.__stale_index = True
 
     def cmdDiffFolder( self, folder, head, staged ):
@@ -466,6 +485,13 @@ class WbGitFileState:
         return ('<WbGitFileState: calc %r, S=%r, U=%r' %
                 (self.__state_calculated, self.__staged_abbrev, self.__unstaged_abbrev))
 
+    def absolutePath( self ):
+        return self.__project.projectPath() / self.__filepath
+
+    def renamedToFilename( self ):
+        assert self.isStagedRenamed()
+        return self.__staged_diff.rename_from
+
     def setIsDir( self ):
         self.__is_dir = True
 
@@ -539,12 +565,18 @@ class WbGitFileState:
 
     #------------------------------------------------------------
     def isControlled( self ):
+        if self.__staged_diff is not None and self.__staged_diff.renamed:
+            return True
+
         return self.__index_entry is not None
 
     def isUncontrolled( self ):
         return self.__untracked
 
     def isIgnored( self ):
+        if self.__staged_diff is not None and self.__staged_diff.renamed:
+            return False
+
         if self.__index_entry is not None:
             return False
 
@@ -566,6 +598,10 @@ class WbGitFileState:
     def isStagedDeleted( self ):
         self.__calculateState()
         return self.__staged_abbrev == 'D'
+
+    def isStagedRenamed( self ):
+        self.__calculateState()
+        return self.__staged_abbrev == 'R'
 
     def isUnstagedModified( self ):
         self.__calculateState()
@@ -599,7 +635,7 @@ class WbGitFileState:
         return self.__unstaged_is_modified
 
     def getTextLinesWorking( self ):
-        path = self.__project.projectPath() / self.__filepath
+        path = self.absolutePath()
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
             if all_lines[-1] == '':

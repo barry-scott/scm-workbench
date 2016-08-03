@@ -191,7 +191,7 @@ class SvnProject:
     def hasFileState( self, filename ):
         assert isinstance( filename, pathlib.Path )
         return filename in self.all_file_state
-        
+
     def getFileState( self, filename ):
         assert isinstance( filename, pathlib.Path )
         # status only has enties for none CURRENT status files
@@ -233,6 +233,22 @@ class SvnProject:
         self.client().delete( self.pathForSvn( filename ) )
         self.__stale_status = True
 
+    def cmdRename( self, filename, new_filename ):
+        filestate = self.getFileState( filename )
+        if filestate.isControlled():
+            self.client().move( self.pathForSvn( filename ), self.pathForSvn( new_filename ) )
+
+        else:
+            abs_path = filestate.absolutePath()
+            new_abs_path = self.prefs_project.path / new_filename
+            try:
+                abs_path.rename( new_abs_path )
+
+            except IOError as e:
+                self.app.log.error( 'Renamed failed - %s' % (e,) )
+
+        self.__stale_index = True
+
     def cmdDiffFolder( self, folder, head=False ):
         self._debug( 'cmdDiffFolder( %r )' % (folder,) )
         abs_folder = self.pathForSvn( folder )
@@ -268,7 +284,6 @@ class SvnProject:
             )
 
         return diff_text
-
 
     def cmdPropList( self, filename ):
         prop_list = self.client().proplist( self.pathForSvn( filename ),

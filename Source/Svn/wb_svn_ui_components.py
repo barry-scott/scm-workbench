@@ -14,9 +14,9 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import wb_svn_ui_actions
 import wb_log_history_options_dialog
 
+import wb_svn_ui_actions
 import wb_svn_project
 import wb_svn_commit_dialog
 import wb_svn_info_dialog
@@ -59,6 +59,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
 
         m.addSeparator()
+        addMenu( m, T_('Rename…'), self.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
         addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
@@ -107,6 +108,15 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         m.addSection( T_('Status') )
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+
+        m.addSection( T_('&Actions') )
+        addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+
+        m.addSeparator()
+        addMenu( m, T_('Rename…'), self.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists )
+
 
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )

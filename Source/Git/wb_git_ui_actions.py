@@ -17,6 +17,7 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_ui_components
+import wb_rename_dialog
 
 import wb_git_project
 import wb_git_status_view
@@ -375,6 +376,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def tableActionGitDelete( self ):
         self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionGitDelete )
 
+    def tableActionGitRename( self ):
+        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitRename )
+
     def tableActionGitDiffSmart( self ):
         self._debug( 'tableActionGitDiffSmart()' )
         self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffSmart )
@@ -405,6 +409,16 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     def __actionGitDelete( self, git_project, filename ):
         git_project.cmdDelete( filename )
+
+    def __actionGitRename( self, git_project, filename ):
+        filestate = git_project.getFileState( filename )
+
+        rename = wb_rename_dialog.WbRenameFilenameDialog( self.app, self.main_window )
+        rename.setName( filename.name )
+
+        if rename.exec_():
+            # handles rename for controlled and uncontrolled files
+            git_project.cmdRename( filename, filename.with_name( rename.getName() ) )
 
     def __actionGitDiffSmart( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
