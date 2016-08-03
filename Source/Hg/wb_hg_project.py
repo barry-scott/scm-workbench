@@ -109,8 +109,6 @@ class HgProject:
 
         for state, filepath in self.repo.status( all=True, ignored=True ):
             state = state.decode( 'utf-8' )
-            if state == 'C':
-                state = ''
 
             filepath = self.pathForWb( filepath )
             if filepath not in self.all_file_state:
@@ -403,7 +401,10 @@ class WbHgFileState:
         self.__state = state
 
     def getAbbreviatedStatus( self ):
-        return self.__state
+        if self.__state in ('C', '?'):
+            return ''
+        else:
+            return self.__state
 
     def getStagedAbbreviatedStatus( self ):
         # QQQ here for Git compat - bad OO design here
