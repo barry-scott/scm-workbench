@@ -17,6 +17,9 @@ if not exist "%BUILDER_QTDIR%" (
     exit /b 1
 )
 
+set APPMODE=--gui
+if "%1" == "--cli" set APPMODE=--cli
+
 set PKG_DIST_DIR=%BUILDER_TOP_DIR%\Kit\Windows\pkg
 set SRC_DIR=%BUILDER_TOP_DIR%\Source
 set KIT_DIR=%BUILDER_TOP_DIR%\Kit\macOS
@@ -47,7 +50,7 @@ set PATH=%BUILDER_QTDIR%\msvc2015_64\bin;%PATH%
 set PYTHONPATH=%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Common
 rem  --icon ..\Source\Windows\Resources\win_emacs.ico
 pushd %SRC_DIR%\Scm
-%PYTHON% -m win_app_packager build wb_scm_main.py --gui %DIST_DIR% --name "SCM Workbench" --verbose
+%PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --name "SCM Workbench" --verbose
     if errorlevel 1 goto :eof
 popd >null
 

@@ -4,7 +4,7 @@ import os
 import datetime
 import pathlib
 
-import bemacs_version
+import wb_scm_version
 
 def main( argv ):
     print( 'Info: setup_kit_files.py' )
@@ -57,20 +57,19 @@ this kit.
         f.close()
 
         print( 'Info: Create setup_copy.cmd' )
+        kitname = 'SCM-Workbench-%d.%d.%d-setup.exe' % (wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch)
         f = open( r'tmp\setup_copy.cmd', 'w' )
-        f.write( r'copy tmp\Output\setup.exe SCM-Workbench-%d.%d.%d-setup.exe' '\n' %
-                    (wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch) )
-        f.write( r'dir /s /b SCM-Workbench-%d.%d.%d-setup' '\n' %
-                    (wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch) )
+        f.write( r'copy tmp\Output\setup.exe %s' '\n' % (kitname,) )
+        f.write( r'dir /s /b %s' '\n' % (kitname,) )
         f.close()
 
         self.all_setup_items.extend( [
                 r'''AppName=%(app_name)s''' % self.__dict__,
-                r'''AppVerName=SCM Workbench %d.%d.%d''' % (wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch),
-                r'''AppCopyright=Copyright (C) %s Barry A. Scott''' % (self.copyright_years,),
+                r'''AppVerName=%s %d.%d.%d''' % (self.app_name, wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch),
+                r'''AppCopyright=Copyright (C) %s Barry A. Scott''' % (wb_scm_version.copyright_years,),
                 r'''DefaultDirName={pf}\Barry Scott\%(app_name)s''' % self.__dict__,
                 r'''DefaultGroupName=%(app_name)s''' % self.__dict__,
-                r'''UninstallDisplayIcon={app}\scm_workbench.exe''',
+                r'''UninstallDisplayIcon={app}\%(app_name)s.exe''' % self.__dict__,
                 r'''ChangesAssociations=yes''',
                 r'''DisableStartupPrompt=yes''',
                 r'''InfoBeforeFile=info_before.txt''',
@@ -83,18 +82,17 @@ this kit.
                 ] )
 
         self.all_icon_items.extend( [
-                r'''Name: "{group}\SCM Workbench"; Filename: "{app}\SCM-Workbench.exe"''',
-                r'''Name: "{group}\Documentation"; Filename: "{app}\Documentation\emacs-documentation.html"''',
-                r'''Name: "{group}\SCM Workbench"; Filename: "https://github.com/barry-scott/scm-workbench";''',
+                r'''Name: "{group}\SCM Workbench"; Filename: "{app}\%(app_name)s.exe"''' % self.__dict__,
+                r'''Name: "{group}\Web Site"; Filename: "https://github.com/barry-scott/scm-workbench";''',
                 #
                 #    Add an Emacs icon to the Desktop
                 #
-                r'''Name: "{commondesktop}\%(app_name)s"; Filename: "{app}\SCM workbench.exe"; Tasks: "option_desktop_icon"''' % self.__dict__,
+                r'''Name: "{commondesktop}\%(app_name)s"; Filename: "{app}\%(app_name)s.exe"; Tasks: "option_desktop_icon"''' % self.__dict__,
 
                 #
                 #    Add an Emacs icon to the Start menu
                 #
-                r'''Name: "{commonstartmenu}\%(app_name)s"; Filename: "{app}\SCM Workbench.exe"; Tasks: "option_start_menu_icon"''' % self.__dict__,
+                r'''Name: "{commonstartmenu}\%(app_name)s"; Filename: "{app}\%(app_name)s.exe"; Tasks: "option_start_menu_icon"''' % self.__dict__,
 
                 ] )
 
@@ -118,7 +116,7 @@ this kit.
 
         if self.arch == 'Win64':
             redist_arch = 'x64'
-            code_file = 'bemacs_win64_code.iss'
+            code_file = 'win64_code.iss'
             self.all_setup_items.append( 'ArchitecturesAllowed=x64' )
             self.all_setup_items.append( 'ArchitecturesInstallIn64BitMode=x64' )
 
@@ -140,12 +138,12 @@ this kit.
                                     (redist_file, redist_year, self.arch) )
 
         # finally show the readme.txt
-        self.all_run_items.append( r'Filename: "{app}\SCM Workbench.exe"; '
-                                        r'Flags: nowait postinstall skipifsilent; Description: "Start SCM Workbench"' )
+        self.all_run_items.append( r'Filename: "{app}\%(app_name)s.exe"; ' 
+                                   r'Flags: nowait postinstall skipifsilent; Description: "Start %(app_name)s"' % self.__dict__ )
 
     def addAllKitFiles( self ):
-        os.chdir( 'tmp' )
-        kitfiles_folder = pathlib.Path( 'kitfiles' )
+        os.chdir( 'pkg' )
+        kitfiles_folder = pathlib.Path( r'..\pkg' )
 
         all_files = []
 
@@ -164,11 +162,11 @@ this kit.
         os.chdir( '..' )
 
     def generateInnoFile( self ):
-        inno_file = r'tmp\bemacs.iss'
+        inno_file = r'tmp\scm-workbench.iss'
         print( 'Info: Generating %s' % (inno_file,) )
         f = open( inno_file, 'w' )
 
-        f.write( ';\n; bemacs.iss generate by setup_kit_files.py\n;\n' )
+        f.write( ';\n; scm-workbench.iss generate by setup_kit_files.py\n;\n' )
 
         self.__generateSection( f, 'Code', self.all_code_items )
         self.__generateSection( f, 'Setup', self.all_setup_items )
