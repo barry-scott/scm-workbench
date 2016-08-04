@@ -425,10 +425,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def appActionAbout( self ):
         all_about_info = []
-        all_about_info.append( "%s %d.%d.%d %s" %
+        all_about_info.append( '%s %d.%d.%d' %
                                 (' '.join( self.app.app_name_parts )
                                 ,wb_scm_version.major, wb_scm_version.minor
-                                ,wb_scm_version.patch, wb_scm_version.commit) )
+                                ,wb_scm_version.patch) )
+        all_about_info.append( '(%s)' % (wb_scm_version.commit,) )
+        all_about_info.append( '' )
         all_about_info.append( 'Python %d.%d.%d %s %d' %
                                 (sys.version_info.major
                                 ,sys.version_info.minor
@@ -438,8 +440,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         all_about_info.append( 'PyQt %s, Qt %s' % (Qt.PYQT_VERSION_STR, QtCore.QT_VERSION_STR) )
 
         for scm_type in self.all_ui_components:
+            all_about_info.append( '' )
             all_about_info.extend( self.all_ui_components[ scm_type ].about() )
 
+        all_about_info.append( '' )
         all_about_info.append( T_('Copyright Barry Scott (c) %s. All rights reserved') % (wb_scm_version.copyright_years,) )
 
         box = QtWidgets.QMessageBox( 

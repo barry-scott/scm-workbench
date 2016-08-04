@@ -23,7 +23,7 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         super().__init__()
 
     def about( self ):
-        return ['hg TBD']
+        return [wb_hg_project.HgVersion()]
 
     def setupDebug( self ):
         self._debug = self.main_window.app._debugHgUi

@@ -14,6 +14,20 @@ import pathlib
 import sys
 
 import hglib
+import hglib.util
+import hglib.client
+
+def HgVersion():
+    args = hglib.util.cmdbuilder( b'version' )
+
+    args.insert( 0, hglib.HGPATH )
+    proc = hglib.util.popen( args )
+    out, err = proc.communicate()
+    if proc.returncode:
+        raise hglib.error.CommandError( args, proc.returncode, out, err )
+
+    # assume first line is has the critical version info
+    return out.decode( 'utf-8' ).split('\n')[0]
 
 class HgProject:
     def __init__( self, app, prefs_project ):
