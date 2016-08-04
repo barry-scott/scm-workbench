@@ -245,6 +245,7 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def updateTableView( self ):
         # caller will have updated the git project state already
         self.table_view.setScmProjectTreeNode( self.git_project.flat_tree )
+        self.updateActionEnabledStates()
 
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'git'
