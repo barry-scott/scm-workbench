@@ -18,9 +18,9 @@ import hglib.util
 import hglib.client
 
 def HgVersion():
-    args = hglib.util.cmdbuilder( b'version' )
-
+    args = hglib.util.cmdbuilder( 'version' )
     args.insert( 0, hglib.HGPATH )
+
     proc = hglib.util.popen( args )
     out, err = proc.communicate()
     if proc.returncode:
