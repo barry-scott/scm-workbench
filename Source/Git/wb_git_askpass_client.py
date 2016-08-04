@@ -22,7 +22,6 @@ class WbGitAssPass:
         self.pipe_name = "\\\\.\\pipe\\SCM Workbench AskPass"
 
     def askPass( self, prompt ):
-        print( 'qqq %r' % (prompt,) )
         prompt = prompt.encode( 'utf-8' )
 
         buf_size = ctypes.c_int( 256 )
@@ -49,7 +48,7 @@ class WbGitAssPass:
             return 1
 
         else:
-            reply = buf_result.raw[:buf_size.value]
+            reply = buf_result.raw[:buf_size.value].decode( 'utf-8' )
 
             print( reply[1:] )
             return int(reply[0])

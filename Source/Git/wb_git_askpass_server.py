@@ -13,6 +13,7 @@
     expects a single line output as response.
 
 '''
+import sys
 import ctypes
 
 class WbGitAskPassServer:
@@ -99,7 +100,9 @@ class WbGitAskPassServer:
 
                 reply = ctypes.create_string_buffer( 256 )
 
-                reply.value = ('0Example response: %s' % (prompt,)).encode( 'utf-8' )
+                answer = sys.stdin.readline()
+
+                reply.value = ('0%s' % (answer,)).encode( 'utf-8' )
                 reply_size = ctypes.c_uint( len( reply.value ) )
 
                 hr = ctypes.windll.kernel32.WriteFile( h_pipe, reply, reply_size, ctypes.byref( reply_size ), None )
@@ -108,8 +111,6 @@ class WbGitAskPassServer:
                 ctypes.windll.kernel32.DisconnectNamedPipe( h_pipe )
 
     def __getLastErrorMessage( self ):
-        import ctypes
-
         err = ctypes.windll.kernel32.GetLastError()
 
         FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000
