@@ -22,6 +22,7 @@ import wb_svn_project
 import wb_scm_project_place_holder
 
 import git
+import hglib
 
 class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
     def __init__( self, app, main_window, parent=None ):
@@ -32,6 +33,7 @@ class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
 
     def lessThan( self, source_left, source_right ):
         model = self.sourceModel()
+
         left_ent = model.itemFromIndex( source_left )
         right_ent = model.itemFromIndex( source_right )
 

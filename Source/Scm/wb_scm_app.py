@@ -29,9 +29,28 @@ class WbScmApp(wb_app.WbApp,
                wb_scm_debug.WbScmDebug):
     def __init__( self, args ):
         self.__git_debug = False
+        self.__all_singletons = {}
 
         wb_scm_debug.WbScmDebug.__init__( self )
         wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args, ['git.cmd'] )
+
+    def addSingleton( self, name, value ):
+        assert name not in self.__all_singletons
+        self.__all_singletons[ name ] = value
+
+    def hasSingleton( self, name ):
+        return name in self.__all_singletons
+
+    def getSingleton( self, name ):
+        return self.__all_singletons[ name ]
+
+    def popSingleton( self, name ):
+        value = self.__all_singletons[ name ]
+        del self.__all_singletons[ name ]
+        return value
+
+    def getAllSingletons( self ):
+        return list( self.__all_singletons.values() )
 
     def optionParse( self, args ):
         if args[1] == '--git-debug':

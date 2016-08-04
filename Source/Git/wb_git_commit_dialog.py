@@ -239,8 +239,11 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def getMessage( self ):
         return self.message.toPlainText().strip()
 
+    def updateSingleton( self ):
+        self.updateTableView()
+
     def updateTableView( self ):
-        # call will have updated the git project state already
+        # caller will have updated the git project state already
         self.table_view.setScmProjectTreeNode( self.git_project.flat_tree )
 
     def isScmTypeActive( self, scm_type ):

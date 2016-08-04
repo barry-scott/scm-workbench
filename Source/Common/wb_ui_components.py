@@ -25,8 +25,6 @@ class WbMainWindowComponents:
         self.app = None
         self._debug = None
 
-        self.commit_dialog = None
-
         self.all_menus = []
         self.all_toolbars = []
 

@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_svn_commit_dialog.py
+    wb_hg_commit_dialog.py
 
 '''
 from PyQt5 import QtWidgets
@@ -20,55 +20,63 @@ import wb_tracked_qwidget
 import wb_scm_table_view
 import wb_scm_images
 
-import wb_svn_ui_actions
+import wb_hg_ui_actions
 
 #
 #   add tool bars and menu for use in the commit window
 #
-class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
+class HgCommitWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
     def __init__( self ):
         super().__init__()
-
-    def setupToolBarAtRight( self, addToolBar, addTool ):
-        # ----------------------------------------
-        t = addToolBar( T_('svn info') )
-        addTool( t, T_('Diff'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
-        addTool( t, T_('Info'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
-        addTool( t, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
-
-        # ----------------------------------------
-        t = addToolBar( T_('svn state') )
-        self.all_toolbars.append( t )
-
-        addTool( t, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff Base vs. Working'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionHgDiffHeadVsWorking, self.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
-        m.addSection( T_('Info' ) )
-        addMenu( m, T_('Information'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
-        addMenu( m, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
+        m.addSection( T_('Hg Actions') )
+        addMenu( m, T_('Add'), self.tableActionHgAdd, self.enablerHgFilesAdd, 'toolbar_images/include.png' )
+        m.addSeparator()
+        addMenu( m, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), self.tableActionHgDelete, self.main_window.table_view.enablerTableFilesExists )
 
-class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
+    def setupToolBarAtLeft( self, addToolBar, addTool ):
+        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
+        self.all_toolbars.append( t )
+
+        addTool( t, 'Hg', self.main_window.projectActionSettings )
+
+    def setupToolBarAtRight( self, addToolBar, addTool ):
+        # ----------------------------------------
+        t = addToolBar( T_('hg info') )
+        self.all_toolbars.append( t )
+
+        addTool( t, T_('Diff'), self.tableActionHgDiffSmart, self.enablerHgDiffSmart, 'toolbar_images/diff.png' )
+        addTool( t, T_('Commit History'), self.tableActionHgLogHistory, self.enablerHgLogHistory, 'toolbar_images/history.png' )
+
+        # ----------------------------------------
+        t = addToolBar( T_('hg state') )
+        self.all_toolbars.append( t )
+
+        addTool( t, T_('Add'), self.tableActionHgAdd, self.enablerHgFilesAdd, 'toolbar_images/include.png' )
+        addTool( t, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+
+class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()
     commitClosed = QtCore.pyqtSignal()
 
-    def __init__( self, app, svn_project ):
+    def __init__( self, app, hg_project ):
         self.app = app
-        self.svn_project = svn_project
+        self.hg_project = hg_project
         self.table_view = None
 
         super().__init__( app, wb_scm_images, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
-        self.ui_component = SvnCommitWindowComponents()
+        self.ui_component = HgCommitWindowComponents()
 
-        self.setWindowTitle( T_('Commit %s') % (svn_project.projectName(),) )
+        self.setWindowTitle( T_('Commit %s') % (hg_project.projectName(),) )
         self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
@@ -222,7 +230,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
     def enableOkButton( self ):
         text = self.message.toPlainText()
-        self.ok_button.setEnabled( text.strip() != '' )
+        self.ok_button.setEnabled( text.strip() != '' and self.hg_project.numModifiedFiles() != 0 )
 
     def getMessage( self ):
         return self.message.toPlainText().strip()
@@ -231,11 +239,11 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.updateTableView()
 
     def updateTableView( self ):
-        # caller will have updated the svn project state already
-        self.table_view.setScmProjectTreeNode( self.svn_project.flat_tree )
+        # caller will have updated the hg project state already
+        self.table_view.setScmProjectTreeNode( self.hg_project.flat_tree )
 
     def isScmTypeActive( self, scm_type ):
-        return scm_type == 'svn'
+        return scm_type == 'hg'
 
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
@@ -243,3 +251,4 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
             return
 
         self.updateEnableStates()
+        self.enableOkButton()

@@ -184,30 +184,36 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
             commit_log_view.showCommitLogForFile( svn_project, filename, options )
             commit_log_view.show()
 
+    commit_key = 'svn-commit-dialog'
 
     def treeActionSvnCheckin( self, checked ):
-        if self.commit_dialog is not None:
+        if self.app.hasSingleton( self.commit_key ):
             self.log.error( T_('Commit dialog is already open') )
             return
 
         svn_project = self.selectedSvnProject()
 
-        self.commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
-        self.commit_dialog.commitAccepted.connect( self.app.threadSwitcher( self.__commitAccepted ) )
-        self.commit_dialog.commitClosed.connect( self.__commitClosed )
+        commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
+        commit_dialog.commitAccepted.connect( self.app.threadSwitcher( self.__commitAccepted ) )
+        commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user
-        self.commit_dialog.show()
+        commit_dialog.show()
+
+        self.app.addSingleton( self.commit_key, commit_dialog )
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
     def __commitAccepted( self ):
         svn_project = self.selectedSvnProject()
-        message = self.commit_dialog.getMessage()
+
+        commit_dialog = self.app.getSingleton( self.commit_key )
+
+        message = commit_dialog.getMessage()
 
         # hide the dialog
-        self.commit_dialog.hide()
+        commit_dialog.hide()
 
         self.setStatusAction( T_('Check in %s') % (svn_project.projectName(),) )
         self.progress.start( T_('Sent %(count)d'), 0 )
@@ -228,10 +234,10 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         self.__commitClosed()
 
     def __commitClosed( self ):
-        # get rid of the window
-        if self.commit_dialog is not None:
-            self.commit_dialog.close()
-            self.commit_dialog = None
+        # on top window close the commit_key may already have been pop'ed
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.popSingleton( self.commit_key )
+            commit_dialog.close()
 
         # take account of any changes
         self.main_window.updateTableView()

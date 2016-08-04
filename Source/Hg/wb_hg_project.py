@@ -1,6 +1,6 @@
 '''
  ====================================================================
-x Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -14,6 +14,20 @@ import pathlib
 import sys
 
 import hglib
+import hglib.util
+import hglib.client
+
+def HgVersion():
+    args = hglib.util.cmdbuilder( b'version' )
+
+    args.insert( 0, hglib.HGPATH )
+    proc = hglib.util.popen( args )
+    out, err = proc.communicate()
+    if proc.returncode:
+        raise hglib.error.CommandError( args, proc.returncode, out, err )
+
+    # assume first line is has the critical version info
+    return out.decode( 'utf-8' ).split('\n')[0]
 
 class HgProject:
     def __init__( self, app, prefs_project ):
@@ -24,11 +38,11 @@ class HgProject:
         self.repo = hglib.open( str( prefs_project.path ) )
 
         self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+        self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
         self.all_file_state = {}
-        self.__stale_status = False
 
-        self.__num_uncommitted_files = 0
+        self.__num_modified_files = 0
 
     def scmType( self ):
         return 'hg'
@@ -55,16 +69,13 @@ class HgProject:
     def headRefName( self ):
         return 'unknown'
 
-    def numUncommittedFiles( self ):
-        return self.__num_uncommitted_files
+    def numModifiedFiles( self ):
+        return self.__num_modified_files
 
     def updateState( self ):
-        self._debug( 'updateState() is_stale %r' % (self.__stale_status,) )
-
-        self.__stale_status = False
-
         # rebuild the tree
         self.tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
+        self.flat_tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
         self.__calculateStatus()
 
@@ -98,7 +109,7 @@ class HgProject:
 
                 else:
                     self.all_file_state[ repo_relative ] = WbHgFileState( self, repo_relative )
-            
+
         for nodeid, permission, executable, symlink, filepath in self.repo.manifest():
             filepath = self.pathForWb( filepath )
             if filepath not in self.all_file_state:
@@ -109,8 +120,6 @@ class HgProject:
 
         for state, filepath in self.repo.status( all=True, ignored=True ):
             state = state.decode( 'utf-8' )
-            if state == 'C':
-                state = ''
 
             filepath = self.pathForWb( filepath )
             if filepath not in self.all_file_state:
@@ -120,7 +129,7 @@ class HgProject:
             self.all_file_state[ filepath ].setState( state )
 
             if state in ('A', 'M', 'R'):
-                self.__num_uncommitted_files += 1
+                self.__num_modified_files += 1
 
     def __updateTree( self, path ):
         self._debug( '__updateTree path %r' % (path,) )
@@ -138,6 +147,7 @@ class HgProject:
 
         self._debug( '__updateTree addFile %r to node %r' % (path, node) )
         node.addFileByName( path )
+        self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )
@@ -152,31 +162,25 @@ class HgProject:
         # status only has enties for none CURRENT status files
         return self.all_file_state[ filename ]
 
-    def getReportStagedFiles( self ):
-        all_staged_files = []
+    def getReportModifiedFiles( self ):
+        all_moddified_files = []
         for filename, file_state in self.all_file_state.items():
-            if file_state.isStagedNew():
-                all_staged_files.append( (T_('New file'), filename) )
+            if file_state.isAdded():
+                all_moddified_files.append( (T_('New file'), filename) )
 
-            elif file_state.isStagedModified():
-                all_staged_files.append( (T_('Modified'), filename) )
+            elif file_state.isModified():
+                all_moddified_files.append( (T_('Modified'), filename) )
 
-            elif file_state.isStagedDeleted():
-                all_staged_files.append( (T_('Deleted'), filename) )
+            elif file_state.isDeleted():
+                all_moddified_files.append( (T_('Deleted'), filename) )
 
-        return all_staged_files
+        return all_moddified_files
 
     def getReportUntrackedFiles( self ):
         all_untracked_files = []
         for filename, file_state in self.all_file_state.items():
-            if file_state.isUntracked():
+            if file_state.isUncontrolled():
                 all_untracked_files.append( (T_('New file'), filename) )
-
-            elif file_state.isUnstagedModified():
-                all_untracked_files.append( (T_('Modified'), filename) )
-
-            elif file_state.isUnstagedDeleted():
-                all_untracked_files.append( (T_('Deleted'), filename) )
 
         return all_untracked_files
 
@@ -218,7 +222,7 @@ class HgProject:
     #
     #------------------------------------------------------------
     def pathForHg( self, path ):
-        assert isinstance( path, pathlib.Path )
+        assert isinstance( path, pathlib.Path ), 'path %r' % (path,)
         # return abs path
         return str( self.projectPath() / path ).encode( sys.getfilesystemencoding() )
 
@@ -226,75 +230,68 @@ class HgProject:
         assert type( bytes_path ) == bytes
         return pathlib.Path( bytes_path.decode( sys.getfilesystemencoding() ) )
 
-    def cmdCat( self, filename ):
-        path = self.pathForHg( filename )
-        byte_result = self.repo.cat( [path] )
+    def cmdCat( self, filename, rev=None ):
+        byte_result = self.repo.cat( [self.pathForHg( filename )], rev=rev )
         return byte_result.decode( 'utf-8' )
 
     def cmdAdd( self, filename ):
-        self._debug( 'cmdAdd( %r )' % (filename,) )
-        return
-
         self.repo.add( self.pathForHg( filename ) )
-        self.__stale_status = True
 
     def cmdRevert( self, filename ):
-        self._debug( 'cmdRevert( %r )' % (filename,) )
-        return
-
         self.repo.revert( self.pathForHg( filename ) )
-        self.__stale_status = True
 
     def cmdDelete( self, filename ):
-        return
-
         self.repo.delete( self.pathForHg( filename ) )
 
-        self.__stale_status = True
+    def cmdDiffFolder( self, folder ):
+        text = self.repo.diff( [self.pathForHg( folder )] )
+        return text.decode( 'utf-8' )
+
+    def cmdDiffWorkingVsCommit( self, filename, commit ):
+        text = self.repo.diff( [self.pathForHg( filename )], revs='%d' % (commit,) )
+        return text.decode( 'utf-8' )
+
+    def cmdDiffCommitVsCommit( self, filename, old_commit, new_commit ):
+        text = self.repo.diff( [self.pathForHg( filename )], revs='%d:%d' % (old_commit, new_commit) )
+        return text.decode( 'utf-8' )
 
     def cmdCommit( self, message ):
-        return
-
-        self.__stale_status = True
-        return self.index.commit( message )
+        return self.repo.commit( message )
 
     def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
-        return []
+        if since is not None and until is not None:
+            date = '%s to %s' % (since, until)
 
-        all_commit_logs = []
+        elif since is not None:
+            date = '>%s' % (since,)
 
-        kwds = {}
-        if limit is not None:
-            kwds['max_count'] = limit
-        if since is not None:
-            kwds['since'] = since
-        if since is not None:
-            kwds['until'] = until
+        elif until is not None:
+            date = '<%s' % (until,)
 
-        for commit in self.repo.iter_commits( None, **kwds ):
-            all_commit_logs.append( HgCommitLogNode( commit ) )
+        else:
+            date = None
 
-        self.__addCommitChangeInformation( all_commit_logs )
-        return all_commit_logs
+        all_logs = [WbHgLog( data, self.repo ) for data in self.repo.log( limit=limit, date=date )]
+
+        return all_logs
 
     def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
-        return []
+        if since is not None and until is not None:
+            date = '%s to %s' % (since, until)
 
-        all_commit_logs = []
+        elif since is not None:
+            date = '>%s' % (since,)
 
-        kwds = {}
-        if limit is not None:
-            kwds['max_count'] = limit
-        if since is not None:
-            kwds['since'] = since
-        if since is not None:
-            kwds['until'] = until
+        elif until is not None:
+            date = '<%s' % (until,)
 
-        for commit in self.repo.iter_commits( None, str(filename), **kwds ):
-            all_commit_logs.append( HgCommitLogNode( commit ) )
+        else:
+            date = None
 
-        self.__addCommitChangeInformation( all_commit_logs )
-        return all_commit_logs
+        all_logs = [WbHgLog( data, self.repo )
+                    for data in self.repo.log( files=[self.pathForHg( filename )], limit=limit, date=date )]
+
+        return all_logs
 
     def __addCommitChangeInformation( self, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
@@ -366,6 +363,23 @@ class HgProject:
             for info in remote.push( progress=Progress( progress_callback ) ):
                 info_callback( info )
 
+class WbHgLog:
+    def __init__( self, data, repo ):
+        self.rev =      int(data.rev.decode('utf-8'))
+        self.node =     data.node.decode('utf-8')
+        self.all_tags = data.tags.decode('utf-8').split(' ')
+        self.branch =   data.branch.decode('utf-8')
+        self.author =   data.author.decode('utf-8')
+        self.message =  data.desc.decode('utf-8')
+        self.date =     data.date
+
+        if self.rev == 0:
+            rev= '0'
+        else:
+            rev = '%d:%d' % (self.rev-1, self.rev)
+
+        self.all_changed_files = [(state.decode('utf-8'), path.decode('utf-8')) for state, path in repo.status( rev=rev )]
+
 class WbHgFileState:
     def __init__( self, project, filepath ):
         self.__project = project
@@ -403,7 +417,10 @@ class WbHgFileState:
         self.__state = state
 
     def getAbbreviatedStatus( self ):
-        return self.__state
+        if self.__state in ('C', '?'):
+            return ''
+        else:
+            return self.__state
 
     def getStagedAbbreviatedStatus( self ):
         # QQQ here for Git compat - bad OO design here
@@ -423,7 +440,7 @@ class WbHgFileState:
     def isIgnored( self ):
         return self.__state == 'I'
 
-    # --------------------
+    # ------------------------------------------------------------
     def isAdded( self ):
         return self.__state == 'A'
 
@@ -432,6 +449,13 @@ class WbHgFileState:
 
     def isDeleted( self ):
         return self.__state == 'R'
+
+    # ------------------------------------------------------------
+    def canAdd( self ):
+        return self.isUncontrolled()
+
+    def canRevert( self ):
+        return self.isAdded() or self.isModified() or self.isDeleted()
 
     # ------------------------------------------------------------
     def canDiffHeadVsWorking( self ):
@@ -447,7 +471,20 @@ class WbHgFileState:
                 return all_lines
 
     def getTextLinesHead( self ):
+        return self.getTextLinesForRevision( 'tip' )
         text = self.__project.cmdCat( self.__filepath )
+        all_lines = text.split('\n')
+        if all_lines[-1] == '':
+            return all_lines[:-1]
+        else:
+            return all_lines
+
+    def getTextLinesForRevision( self, rev ):
+        if type( rev ) == int:
+            rev = '%d' % (rev,)
+        # else its a string like 'tip'
+
+        text = self.__project.cmdCat( self.__filepath, rev=rev )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
             return all_lines[:-1]
