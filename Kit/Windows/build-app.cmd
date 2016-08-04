@@ -53,6 +53,10 @@ pushd %SRC_DIR%\Scm
 %PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --name "SCM Workbench" --verbose
     if errorlevel 1 goto :eof
 popd >null
+pushd %SRC_DIR%\Git
+%PYTHON% -m win_app_packager build wb_git_askpass_client.py --cli %DIST_DIR% --name "SCM-Workbench-AskPass" --merge --verbose
+    if errorlevel 1 goto :eof
+popd >null
 
 mkdir %DIST_DIR%\plugins\platforms
 xcopy /q %BUILDER_QTDIR%\msvc2015_64\plugins\platforms\qwindows.dll %DIST_DIR%\plugins\platforms
