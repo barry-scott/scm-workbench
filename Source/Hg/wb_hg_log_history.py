@@ -14,6 +14,7 @@
 import sys
 import time
 import datetime
+import pathlib
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
@@ -256,7 +257,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         if len( self.current_commit_selections ) == 1:
             # diff working against rev
             commit_new = None
-            commit_old = self.log_model.commitForRow( self.current_commit_selections[0] )
+            commit_old = self.log_model.revisionForRow( self.current_commit_selections[0] )
             date_old = self.log_model.dateStringForRow( self.current_commit_selections[0] )
 
             title_vars = {'commit_old': commit_old
@@ -265,10 +266,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
             if self.filename is not None:
                 filestate = self.hg_project.getFileState( self.filename )
 
-                if filestate.isStagedModified():
-                    heading_new = 'Staged'
-
-                elif filestate.isUnstagedModified():
+                if filestate.isModified():
                     heading_new = 'Working'
 
                 else:
@@ -278,16 +276,15 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
                 heading_new = 'Working'
 
         else:
-            commit_new = self.log_model.commitForRow( self.current_commit_selections[0] )
+            commit_new = self.log_model.revisionForRow( self.current_commit_selections[0] )
             date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
-            commit_old = self.log_model.commitForRow( self.current_commit_selections[-1] )
+            commit_old = self.log_model.revisionForRow( self.current_commit_selections[-1] )
             date_old = self.log_model.dateStringForRow( self.current_commit_selections[-1] )
 
             title_vars = {'commit_old': commit_old
                          ,'date_old': date_old
                          ,'commit_new': commit_new
                          ,'date_new': date_new}
-
 
             heading_new = T_('%(date_new)s commit %(commit_new)s') % title_vars
 
@@ -306,17 +303,13 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
             filestate = self.hg_project.getFileState( self.filename )
 
             if commit_new is None:
-                if filestate.isStagedModified():
-                    text_new = filestate.getTextLinesStaged()
-
-                else:
-                    # either we want HEAD or the modified working
-                    text_new = filestate.getTextLinesWorking()
+                # either we want HEAD or the modified working
+                text_new = filestate.getTextLinesWorking()
 
             else:
-                text_new = filestate.getTextLinesForCommit( commit_new )
+                text_new = filestate.getTextLinesForRevision( commit_new )
 
-            text_old = filestate.getTextLinesForCommit( commit_old )
+            text_old = filestate.getTextLinesForRevision( commit_old )
 
             self.ui_component.diffTwoFiles(
                     title,
@@ -327,12 +320,13 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
                     )
 
         else: # folder
+            repo_path = pathlib.Path( '.' )
             if commit_new is None:
-                text = self.hg_project.cmdDiffWorkingVsCommit( '.', commit_old )
+                text = self.hg_project.cmdDiffWorkingVsCommit( repo_path, commit_old )
                 self.ui_component.showDiffText( title, text.split('\n') )
 
             else:
-                text = self.hg_project.cmdDiffCommitVsCommit( '.', commit_old, commit_new )
+                text = self.hg_project.cmdDiffCommitVsCommit( repo_path, commit_old, commit_new )
                 self.ui_component.showDiffText( title, text.split('\n') )
 
 class WbLogTableView(QtWidgets.QTableView):
@@ -377,13 +371,13 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
         self.all_commit_nodes = hg_project.cmdCommitLogForFile( filename, limit, since, until )
         self.endResetModel()
 
-    def commitForRow( self, row ):
+    def revisionForRow( self, row ):
         node = self.all_commit_nodes[ row ]
-        return node.commitIdString()
+        return node.rev
 
     def dateStringForRow( self, row ):
         node = self.all_commit_nodes[ row ]
-        return node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
+        return node.date.strftime( '%Y-%m-%d %H:%M:%S' )
 
     def rowCount( self, parent ):
         return len( self.all_commit_nodes )

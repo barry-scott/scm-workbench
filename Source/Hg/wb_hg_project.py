@@ -1,6 +1,6 @@
 '''
  ====================================================================
-x Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -208,7 +208,7 @@ class HgProject:
     #
     #------------------------------------------------------------
     def pathForHg( self, path ):
-        assert isinstance( path, pathlib.Path )
+        assert isinstance( path, pathlib.Path ), 'path %r' % (path,)
         # return abs path
         return str( self.projectPath() / path ).encode( sys.getfilesystemencoding() )
 
@@ -216,9 +216,8 @@ class HgProject:
         assert type( bytes_path ) == bytes
         return pathlib.Path( bytes_path.decode( sys.getfilesystemencoding() ) )
 
-    def cmdCat( self, filename ):
-        path = self.pathForHg( filename )
-        byte_result = self.repo.cat( [path] )
+    def cmdCat( self, filename, rev=None ):
+        byte_result = self.repo.cat( [self.pathForHg( filename )], rev=rev )
         return byte_result.decode( 'utf-8' )
 
     def cmdAdd( self, filename ):
@@ -232,6 +231,14 @@ class HgProject:
 
     def cmdDiffFolder( self, folder ):
         text = self.repo.diff( [self.pathForHg( folder )] )
+        return text.decode( 'utf-8' )
+
+    def cmdDiffWorkingVsCommit( self, filename, commit ):
+        text = self.repo.diff( [self.pathForHg( filename )], revs='%d' % (commit,) )
+        return text.decode( 'utf-8' )
+
+    def cmdDiffCommitVsCommit( self, filename, old_commit, new_commit ):
+        text = self.repo.diff( [self.pathForHg( filename )], revs='%d:%d' % (old_commit, new_commit) )
         return text.decode( 'utf-8' )
 
     def cmdCommit( self, message ):
@@ -267,7 +274,8 @@ class HgProject:
         else:
             date = None
 
-        all_logs = [WbHgLog( data, self.repo ) for data in self.repo.log( [self.pathForHg( filename )], limit=limit, date=date )]
+        all_logs = [WbHgLog( data, self.repo )
+                    for data in self.repo.log( files=[self.pathForHg( filename )], limit=limit, date=date )]
 
         return all_logs
 
@@ -343,7 +351,6 @@ class HgProject:
 
 class WbHgLog:
     def __init__( self, data, repo ):
-        print( 'WbHgLog %r' % (data,) )
         self.rev =      int(data.rev.decode('utf-8'))
         self.node =     data.node.decode('utf-8')
         self.all_tags = data.tags.decode('utf-8').split(' ')
@@ -450,7 +457,20 @@ class WbHgFileState:
                 return all_lines
 
     def getTextLinesHead( self ):
+        return self.getTextLinesForRevision( 'tip' )
         text = self.__project.cmdCat( self.__filepath )
+        all_lines = text.split('\n')
+        if all_lines[-1] == '':
+            return all_lines[:-1]
+        else:
+            return all_lines
+
+    def getTextLinesForRevision( self, rev ):
+        if type( rev ) == int:
+            rev = '%d' % (rev,)
+        # else its a string like 'tip'
+
+        text = self.__project.cmdCat( self.__filepath, rev=rev )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
             return all_lines[:-1]
