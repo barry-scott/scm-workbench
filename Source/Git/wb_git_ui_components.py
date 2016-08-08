@@ -11,6 +11,7 @@
 
 '''
 import sys
+import os
 import time
 import urllib.parse
 
@@ -22,6 +23,7 @@ import wb_git_commit_dialog
 import wb_git_log_history
 import wb_git_askpass_server
 import wb_git_credentials_dialog
+import wb_platform_specific
 
 import git.cmd
 
@@ -43,6 +45,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         if sys.platform == 'win32':
             self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
             self.askpass_server.start()
+            os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe')
 
         else:
             self.askpass_server = None
