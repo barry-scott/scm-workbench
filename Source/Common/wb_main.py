@@ -35,7 +35,7 @@ def main( app_cls, argv ):
 
     elif sys.platform.startswith( 'win' ):
         if '--noredirect' not in argv:
-            sys.stdout = open( os.environ.get( 'WB_STDOUT_LOG', 'nul' ), 'w' )
+            sys.stdout = open( os.environ.get( 'WB_STDOUT_LOG', 'NUL' ), 'w' )
             sys.stderr = sys.stdout
 
     # don't pollute any subprocesses with env vars

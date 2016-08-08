@@ -20,6 +20,8 @@ class WbRenameFilenameDialog(QtWidgets.QDialog):
 
         super().__init__( parent )
 
+        self.setWindowTitle( T_('Rename') )
+
         self.old_name = None
 
         self.name = QtWidgets.QLineEdit()

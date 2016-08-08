@@ -14,7 +14,6 @@
 '''
 import sys
 import os
-import threading
 import inspect
 import gettext
 import queue

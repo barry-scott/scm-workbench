@@ -79,7 +79,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.__setupTreeContextMenu()
         self.__setupTableContextMenu()
 
-        # tell all scm ui to hide all compoents
+        # tell all scm ui to hide all components
         for scm_type in self.all_ui_components:
             self.all_ui_components[ scm_type ].setTopWindow( self )
             self.all_ui_components[ scm_type ].hideUiComponents()

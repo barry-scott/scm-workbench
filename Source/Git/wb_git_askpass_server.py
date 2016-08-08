@@ -7,44 +7,61 @@
 
  ====================================================================
 
-    wb_git_askpass.py
-
-    called with argv[1:] as the prompt
-    expects a single line output as response.
+    wb_git_askpass_server.py
 
 '''
 import sys
 import ctypes
+import threading
 
-class WbGitAskPassServer:
-    def __init__( self ):
+PIPE_UNLIMITED_INSTANCES = 255
+PIPE_ACCESS_DUPLEX = 3
+FILE_FLAG_OVERLAPPED = 0x40000000
+
+PIPE_TYPE_MESSAGE = 4
+PIPE_READMODE_MESSAGE = 2
+PIPE_REJECT_REMOTE_CLIENTS = 8
+
+INFINITE = -1
+ERROR_PIPE_CONNECTED = 535
+WAIT_OBJECT_0 = 0
+
+class WbGitAskPassServer(threading.Thread):
+    def __init__( self, app, ui_component ):
+        super().__init__()
+
+        self.app = app
+        self.ui_component = ui_component
+
+        self.setDaemon( 1 )
+        self.running = 1
+
         self.pipe_name = r'\\.\pipe\SCM workbench AskPass'
 
+        self.__thread = None
         self.__h_wait_stop = None
+        self.__h_wait_reply = None
         self.__overlapped = None
 
+    def shutdown( self ):
+        ctypes.windll.kernel32.SetEvent( self.__h_wait_stop )
 
-    def processRequests( self ):
-        PIPE_UNLIMITED_INSTANCES = 255
-        PIPE_ACCESS_DUPLEX = 3
-        FILE_FLAG_OVERLAPPED = 0x40000000
+    def setReply( self, reply ):
+        self.__reply = reply
+        ctypes.windll.kernel32.SetEvent( self.__h_wait_reply )
 
-        PIPE_TYPE_MESSAGE = 4
-        PIPE_READMODE_MESSAGE = 2
-        PIPE_REJECT_REMOTE_CLIENTS = 8
-
-        INFINITE = -1
-        ERROR_PIPE_CONNECTED = 535
-        WAIT_OBJECT_0 = 0
-
+    def run( self ):
         class OVERLAPPED(ctypes.Structure):
             _fields_ =  [('status', ctypes.c_ulonglong)
                         ,('transfered', ctypes.c_ulonglong)
                         ,('offset', ctypes.c_ulonglong)
                         ,('hevent', ctypes.c_ulonglong)]
 
-        # QQQ: seems like a hang over from an older design...
+        # Used to signal the thread to exit
         self.__h_wait_stop = ctypes.windll.kernel32.CreateEventW( None, 0, 0, None )
+
+        # Used to signal the thread that the reply is valid
+        self.__h_wait_reply = ctypes.windll.kernel32.CreateEventW( None, 0, 0, None )
 
         # We need to use overlapped IO for this, so we dont block when
         # waiting for a client to connect.  This is the only effective way
@@ -70,7 +87,7 @@ class WbGitAskPassServer:
                         None                            #  __in_opt  LPSECURITY_ATTRIBUTES lpSecurityAttributes
                         )
         if h_pipe is None:
-            self.app.log_client_log( 'Failed to CreateNamedPipeW( %s ): %s' %
+            self.app.log.error( 'Failed to CreateNamedPipeW( %s ): %s' %
                                     (self.pipe_name, self.__getLastErrorMessage()) )
 
         # Loop accepting and processing connections
@@ -81,11 +98,7 @@ class WbGitAskPassServer:
                 ctypes.windll.kernel32.SetEvent( self.__overlapped.hevent )
 
             # Wait for either a connection, or a service stop request.
-            wait_handles_t = ctypes.c_uint64 * 2
-            wait_handles = wait_handles_t( self.__h_wait_stop, self.__overlapped.hevent )
-
-            rc = ctypes.windll.kernel32.WaitForMultipleObjects( 2, ctypes.byref( wait_handles ), 0, INFINITE )
-
+            rc = self.__waitForMultipleObjects( (self.__h_wait_stop, self.__overlapped.hevent) )
             if rc == WAIT_OBJECT_0:
                 # Stop event
                 break
@@ -96,19 +109,35 @@ class WbGitAskPassServer:
                 buf_client = ctypes.create_string_buffer( buf_size.value )
                 hr = ctypes.windll.kernel32.ReadFile( h_pipe, buf_client, buf_size, ctypes.byref( buf_size ), None )
                 prompt = buf_client.raw[:buf_size.value].decode( 'utf-8' )
-                print( 'prompt %r' % (prompt,) )
 
                 reply = ctypes.create_string_buffer( 256 )
 
-                answer = sys.stdin.readline()
+                state, answer = self.__waitForReply( prompt )
 
-                reply.value = ('0%s' % (answer,)).encode( 'utf-8' )
+                reply.value = ('%d%s' % (state, answer)).encode( 'utf-8' )
                 reply_size = ctypes.c_uint( len( reply.value ) )
 
                 hr = ctypes.windll.kernel32.WriteFile( h_pipe, reply, reply_size, ctypes.byref( reply_size ), None )
 
                 # And disconnect from the client.
                 ctypes.windll.kernel32.DisconnectNamedPipe( h_pipe )
+
+    def __waitForMultipleObjects( self, all_handles ):
+        num_handles = len( all_handles )
+        wait_handles_t = ctypes.c_uint64 * num_handles
+        wait_handles = wait_handles_t( *all_handles )
+        return ctypes.windll.kernel32.WaitForMultipleObjects( num_handles, ctypes.byref( wait_handles ), 0, INFINITE )
+
+    def __waitForReply( self, prompt ):
+        self.app.runInForeground( self.ui_component.getGitCredentials, (prompt,) )
+
+        rc = self.__waitForMultipleObjects( (self.__h_wait_reply,) )
+        if rc == WAIT_OBJECT_0:
+            return 0, self.__reply
+
+        else:
+            self.app.log.error( 'WaitForMultipleObjects returned 0x%x' % (rc,) )
+            return 1, ''
 
     def __getLastErrorMessage( self ):
         err = ctypes.windll.kernel32.GetLastError()
@@ -132,7 +161,3 @@ class WbGitAskPassServer:
             return 'error 0x%8.8x' % (err,)
 
         return errmsg.value
-
-if __name__ == '__main__':
-    server = WbGitAskPassServer()
-    server.processRequests()

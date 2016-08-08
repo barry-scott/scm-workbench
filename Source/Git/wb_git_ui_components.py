@@ -10,12 +10,18 @@
     wb_git_ui_components.py.py
 
 '''
+import sys
+import time
+import urllib.parse
+
 import wb_log_history_options_dialog
 
 import wb_git_ui_actions
 import wb_git_project
 import wb_git_commit_dialog
 import wb_git_log_history
+import wb_git_askpass_server
+import wb_git_credentials_dialog
 
 import git.cmd
 
@@ -27,6 +33,19 @@ import git.cmd
 class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def __init__( self ):
         super().__init__()
+
+        self.askpass_server = None
+        self.saved_password = SavedPassword()
+
+    def setTopWindow( self, top_window ):
+        super().setTopWindow( top_window )
+
+        if sys.platform == 'win32':
+            self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
+            self.askpass_server.start()
+
+        else:
+            self.askpass_server = None
 
     def about( self ):
         return ['GitPython %s' % (git.__version__,)
@@ -186,3 +205,57 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
+
+
+    def getGitCredentials( self, prompt ):
+        # the prompt contains a url enclosed in "'".
+        url = prompt.split( "'" )[1]
+
+        # see if the password is required
+        if( self.saved_password.isValid() ):
+            self.askpass_server.setReply( self.saved_password.password )
+            self.saved_password.clearPassword()
+            return
+
+        # forgot the saved credentials as the url did not match
+        self.saved_password.clearPassword()
+
+        url_parts = urllib.parse.urlsplit( url )
+
+        cred = wb_git_credentials_dialog.WbGitCredentialsDialog( self.app, self.main_window )
+        cred.setFields( url, url_parts.username )
+        if cred.exec_():
+            if url_parts.username is None:
+                self.askpass_server.setReply( cred.getUsername() )
+
+                # assume that the password will be required next
+                netloc = '%s@%s' % (cred.getUsername(), url_parts.netloc)
+                url2 = urllib.parse.urlunsplit( (url_parts.scheme, netloc, url_parts.path, url_parts.query, url_parts.fragment) )
+                self.saved_password.savePassword( url2, cred.getPassword() )
+
+            else:
+                self.askpass_server.setReply( cred.getPassword() )
+
+class SavedPassword:
+    timeout = 5.0
+    def __init__( self ):
+        self.url = None
+        self.password = None
+        self.save_time = 0
+
+    def savePassword( self, url, password ):
+        self.url = url
+        self.password = password
+        self.save_time = time.time()
+
+    def clearPassword( self ):
+        self.url = None
+        self.password = None
+        self.save_time = 0
+
+    def isValid( self ):
+        if self.password is None:
+            return False
+
+        delta = time.time() - self.save_time
+        return delta < self.timeout
