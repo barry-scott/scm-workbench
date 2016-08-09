@@ -44,7 +44,7 @@ class GitProject:
 
     # return a new GitProject that can be used in another thread
     def newInstance( self ):
-        return GitProject( self.app, self.prefs_project )
+        return GitProject( self.app, self.prefs_project, self.ui_components )
 
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name

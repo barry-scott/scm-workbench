@@ -74,10 +74,6 @@ class SvnProject:
     def getBranchName( self ):
         return ''
 
-    # return a new SvnProject that can be used in another thread
-    def newInstance( self ):
-        return SvnProject( self.app, self.prefs_project )
-
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name
 
