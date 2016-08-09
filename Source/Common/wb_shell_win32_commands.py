@@ -141,7 +141,6 @@ def CommandShell( app, working_dir ):
         # powershell does not allow scripts to be run by default
         # see http://go.microsoft.com/fwlink/?LinkID=135170 for details
         #
-
         if False:   # if we find a way to run commands...
             # calc a title that is leaf to root so that the leaf shows up in a task bar first
             title = list(working_dir.parts[1:])
