@@ -14,7 +14,7 @@
 import pathlib
 import sys
 
-from  xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError
+from xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError
 
 import wb_config
 
