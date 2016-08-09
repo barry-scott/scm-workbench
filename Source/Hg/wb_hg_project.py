@@ -30,8 +30,10 @@ def HgVersion():
     return out.decode( 'utf-8' ).split('\n')[0]
 
 class HgProject:
-    def __init__( self, app, prefs_project ):
+    def __init__( self, app, prefs_project, ui_components ):
         self.app = app
+        self.ui_components = ui_components
+
         self._debug = self.app._debugHgProject
 
         self.prefs_project = prefs_project

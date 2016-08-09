@@ -14,15 +14,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import os
-
-import wb_git_project
-import wb_hg_project
-import wb_svn_project
 import wb_scm_project_place_holder
-
-import git
-import hglib
 
 class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
     def __init__( self, app, main_window, parent=None ):
@@ -32,6 +24,9 @@ class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
         super().__init__( parent )
 
     def lessThan( self, source_left, source_right ):
+        if not source_left.isValid() or not source_right.isValid():
+            return True
+
         model = self.sourceModel()
 
         left_ent = model.itemFromIndex( source_left )
@@ -56,39 +51,15 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         self.selected_node = None
 
-        for project in sorted( self.app.prefs.getAllProjects() ):
-            self.addProject( project )
+    def loadNextProject( self, index ):
+        all_projects = sorted( self.app.prefs.getAllProjects() )
+        if index < len(all_projects):
+            self.addProject( all_projects[ index ] )
+
+        return (index+1) < len(all_projects)
 
     def addProject( self, project ):
-        scm_project = None
-
-        if project.scm_type == 'git':
-            try:
-                scm_project = wb_git_project.GitProject( self.app, project )
-
-            except git.exc.InvalidGitRepositoryError as e:
-                self.app.log.error( 'Failed to add Git repo %r' % (project.path,) )
-                self.app.log.error( 'Git error: %s' % (e,) )
-
-        elif project.scm_type == 'hg':
-            try:
-                scm_project = wb_hg_project.HgProject( self.app, project )
-
-            except hglib.error.ServerError as e:
-                self.app.log.error( 'Failed to add Hg repo %r' % (project.path,) )
-                self.app.log.error( 'hg error: %s' % (e,) )
-
-        elif project.scm_type == 'svn':
-            try:
-                scm_project = wb_svn_project.SvnProject( self.app, project )
-
-            except wb_svn_project.ClientError as e:
-                self.app.log.error( 'Failed to add SVN repo %r' % (project.path,) )
-                self.app.log.error( 'SVN error: %s' % (e,) )
-
-        else:
-            self.app.log.error( 'Unsupported SCM project type %r' % (project.scm,) )
-
+        scm_project = self.app.top_window.createProject( project )
         if scm_project is None:
             scm_project = wb_scm_project_place_holder.ScmProjectPlaceholder( self.app, project )
 
@@ -177,6 +148,16 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         return self.indexFromItem( item )
 
     def headerData( self, section, orientation, role ):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return T_('Project')
+
+            if orientation == QtCore.Qt.Vertical:
+                return ''
+
+        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
+            return QtCore.Qt.AlignCenter
+
         return None
 
     def flags( self, index ):

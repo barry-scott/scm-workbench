@@ -18,9 +18,20 @@ import wb_hg_log_history
 
 import wb_hg_commit_dialog
 
+import hglib
+
 class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
     def __init__( self ):
         super().__init__()
+
+    def createProject( self, project ):
+        try:
+            return wb_hg_project.HgProject( self.app, project, self )
+
+        except hglib.error.ServerError as e:
+            self.app.log.error( 'Failed to add Hg repo %r' % (project.path,) )
+            self.app.log.error( 'hg error: %s' % (e,) )
+            return None
 
     def about( self ):
         return [wb_hg_project.HgVersion()]

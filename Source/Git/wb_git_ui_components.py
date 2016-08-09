@@ -25,6 +25,7 @@ import wb_git_askpass_server
 import wb_git_credentials_dialog
 import wb_platform_specific
 
+import git
 import git.cmd
 
 #
@@ -38,6 +39,15 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         self.askpass_server = None
         self.saved_password = SavedPassword()
+
+    def createProject( self, project ):
+        try:
+            return wb_git_project.GitProject( self.app, project, self )
+
+        except git.exc.InvalidGitRepositoryError as e:
+            self.app.log.error( 'Failed to add Git repo %r' % (project.path,) )
+            self.app.log.error( 'Git error: %s' % (e,) )
+            return None
 
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )

@@ -21,8 +21,10 @@ import wb_svn_project
 import wb_svn_commit_dialog
 import wb_svn_info_dialog
 import wb_svn_log_history
+import wb_svn_credential_dialogs
 
 import pysvn
+
 #
 #   Add tool bars and menu for use in the Main Window
 #
@@ -31,6 +33,15 @@ import pysvn
 class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
     def __init__( self ):
         super().__init__()
+
+    def createProject( self, project ):
+        try:
+            return wb_svn_project.SvnProject( self.app, project, self )
+
+        except wb_svn_project.ClientError as e:
+            self.app.log.error( 'Failed to add SVN repo %r' % (project.path,) )
+            self.app.log.error( 'SVN error: %s' % (e,) )
+            return None
 
     def about( self ):
         return ['PySVN %d.%d.%d-%d' % pysvn.version
@@ -66,7 +77,10 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Checkin…'), self.treeActionSvnCheckin, self.enablerSvnCheckin, 'toolbar_images/checkin.png', thread_switcher=True )
 
         m.addSeparator()
-        addMenu( m, T_('Update…'), self.treeActionSvnUpdate, icon_name='toolbar_images/update.png', thread_switcher=True )
+        addMenu( m, T_('Update'), self.treeActionSvnUpdate, icon_name='toolbar_images/update.png', thread_switcher=True )
+
+        m.addSeparator()
+        addMenu( m, T_('Cleanup'), self.treeActionSvnCleanup )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
         t = addToolBar( T_('svn logo'), style='font-size: 20pt; width: 40px; color: #000099' )
@@ -244,3 +258,32 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
+
+    def svnGetLogin( self, realm, username, may_save ):
+        # used as a pysvn callback for callback_get_login
+        dialog = wb_svn_credential_dialogs.WbSvnGetLoginDialog( self.app.top_window, realm, username, may_save )
+        if dialog.exec_():
+            return  (True
+                    ,dialog.getUsername()
+                    ,dialog.getPassword()
+                    ,dialog.getSaveCredentials())
+
+        else:
+            return  (False
+                    ,''
+                    ,''
+                    ,False)
+
+    def svnSslServerTrustPrompt( self, realm, info_list, may_save ):
+        # used as a pysvn callback for callback_ssl_server_trust_prompt
+        dialog = wb_svn_credential_dialogs.WbSvnSslServerTrustDialog( self.app.top_window, realm, info_list, may_save )
+        result = dialog.ShowModal()
+        if result == wx.ID_OK:
+            # Trust, save
+            return  (True
+                    ,dialog.getSaveTrust())
+        else:
+            # don't trust, don't save
+            return  (False
+                    ,False)
+

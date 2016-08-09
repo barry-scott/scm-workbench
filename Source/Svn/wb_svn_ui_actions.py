@@ -164,6 +164,16 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         self.main_window.updateTableView()
 
+    def treeActionSvnCleanup( self, checked ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        self.top_window.setStatusAction( T_('Cleanup %s') % (tree_node.project.projectName(),) )
+        tree_node.project.cmdCleanup()
+        self.log.info( 'Cleanup finished for %s' % (tree_node.project.projectName(),) )
+        self.top_window.setStatusAction()
+
     def treeActionSvnUpdate( self, checked ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
@@ -182,33 +192,33 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.progress.start( T_('Updated %(count)d') )
 
         yield self.switchToBackground
-        rev_list = self.__updateToRevision(
-                            tree_node,
-                            tree_node.project.svn_rev_head,
-                            tree_node.project.svn_depth_infinity )
-
-        yield self.switchToForeground
-        self.__updateToRevisionProcessResults( tree_node, rev_list )
-
-    def __updateToRevision( self, tree_node, rev, svndepth ):
-        project = tree_node.project
-        filename = tree_node.relativePath()
-
         try:
+            project = tree_node.project
+            filename = tree_node.relativePath()
+
             project.initNotificationOfFilesInConflictCount()
 
-            rev_list = project.cmdUpdate( filename, depth=svndepth, revision=rev )
-
-            return rev_list
+            rev_list = project.cmdUpdate(
+                                filename,
+                                tree_node.project.svn_rev_head,
+                                tree_node.project.svn_depth_infinity )
+            yield self.switchToForeground
+            self.__updateToRevisionProcessResults( tree_node, rev_list )
 
         except pysvn.ClientError as e:
+            yield self.switchToForeground
+
             all_client_error_lines = project.clientErrorToStrList( e )
             for line in all_client_error_lines:
                 self.app.log.error( line )
 
             self.top_window.errorMessage( 'Svn Error', '\n'.join( all_client_error_lines ) )
-            return None
-        
+
+        self.progress.end()
+        self.setStatusAction()
+
+        self.main_window.updateTableView()
+
     def __updateToRevisionProcessResults( self, tree_node, rev_list ):
         project = tree_node.project
         filename = tree_node.relativePath()
@@ -244,11 +254,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                         QtWidgets.QMessageBox.Close,
                         parent=self.top_window )
                 box.exec_()
-
-        self.progress.end()
-        self.setStatusAction()
-
-        self.main_window.updateTableView()
 
     def treeActionSvnStatus( self ):
         pass

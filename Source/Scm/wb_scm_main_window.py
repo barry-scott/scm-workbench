@@ -153,19 +153,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # everything is setup now - events can be processed
         self.__init_done = True
 
-        # select the first project
-        bookmark = self.app.prefs.last_position_bookmark
-        if bookmark is not None:
-            index = self.tree_model.indexFromBookmark( bookmark )
-
-        else:
-            index = self.tree_model.getFirstProjectIndex()
-
-        if index is not None:
-            index = self.tree_sortfilter.mapFromSource( index )
-            self._debug( 'Selecting project in tree' )
-            self.tree_view.setCurrentIndex( index )
-
         # timer used to wait for focus to be set after app is activated
         self.timer_update_enable_states = QtCore.QTimer()
         self.timer_update_enable_states.timeout.connect( self.updateActionEnabledStates )
@@ -194,6 +181,46 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.log.debug( 'Debug messages are enabled' )
 
         self.timer_init = None
+
+        self.setStatusGeneral( T_('Loading projects') )
+
+        # load up all the projects
+        self.__project_index = 0
+
+        self.timer_init = QtCore.QTimer()
+        self.timer_init.timeout.connect( self.loadNextProject )
+        self.timer_init.setSingleShot( True )
+        self.timer_init.start( 0 )
+
+    def loadNextProject( self ):
+        if self.tree_model.loadNextProject( self.__project_index ):
+            self.__project_index += 1
+            self.timer_init.start( 0 )
+
+        else:
+            # select the first project
+            bookmark = self.app.prefs.last_position_bookmark
+            if bookmark is not None:
+                index = self.tree_model.indexFromBookmark( bookmark )
+
+            else:
+                index = self.tree_model.getFirstProjectIndex()
+
+            if index is not None:
+                index = self.tree_sortfilter.mapFromSource( index )
+                self._debug( 'Selecting project in tree' )
+                self.tree_view.setCurrentIndex( index )
+
+            self.setStatusGeneral()
+            self.timer_init = None
+
+    def createProject( self, project ):
+        if project.scm_type in self.all_ui_components:
+            return self.all_ui_components[ project.scm_type ].createProject( project )
+
+        else:
+            self.app.log.error( 'Unsupported project type %r' % (project.scm,) )
+            return None
 
     def __setupTreeViewAndModel( self ):
         self._debug( '__setupTreeViewAndModel' )

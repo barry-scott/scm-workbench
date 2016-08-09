@@ -19,8 +19,10 @@ import git.index
 GitCommandError = git.exc.GitCommandError
 
 class GitProject:
-    def __init__( self, app, prefs_project ):
+    def __init__( self, app, prefs_project, ui_components ):
         self.app = app
+        self.ui_components = ui_components
+
         self._debug = self.app._debugGitProject
 
         self.prefs_project = prefs_project
