@@ -16,6 +16,7 @@ import string
 import subprocess
 import tempfile
 import ctypes
+import shutil
 
 import wb_platform_win32_specific
 
@@ -23,7 +24,8 @@ def setupCommands():
     pass
 
 def getTerminalProgramList():
-    return ['CMD']
+    return [program for program in ('cmd', 'powershell', 'bash')
+            if shutil.which( '%s.exe' % (program,) )]
 
 def getFileBrowserProgramList():
     return ['Explorer']
@@ -53,47 +55,150 @@ def ShellDiffFiles( app, options ):
     cmd_list = [app.prefs.getDiffTool().shell_diff_tool, options]
     return __run_command_with_output( cmd_list )
 
-def ShellOpen( app, working_dir, filename ):
-    app.log.info( T_('Open %s') % filename )
+SW_SHOWNORMAL = 1
 
-    SW_SHOWNORMAL = 1
+ERROR_FILE_NOT_FOUND = 2
+ERROR_PATH_NOT_FOUND = 3
+ERROR_BAD_FORMAT = 11
 
-    try:
-        ShellExecuteW = ctypes.windll.shell32.ShellExecuteA
-        ShellExecuteW( None, 'open', str(filename), None, str( working_dir ), SW_SHOWNORMAL )
+SE_ERR_ACCESSDENIED = 5
+SE_ERR_ASSOCINCOMPLETE = 27
+SE_ERR_DDEBUSY = 30
+SE_ERR_DDEFAIL = 29
+SE_ERR_DDETIMEOUT = 28
+SE_ERR_DLLNOTFOUND = 32
+SE_ERR_NOASSOC = 31
+SE_ERR_OOM = 8
+SE_ERR_SHARE = 26
+SE_ERR_DLLNOTFOUND = 32
 
-    except RuntimeError as e:
-        if e[0] == 31:
-            app.log.error( T_('Unable to shell open %s\n'
-                 'Is an application associated with this file type?') % filename )
-        else:
-            app.log.error( T_('Unable to shell open %(filename)s - %(error)s') %
-                            {'filename': filename
-                            ,'error': e[2]} )
+se_error_messages = {
+    SE_ERR_ACCESSDENIED:    U_('The operating system denied access to the specified file.'),
+    SE_ERR_ASSOCINCOMPLETE: U_('The file name association is incomplete or invalid.'),
+    SE_ERR_DDEBUSY:         U_('The DDE transaction cannot be completed because other DDE transactions are being processed.'),
+    SE_ERR_DDEFAIL:         U_('The DDE transaction failed.'),
+    SE_ERR_DDETIMEOUT:      U_('The DDE transaction cannot be completed because the request timed out.'),
+    SE_ERR_DLLNOTFOUND:     U_('The specified dynamic-link library is not found.'),
+    SE_ERR_NOASSOC:         U_('There is no application associated with the given file name extension.'),
+    SE_ERR_OOM:             U_('There is not enough memory or free resources to complete the operation.'),
+    SE_ERR_SHARE:           U_('A sharing violation occurred.'),
+    SE_ERR_DLLNOTFOUND:     U_('The specified dynamic-link library is not found.'),
+}
+
+def __getShellExecuteErrorMessage( err ):
+    if err in se_error_messages:
+        return T_( se_error_messages[ err ] )
+
+    else:
+        return getErrorMessage( err )
+
+def ShellOpen( app, working_dir, all_filenames ):
+    for filename in all_filenames:
+        app.log.info( T_('Open %s') % (filename,) )
+        ShellExecuteW = ctypes.windll.shell32.ShellExecuteW
+        rc = ShellExecuteW( None, 'open', str(filename), None, str(working_dir), SW_SHOWNORMAL )
+        if rc <= 32:
+            if rc == SE_ERR_NOASSOC:
+                app.log.error( T_('Unable to shell open %s\n'
+                     'Is an application associated with this file type?') % filename )
+
+            else:
+                app.log.error( T_('Unable to shell open %(filename)s - %(error)s') %
+                                {'filename': filename
+                                ,'error': __getShellExecuteErrorMessage()} )
 
 def CommandShell( app, working_dir ):
     p = app.prefs.shell
 
-    # calc a title that is leaf to root so that the leaf shows up in a task bar first
-    title = list(working_dir.parts[1:])
-    title.reverse()
+    abs_terminal_program = shutil.which( '%s.exe' % (p.terminal_program,) )
+    if abs_terminal_program is None:
+        self.app.log.error( 'Cannot find %s.exe' % (p.terminal_program,) )
 
-    cmd_lines = [
-        u"@title %s\n" % (' '.join( title ),),
-        u"@set PYTHONPATH=\n",
-        u'@cd %s\n' % (working_dir,),
-        u'@echo on\n',
-        ]
-    if len( p.terminal_init ) > 0:
-        cmd_lines.append( u'call %s\n' % (p.terminal_init,) )
+    if p.terminal_program == 'cmd':
+        # calc a title that is leaf to root so that the leaf shows up in a task bar first
+        title = list(working_dir.parts[1:])
+        title.reverse()
 
-    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.cmd' )
-    app.all_temp_files.append( f.name )
-    for line in cmd_lines:
-        f.write( line )
-    f.close()
+        cmd_lines = [
+            '@title %s\n' % (' '.join( title ),),
+            '@set PYTHONPATH=\n',
+            '@cd %s\n' % (working_dir,),
+            '@echo on\n',
+            ]
+        if len( p.terminal_init ) > 0:
+            cmd_lines.append( 'call %s\n' % (p.terminal_init,) )
 
-    command_list = [os.environ['ComSpec'], u'/k', f.name]
+        f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.cmd' )
+        app.all_temp_files.append( f.name )
+        for line in cmd_lines:
+            f.write( line )
+        f.close()
+
+        command_list = [abs_terminal_program, '/k', f.name]
+
+    elif p.terminal_program == 'powershell':
+        #
+        # powershell does not allow scripts to be run by default
+        # see http://go.microsoft.com/fwlink/?LinkID=135170 for details
+        #
+
+        if False:   # if we find a way to run commands...
+            # calc a title that is leaf to root so that the leaf shows up in a task bar first
+            title = list(working_dir.parts[1:])
+            title.reverse()
+
+            cmd_lines = [
+                'set PYTHONPATH=\n',
+                'cd %s\n' % (working_dir,),
+                '$host.ui.RawUI.WindowTitle = "%s"\n' % (title,),
+                ]
+            if len( p.terminal_init ) > 0:
+                cmd_lines.append( 'call %s\n' % (p.terminal_init,) )
+
+            f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.ps1' )
+            app.all_temp_files.append( f.name )
+            for line in cmd_lines:
+                f.write( line )
+            f.close()
+
+        command_list = [abs_terminal_program, '-NoExit' ] #, '-file', f.name]
+
+    elif p.terminal_program == 'bash':
+        #
+        # bash can be convinced to run a script passed via --rcfile
+        # but it seems that it will only run the rcfile if its
+        # in the working_dir.
+        # create the tmp file in the working_dir using '\n' line endings
+        # CR-LF will not work.
+        # run the users .bashrc to setup the environment
+        #
+
+        # calc a title that is leaf to root so that the leaf shows up in a task bar first
+        title = list(working_dir.parts[1:])
+        title.reverse()
+
+        rcfile = working_dir / 'wb-shell.bash.tmp'
+
+        cmd_lines = [
+            'echo -e "\e]0;%s\007"\n' % (' '.join( title ),),
+            'unset PYTHONPATH\n',
+            'if [ -e "$HOME/.bashrc" ]\n',
+            'then\n',
+            '    . $HOME/.bashrc\n',
+            'fi\n',
+            'rm -f %s' % (rcfile.name,),
+            ]
+        if len( p.terminal_init ) > 0:
+            cmd_lines.append( '. %s\n' % (p.terminal_init,) )
+
+        f = open( str(rcfile), mode='w', newline='\n' )
+        app.all_temp_files.append( str(rcfile) )
+        for line in cmd_lines:
+            f.write( line )
+        f.close()
+
+        # replace the uses .bashrc with our script
+        command_list = [abs_terminal_program, '--rcfile', rcfile.name]
 
     CreateProcess( app, command_list, working_dir )
 
