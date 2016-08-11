@@ -45,14 +45,14 @@ def getAppDir():
     assert app_dir is not None, 'call setupPlatformSpecific_() first'
     return app_dir
 
-def getApplicationDir():
+def getPreferencesDir():
     name = '-'.join( [part.lower() for part in __all_name_parts] )
     folder = 'Library/Preferences/org.barrys-emacs.%s' % (name,)
 
     return getHomeFolder() / folder
 
 def getLocalePath():
-    return pathlib.Path( os.environ.get( 'PYTHONHOME', getApplicationDir() ) ) / 'locale'
+    return pathlib.Path( os.environ.get( 'PYTHONHOME', getAppDir() ) ) / 'locale'
 
 def getNullDevice():
     return pathlib.Path( '/dev/null' )

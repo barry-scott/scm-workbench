@@ -15,6 +15,7 @@
 '''
 import sys
 import os
+import time
 import logging
 import traceback
 
@@ -143,6 +144,12 @@ class ThreadSafeLogFacade:
         assert self.__app.isForegroundThread()
         self.__log.addHandler( handler )
 
+    def removeHandler( self, handler ):
+        # have to risk calling off if main thread
+        # to give excepthook a chance of working
+        self.__log.removeHandler( handler )
+
+
 #--------------------------------------------------------------------------------
 class StdoutLogHandler(logging.Handler):
     def __init__( self ):
@@ -170,10 +177,33 @@ class WbLog:
         if self.app.stdIoRedirected():
             sys.stdout = self
             sys.stderr = self
+            sys.excepthook = self.excepthook
 
         # Redirect log to the Log panel
-        log_handler = WidgetLogHandler( self.app, self.__log_widget )
-        self.app.log.addHandler( log_handler )
+        self.widget_log_handler = WidgetLogHandler( self.app, self.__log_widget )
+        self.app.log.addHandler( self.widget_log_handler )
+
+        self.__session_log = open( str(wb_platform_specific.getLogFilename()) + '.session.log', 'w', buffering=1 )
+
+    def excepthook( self, type_, value, tb ):
+        # emergency write
+        self.__session_log.write( 'excepthook called\n' )
+        self.__session_log.flush()
+
+        all_exception_lines = traceback.format_exception( type_, value, tb )
+        for line in all_exception_lines:
+            self.__session_log.write( line )
+        self.__session_log.flush()
+
+        # cannot use the GUI window now app is not sane
+        self.app.log.removeHandler( self.widget_log_handler )
+
+        self.app.log.error( 'excepthook called' )
+        for line in all_exception_lines:
+            self.app.log.error( line.replace( '\n', '' ) )
+
+        self.app.runInForeground( self.app.log.addHandler, (self.widget_log_handler,) )
+        self.app.runInForeground( self.app.log.error, ('Check log for traceback details',) )
 
     def logWidget( self ):
         return self.__log_widget
@@ -183,6 +213,12 @@ class WbLog:
 
     #---------- look like a file object -------------------------
     def write( self, msg ):
+        sys.__stdout__.write( 'wblog.write( %r )\n' % (msg,) )
+        sys.__stdout__.flush()
+
+        self.__session_log.write( '%s: %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S') ,msg) )
+        self.__session_log.flush()
+
         # only allowed to use GUI objects on the foreground thread
         if not self.app.isForegroundThread():
             self.app.runInForeground( self.write, (msg,) )

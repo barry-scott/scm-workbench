@@ -51,7 +51,7 @@ def getAppDir():
     assert app_dir is not None, 'call setupPlatformSpecific() first'
     return app_dir
 
-def getApplicationDir():
+def getPreferencesDir():
     buf = ctypes.create_unicode_buffer( ctypes.wintypes.MAX_PATH )
     ctypes.windll.shell32.SHGetFolderPathW( 0, CSIDL_APPDATA, 0, SHGFP_TYPE_CURRENT, buf )
 
@@ -64,7 +64,7 @@ def getWindowsDir():
     return pathlib.Path( buf.value )
 
 def getLocalePath():
-    return getApplicationDir() / 'locale'
+    return getAppDir() / 'locale'
 
 def getNullDevice():
     return pathlib.Path( 'NUL' )
@@ -73,4 +73,4 @@ def getHomeFolder():
     return pathlib.Path( os.environ['USERPROFILE'] )
 
 if __name__ == '__main__':
-    print( getApplicationDir() )
+    print( getPreferencesDir() )

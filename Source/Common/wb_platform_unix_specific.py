@@ -41,13 +41,13 @@ def setupPlatformSpecific( all_name_parts, argv0 ):
     if app_dir is None:
         app_dir = pathlib.Path( os.getcwd() )
 
-def getApplicationDir():
+def getPreferencesDir():
     name = ''.join( __all_name_parts )
     folder = '.%s' % (name,)
     return getHomeFolder() / folder
 
 def getLocalePath():
-    return getApplicationDir() / 'locale'
+    return getAppDir() / 'locale'
 
 def getNullDevice():
     return pathlib.Path( '/dev/null' )

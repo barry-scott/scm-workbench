@@ -38,18 +38,18 @@ def isUnix():
 def getPreferencesFilename():
     name = ''.join( __all_name_parts )
     filename = '%s.xml'   % (name,)
-    return getApplicationDir() / filename
+    return getPreferencesDir() / filename
 
 def getLogFilename():
     name = ''.join( __all_name_parts )
     filename = '%s.log'   % (name,)
-    return getApplicationDir() / filename
+    return getPreferencesDir() / filename
 
 def getLastCheckinMessageFilename():
-    return getApplicationDir() / 'log_message.txt'
+    return getPreferencesDir() / 'log_message.txt'
 
 def getLastLockMessageFilename():
-    return getApplicationDir() / 'lock_message.txt'
+    return getPreferencesDir() / 'lock_message.txt'
 
 def setupPlatform( all_name_parts, argv0 ):
     setupPlatformSpecific( all_name_parts, argv0 )
@@ -57,6 +57,6 @@ def setupPlatform( all_name_parts, argv0 ):
     global __all_name_parts
     __all_name_parts = all_name_parts
 
-    app_dir = getApplicationDir()
+    app_dir = getPreferencesDir()
     if not app_dir.exists():
         app_dir.mkdir( parents=True )
