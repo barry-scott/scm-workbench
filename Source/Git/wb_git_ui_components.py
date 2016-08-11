@@ -13,6 +13,7 @@
 import sys
 import os
 import time
+import shutil
 import urllib.parse
 
 import wb_log_history_options_dialog
@@ -41,6 +42,10 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         self.saved_password = SavedPassword()
 
     def createProject( self, project ):
+        if shutil.which( 'git' ) is None:
+            self.app.log.error( '"git" command line tool not found' )
+            return None
+
         try:
             return wb_git_project.GitProject( self.app, project, self )
 
@@ -61,8 +66,14 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             self.askpass_server = None
 
     def about( self ):
-        return ['GitPython %s' % (git.__version__,)
-               ,'git %d.%d.%d' % git.cmd.Git().version_info]
+        if shutil.which( 'git' ) is None:
+            git_ver = '"git" command line tool not found'
+
+        else:
+            git_ver = 'git %d.%d.%d' % git.cmd.Git().version_info
+
+        return  ['GitPython %s' % (git.__version__,)
+                ,git_ver]
 
     def setupMenuBar( self, mb, addMenu ):
         # ----------------------------------------

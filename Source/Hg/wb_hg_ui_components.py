@@ -19,12 +19,17 @@ import wb_hg_log_history
 import wb_hg_commit_dialog
 
 import hglib
+import shutil
 
 class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
     def __init__( self ):
         super().__init__()
 
     def createProject( self, project ):
+        if shutil.which( 'hg' ) is None:
+            self.app.log.error( 'Murcurial "hg" command line tool not found' )
+            return None
+
         try:
             return wb_hg_project.HgProject( self.app, project, self )
 
@@ -34,7 +39,11 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
             return None
 
     def about( self ):
-        return [wb_hg_project.HgVersion()]
+        if shutil.which( 'hg' ) is None:
+            return ['Murcurial "hg" command line tool not found']
+
+        else:
+            return [wb_hg_project.HgVersion()]
 
     def setupDebug( self ):
         self._debug = self.main_window.app._debugHgUi
