@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-#   setup-macos.py
+#   build-app-py2app-setup.py
 #
 import wb_scm_version
 import os
@@ -10,8 +10,7 @@ from setuptools import setup
 v = wb_scm_version.__dict__
 
 short_version = '%(major)d.%(minor)d.%(patch)d' % v
-info_string = 'SCM Workbench-Devel %(major)d.%(minor)d.%(patch)d %(commit)s ©%(copyright_years)s Barry A. Scott. All Rights Reserved.' % v
-
+info_string = '%(APP_NAME)s-Devel %(major)d.%(minor)d.%(patch)d %(commit)s ©%(copyright_years)s Barry A. Scott. All Rights Reserved.' % v
 
 setup(
     app =
@@ -26,11 +25,11 @@ setup(
             'no_chdir':
                 True,
             'iconfile':
-                'tmp/wb.icns',
+                'app.tmp/wb.icns',
             'plist':
                 dict(
-                    CFBundleIdentifier='org.barrys-emacs.scm-workbench-devel',
-                    CFBundleName="SCM Workbench-Devel",
+                    CFBundleIdentifier='%(APP_ID)s-devel' % v,
+                    CFBundleName='%(APP_NAME)s-Devel' % v,
                     CFBundleVersion=short_version,
                     CFBundleShortVersionString=short_version,
                     CFBundleGetInfoString=info_string
