@@ -13,8 +13,6 @@
 import locale
 import codecs
 
-import wb_platform_specific
-
 def readFileContentsAsUnicode( filename ):
     f = open( filename, 'rb' )
     contents = f.read()

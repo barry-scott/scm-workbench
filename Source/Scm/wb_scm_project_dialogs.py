@@ -20,6 +20,7 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_dialog_bases
+import wb_platform_specific
 
 scm_folder_detection = [('.git', 'git'), ('.hg', 'hg'), ('.svn', 'svn'), ('_svn', 'svn')]
 
