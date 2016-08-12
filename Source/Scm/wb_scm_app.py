@@ -82,10 +82,15 @@ class WbScmApp(wb_app.WbApp,
                     self.log,
                     wb_platform_specific.getPreferencesFilename() )
 
+    def writePreferences( self ):
+        super().writePreferences()
+
+        if self.prefs.font.face is not None:
+            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font.face, self.prefs.font.point_size) )
+
     def createMainWindow( self ):
         if self.prefs.font.face is not None:
-            font = QtGui.QFont( self.prefs.font.face, self.prefs.font.point_size, 50, False )
-            self.setFont( font )
+            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font.face, self.prefs.font.point_size) )
 
         self.top_window = wb_scm_main_window.WbScmMainWindow( self,
             {'git': wb_git_ui_components.GitMainWindowComponents()
