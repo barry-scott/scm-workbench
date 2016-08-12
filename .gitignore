@@ -1,8 +1,16 @@
 *.pyc
 *~
+*.tmp
 .bash_history
 .directory
+.DS_Store
 # ignore generated files
 wb_scm_images.py
 wb_scm_version.py
 wb_diff_images.py
+
+# ignore macOS build folders
+Kit/macOS/.eggs/
+Kit/macOS/app.tmp/
+Kit/macOS/build/
+Kit/macOS/dmg.tmp/
