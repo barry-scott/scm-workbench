@@ -54,3 +54,12 @@ def getNullDevice():
 
 def getHomeFolder():
     return pathlib.Path( os.environ['HOME'] )
+
+__filename_bad_chars_set = set( '/\000' )
+def isInvalidFilename( filename ):
+    name_set = set( folder_name )
+
+    if len( name_set.intersection( __filename_bad_chars_set ) ) != 0:
+        return True
+
+    return False

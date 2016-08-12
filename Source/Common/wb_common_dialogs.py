@@ -14,7 +14,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import sys
+import wb_platform_specific
 
 class WbRenameFilenameDialog(QtWidgets.QDialog):
     def __init__( self, app, parent ):
@@ -101,12 +101,8 @@ class WbNewFolderDialog(QtWidgets.QDialog):
         if folder_name == '':
             enable = False
 
-        if sys.platform == 'win32':
-            if len( name_set.intersection( '\\:/\000' ) ) != 0:
-                enable = False
-        else:
-            if len( name_set.intersection( '/\000' ) ) != 0:
-                enable = False
+        if wb_platform_specific.isInvalidFilename( folder_name ):
+            enable = False
 
         abs_folder_name = self.parent_folder /folder_name
         if abs_folder_name.exists():

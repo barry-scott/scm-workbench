@@ -16,9 +16,9 @@ import os
 import types
 import pathlib
 
+
 __all_name_parts = None
 app_dir = None
-
 
 def setupPlatformSpecific( all_name_parts, argv0 ):
     global __all_name_parts
@@ -59,3 +59,12 @@ def getNullDevice():
 
 def getHomeFolder():
     return pathlib.Path( os.environ['HOME'] )
+
+__filename_bad_chars_set = set( '/\000' )
+def isInvalidFilename( filename ):
+    name_set = set( folder_name )
+
+    if len( name_set.intersection( __filename_bad_chars_set ) ) != 0:
+        return True
+
+    return False

@@ -12,14 +12,14 @@
     Based on code from git WorkBench
 
 '''
-import sys
+import wb_platform_specific
 
 # point size and face need to chosen for platform
-if sys.platform.startswith( 'win' ):
+if wb_platform_specific.isWindows():
     face = 'Courier New'
     point_size = 8
 
-elif sys.platform == 'darwin':
+elif wb_platform_specific.isMacOs():
     face = 'Monaco'
     point_size = 12
 

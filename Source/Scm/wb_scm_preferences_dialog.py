@@ -12,14 +12,14 @@
     Based on code from pysvn WorkBench
 
 '''
-import sys
 import pathlib
-
-import wb_shell_commands
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
+
+import wb_shell_commands
+import wb_platform_specific
 
 class WbScmPreferencesDialog(QtWidgets.QDialog):
     def __init__( self, app, parent ):
@@ -111,7 +111,7 @@ class EditorPage(QtWidgets.QWidget):
             file_browser.setDirectory( str( path.parent ) )
             file_browser.selectFile( str( path ) )
         else:
-            if sys.platform != 'win32':
+            if not wb_platform_specific.isWindows():
                 file_browser.setDirectory( '/usr/bin' )
 
         if file_browser.exec_():

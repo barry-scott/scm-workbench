@@ -73,11 +73,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
                 self.all_existing_project_names.add( project.name.lower() )
                 self.all_existing_project_paths.add( project.path )
 
-        if sys.platform == 'win32':
-            self.home = pathlib.Path( os.environ['USERPROFILE'] )
-
-        else:
-            self.home = pathlib.Path( os.environ['HOME'] )
+        self.home = pathlib.Path( wb_platform_specific.getHomeFolder() )
 
         self.scm_type = None
         self.wc_path = None

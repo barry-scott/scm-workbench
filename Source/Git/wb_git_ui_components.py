@@ -10,13 +10,13 @@
     wb_git_ui_components.py.py
 
 '''
-import sys
 import os
 import time
 import shutil
 import urllib.parse
 
 import wb_log_history_options_dialog
+import wb_platform_specific
 
 import wb_git_ui_actions
 import wb_git_project
@@ -24,7 +24,6 @@ import wb_git_commit_dialog
 import wb_git_log_history
 import wb_git_askpass_server
 import wb_git_credentials_dialog
-import wb_platform_specific
 
 import git
 import git.cmd
@@ -57,7 +56,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )
 
-        if sys.platform == 'win32':
+        if wb_platform_specific.isWindows():
             self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
             self.askpass_server.start()
             os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe')

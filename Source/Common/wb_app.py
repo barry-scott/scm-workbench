@@ -70,7 +70,7 @@ class WbApp(QtWidgets.QApplication,
         self.all_processes = []
 
         # on the Mac the app's cwd is the resource folder
-        if sys.platform == 'darwin':
+        if wb_platform_specific.isMacOs():
             if 'PWD' in os.environ:
                 os.chdir( os.environ['PWD'] )
             else:

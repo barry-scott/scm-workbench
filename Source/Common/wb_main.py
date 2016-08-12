@@ -22,20 +22,17 @@ import builtins
 # U_( 'static string' )
 builtins.__dict__['U_'] = lambda s: s
 
+import wb_platform_specific
+
 def main( app_cls, argv ):
     #
     #   set a working STDOUT before loading most modules
     #
     # help debug when stdout goes nowhere useful
     # Mac OS X and Windows are the main problems
-    if sys.platform == 'darwin':
+    if wb_platform_specific.isMacOs() or wb_platform_specific.isWindows():
         if '--noredirect' not in argv:
-            sys.stdout = open( os.environ.get( 'WB_STDOUT_LOG', '/dev/null' ), 'w', 1 )
-            sys.stderr = sys.stdout
-
-    elif sys.platform.startswith( 'win' ):
-        if '--noredirect' not in argv:
-            sys.stdout = open( os.environ.get( 'WB_STDOUT_LOG', 'NUL' ), 'w' )
+            sys.stdout = open( os.environ.get( 'WB_STDOUT_LOG', str(wb_platform_specific.getNullDevice()) ), 'w', 1 )
             sys.stderr = sys.stdout
 
     # don't pollute any subprocesses with env vars

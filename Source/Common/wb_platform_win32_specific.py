@@ -23,7 +23,6 @@ CSIDL_WINDOWS = 0x24    # windows folder
 SHGFP_TYPE_CURRENT = 0  # Want current, not default value
 SHGFP_TYPE_DEFAULT = 1
 
-
 app_dir = None
 
 __all_name_parts = None
@@ -71,6 +70,24 @@ def getNullDevice():
 
 def getHomeFolder():
     return pathlib.Path( os.environ['USERPROFILE'] )
+
+__filename_bad_chars_set = set( '\\:/\000?<>*|"' )
+__filename_reserved_names = set( ['nul', 'con', 'aux', 'prn',
+    'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9', 
+    'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9', 
+    ] )
+
+def isInvalidFilename( filename ):
+    name_set = set( folder_name )
+
+    if len( name_set.intersection( __filename_bad_chars_set ) != 0:
+        return True
+
+    name = filename.split( '.' )[0]
+    if name.lower() in __filename_reserved_names:
+        return True
+
+    return False
 
 if __name__ == '__main__':
     print( getPreferencesDir() )
