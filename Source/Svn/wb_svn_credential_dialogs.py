@@ -14,7 +14,9 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-class WbSvnGetLoginDialog(QtWidgets.QDialog):
+import wb_dialog_bases
+
+class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
     def __init__( self, parent, realm, username, may_save ):
         super().__init__( parent )
 
@@ -33,34 +35,14 @@ class WbSvnGetLoginDialog(QtWidgets.QDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
-        self.ok_button.setEnabled( False )
-
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
-
-        layout = QtWidgets.QGridLayout()
-        def addRow( row, label, value ):
-            layout.addWidget( QtWidgets.QLabel( label ), row, 0 )
-            if type(value) == str:
-                layout.addWidget( QtWidgets.QLabel( value ), row, 1 )
-            else:
-                layout.addWidget( value, row, 1 )
-
-            return row + 1
-
-        row = addRow(   0, T_('Realm'), realm )
-        row = addRow( row, T_('Username'), self.username )
-        row = addRow( row, T_('Password'), self.password )
+        self.addRow( T_('Realm'), realm )
+        self.addRow( T_('Username'), self.username )
+        self.addRow( T_('Password'), self.password )
 
         if self.save_credentials is not None:
-            row = addRow( row, T_('Save Credentials'), self.save_credentials )
+            self.addRow( T_('Save Credentials'), self.save_credentials )
 
-        layout.addWidget( self.buttons, row, 0, 1, 2 )
-
-        self.setLayout( layout )
+        self.addButtons()
 
     def nameTextChanged( self, text ):
          self.ok_button.setEnabled( self.getUsername() != '' and self.getPassword() != '' )
@@ -74,7 +56,7 @@ class WbSvnGetLoginDialog(QtWidgets.QDialog):
     def getSaveCredentials( self ):
         return self.save_credentials.checkState() == QtCore.Qt.Checked
 
-class WbSvnSslServerTrustDialog(QtWidgets.QDialog):
+class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
     def __init__( self, parent, info_list ):
         super().__init__( parent )
 
@@ -87,36 +69,14 @@ class WbSvnSslServerTrustDialog(QtWidgets.QDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
-        self.ok_button.setEnabled( False )
-
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
-
-        def addRow( row, label, value ):
-            layout.addWidget( QtWidgets.QLabel( label ), row, 0 )
-            if type(value) == str:
-                layout.addWidget( QtWidgets.QLabel( value ), row, 1 )
-            else:
-                layout.addWidget( value, row, 1 )
-
-            return row + 1
-
-        layout = QtWidgets.QGridLayout()
-        row = 0
-        row = addRow( row, T_('Hostname'), info_list['hostname'] )
-        row = addRow( row, T_('Finger Print'), info_list['finger_print'] )
-        row = addRow( row, T_('Valid From'), info_list['valid_from'] )
-        row = addRow( row, T_('Valid Until'), info_list['valid_until'] )
-        row = addRow( row, T_('Issuer Dname'), info_list['issuer_dname'] )
-        row = addRow( row, T_('Realm'), info_list['realm'] )
-        row = addRow( row, T_('Save Trust'), self.save_trust )
-
-        layout.addWidget( self.buttons, row, 0, 1, 2 )
-
-        self.setLayout( layout )
+        self.addRow( T_('Hostname'), info_list['hostname'] )
+        self.addRow( T_('Finger Print'), info_list['finger_print'] )
+        self.addRow( T_('Valid From'), info_list['valid_from'] )
+        self.addRow( T_('Valid Until'), info_list['valid_until'] )
+        self.addRow( T_('Issuer Dname'), info_list['issuer_dname'] )
+        self.addRow( T_('Realm'), info_list['realm'] )
+        self.addRow( T_('Save Trust'), self.save_trust )
+        self.addButtons()
 
     def getSaveTrust( self ):
         return self.save_trust.checkState() == QtCore.Qt.Checked

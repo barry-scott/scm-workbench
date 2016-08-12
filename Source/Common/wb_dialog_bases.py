@@ -28,6 +28,8 @@ class WbDialog(QtWidgets.QDialog):
         self.buttons.rejected.connect( self.reject )
 
         self.grid_layout = QtWidgets.QGridLayout()
+        self.grid_layout.setAlignment( QtCore.Qt.AlignTop )
+
         self.setLayout( self.grid_layout )
 
     def addRow( self, label, value ):

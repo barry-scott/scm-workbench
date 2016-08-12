@@ -16,7 +16,9 @@ from PyQt5 import QtCore
 
 import wb_platform_specific
 
-class WbRenameFilenameDialog(QtWidgets.QDialog):
+import wb_dialog_bases
+
+class WbRenameFilenameDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent ):
         self.app = app
 
@@ -29,22 +31,10 @@ class WbRenameFilenameDialog(QtWidgets.QDialog):
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )
 
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
         self.ok_button.setEnabled( False )
 
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
-
-        layout = QtWidgets.QGridLayout()
-        row = 0
-        layout.addWidget( QtWidgets.QLabel( T_('Name') ), row, 0 )
-        layout.addWidget( self.name, row, 1 )
-        row += 1
-        layout.addWidget( self.buttons, row, 0, 1, 2 )
-
-        self.setLayout( layout )
+        self.addRow( T_('Name'), self.name )
+        self.addButtons()
 
     def nameTextChanged( self, text ):
          self.ok_button.setEnabled( self.getName() != self.old_name )
@@ -64,7 +54,7 @@ class WbRenameFilenameDialog(QtWidgets.QDialog):
         return self.name.text().strip()
 
 
-class WbNewFolderDialog(QtWidgets.QDialog):
+class WbNewFolderDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent, parent_folder ):
         self.app = app
 
@@ -77,22 +67,8 @@ class WbNewFolderDialog(QtWidgets.QDialog):
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )
 
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
-        self.ok_button.setEnabled( False )
-
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
-
-        layout = QtWidgets.QGridLayout()
-        row = 0
-        layout.addWidget( QtWidgets.QLabel( T_('Folder Name') ), row, 0 )
-        layout.addWidget( self.name, row, 1 )
-        row += 1
-        layout.addWidget( self.buttons, row, 0, 1, 2 )
-
-        self.setLayout( layout )
+        self.addRow( T_('Folder Name'), self.name )
+        self.addButtons()
 
     def nameTextChanged( self, text ):
         folder_name = self.getFolderName()

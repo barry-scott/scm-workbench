@@ -19,6 +19,8 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import wb_dialog_bases
+
 scm_folder_detection = [('.git', 'git'), ('.hg', 'hg'), ('.svn', 'svn'), ('_svn', 'svn')]
 
 scm_presentation_names = {
@@ -543,7 +545,7 @@ class PageAddProjectName(QtWidgets.QWizardPage):
         return True
 
 #------------------------------------------------------------
-class ProjectSettingsDialog(QtWidgets.QDialog):
+class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent, old_project_name ):
         self.app = app
         self.old_project_name = old_project_name
@@ -562,28 +564,10 @@ class ProjectSettingsDialog(QtWidgets.QDialog):
 
         self.name = QtWidgets.QLineEdit( self.project.name )
 
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        cancel_button = self.buttons.addButton( self.buttons.Cancel )
-
-        l = self.layout = QtWidgets.QGridLayout()
-        l.setAlignment( QtCore.Qt.AlignTop )
-        row = 0
-        l.addWidget( QtWidgets.QLabel( T_('Name:') ), row, 0 )
-        l.addWidget( self.name, row, 1 )
-        row += 1
-        l.addWidget( QtWidgets.QLabel( T_('SCM Type:') ), row, 0 )
-        l.addWidget( QtWidgets.QLabel( scm_presentation_names.get( self.project.scm_type, self.project.scm_type ) ), row, 1 )
-        row += 1
-        l.addWidget( QtWidgets.QLabel( T_('Path:') ), row, 0 )
-        l.addWidget( QtWidgets.QLabel( str(self.project.path) ), row, 1 )
-        row += 1
-        l.addWidget( self.buttons, row, 0, 1, 2 )
-
-        self.setLayout( l )
-
-        self.ok_button.clicked.connect( self.accept )
-        cancel_button.clicked.connect( self.reject )
+        self.addRow( T_('Name:'), self.name )
+        self.addRow( T_('SCM Type:'), scm_presentation_names.get( self.project.scm_type, self.project.scm_type ) )
+        self.addRow( T_('Path:'), str(self.project.path) )
+        self.addButtons()
 
         self.ok_button.setEnabled( False )
         self.name.textChanged.connect( self.enableOkButton )

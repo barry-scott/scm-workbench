@@ -14,7 +14,9 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-class WbGitCredentialsDialog(QtWidgets.QDialog):
+import wb_dialog_bases
+
+class WbGitCredentialsDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent ):
         self.app = app
 
@@ -30,26 +32,10 @@ class WbGitCredentialsDialog(QtWidgets.QDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
-        self.ok_button.setEnabled( False )
-
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
-
-        layout = QtWidgets.QGridLayout()
-        row = 0
-        layout.addWidget( QtWidgets.QLabel( T_('URL') ), row, 0 )
-        layout.addWidget( self.url, row, 1 )
-        row += 1
-        layout.addWidget( QtWidgets.QLabel( T_('Username') ), row, 0 )
-        layout.addWidget( self.username, row, 1 )
-        row += 1
-        layout.addWidget( QtWidgets.QLabel( T_('Password') ), row, 0 )
-        layout.addWidget( self.password, row, 1 )
-        row += 1
-        layout.addWidget( self.buttons, row, 0, 1, 2 )
+        self.addRow( T_('URL'), self.url )
+        self.addRow( T_('Username'), self.username )
+        self.addRow( T_('Password'), self.password )
+        self.addButtons()
 
         self.setLayout( layout )
 
