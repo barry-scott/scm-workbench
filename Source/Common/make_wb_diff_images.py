@@ -19,10 +19,12 @@ argv = [
         sys.argv[0],
         'wb_diff_images.py',
 
-	'../wb.png',
+        '../wb.png',
 
-	'../toolbar_images/include.png',
-	'../toolbar_images/exclude.png',
+        '../toolbar_images/blank.png',
+
+        '../toolbar_images/include.png',
+        '../toolbar_images/exclude.png',
         ]
 
 def main( argv ):

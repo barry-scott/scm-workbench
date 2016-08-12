@@ -29,6 +29,12 @@ then
 fi
 PYTHONW=${DIRNAME}pythonw${SUFFIX}
 
+pushd ../Common
+make -f linux.mak clean
+make -f linux.mak
+popd >/dev/null
+
+make -f linux.mak clean
 make -f linux.mak
 
 if [ "$1" = "--gdb" ]

@@ -19,29 +19,32 @@ argv = [
         sys.argv[0],
         'wb_scm_images.py',
 
-	'../wb.png',
+        '../wb.png',
 
-	'../toolbar_images/editcopy.png',
-	'../toolbar_images/editcut.png',
-	'../toolbar_images/editpaste.png',
+        '../toolbar_images/blank.png',
 
-	'../toolbar_images/terminal.png',
-	'../toolbar_images/file_browser.png',
+        '../toolbar_images/editcopy.png',
+        '../toolbar_images/editcut.png',
+        '../toolbar_images/editpaste.png',
 
-	'../toolbar_images/edit.png',
-	'../toolbar_images/open.png',
+        '../toolbar_images/terminal.png',
+        '../toolbar_images/file_browser.png',
 
-	'../toolbar_images/include.png',
-	'../toolbar_images/exclude.png',
+        '../toolbar_images/edit.png',
+        '../toolbar_images/open.png',
 
-	'../toolbar_images/revert.png',
+        '../toolbar_images/include.png',
+        '../toolbar_images/exclude.png',
 
-	'../toolbar_images/diff.png',
-	'../toolbar_images/history.png',
+        '../toolbar_images/revert.png',
+        '../toolbar_images/delete.png',
 
-	'../toolbar_images/commit.png',
-	'../toolbar_images/push.png',
-	'../toolbar_images/pull.png',
+        '../toolbar_images/diff.png',
+        '../toolbar_images/history.png',
+
+        '../toolbar_images/commit.png',
+        '../toolbar_images/push.png',
+        '../toolbar_images/pull.png',
 
         # for svn ui
         '../toolbar_images/add.png',

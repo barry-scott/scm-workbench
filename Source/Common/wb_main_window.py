@@ -49,10 +49,10 @@ class WbMainWindow(QtWidgets.QMainWindow):
 
     def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, thread_switcher=False, role=QtWidgets.QAction.NoRole ):
         if icon_name is None:
-            action = menu.addAction( name )
-        else:
-            icon = self.getQIcon( icon_name )
-            action = menu.addAction( icon, name )
+            icon_name = 'toolbar_images/blank.png'
+
+        icon = self.getQIcon( icon_name )
+        action = menu.addAction( icon, name )
 
         if handler is not None:
             if thread_switcher:
