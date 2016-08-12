@@ -7,12 +7,14 @@
 
  ====================================================================
 
-    wb_rename_dialog.py
+    wb_common_dialogs.py
 
 '''
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
+
+import sys
 
 class WbRenameFilenameDialog(QtWidgets.QDialog):
     def __init__( self, app, parent ):
@@ -59,6 +61,60 @@ class WbRenameFilenameDialog(QtWidgets.QDialog):
             self.name.selectAll()
 
     def getName( self ):
+        return self.name.text().strip()
+
+
+class WbNewFolderDialog(QtWidgets.QDialog):
+    def __init__( self, app, parent, parent_folder ):
+        self.app = app
+
+        self.parent_folder = parent_folder
+
+        super().__init__( parent )
+
+        self.setWindowTitle( T_('New Folder') )
+
+        self.name = QtWidgets.QLineEdit()
+        self.name.textChanged.connect( self.nameTextChanged )
+
+        self.buttons = QtWidgets.QDialogButtonBox()
+        self.ok_button = self.buttons.addButton( self.buttons.Ok )
+        self.buttons.addButton( self.buttons.Cancel )
+        self.ok_button.setEnabled( False )
+
+        self.buttons.accepted.connect( self.accept )
+        self.buttons.rejected.connect( self.reject )
+
+        layout = QtWidgets.QGridLayout()
+        row = 0
+        layout.addWidget( QtWidgets.QLabel( T_('Folder Name') ), row, 0 )
+        layout.addWidget( self.name, row, 1 )
+        row += 1
+        layout.addWidget( self.buttons, row, 0, 1, 2 )
+
+        self.setLayout( layout )
+
+    def nameTextChanged( self, text ):
+        folder_name = self.getFolderName()
+        name_set = set( folder_name )
+        enable = True
+        if folder_name == '':
+            enable = False
+
+        if sys.platform == 'win32':
+            if len( name_set.intersection( '\\:/\000' ) ) != 0:
+                enable = False
+        else:
+            if len( name_set.intersection( '/\000' ) ) != 0:
+                enable = False
+
+        abs_folder_name = self.parent_folder /folder_name
+        if abs_folder_name.exists():
+            enable = False
+
+        self.ok_button.setEnabled( enable )
+
+    def getFolderName( self ):
         return self.name.text().strip()
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_ui_components
-import wb_rename_dialog
+import wb_common_dialogs
 
 import wb_git_project
 import wb_git_status_view
@@ -154,6 +154,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.log.error( '  enablerGitCommit -> %r' % (self.enablerGitCommit(),) )
         git_project = self.selectedGitProject()
         self.log.error( '       git_project -> %r' % (git_project,) )
+
+        assert False,'Crash!'
+
         if git_project is None:
             return
 
@@ -413,7 +416,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def __actionGitRename( self, git_project, filename ):
         filestate = git_project.getFileState( filename )
 
-        rename = wb_rename_dialog.WbRenameFilenameDialog( self.app, self.main_window )
+        rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
         rename.setName( filename.name )
 
         if rename.exec_():

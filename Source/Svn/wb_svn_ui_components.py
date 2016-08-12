@@ -56,8 +56,13 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionSvnDiffHeadVsWorking, self.enablerTreeTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Info'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Add Folder…'), self.treeActionSvnAdd, self.enablerTreeSvnAdd )
+        addMenu( m, T_('New Folder…'), self.treeActionSvnMkdir, self.enablerTreeSvnMkdir )
+
+        m.addSeparator()
+        addMenu( m, T_('Information'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
         addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
+
         m.addSeparator()
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
         addMenu( m, T_('Status'), self.treeActionSvnStatus )
@@ -67,11 +72,11 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         self.all_menus.append( m )
 
         addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
-        addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Rename…'), self.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Rename…'), self.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
-        addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Revert…'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
 
         m.addSeparator()
         addMenu( m, T_('Checkin…'), self.treeActionSvnCheckin, self.enablerSvnCheckin, 'toolbar_images/checkin.png', thread_switcher=True )
@@ -86,7 +91,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         t = addToolBar( T_('svn logo'), style='font-size: 20pt; width: 40px; color: #000099' )
         self.all_toolbars.append( t )
 
-        addTool( t, 'Svn', self.main_window.projectActionSettings )
+        addTool( t, 'Svn', self.main_window.projectActionSettings, icon_name='' )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
         # ----------------------------------------
@@ -125,11 +130,11 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         m.addSection( T_('&Actions') )
         addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
-        addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Rename…'), self.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Rename…'), self.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
-        addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), self.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
 
 
     def setupTreeContextMenu( self, m, addMenu ):
@@ -139,11 +144,18 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Diff Base vs. Working'), self.treeActionSvnDiffBaseVsWorking, self.enablerTreeSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeActionSvnDiffHeadVsWorking, self.enablerTreeSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
+        m.addSection( T_('Actions') )
+        addMenu( m, T_('Add Folder…'), self.treeActionSvnAdd, self.enablerTreeSvnAdd )
+        addMenu( m, T_('New Folder…'), self.treeActionSvnMkdir, self.enablerTreeSvnMkdir )
+
+        m.addSeparator()
+        addMenu( m, T_('Revert…'), self.treeActionSvnRevert, self.enablerTreeSvnRevert, 'toolbar_images/revert.png' )
+
         m.addSection( T_('Info' ) )
         addMenu( m, T_('Information'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
         addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
-        m.addSection( T_('Status') )
+        m.addSeparator()
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
     def treeActionSvnLogHistory( self ):

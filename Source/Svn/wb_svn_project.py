@@ -222,21 +222,26 @@ class SvnProject:
         self._debug( 'cmdCleanup()' )
         self.client().cleanup( str( self.projectPath() ) )
 
-    def cmdAdd( self, filename ):
-        self._debug( 'cmdAdd( %r )' % (filename,) )
-
-        self.client().add( self.pathForSvn( filename ) )
+    def cmdMkdir( self, filename ):
+        self._debug( 'cmdMkdir()' )
+        self.client().mkdir( self.pathForSvn( filename ) )
         self.__stale_status = True
 
-    def cmdRevert( self, filename ):
-        self._debug( 'cmdRevert( %r )' % (filename,) )
+    def cmdAdd( self, filename, depth=None, force=False ):
+        self._debug( 'cmdAdd( %r )' % (filename,) )
 
-        self.client().revert( self.pathForSvn( filename ) )
+        self.client().add( self.pathForSvn( filename ), depth=depth, force=force )
+        self.__stale_status = True
+
+    def cmdRevert( self, filename, depth=None ):
+        self._debug( 'cmdRevert( %r, %r )' % (filename, depth) )
+
+        self.client().revert( self.pathForSvn( filename ), depth=depth )
         self.__stale_status = True
 
     def cmdDelete( self, filename ):
         self._debug( 'cmdDelete( %r )' % (filename,) )
-        self.client().delete( self.pathForSvn( filename ) )
+        self.client().remove( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdRename( self, filename, new_filename ):

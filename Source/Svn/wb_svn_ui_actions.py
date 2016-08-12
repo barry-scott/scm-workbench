@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_svn_ui_components.py.py
+    wb_svn_ui_components.py
 
 '''
 from PyQt5 import QtWidgets
@@ -15,11 +15,12 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_ui_components
-import wb_rename_dialog
+import wb_common_dialogs
 
 import wb_svn_project
 import wb_svn_info_dialog
 import wb_svn_properties_dialog
+import wb_svn_dialogs
 
 import pysvn
 import pathlib
@@ -39,8 +40,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def setupDebug( self ):
         self._debug = self.main_window.app._debugSvnUi
 
-
-
     #--- Enablers ---------------------------------------------------------
 
     #------------------------------------------------------------
@@ -53,7 +52,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     def enablerTreeTableSvnProperties( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnProperties, self.enablerTableSvnProperties, default=False )
-
 
     def enablerTreeTableSvnDiffBaseVsWorking( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, default=False )
@@ -98,6 +96,15 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def enablerTreeSvnInfo( self ):
         return self._enablerTreeSvnIsControlled()
 
+    def enablerTreeSvnMkdir( self ):
+        return self._enablerTreeSvnIsControlled()
+
+    def enablerTreeSvnRevert( self ):
+        return self._enablerTreeSvnIsControlled()
+
+    def enablerTreeSvnAdd( self ):
+        return not self._enablerTreeSvnIsControlled()
+
     def enablerTreeSvnProperties( self ):
         return self._enablerTreeSvnIsControlled()
 
@@ -130,6 +137,42 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
         self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
+
+    def treeActionSvnAdd( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        dialog = wb_svn_dialogs.WbAddFolderDialog( self.app, self.main_window, tree_node.relativePath() )
+        if dialog.exec_():
+            project = tree_node.project
+            project.cmdAdd( tree_node.relativePath(), depth=dialog.getDepth(), force=dialog.getForce() )
+
+            self.main_window.updateTableView()
+
+    def treeActionSvnRevert( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        dialog = wb_svn_dialogs.WbRevertFolderDialog( self.app, self.main_window, tree_node.absolutePath() )
+        if dialog.exec_():
+            project = tree_node.project
+            project.cmdRevert( tree_node.relativePath(), depth=dialog.getDepth() )
+
+            self.main_window.updateTableView()
+
+    def treeActionSvnMkdir( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return
+
+        dialog = wb_common_dialogs.WbNewFolderDialog( self.app, self.main_window, tree_node.absolutePath() )
+        if dialog.exec_():
+            project = tree_node.project
+            project.cmdMkdir( tree_node.relativePath() / dialog.getFolderName() )
+
+            self.main_window.updateTableView()
 
     def treeActionSvnInfo( self ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -420,7 +463,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     def tableActionSvnRename( self ):
         def action( project, filename ):
-            rename = wb_rename_dialog.WbRenameFilenameDialog( self.app, self.main_window )
+            rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
             rename.setName( filename.name )
 
             if rename.exec_():
