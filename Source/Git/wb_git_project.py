@@ -225,11 +225,19 @@ class GitProject:
 
     def canPush( self ):
         head_commit = self.repo.head.ref.commit
-        remote_commit = self.repo.head.ref.tracking_branch().commit
+        tracking_branch = self.repo.head.ref.tracking_branch()
+        if tracking_branch is None:
+            return False
+
+        remote_commit = tracking_branch.commit
         return head_commit != remote_commit
 
     def getUnpushedCommits( self ):
-        last_pushed_commit_id = self.repo.head.ref.tracking_branch().commit.hexsha
+        tracking_branch = self.repo.head.ref.tracking_branch()
+        if tracking_branch is None:
+            return []
+
+        last_pushed_commit_id = tracking_branch.commit.hexsha
 
         all_unpushed_commits = []
         for commit in self.repo.iter_commits( None ):
