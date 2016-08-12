@@ -182,7 +182,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.timer_init = None
 
-        self.setStatusGeneral( T_('Loading projects') )
+        self.setStatusAction( T_('Loading projects') )
+        self.progress.start( '%(percent)3d%%', len(self.app.prefs.getAllProjects()) )
 
         # load up all the projects
         self.__project_index = 0
@@ -194,6 +195,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def loadNextProject( self ):
         if self.tree_model.loadNextProject( self.__project_index ):
+            self.progress.incEventCount()
             self.__project_index += 1
             self.timer_init.start( 0 )
 
@@ -211,7 +213,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self._debug( 'Selecting project in tree' )
                 self.tree_view.setCurrentIndex( index )
 
-            self.setStatusGeneral()
+            self.setStatusAction()
+            self.progress.end()
             self.timer_init = None
 
     def createProject( self, project ):
