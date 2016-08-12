@@ -91,7 +91,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         t = addToolBar( T_('svn logo'), style='font-size: 20pt; width: 40px; color: #000099' )
         self.all_toolbars.append( t )
 
-        addTool( t, 'Svn', self.main_window.projectActionSettings, icon_name='' )
+        addTool( t, 'Svn', self.main_window.projectActionSettings )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
         # ----------------------------------------
