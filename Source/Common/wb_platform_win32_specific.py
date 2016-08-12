@@ -80,7 +80,7 @@ __filename_reserved_names = set( ['nul', 'con', 'aux', 'prn',
 def isInvalidFilename( filename ):
     name_set = set( folder_name )
 
-    if len( name_set.intersection( __filename_bad_chars_set ) != 0:
+    if len( name_set.intersection( __filename_bad_chars_set ) ) != 0:
         return True
 
     name = filename.split( '.' )[0]
