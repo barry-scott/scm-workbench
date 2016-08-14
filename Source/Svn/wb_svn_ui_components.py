@@ -204,7 +204,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
                     self.app,
                     T_('Commit Log for %(project)s:%(path)s') %
                             {'project': svn_project.projectName()
-                            ,'path': tree_node.relativePath()},
+                            ,'path': filename},
                     self.main_window.getQIcon( 'wb.png' ) )
 
             commit_log_view.showCommitLogForFile( svn_project, filename, options )
