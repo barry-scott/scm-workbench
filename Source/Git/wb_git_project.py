@@ -859,6 +859,9 @@ class Progress(git.RemoteProgress):
         self.progress_call_back( is_begin, is_end, stage_name, cur_count, max_count, message )
 
     def line_dropped( self, line ):
+        if line.startswith( 'POST git-upload-pack' ):
+            return
+
         self.__all_dropped_lines.append( line )
 
     def allErrorLines( self ):
