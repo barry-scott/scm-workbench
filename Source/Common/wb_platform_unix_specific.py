@@ -17,7 +17,7 @@ import types
 import pathlib
 
 __all_name_parts = None
-app_dir
+app_dir = None
 
 def setupPlatformSpecific( all_name_parts, argv0 ):
     global __all_name_parts
@@ -40,6 +40,10 @@ def setupPlatformSpecific( all_name_parts, argv0 ):
 
     if app_dir is None:
         app_dir = pathlib.Path( os.getcwd() )
+
+def getAppDir():
+    assert app_dir is not None, 'call setupPlatformSpecific() first'
+    return app_dir
 
 def getPreferencesDir():
     name = ''.join( __all_name_parts )
