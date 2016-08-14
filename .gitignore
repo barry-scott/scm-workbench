@@ -14,6 +14,10 @@ Kit/macOS/.eggs/
 Kit/macOS/app.tmp/
 Kit/macOS/build/
 Kit/macOS/dmg.tmp/
-# ignore windwos build folders
+
+# ignore windows build folders
 Kit/Windows/app.tmp/
 Kit/Windows/setup.tmp/
+
+# ignore windows build folders
+Kit/Fedora/tmp/
