@@ -213,9 +213,6 @@ class WbLog:
 
     #---------- look like a file object -------------------------
     def write( self, msg ):
-        sys.__stdout__.write( 'wblog.write( %r )\n' % (msg,) )
-        sys.__stdout__.flush()
-
         self.__session_log.write( '%s: %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S') ,msg) )
         self.__session_log.flush()
 
