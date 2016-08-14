@@ -62,7 +62,7 @@ def getHomeFolder():
 
 __filename_bad_chars_set = set( '/\000' )
 def isInvalidFilename( filename ):
-    name_set = set( folder_name )
+    name_set = set( filename )
 
     if len( name_set.intersection( __filename_bad_chars_set ) ) != 0:
         return True
