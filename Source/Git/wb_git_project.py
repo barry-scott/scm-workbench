@@ -449,8 +449,11 @@ class GitProject:
             for info in remote.pull( progress=progress ):
                 info_callback( info )
 
+            for line in progress.allDroppedLines():
+                self.app.log.info( line )
+
         except GitCommandError:
-            for line in progress.error_lines():
+            for line in progress.allErrorLines():
                 self.app.log.error( line )
 
             raise
@@ -466,8 +469,11 @@ class GitProject:
             for info in remote.push( progress=progress ):
                 info_callback( info )
 
+            for line in progress.allDroppedLines():
+                self.app.log.info( line )
+
         except GitCommandError:
-            for line in progress.error_lines():
+            for line in progress.allErrorLines():
                 self.app.log.error( line )
 
             raise
@@ -834,6 +840,8 @@ class Progress(git.RemoteProgress):
         self.progress_call_back = progress_call_back
         super().__init__()
 
+        self.__all_dropped_lines = []
+
     all_update_stages = {
         git.RemoteProgress.COUNTING:        'Counting',
         git.RemoteProgress.COMPRESSING:     'Compressing',
@@ -845,10 +853,18 @@ class Progress(git.RemoteProgress):
         }
 
     def update( self, op_code, cur_count, max_count=None, message='' ):
+        print( 'qqq wb_git_project update' )
         stage_name = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
         is_begin = op_code&git.RemoteProgress.BEGIN != 0
         is_end = op_code&git.RemoteProgress.END != 0
         self.progress_call_back( is_begin, is_end, stage_name, cur_count, max_count, message )
 
     def line_dropped( self, line ):
-        self._error_lines.append( line )
+        print( 'qqq wb_git_project line_dropped: %r' % (line,) )
+        self.__all_dropped_lines.append( line )
+
+    def allErrorLines( self ):
+        return self.error_lines() + self.__all_dropped_lines
+
+    def allDroppedLines( self ):
+        return self.__all_dropped_lines
