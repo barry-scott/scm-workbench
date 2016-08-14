@@ -853,14 +853,12 @@ class Progress(git.RemoteProgress):
         }
 
     def update( self, op_code, cur_count, max_count=None, message='' ):
-        print( 'qqq wb_git_project update' )
         stage_name = self.all_update_stages.get( op_code&git.RemoteProgress.OP_MASK, 'Unknown' )
         is_begin = op_code&git.RemoteProgress.BEGIN != 0
         is_end = op_code&git.RemoteProgress.END != 0
         self.progress_call_back( is_begin, is_end, stage_name, cur_count, max_count, message )
 
     def line_dropped( self, line ):
-        print( 'qqq wb_git_project line_dropped: %r' % (line,) )
         self.__all_dropped_lines.append( line )
 
     def allErrorLines( self ):
