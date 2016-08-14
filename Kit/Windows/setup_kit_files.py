@@ -38,7 +38,7 @@ class InnoSetup:
     def setupInnoItems( self ):
         print( 'Info: Create info_before.txt' )
 
-        f = open( r'tmp\info_before.txt', 'w' )
+        f = open( r'setup.tmp\info_before.txt', 'w' )
         f.write(
 '''SCM Workbech %(major)d.%(minor)d.%(patch)d commit %(commit)s
 
@@ -58,8 +58,8 @@ this kit.
 
         print( 'Info: Create setup_copy.cmd' )
         kitname = 'SCM-Workbench-%d.%d.%d-setup.exe' % (wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch)
-        f = open( r'tmp\setup_copy.cmd', 'w' )
-        f.write( r'copy tmp\Output\setup.exe %s' '\n' % (kitname,) )
+        f = open( r'setup.tmp\setup_copy.cmd', 'w' )
+        f.write( r'copy setup.tmp\Output\setup.exe %s' '\n' % (kitname,) )
         f.write( r'dir /s /b %s' '\n' % (kitname,) )
         f.close()
 
@@ -104,7 +104,7 @@ this kit.
 
         self.addAllKitFiles()
 
-        #for dll in [dll for dll in os.listdir( 'tmp' ) if dll.lower().endswith( '.dll' )]:
+        #for dll in [dll for dll in os.listdir( 'setup.tmp' ) if dll.lower().endswith( '.dll' )]:
         #    self.all_file_items.append( 'Source: "%s"; DestDir: "{app}"; Flags: ignoreversion' % (dll,) )
 
         if self.vc_ver == '14.0':
@@ -130,7 +130,7 @@ this kit.
 
         redist_file = 'vcredist_%s_%s.exe' % (redist_arch, redist_year)
 
-        os.system( r'copy k:\subversion\%s tmp' % (redist_file,) )
+        os.system( r'copy k:\subversion\%s setup.tmp' % (redist_file,) )
 
         self.all_file_items.append( 'Source: "%s"; DestDir: {tmp}; Flags: deleteafterinstall' %
                                     (redist_file,) )
@@ -142,8 +142,8 @@ this kit.
                                    r'Flags: nowait postinstall skipifsilent; Description: "Start %(app_name)s"' % self.__dict__ )
 
     def addAllKitFiles( self ):
-        os.chdir( 'pkg' )
-        kitfiles_folder = pathlib.Path( r'..\pkg' )
+        os.chdir( 'setup.tmp' )
+        kitfiles_folder = pathlib.Path( r'..\setup.tmp' )
 
         all_files = []
 
@@ -162,7 +162,7 @@ this kit.
         os.chdir( '..' )
 
     def generateInnoFile( self ):
-        inno_file = r'tmp\scm-workbench.iss'
+        inno_file = r'setup.tmp\scm-workbench.iss'
         print( 'Info: Generating %s' % (inno_file,) )
         f = open( inno_file, 'w' )
 
