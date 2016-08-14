@@ -89,6 +89,23 @@ class WbNewFolderDialog(wb_dialog_bases.WbDialog):
     def getFolderName( self ):
         return self.name.text().strip()
 
+def WbAreYouSureDelete( parent, all_filenames ):
+    return __WbAreYouSure( parent, T_('Confirm Delete'), T_('Are you sure you wish to delete:'), all_filenames )
+
+def WbAreYouSureRevert( parent, all_filenames ):
+    return __WbAreYouSure( parent, T_('Confirm Revert'), T_('Are you sure you wish to revert:'), all_filenames )
+
+def __WbAreYouSure( parent, title, question, all_filenames ):
+    default_button = QtWidgets.QMessageBox.No
+
+    all_parts = [question]
+    all_parts.extend( [str(filename) for filename in all_filenames] )
+
+    message = '\n'.join( all_parts )
+
+    rc = QtWidgets.QMessageBox.question( parent, title, message, defaultButton=default_button )
+    return rc == QtWidgets.QMessageBox.Yes
+
 if __name__ == '__main__':
     def T_(s):
         return s

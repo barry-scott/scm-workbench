@@ -408,25 +408,25 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                     )
 
     def tableActionSvnAnnotate( self ):
-        def action( project, filename ):
+        def execute_function( project, filename ):
             all_lines = project.cmdAnnotate( filename )
 
             dialog = wb_svn_info_dialog.Annotate( self.app, self.main_window, filename, project.pathForSvn( filename ), info )
             dialog.exec_()
 
-        self.__tableActionSvnCmd( action )
+        self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnInfo( self ):
-        def action( project, filename ):
+        def execute_function( project, filename ):
             info = project.cmdInfo( filename )
 
             dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, filename, project.pathForSvn( filename ), info )
             dialog.exec_()
 
-        self.__tableActionSvnCmd( action )
+        self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnProperties( self ):
-        def action( project, filename ):
+        def execute_function( project, filename ):
             prop_dict = project.cmdPropList( filename )
 
             dialog = wb_svn_properties_dialog.FilePropertiesDialog( self.app, self.main_window, filename, prop_dict )
@@ -441,28 +441,34 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
             self.main_window.updateTableView()
 
-        self.__tableActionSvnCmd( action )
+        self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnAdd( self ):
-        def action( project, filename ):
+        def execute_function( project, filename ):
             project.cmdAdd( filename )
 
-        self.__tableActionSvnCmd( action )
+        self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnRevert( self ):
-        def action( project, filename ):
+        def execute_function( project, filename ):
             project.cmdRevert( filename )
 
-        self.__tableActionSvnCmd( action )
+        def are_you_sure( all_filenames ):
+            return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
+
+        self.__tableActionSvnCmd( execute_function, are_you_sure )
 
     def tableActionSvnDelete( self ):
-        def action( project, filename ):
+        def execute_function( project, filename ):
             project.cmdDelete( filename )
 
-        self.__tableActionSvnCmd( action )
+        def are_you_sure( all_filenames ):
+            return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
+
+        self.__tableActionSvnCmd( execute_function, are_you_sure )
 
     def tableActionSvnRename( self ):
-        def action( project, filename ):
+        def execute_function( project, filename ):
             rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
             rename.setName( filename.name )
 
@@ -470,18 +476,17 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 # handles rename for controlled and uncontrolled files
                 project.cmdRename( filename, filename.with_name( rename.getName() ) )
 
-        self.__tableActionSvnCmd( action )
+        self.__tableActionSvnCmd( execute_function )
 
-    def __tableActionSvnCmd( self, cmd ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
+    def __tableActionSvnCmd( self, execute_function, are_you_sure_function=None ):
+        project = self.selectedSvnProject()
+        if project is None:
             return
 
-        project = tree_node.project
-
         try:
-            for file_state in self.tableSelectedAllFileStates():
-                cmd( project, file_state.relativePath() )
+            if self.table_view.tableActionViewRepo( execute_function, are_you_sure_function ):
+                # take account of the change
+                self.top_window.updateTableView()
 
         except wb_svn_project.ClientError as e:
             all_client_error_lines = project.clientErrorToStrList( e )

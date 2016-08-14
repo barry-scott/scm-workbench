@@ -327,24 +327,24 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def tableActionHgAdd( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionHgAdd )
+        self.__tableActionChangeRepo( self.__actionHgAdd )
 
     def tableActionHgRevert( self ):
-        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionHgRevert )
+        self.__tableActionChangeRepo( self.__actionHgRevert, self.__areYouSureRevert )
 
     def tableActionHgDelete( self ):
-        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionHgDelete )
+        self.__tableActionChangeRepo( self.__actionHgDelete, self.__areYouSureDelete )
 
     def tableActionHgDiffSmart( self ):
         self._debug( 'tableActionHgDiffSmart()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffSmart )
+        self.table_view.tableActionViewRepo( self.__actionHgDiffSmart )
 
     def tableActionHgDiffHeadVsWorking( self ):
         self._debug( 'tableActionHgDiffHeadVsWorking()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionHgDiffHeadVsWorking )
+        self.table_view.tableActionViewRepo( self.__actionHgDiffHeadVsWorking )
 
     def tableActionHgLogHistory( self ):
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self._actionHgLogHistory )
+        self.table_view.tableActionViewRepo( self._actionHgLogHistory )
 
     def __actionHgAdd( self, hg_project, filename ):
         hg_project.cmdAdd( filename )
@@ -373,35 +373,14 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 )
 
     #------------------------------------------------------------
-    def __areYouSureAlways( self, all_filenames ):
-        return True
-
     def __areYouSureRevert( self, all_filenames ):
-        default_button = QtWidgets.QMessageBox.No
-
-        title = T_('Confirm Revert')
-        all_parts = [T_('Are you sure you wish to revert:')]
-        all_parts.extend( [str(filename) for filename in all_filenames] )
-
-        message = '\n'.join( all_parts )
-
-        rc = QtWidgets.QMessageBox.question( self.main_window, title, message, defaultButton=default_button )
-        return rc == QtWidgets.QMessageBox.Yes
+        return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
 
     def __areYouSureDelete( self, all_filenames ):
-        default_button = QtWidgets.QMessageBox.No
+        return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
-        title = T_('Confirm Delete')
-        all_parts = [T_('Are you sure you wish to delete:')]
-        all_parts.extend( [str(filename) for filename in all_filenames] )
-
-        message = '\n'.join( all_parts )
-
-        rc = QtWidgets.QMessageBox.question( self.main_window, title, message, defaultButton=default_button )
-        return rc == QtWidgets.QMessageBox.Yes
-
-    def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
-        if self.table_view.tableActionViewRepo( are_you_sure_function, execute_function ):
+    def __tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
+        if self.table_view.tableActionViewRepo( execute_function, are_you_sure_function ):
             hg_project = self.selectedHgProject()
 
             # take account of the change
