@@ -11,12 +11,18 @@ SCMPYTHONPATH=${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUIL
 # for override libraries
 OVERRIDE_PYTHONPATH=~/wc/git/GitPython
 
-if [ "$PYTHONPATH" = "" ]
-then
-    export PYTHONPATH=${OVERRIDE_PYTHONPATH}:${SCMPYTHONPATH}
-else
-    export PYTHONPATH=${OVERRIDE_PYTHONPATH}:${SCMPYTHONPATH}:$PYTHONPATH
-fi
+for PART in "${SCMPYTHONPATH}" "${OVERRIDE_PYTHONPATH}"
+do
+    if [ "${PART}" != "" ]
+    then
+        if [ "$PYTHONPATH" = "" ]
+        then
+            export PYTHONPATH="${PART}"
+        else
+            export PYTHONPATH="${PART}:${PYTHONPATH}"
+        fi
+    fi
+done
 
 PYTHON=${PYTHON:-python3}
 BASENAME=$( basename ${PYTHON} )
