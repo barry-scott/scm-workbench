@@ -442,7 +442,9 @@ class GitProject:
         tracking_branch = self.repo.head.ref.tracking_branch()
         remote = self.repo.remote( tracking_branch.remote_name )
 
-        self.app.log.info( T_('Pull %s') % (tracking_branch.name,) )
+        self.app.log.info( T_('Pull %(project_name)s %(branch)s') %
+                                {'project_name': self.projectName()
+                                ,'branch': tracking_branch.name} )
         progress = Progress( progress_callback )
 
         try:
@@ -462,10 +464,12 @@ class GitProject:
         tracking_branch = self.repo.head.ref.tracking_branch()
         remote = self.repo.remote( tracking_branch.remote_name )
 
+        self.app.log.info( T_('Push %(project_name)s %(branch)s') %
+                                {'project_name': self.projectName()
+                                ,'branch': tracking_branch.name} )
         progress = Progress( progress_callback )
 
         try:
-            self.app.log.info( T_('Push %s') % (tracking_branch.name,) )
             for info in remote.push( progress=progress ):
                 info_callback( info )
 
