@@ -199,6 +199,11 @@ def CommandShell( app, working_dir ):
         # replace the uses .bashrc with our script
         command_list = [abs_terminal_program, '--rcfile', rcfile.name]
 
+    else:
+        app.log.error( 'Unknown shell %r' % (p.terminal_program,) )
+        return
+
+
     CreateProcess( app, command_list, working_dir )
 
 def FileBrowser( app, working_dir ):

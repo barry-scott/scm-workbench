@@ -443,8 +443,17 @@ class GitProject:
         remote = self.repo.remote( tracking_branch.remote_name )
 
         self.app.log.info( T_('Pull %s') % (tracking_branch.name,) )
-        for info in remote.pull( progress=progress_callback ):
-            info_callback( info )
+        progress = Progress( progress_callback )
+
+        try:
+            for info in remote.pull( progress=progress ):
+                info_callback( info )
+
+        except GitCommandError:
+            for line in progress.error_lines():
+                self.app.log.error( line )
+
+            raise
 
     def cmdPush( self, progress_callback, info_callback ):
         tracking_branch = self.repo.head.ref.tracking_branch()
