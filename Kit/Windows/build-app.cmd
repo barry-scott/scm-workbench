@@ -19,7 +19,8 @@ if not exist "%BUILDER_QTDIR%" (
 )
 
 if "%1" == "--debug" (
-    set VERBOSE=--version
+    shift 1
+    set VERBOSE=--verbose
     echo on
 )
 

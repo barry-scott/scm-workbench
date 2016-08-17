@@ -368,38 +368,38 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def tableActionGitStage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitStage )
+        self.__tableActionChangeRepo( self.__actionGitStage )
 
     def tableActionGitUnstage( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitUnStage )
+        self.__tableActionChangeRepo( self.__actionGitUnStage )
 
     def tableActionGitRevert( self ):
-        self.__tableActionChangeRepo( self.__areYouSureRevert, self.__actionGitRevert )
+        self.__tableActionChangeRepo( self.__actionGitRevert, self.__areYouSureRevert )
 
     def tableActionGitDelete( self ):
-        self.__tableActionChangeRepo( self.__areYouSureDelete, self.__actionGitDelete )
+        self.__tableActionChangeRepo( self.__actionGitDelete, self.__areYouSureDelete )
 
     def tableActionGitRename( self ):
-        self.__tableActionChangeRepo( self.__areYouSureAlways, self.__actionGitRename )
+        self.__tableActionChangeRepo( self.__actionGitRename )
 
     def tableActionGitDiffSmart( self ):
         self._debug( 'tableActionGitDiffSmart()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffSmart )
+        self.table_view.tableActionViewRepo( self.__actionGitDiffSmart )
 
     def tableActionGitDiffStagedVsWorking( self ):
         self._debug( 'tableActionGitDiffStagedVsWorking()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffStagedVsWorking )
+        self.table_view.tableActionViewRepo( self.__actionGitDiffStagedVsWorking )
 
     def tableActionGitDiffHeadVsStaged( self ):
         self._debug( 'tableActionGitDiffHeadVsStaged()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsStaged )
+        self.table_view.tableActionViewRepo( self.__actionGitDiffHeadVsStaged )
 
     def tableActionGitDiffHeadVsWorking( self ):
         self._debug( 'tableActionGitDiffHeadVsWorking()' )
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self.__actionGitDiffHeadVsWorking )
+        self.table_view.tableActionViewRepo( self.__actionGitDiffHeadVsWorking )
 
     def tableActionGitLogHistory( self ):
-        self.table_view.tableActionViewRepo( self.__areYouSureAlways, self._actionGitLogHistory )
+        self.table_view.tableActionViewRepo( self._actionGitLogHistory )
 
     def __actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )
@@ -469,35 +469,14 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 )
 
     #------------------------------------------------------------
-    def __areYouSureAlways( self, all_filenames ):
-        return True
-
     def __areYouSureRevert( self, all_filenames ):
-        default_button = QtWidgets.QMessageBox.No
-
-        title = T_('Confirm Revert')
-        all_parts = [T_('Are you sure you wish to revert:')]
-        all_parts.extend( [str(filename) for filename in all_filenames] )
-
-        message = '\n'.join( all_parts )
-
-        rc = QtWidgets.QMessageBox.question( self.main_window, title, message, defaultButton=default_button )
-        return rc == QtWidgets.QMessageBox.Yes
+        return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
 
     def __areYouSureDelete( self, all_filenames ):
-        default_button = QtWidgets.QMessageBox.No
+        return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
-        title = T_('Confirm Delete')
-        all_parts = [T_('Are you sure you wish to delete:')]
-        all_parts.extend( [str(filename) for filename in all_filenames] )
-
-        message = '\n'.join( all_parts )
-
-        rc = QtWidgets.QMessageBox.question( self.main_window, title, message, defaultButton=default_button )
-        return rc == QtWidgets.QMessageBox.Yes
-
-    def __tableActionChangeRepo( self, are_you_sure_function, execute_function ):
-        if self.table_view.tableActionViewRepo( are_you_sure_function, execute_function ):
+    def __tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
+        if self.table_view.tableActionViewRepo( execute_function, are_you_sure_function ):
             git_project = self.selectedGitProject()
             git_project.saveChanges()
 

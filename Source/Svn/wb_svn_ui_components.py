@@ -191,7 +191,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         return True
 
     def tableActionSvnLogHistory( self ):
-        self.table_view.tableActionViewRepo( None, self.__actionSvnLogHistory )
+        self.table_view.tableActionViewRepo( self.__actionSvnLogHistory )
 
     def treeTableActionSvnLogHistory( self ):
         self.main_window.callTreeOrTableFunction( self.treeActionSvnLogHistory, self.tableActionSvnLogHistory )

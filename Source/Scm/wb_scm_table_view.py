@@ -144,7 +144,7 @@ class WbScmTableView(QtWidgets.QTableView):
 
         return [scm_project.getFileState( relative_folder / name ) for name in all_names]
 
-    def tableActionViewRepo( self, are_you_sure_function, execute_function ):
+    def tableActionViewRepo( self, execute_function, are_you_sure_function=None ):
         folder_path = self.selectedAbsoluteFolder()
         if folder_path is None:
             return False

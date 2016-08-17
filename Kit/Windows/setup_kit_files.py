@@ -61,6 +61,7 @@ this kit.
         f = open( r'setup.tmp\setup_copy.cmd', 'w' )
         f.write( r'copy setup.tmp\Output\setup.exe %s' '\n' % (kitname,) )
         f.write( r'dir /s /b %s' '\n' % (kitname,) )
+        f.write( 'if "%%1" == "--install" %s\n' % (kitname,) )
         f.close()
 
         self.all_setup_items.extend( [
@@ -143,7 +144,7 @@ this kit.
 
     def addAllKitFiles( self ):
         os.chdir( 'setup.tmp' )
-        kitfiles_folder = pathlib.Path( r'..\setup.tmp' )
+        kitfiles_folder = pathlib.Path( r'..\app.tmp' )
 
         all_files = []
 
