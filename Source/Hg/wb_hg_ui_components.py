@@ -25,8 +25,17 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
     def __init__( self ):
         super().__init__()
 
+    def setTopWindow( self, top_window ):
+        super().setTopWindow( top_window )
+
+        prefs = self.app.prefs.hg
+        if prefs.program is not None:
+            hglib.HGPATH = str( prefs.program )
+
+        self.log.info( 'Hg using program %s' % (hglib.HGPATH,) )
+
     def createProject( self, project ):
-        if shutil.which( 'hg' ) is None:
+        if shutil.which( hglib.HGPATH ) is None:
             self.app.log.error( 'Murcurial "hg" command line tool not found' )
             return None
 
@@ -39,7 +48,7 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
             return None
 
     def about( self ):
-        if shutil.which( 'hg' ) is None:
+        if shutil.which( hglib.HGPATH ) is None:
             return ['Murcurial "hg" command line tool not found']
 
         else:

@@ -18,8 +18,10 @@ import pathlib
 import ctypes
 import ctypes.wintypes
 
-CSIDL_APPDATA = 0x1a    # Application Data
-CSIDL_WINDOWS = 0x24    # windows folder
+CSIDL_APPDATA = 0x1a        # Application Data
+CSIDL_WINDOWS = 0x24        # windows folder
+CSIDL_PROGRAM_FILES = 0x26  # program files folder
+
 SHGFP_TYPE_CURRENT = 0  # Want current, not default value
 SHGFP_TYPE_DEFAULT = 1
 
@@ -62,6 +64,12 @@ def getWindowsDir():
 
     return pathlib.Path( buf.value )
 
+def getProgramFilesDir():
+    buf = ctypes.create_unicode_buffer( ctypes.wintypes.MAX_PATH )
+    ctypes.windll.shell32.SHGetFolderPathW( 0, CSIDL_PROGRAM_FILES, 0, SHGFP_TYPE_CURRENT, buf )
+
+    return pathlib.Path( buf.value )
+
 def getLocalePath():
     return getAppDir() / 'locale'
 
@@ -70,6 +78,9 @@ def getNullDevice():
 
 def getHomeFolder():
     return pathlib.Path( os.environ['USERPROFILE'] )
+
+def getDefaultExecutableFolder():
+    return getProgramFilesDir()
 
 __filename_bad_chars_set = set( '\\:/\000?<>*|"' )
 __filename_reserved_names = set( ['nul', 'con', 'aux', 'prn',

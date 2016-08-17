@@ -19,7 +19,6 @@ import wb_preferences
 
 from  xml_preferences import Scheme, SchemeNode, PreferencesNode
 
-
 Bool = wb_preferences.Bool
 
 class Preferences(wb_preferences.Preferences):
@@ -48,18 +47,24 @@ class LogHistory(PreferencesNode):
         self.use_default_since_days_interval = False
 
 
-preferences_scheme = (
-    Scheme(
-        (wb_preferences.scheme_nodes
-        << SchemeNode( LogHistory, 'log_history' )
-        )
-    )
-)
-
 class PreferencesManager(wb_preferences.PreferencesManager):
-    def __init__( self, log, filename ):
-        super().__init__( log, filename, preferences_scheme, Preferences )
+    def __init__( self, app, log, filename, all_setup_preferences, all_get_all_preference_tabs ):
+        self.app = app
 
+        scheme_nodes = wb_preferences.scheme_nodes
+        scheme_nodes << SchemeNode( LogHistory, 'log_history' )
+        for setup_preferences in all_setup_preferences:
+            setup_preferences( scheme_nodes )
+
+        super().__init__( log, filename, Scheme( scheme_nodes ), Preferences )
+
+        self.all_get_all_preference_tabs = all_get_all_preference_tabs
+
+    def getAllPreferenceTabs( self ):
+        all_tabs = []
+        for get_all_preference_tabs in self.all_get_all_preference_tabs:
+            all_tabs.extend( get_all_preference_tabs( self.app ) )
+        return all_tabs
 
 if __name__ == '__main__':
     class FakeLog:

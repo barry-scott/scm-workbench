@@ -54,7 +54,7 @@ class HgProject:
 
     # return a new HgProject that can be used in another thread
     def newInstance( self ):
-        return HgProject( self.app, self.prefs_project )
+        return HgProject( self.app, self.prefs_project, self.ui_components )
 
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name

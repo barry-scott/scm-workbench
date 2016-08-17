@@ -25,6 +25,7 @@ do
 done
 
 PYTHON=${PYTHON:-python3}
+PYTHON=$( which ${PYTHON} )
 BASENAME=$( basename ${PYTHON} )
 SUFFIX=${BASENAME#python*}
 DIRNAME=$( dirname ${PYTHON} )
@@ -52,10 +53,11 @@ then
     gdb -x .gdbinit ${PYTHON}
 
 else
+    # run Python with the path that it has when started by macOS
     if [ -e ${PYTHONW} ]
     then
-        ${PYTHONW} wb_scm_main.py $*
+        PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHONW} wb_scm_main.py $*
     else
-        ${PYTHON} wb_scm_main.py $*
+        PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHON} wb_scm_main.py $*
     fi
 fi

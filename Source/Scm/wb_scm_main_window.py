@@ -31,7 +31,6 @@ from PyQt5 import QtCore
 
 import wb_scm_version
 import wb_scm_images
-import wb_scm_preferences
 import wb_scm_preferences_dialog
 import wb_scm_table_view
 import wb_scm_tree_view

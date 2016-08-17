@@ -111,40 +111,9 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.name = name
 
     def pickWcPath( self, parent ):
-        path = self.wc_path
-        if path == '':
-            path = self.home
-
-        path = pathlib.Path( path )
-        if not path.exists():
-            path = self.home
-
-        if not path.is_dir():
-            path = path.parent
-
-        if not path.is_dir():
-            path = self.home
-
-        file_browser = QtWidgets.QFileDialog( parent )
-        file_browser.setFileMode( file_browser.Directory )
-        #
-        # When ShowDirsOnly is True QFileDialog show a number of
-        # bugs:
-        # 1. folder double click edits folder name
-        # 2. setDirectory does not work, always starts in $HOME
-        #
-        file_browser.setOption( file_browser.ShowDirsOnly, False )
-        file_browser.setOption( file_browser.ReadOnly, True )
-        file_browser.setViewMode( file_browser.Detail )
-        file_browser.setFilter( QtCore.QDir.Hidden | QtCore.QDir.Dirs )
-
-        file_browser.setDirectory( str( path ) )
-        file_browser.selectFile( str( path ) )
-
-        if file_browser.exec_():
-            all_directories = file_browser.selectedFiles()
-            assert len(all_directories) == 1
-            self.wc_path = pathlib.Path( all_directories[0] )
+        path = wb_pick_path_dialogs.pickFolder( self, self.wc_path )
+        if path is not None:
+            self.wc_path = path
             return True
 
         return False

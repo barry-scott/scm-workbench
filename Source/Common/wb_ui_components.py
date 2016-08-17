@@ -59,6 +59,9 @@ class WbMainWindowComponents:
     def setupDebug( self ):
         self._debug = self.main_window.app._debugMainWindow
 
+    def getAllPerferenceTabs( self ):
+        return []
+
     def getTableContextMenu( self ):
         return self.table_context_menu
 

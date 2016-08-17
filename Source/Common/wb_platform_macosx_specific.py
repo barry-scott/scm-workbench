@@ -60,6 +60,9 @@ def getNullDevice():
 def getHomeFolder():
     return pathlib.Path( os.environ['HOME'] )
 
+def getDefaultExecutableFolder():
+    return pathlib.Path( '/usr/bin' )
+
 __filename_bad_chars_set = set( '/\000' )
 def isInvalidFilename( filename ):
     name_set = set( filename )

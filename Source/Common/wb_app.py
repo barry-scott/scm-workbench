@@ -163,9 +163,11 @@ class WbApp(QtWidgets.QApplication,
         # these messages just go into the log file not the log widget
         self.log.info( 'startup_dir %s' % (self.startup_dir,) )
         self.log.info( 'locale_path %s' % (locale_path,) )
-        # qqq: what should the arg to find be? wb wb-git, wb-hg?
-        self.log.info( 'find %r' % (gettext.find( 'wb', str(locale_path) ),) )
+        self.log.info( 'find %r' % (gettext.find( 'scm-workbench', str(locale_path) ),) )
         self.log.info( 'info %r' % (self.translation.info(),) )
+
+        for var in sorted( os.environ.keys() ):
+            self.log.info( 'Environment %s=%s' % (var, os.environ[ var ]) )
 
         # and capture logs into the log widget
         self.__wb_log = wb_logging.WbLog( self )

@@ -18,6 +18,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import wb_pick_path_dialogs
 import wb_shell_commands
 import wb_platform_specific
 
@@ -27,16 +28,13 @@ class WbScmPreferencesDialog(QtWidgets.QDialog):
 
         super().__init__( parent )
 
-        self.editor_page = EditorPage( self.app )
-        self.shell_page = ShellPage( self.app )
-        self.log_history_page = LogHistoryPage( self.app )
-        self.font_page = FontPage( self.app )
-
         self.tabs = QtWidgets.QTabWidget()
-        self.tabs.addTab( self.editor_page, T_('Editor') )
-        self.tabs.addTab( self.shell_page, T_('Shell') )
-        self.tabs.addTab( self.log_history_page, T_('Log History') )
-        self.tabs.addTab( self.font_page, T_('Font') )
+        for tab_class in (EditorTab, ShellTab, LogHistoryTab, FontTab):
+            tab = tab_class( self.app )
+            self.tabs.addTab( tab, tab.name() )
+
+        for tab in self.app.prefs_manager.getAllPreferenceTabs():
+            self.tabs.addTab( tab, tab.name() )
 
         self.buttons = QtWidgets.QDialogButtonBox()
         self.buttons.addButton( self.buttons.Ok )
@@ -54,12 +52,11 @@ class WbScmPreferencesDialog(QtWidgets.QDialog):
         self.resize( 600, 500 )
 
     def savePreferences( self ):
-        self.editor_page.savePreferences()
-        self.shell_page.savePreferences()
-        self.log_history_page.savePreferences()
-        self.font_page.savePreferences()
+        for index in range( self.tabs.count() ):
+            tab = self.tabs.widget( index )
+            tab.savePreferences()
 
-class EditorPage(QtWidgets.QWidget):
+class EditorTab(QtWidgets.QWidget):
     def __init__( self, app ):
         self.app = app
         if self.app is None:
@@ -90,6 +87,9 @@ class EditorPage(QtWidgets.QWidget):
 
         self.browse.clicked.connect( self.pickEditor )
 
+    def name( self ):
+        return T_('Editor')
+
     def savePreferences( self ):
         if self.prefs is None:
             return
@@ -98,28 +98,11 @@ class EditorPage(QtWidgets.QWidget):
         self.prefs.options = self.editor_options.text()
 
     def pickEditor( self ):
-        file_browser = QtWidgets.QFileDialog( self )
-        file_browser.setFileMode( file_browser.ExistingFile )
-        file_browser.setOption( file_browser.ReadOnly, True )
-        file_browser.setOption( file_browser.DontResolveSymlinks, True )
-        file_browser.setViewMode( file_browser.Detail )
-        # Without Readable will not return a Executable image
-        file_browser.setFilter( QtCore.QDir.Files|QtCore.QDir.Executable|QtCore.QDir.Readable )
+        editor = wb_pick_path_dialogs.pickExecutable( self, pathlib.Path( self.editor_program.text() ) )
+        if editor is not None:
+            self.editor_program.setText( str(editor) )
 
-        path = pathlib.Path( self.editor_program.text() )
-        if str(path) != '.':
-            file_browser.setDirectory( str( path.parent ) )
-            file_browser.selectFile( str( path ) )
-        else:
-            if not wb_platform_specific.isWindows():
-                file_browser.setDirectory( '/usr/bin' )
-
-        if file_browser.exec_():
-            all_files = file_browser.selectedFiles()
-            assert len(all_files) == 1
-            self.editor_program.setText( all_files[0] )
-
-class ShellPage(QtWidgets.QWidget):
+class ShellTab(QtWidgets.QWidget):
     def __init__( self, app ):
         self.app = app
         if self.app is None:
@@ -154,6 +137,9 @@ class ShellPage(QtWidgets.QWidget):
 
         self.setLayout( self.layout )
 
+    def name( self ):
+        return T_('Shell')
+
     def savePreferences( self ):
         if self.prefs is None:
             return
@@ -162,7 +148,7 @@ class ShellPage(QtWidgets.QWidget):
         self.prefs.terminal_init = self.terminal_init.text()
         self.prefs.file_browser = self.file_browser_program.currentText()
 
-class LogHistoryPage(QtWidgets.QWidget):
+class LogHistoryTab(QtWidgets.QWidget):
     def __init__( self, app ):
         self.app = app
         if self.app is None:
@@ -218,6 +204,9 @@ class LogHistoryPage(QtWidgets.QWidget):
 
         self.default_until.valueChanged.connect( self.__untilChanged )
 
+    def name( self ):
+        return T_('Log History')
+
     def __untilChanged( self ):
         v_until = self.default_until.value()
         v_since = self.default_since.value()
@@ -240,15 +229,12 @@ class LogHistoryPage(QtWidgets.QWidget):
         self.prefs.default_since_days_interval = self.default_since.value()
         self.prefs.use_default_since_days_interval = self.use_default_since.isChecked()
 
-class FontPage(QtWidgets.QWidget):
+class FontTab(QtWidgets.QWidget):
     def __init__( self, app ):
         super().__init__()
 
         self.app = app
 
-        self.initControls()
-
-    def initControls( self ):
         p =  self.app.prefs.font
 
         if p.face is None or p.point_size is None:
@@ -280,6 +266,9 @@ class FontPage(QtWidgets.QWidget):
         self.btn_select_font.clicked.connect( self.onSelectFont )
 
         self.setLayout( self.grid_sizer )
+
+    def name( self ):
+        return T_('Fonts')
 
     def savePreferences( self ):
         p =  self.app.prefs.font
