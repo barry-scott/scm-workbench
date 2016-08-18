@@ -15,18 +15,22 @@ mkdir -p ${BUILD_ROOT}${BIN} ${BUILD_ROOT}${LIB} ${BUILD_ROOT}${MAN1} ${BUILD_RO
 gzip -c ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.1 > ${BUILD_ROOT}${MAN1}/scm-workbench.1.gz
 cp ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.desktop ${BUILD_ROOT}${DESKTOPFILES}
 
-cat <<EOF >${BUILD_ROOT}${BIN}/scm-workbench
+PROG=${BUILD_ROOT}${BIN}/scm-workbench
+cat <<EOF >${BUILD_ROOT}${BIN}/${PROG}
 #!/usr/bin/python3
 import sys
 sys.path.insert( 0, "${LIB}" )
 EOF
 
-cat ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_main.py >>${BUILD_ROOT}${BIN}/scm-workbench
-chmod +x ${BUILD_ROOT}${BIN}/scm-workbench
+cat ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_main.py >>${PROG}
+chmod +x ${PROG}
+unset PROG
 
-echo '#!/usr/bin/python3' >${BUILD_ROOT}${BIN}/scm-workbench
-cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_askpass_client_unix.py >>${BUILD_ROOT}${BIN}/scm-workbench-askpass
-chmod +x ${BUILD_ROOT}${BIN}/scm-workbench
+PROG=${BUILD_ROOT}${BIN}/scm-workbench-askpass
+echo '#!/usr/bin/python3' >${PROG}
+cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_askpass_client_unix.py >>${PROG}
+chmod +x ${PROG}
+unset PROG
 
 pushd ${BUILDER_TOP_DIR}/Source/Scm
 make -f linux.mak
