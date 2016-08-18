@@ -62,13 +62,10 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         self.log.info( 'Git using program %s' % (git.Git.GIT_PYTHON_GIT_EXECUTABLE,) )
 
-        if wb_platform_specific.isWindows():
-            self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
-            self.askpass_server.start()
-            os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe')
+        self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
 
-        else:
-            self.askpass_server = None
+        self.askpass_server.start()
+        os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe')
 
     def about( self ):
         if shutil.which( 'git' ) is None:
@@ -235,14 +232,13 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-
     def getGitCredentials( self, prompt ):
         # the prompt contains a url enclosed in "'".
         url = prompt.split( "'" )[1]
 
         # see if the password is required
         if( self.saved_password.isValid() ):
-            self.askpass_server.setReply( self.saved_password.password )
+            self.askpass_server.setReply( 0, self.saved_password.password )
             self.saved_password.clearPassword()
             return
 
@@ -255,7 +251,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         cred.setFields( url, url_parts.username )
         if cred.exec_():
             if url_parts.username is None:
-                self.askpass_server.setReply( cred.getUsername() )
+                self.askpass_server.setReply( 0, cred.getUsername() )
 
                 # assume that the password will be required next
                 netloc = '%s@%s' % (cred.getUsername(), url_parts.netloc)
@@ -263,7 +259,10 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
                 self.saved_password.savePassword( url2, cred.getPassword() )
 
             else:
-                self.askpass_server.setReply( cred.getPassword() )
+                self.askpass_server.setReply( 0, cred.getPassword() )
+
+        else:
+            self.askpass_server.setReply( 1, '' )
 
 class SavedPassword:
     timeout = 5.0

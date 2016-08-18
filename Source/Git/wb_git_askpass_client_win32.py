@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_askpass_client.py
+    wb_git_askpass_client_win32.py
 
     called with argv[1:] as the prompt
     expects a single line output as response.

@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_askpass_server.py
+    wb_git_askpass_server_win32.py
 
 '''
 import sys
@@ -46,8 +46,10 @@ class WbGitAskPassServer(threading.Thread):
     def shutdown( self ):
         ctypes.windll.kernel32.SetEvent( self.__h_wait_stop )
 
-    def setReply( self, reply ):
-        self.__reply = reply
+    def setReply( self, code, value ):
+        self.__reply_code = code
+        self.__reply_value = value
+
         ctypes.windll.kernel32.SetEvent( self.__h_wait_reply )
 
     def run( self ):
@@ -133,7 +135,7 @@ class WbGitAskPassServer(threading.Thread):
 
         rc = self.__waitForMultipleObjects( (self.__h_wait_reply,) )
         if rc == WAIT_OBJECT_0:
-            return 0, self.__reply
+            return self.__reply_code, self.__reply_value
 
         else:
             self.app.log.error( 'WaitForMultipleObjects returned 0x%x' % (rc,) )

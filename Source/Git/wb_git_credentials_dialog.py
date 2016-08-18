@@ -37,8 +37,6 @@ class WbGitCredentialsDialog(wb_dialog_bases.WbDialog):
         self.addRow( T_('Password'), self.password )
         self.addButtons()
 
-        self.setLayout( layout )
-
     def nameTextChanged( self, text ):
          self.ok_button.setEnabled( self.getUsername() != '' and self.getPassword() != '' )
 
