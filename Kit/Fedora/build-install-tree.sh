@@ -24,6 +24,10 @@ EOF
 cat ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_main.py >>${BUILD_ROOT}${BIN}/scm-workbench
 chmod +x ${BUILD_ROOT}${BIN}/scm-workbench
 
+echo '#!/usr/bin/python3' >${BUILD_ROOT}${BIN}/scm-workbench
+cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_askpass_client_unix.py >>${BUILD_ROOT}${BIN}/scm-workbench-askpass
+chmod +x ${BUILD_ROOT}${BIN}/scm-workbench
+
 pushd ${BUILDER_TOP_DIR}/Source/Scm
 make -f linux.mak
 popd

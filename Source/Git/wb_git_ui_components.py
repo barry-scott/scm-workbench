@@ -65,7 +65,11 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
 
         self.askpass_server.start()
-        os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe')
+        if wb_platform_specific.isWindows():
+            os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe')
+
+        else:
+            os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass')
 
     def about( self ):
         if shutil.which( 'git' ) is None:
