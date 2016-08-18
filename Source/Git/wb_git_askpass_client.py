@@ -17,9 +17,9 @@ import sys
 import os
 import ctypes
 
-class WbGitAssPass:
+class WbGitAskPass:
     def __init__( self ):
-        self.pipe_name = "\\\\.\\pipe\\SCM Workbench AskPass"
+        self.pipe_name = r'\\.\pipe\SCM Workbench AskPass'
 
     def askPass( self, prompt ):
         prompt = prompt.encode( 'utf-8' )
@@ -75,4 +75,4 @@ class WbGitAssPass:
         return errmsg.value
 
 if __name__ == '__main__':
-    sys.exit( WbGitAssPass().askPass( sys.argv[1] ) )
+    sys.exit( WbGitAskPass().askPass( sys.argv[1] ) )
