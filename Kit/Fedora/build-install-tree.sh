@@ -16,12 +16,11 @@ gzip -c ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.1 > ${BUILD_ROOT}${MAN1}/scm
 cp ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.desktop ${BUILD_ROOT}${DESKTOPFILES}
 
 PROG=${BUILD_ROOT}${BIN}/scm-workbench
-cat <<EOF >${BUILD_ROOT}${BIN}/${PROG}
+cat <<EOF >${PROG}
 #!/usr/bin/python3
 import sys
 sys.path.insert( 0, "${LIB}" )
 EOF
-
 cat ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_main.py >>${PROG}
 chmod +x ${PROG}
 unset PROG
