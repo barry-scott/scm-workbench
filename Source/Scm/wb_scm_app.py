@@ -24,6 +24,7 @@ import wb_hg_ui_components
 import wb_svn_ui_components
 
 import wb_hg_preferences
+import wb_git_preferences
 
 from PyQt5 import QtGui
 
@@ -84,8 +85,10 @@ class WbScmApp(wb_app.WbApp,
                     self,
                     self.log,
                     wb_platform_specific.getPreferencesFilename(),
-                    (wb_hg_preferences.setupPreferences,),
-                    (wb_hg_preferences.getAllPreferenceTabs,)
+                    (wb_hg_preferences.setupPreferences
+                    ,wb_git_preferences.setupPreferences),
+                    (wb_hg_preferences.getAllPreferenceTabs
+                    ,wb_git_preferences.getAllPreferenceTabs)
                     )
 
     def writePreferences( self ):

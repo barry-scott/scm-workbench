@@ -26,7 +26,7 @@ import wb_git_askpass_server
 import wb_git_credentials_dialog
 
 import git
-import git.cmd
+import git.exc
 
 #
 #   Add tool bars and menu for use in the Main Window
@@ -56,6 +56,12 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )
 
+        prefs = self.app.prefs.git
+        if prefs.program is not None:
+            git.Git.GIT_PYTHON_GIT_EXECUTABLE = str(prefs.program)
+
+        self.log.info( 'Git using program %s' % (git.Git.GIT_PYTHON_GIT_EXECUTABLE,) )
+
         if wb_platform_specific.isWindows():
             self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
             self.askpass_server.start()
@@ -69,7 +75,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             git_ver = '"git" command line tool not found'
 
         else:
-            git_ver = 'git %d.%d.%d' % git.cmd.Git().version_info
+            git_ver = 'git %d.%d.%d' % git.Git().version_info
 
         return  ['GitPython %s' % (git.__version__,)
                 ,git_ver]
