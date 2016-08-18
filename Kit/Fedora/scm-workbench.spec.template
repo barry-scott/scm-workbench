@@ -49,6 +49,7 @@ cd ${BUILDER_TOP_DIR}/Kit/Fedora
 %files
 %defattr(0644, root, root, 0755)
 %attr(755, root, root) %{_bindir}/scm-workbench
+%attr(755, root, root) %{_bindir}/scm-workbench-askpass
 %{_datarootdir}/applications/scm-workbench.desktop
 %{_mandir}/man1/scm-workbench.1.gz
 # include all files in the _datarootdir
