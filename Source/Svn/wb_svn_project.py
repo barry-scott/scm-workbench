@@ -500,8 +500,8 @@ class WbSvnFileState:
         self.__state = state.decode('utf-8')
 
     def __repr__( self ):
-        return ('<WbSvnFileState: %s %s %s>' %
-                (self.__filepath, self.__state, self.__nodeid))
+        return ('<WbSvnFileState: %s %s>' %
+                (self.__filepath, self.__state))
 
     def relativePath( self ):
         return self.__filepath
