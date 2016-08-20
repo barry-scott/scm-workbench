@@ -238,10 +238,14 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
     def getGitCredentials( self, prompt ):
         # the prompt contains a url enclosed in "'".
+        if "'" not in prompt:
+            self.askpass_server.setReply( 1, 'unknown prompt' )
+            return
+
         url = prompt.split( "'" )[1]
 
         # see if the password is required
-        if( self.saved_password.isValid() ):
+        if self.saved_password.isValid():
             self.askpass_server.setReply( 0, self.saved_password.password )
             self.saved_password.clearPassword()
             return
