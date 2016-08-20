@@ -169,6 +169,9 @@ class WbApp(QtWidgets.QApplication,
         for var in sorted( os.environ.keys() ):
             self.log.info( 'Environment %s=%s' % (var, os.environ[ var ]) )
 
+        self.log.info( 'app_dir %s' % (wb_platform_specific.getAppDir(),) )
+        self.log.info( 'preferences_dir %s' % (wb_platform_specific.getPreferencesDir(),) )
+
         # and capture logs into the log widget
         self.__wb_log = wb_logging.WbLog( self )
 
