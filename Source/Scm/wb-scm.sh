@@ -44,6 +44,24 @@ popd >/dev/null
 make -f linux.mak clean
 make -f linux.mak
 
+PROG="scm-workbench-askpass"
+
+pwd
+
+case "$( uname )" in
+Darwin)
+    echo "#!/usr/bin/python2.7" >"${PROG}"
+    ;;
+
+*)
+    echo "#!$( which ${PYTHON} )" >"${PROG}"
+    ;;
+esac
+
+cat ../Git/wb_git_askpass_server_unix.py >>"${PROG}"
+chmod +x "${PROG}"
+unset PROG
+
 if [ "$1" = "--gdb" ]
 then
     shift
@@ -53,7 +71,7 @@ then
     gdb -x .gdbinit ${PYTHON}
 
 else
-    # run Python with the path that it has when started by macOS
+    # run Python with the path that it has when started by macOS as an App
     if [ -e ${PYTHONW} ]
     then
         PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHONW} wb_scm_main.py $*

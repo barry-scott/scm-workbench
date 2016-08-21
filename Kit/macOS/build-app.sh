@@ -98,5 +98,14 @@ do
     ${PYTHON} ${KIT_DIR}/build_fix_install_rpath.py fix "Resources/plugins/${PLUGIN}"
 done
 
+#
+#   add in the askpass client
+#
+PROG=Resources/scm-workbench-askpass
+echo '#!/usr/bin/python2.7' >${PROG}
+cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_askpass_client_unix.py >>${PROG}
+chmod +x ${PROG}
+unset PROG
+
 popd >/dev/null
 echo "Info: build-app.sh done"

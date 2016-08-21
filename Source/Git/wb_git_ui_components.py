@@ -64,12 +64,23 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
 
+        devel_fallback = False
         self.askpass_server.start()
         if wb_platform_specific.isWindows():
-            os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe')
+            askpass  = wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe'
+            if not askpass.exists():
+                self.log.info( 'Cannot find %s' % (askpass,) )
+                # assume in development environment
+                askpass = wb_platform_specific.getAppDir() / 'scm-workbench-askpass.py'
 
         else:
-            os.environ['GIT_ASKPASS'] = str(wb_platform_specific.getAppDir() / 'scm-workbench-askpass')
+            askpass = wb_platform_specific.getAppDir() / 'scm-workbench-askpass'
+
+        if not askpass.exists():
+            self.log.error( 'Cannot find %s' % (askpass,) )
+            return
+
+        os.environ['GIT_ASKPASS'] = str(askpass)
 
     def about( self ):
         if shutil.which( 'git' ) is None:
