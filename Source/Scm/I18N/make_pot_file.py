@@ -3,24 +3,21 @@ import sys
 import os
 import glob
 
-all_py_files = set( glob.glob( 'wb*.py' )
-                    +glob.glob('../Git/wb*.py' )
-                    +glob.glob('../Svn/wb*.py' )
-                    +glob.glob('../Hg/wb*.py' )
-                    +glob.glob('../Common/wb*.py' ) )
-if 'wb_scm_images.py' in all_py_files:
-    all_py_files.remove( 'wb_scm_images.py' )
+all_py_files = set( glob.glob( '../wb*.py' )
+                    +glob.glob('../../Git/wb*.py' )
+                    +glob.glob('../../Svn/wb*.py' )
+                    +glob.glob('../../Hg/wb*.py' )
+                    +glob.glob('../../Common/wb*.py' ) )
 
-f = open( 'wb_files.tmp', 'wt' )
-for py_file in all_py_files:
-    f.write( '%s\n' % py_file )
-f.close()
+with  open( 'wb_files.tmp', 'w', encoding='utf-8' ) as f:
+    for py_file in all_py_files:
+        f.write( '%s\n' % py_file )
 
 cmd = ('xgettext '
     '--files-from=wb_files.tmp '
     '--from-code=utf-8 '
     '--default-domain=scm_workbench '
-    '--output=I18N/scm_workbench.current.pot '
+    '--output=scm_workbench.current.pot '
     '--msgid-bugs-address=barry@barrys-emacs.org '
     '--copyright-holder="Barry Scott" '
     '--keyword=U_ '

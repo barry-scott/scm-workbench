@@ -12,9 +12,9 @@ for lang in all_lang:
         os.makedirs( mo_output_dir )
 
     if lang == 'en':
-        po_file = 'I18N/scm_workbench_en.current.po'
+        po_file = 'scm_workbench_en.current.po'
     else:
-        po_file = 'I18N/scm_workbench_%s.po' % lang
+        po_file = 'scm_workbench_%s.po' % lang
 
     rc = os.system( 'msgfmt '
         '%s '
@@ -25,4 +25,5 @@ for lang in all_lang:
         sys.exit( rc )
 
     print( 'Info: %s/scm_workbench.mo' % (mo_output_dir,) )
+
 sys.exit( 0 )

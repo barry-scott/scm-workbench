@@ -1,17 +1,16 @@
 #
-#	makefile WorkBench
+#	makefile SCM
 #
-DEL=rm
-all: locale/en/LC_MESSAGES/scm_workbench.mo all_common
+DEL=rm -f
+LOCALE_TOP=locale
+LOCALE=$(LOCALE_TOP)/en/LC_MESSAGES
+all: $(LOCALE)/scm_workbench.mo all_common
 
-locale/en/LC_MESSAGES/scm_workbench.mo: wb_scm_version.py
-	mkdir -p locale/en/LC_MESSAGES
-	./make-pot-file.sh
-	./make-po-file.sh en
-	./make-mo-files.sh locale
+$(LOCALE)/scm_workbench.mo: wb_scm_version.py I18N/linux.mak
+	cd I18N && $(MAKE) -f linux.mak LOCALE=../$(LOCALE)
 
 clean::
-	rm -rf locale
-	rm -f I18N/*.current.po
+	cd I18N && $(MAKE) -f linux.mak clean
+	$(DEL) -r $(LOCALE_TOP)
 
 include wb_scm_common.mak

@@ -10,5 +10,5 @@ run:
 	$(PYTHON) -u wb_scm_main.py
 
 clean::
-	$(DEL) -f wb_scm_images.py
-	$(DEL) -f wb_scm_version.py
+	$(DEL) wb_scm_images.py
+	$(DEL) wb_scm_version.py
