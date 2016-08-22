@@ -155,8 +155,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         git_project = self.selectedGitProject()
         self.log.error( '       git_project -> %r' % (git_project,) )
 
-        assert False,'Crash!'
-
         if git_project is None:
             return
 

@@ -142,7 +142,10 @@ class WbScmTableView(QtWidgets.QTableView):
         scm_project = self.selectedScmProject()
         relative_folder = self.selectedRelativeFolder()
 
-        return [scm_project.getFileState( relative_folder / name ) for name in all_names]
+        # sometimes the selection is no longer in the projects file state
+        return [scm_project.getFileState( relative_folder / name )
+                for name in all_names
+                if scm_project.hasFileState( relative_folder / name )]
 
     def tableActionViewRepo( self, execute_function, are_you_sure_function=None ):
         folder_path = self.selectedAbsoluteFolder()

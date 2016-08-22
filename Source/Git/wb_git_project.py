@@ -187,6 +187,10 @@ class GitProject:
     # functions to retrive interesting info from the repo
     #
     #------------------------------------------------------------
+    def hasFileState( self, filename ):
+        assert isinstance( filename, pathlib.Path )
+        return filename in self.all_file_state
+
     def getFileState( self, filename ):
         assert isinstance( filename, pathlib.Path )
         # status only has enties for none CURRENT status files
