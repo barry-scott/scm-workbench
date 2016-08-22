@@ -289,6 +289,7 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
 
         super().__init__()
         self.setReadOnly( True )
+        self.setTextInteractionFlags( QtCore.Qt.TextSelectableByMouse|QtCore.Qt.TextSelectableByKeyboard )
 
     def writeStyledText( self, text, style ):
         self.moveCursor( QtGui.QTextCursor.End )
