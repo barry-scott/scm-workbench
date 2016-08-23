@@ -19,9 +19,9 @@ import wb_scm_main_window
 import wb_scm_preferences
 import wb_scm_debug
 
-import wb_git_ui_components
-import wb_hg_ui_components
-import wb_svn_ui_components
+import wb_git_factory
+import wb_hg_factory
+import wb_svn_factory
 
 import wb_hg_preferences
 import wb_git_preferences
@@ -34,8 +34,17 @@ class WbScmApp(wb_app.WbApp,
         self.__git_debug = False
         self.__all_singletons = {}
 
+        self.all_factories = dict( [(f.scmName(), f)
+                                    for f in [wb_git_factory.WbGitFactory()
+                                             ,wb_hg_factory.WbHgFactory()
+                                             ,wb_svn_factory.WbSvnFactory()]] )
+
         wb_scm_debug.WbScmDebug.__init__( self )
         wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args, ['git.cmd'] )
+
+
+    def getScmFactory( self, scm_type ):
+        return self.all_factories[ scm_type ]
 
     def addSingleton( self, name, value ):
         assert name not in self.__all_singletons
@@ -101,9 +110,6 @@ class WbScmApp(wb_app.WbApp,
         if self.prefs.font.face is not None:
             self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font.face, self.prefs.font.point_size) )
 
-        self.top_window = wb_scm_main_window.WbScmMainWindow( self,
-            {'git': wb_git_ui_components.GitMainWindowComponents()
-            ,'hg':  wb_hg_ui_components.HgMainWindowComponents()
-            ,'svn': wb_svn_ui_components.SvnMainWindowComponents()} )
+        self.top_window = wb_scm_main_window.WbScmMainWindow( self, self.all_factories )
 
         return self.top_window
