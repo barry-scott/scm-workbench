@@ -70,6 +70,10 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         self.log.info( 'Git using program %s' % (git.Git.GIT_PYTHON_GIT_EXECUTABLE,) )
 
+        if 'GIT_ASKPASS' in os.environ:
+            self.log.info( "Using user's GIT_ASKPASS program %s" % (os.environ[ 'GIT_ASKPASS' ],)
+            return
+
         self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
 
         devel_fallback = False
@@ -89,6 +93,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             return
 
         os.environ['GIT_ASKPASS'] = str(askpass)
+        self.log.info( "Using Workbench's GIT_ASKPASS program"
 
     def about( self ):
         if shutil.which( 'git' ) is None:
