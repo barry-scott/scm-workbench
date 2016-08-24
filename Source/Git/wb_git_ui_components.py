@@ -53,6 +53,14 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             self.app.log.error( 'Git error: %s' % (e,) )
             return None
 
+    def addProjectInitWizardHandler( self, wc_path ):
+        self.log.error( 'Under construction %r' % (wc_path,) )
+        return False
+
+    def addProjectCloneWizardHandler( self, url, wc_path ):
+        self.log.error( 'Under construction %r -> %r' % (url, wc_path) )
+        return False
+
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )
 

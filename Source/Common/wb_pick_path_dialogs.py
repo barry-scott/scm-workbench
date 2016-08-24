@@ -12,6 +12,8 @@
     wb_pick_path_dialogs.py
 
 '''
+import pathlib
+
 import wb_platform_specific
 
 from PyQt5 import QtWidgets

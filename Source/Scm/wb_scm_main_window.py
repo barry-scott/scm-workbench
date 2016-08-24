@@ -44,7 +44,7 @@ import wb_preferences
 import wb_tracked_qwidget
 
 class WbScmMainWindow(wb_main_window.WbMainWindow):
-    def __init__( self, app, all_ui_components ):
+    def __init__( self, app, all_factories ):
         self.table_view = None
 
         self.__init_done = False
@@ -66,7 +66,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
         self.__setupTreeViewAndModel()
 
-        self.all_ui_components = all_ui_components
+        self.all_factories = all_factories
+        self.all_ui_components = dict( [(factory.scmName(), factory.uiComponents()) for factory in all_factories.values()] )
+
         for scm_type in self.all_ui_components:
             self.all_ui_components[ scm_type ].setMainWindow( self, self.table_view )
 
@@ -303,7 +305,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # --- setup menus less used common menus
         m = mb.addMenu( T_('&Project') )
-        self._addMenu( m, T_('Add…'), self.projectActionAdd )
+        self._addMenu( m, T_('Add…'), self.projectActionAdd, thread_switcher=True )
         self._addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
         self._addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
 
@@ -528,12 +530,27 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # project actions
     #
     #------------------------------------------------------------
-    def projectActionAdd( self ):
-        wiz = wb_scm_project_dialogs.WbScmAddProjectWizard( self.app )
-        if wiz.exec_():
-            if wiz.getScmUrl() is None:
+    def projectActionAdd( self, checked ):
+        w = wb_scm_project_dialogs.WbScmAddProjectWizard( self.app )
+        if w.exec_():
+            ui_components = self.all_ui_components[ w.getScmType() ]
+
+            if w.getAction() == w.action_init:
+                yield self.app.switchToBackground
+                add_project = ui_components.addProjectInitWizardHandler( w.getWcPath() )
+                yield self.app.switchToForeground
+
+            elif w.getAction() == w.action_clone:
+                yield self.app.switchToBackground
+                add_project = ui_components.addProjectCloneWizardHandler( w.getScmUrl(), w.getWcPath() )
+                yield self.app.switchToForeground
+
+            elif w.getAction() == w.action_add_existing:
+                add_project = True
+
+            if add_project:
                 prefs = self.app.prefs
-                project = wb_preferences.Project( wiz.name, wiz.getScmType(), wiz.getWcPath() )
+                project = wb_preferences.Project( w.name, w.getScmType(), w.getWcPath() )
                 prefs.addProject( project )
 
                 self.app.writePreferences()

@@ -47,6 +47,14 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
             self.app.log.error( 'hg error: %s' % (e,) )
             return None
 
+    def addProjectInitWizardHandler( self, wc_path ):
+        self.log.error( 'Under construction %r' % (wc_path,) )
+        return False
+
+    def addProjectCloneWizardHandler( self, url, wc_path ):
+        self.log.error( 'Under construction %r -> %r' % (url, wc_path) )
+        return False
+
     def about( self ):
         if shutil.which( hglib.HGPATH ) is None:
             return ['Murcurial "hg" command line tool not found']

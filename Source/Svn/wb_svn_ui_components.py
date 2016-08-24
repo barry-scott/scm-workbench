@@ -43,6 +43,13 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
             self.app.log.error( 'SVN error: %s' % (e,) )
             return None
 
+    def addProjectInitWizardHandler( self, wc_path ):
+        raise RuntimeError( 'SVN does not support proiject init' )
+
+    def addProjectCloneWizardHandler( self, url, wc_path ):
+        self.log.error( 'Under construction %r -> %r' % (url, wc_path) )
+        return False
+
     def about( self ):
         return ['PySVN %d.%d.%d-%d' % pysvn.version
                ,'SVN %d.%d.%d %s' % pysvn.svn_version]
