@@ -51,6 +51,12 @@ class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     def radioButtonLabel( self ):
         return T_('Clone Git repository')
 
+    def verifyScmUrl( self ):
+        # if this works we have a git repo
+        # git ls-remote --heads <URL>
+        return False
+
+
 class PageAddProjectGitInit(wb_scm_project_dialogs.PageAddProjectScmInitBase):
     def __init__( self, wizard ):
         super().__init__()
