@@ -701,7 +701,7 @@ class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
         f = self.app.getScmFactory( self.project.scm_type )
 
         self.addRow( T_('Name:'), self.name )
-        self.addRow( T_('SCM Type:'), f.getPresentationLongName() )
+        self.addRow( T_('SCM Type:'), f.scmPresentationLongName() )
         self.addRow( T_('Path:'), str(self.project.path) )
         self.addButtons()
 
