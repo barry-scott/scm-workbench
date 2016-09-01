@@ -48,6 +48,7 @@ pushd %SRC_DIR%\Common
 popd >NUL
 
 pushd %SRC_DIR%\Scm
+nmake -f windows.mak clean
 nmake -f windows.mak
     if errorlevel 1 goto :error
 popd >NUL

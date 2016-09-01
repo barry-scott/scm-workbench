@@ -1,6 +1,9 @@
 #!/bin/sh
 import sys
 import os
+import pathlib
+
+sys.path[0:0] = [str(pathlib.Path( os.getcwd() ).parent)]
 
 import wb_scm_version
 import datetime
