@@ -21,6 +21,7 @@ import difflib
 import sip
 
 import wb_platform_specific
+import wb_shell_commands
 
 ellipsis = '…'
 
@@ -274,6 +275,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # --- setup common menus
         m = mb.addMenu( T_('&File') )
         self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
+        self._addMenu( m, T_('View Log'), self.appActionViewLog )
         self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
 
         m = mb.addMenu( T_('&View') )
@@ -453,6 +455,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if pref_dialog.exec_():
             pref_dialog.savePreferences()
             self.app.writePreferences()
+
+    def appActionViewLog( self ):
+        wb_shell_commands.EditFile( self.app, wb_platform_specific.getHomeFolder(), [wb_platform_specific.getLogFilename()] )
 
     def appActionAbout( self ):
         all_about_info = []
