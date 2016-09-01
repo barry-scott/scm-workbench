@@ -6,9 +6,9 @@ all: locale\en\LC_MESSAGES\scm_workbench.mo wb_scm_images.py
 
 locale\en\LC_MESSAGES\scm_workbench.mo: wb_scm_version.py
 	if not exist locale\en\LC_MESSAGES mkdir locale\en\LC_MESSAGES
-	make-pot-file.cmd
-	make-po-file.cmd en
-	make-mo-files.cmd locale
+	cd I18N & $(PYTHON) make_pot_file.py
+	cd I18N & $(PYTHON) make_po_file.py en
+	cd I18N & $(PYTHON) make_mo_files.py ..\locale
 
 clean::
 	if exist locale rmdir /s /q locale
