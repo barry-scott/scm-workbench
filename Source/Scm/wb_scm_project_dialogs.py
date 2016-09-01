@@ -35,6 +35,13 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.all_factories = app.all_factories
         super().__init__()
 
+
+        em = self.app.fontMetrics().width( 'm' )
+
+        self.setMinimumWidth( 100*em )
+
+
+
         # ------------------------------------------------------------
         self.page_id_start = 1
         self.page_id_browse_existing = 2
