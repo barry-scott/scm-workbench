@@ -57,7 +57,6 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
                 self.all_init_pages[ next_id ] = page
                 next_id += 1
 
-
         # needs all_clone_pages and all_init_pages
         self.page_start = PageAddProjectStart( self )
 
@@ -90,7 +89,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
                 self.all_existing_project_names.add( project.name.lower() )
                 self.all_existing_project_paths.add( project.path )
 
-        self.home = pathlib.Path( wb_platform_specific.getHomeFolder() )
+        self.first_folder_to_scan = wb_platform_specific.getHomeFolder()
 
         self.scm_type = None
         self.action = None
@@ -515,7 +514,7 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         if self.wc_list.count() != 0:
             return
 
-        self.thread = ScanForScmRepositoriesThread( self, self.wizard().home )
+        self.thread = ScanForScmRepositoriesThread( self, self.wizard(), self.wizard().first_folder_to_scan )
         self.thread.start()
 
     def __foundRepository( self, scm_type, project_path ):
@@ -586,25 +585,26 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         return True
 
 class ScanForScmRepositoriesThread(QtCore.QThread):
-    def __init__( self, wizard, home ):
+    def __init__( self, page, wizard, first_folder_to_scan ):
         super().__init__()
 
+        self.page = page
         self.wizard = wizard
-        self.home = home
+        self.first_folder_to_scan = first_folder_to_scan
 
         self.num_folders_scanned = 0
         self.num_scm_repos_found = 0
 
         self.stop_scan = False
 
-        self.folders_to_scan = [self.home]
+        self.folders_to_scan = [self.first_folder_to_scan]
 
     def run( self ):
         while len(self.folders_to_scan) > 0:
             if self.stop_scan:
                 return
 
-            self.wizard.scannedOneMoreFolder.emit()
+            self.page.scannedOneMoreFolder.emit()
 
             folder = self.folders_to_scan.pop( 0 )
             self.num_folders_scanned += 1
@@ -618,7 +618,7 @@ class ScanForScmRepositoriesThread(QtCore.QThread):
                         scm_type = self.wizard.detectScmTypeForFolder( path )
                         if scm_type is not None:
                             self.num_scm_repos_found += 1
-                            self.wizard.foundRepository.emit( scm_type, str(path) )
+                            self.page.foundRepository.emit( scm_type, str(path) )
 
                         else:
                             self.folders_to_scan.append( path )
@@ -628,7 +628,7 @@ class ScanForScmRepositoriesThread(QtCore.QThread):
                 # is the folder is inaccessable
                 pass
 
-        self.wizard.scanComplete.emit()
+        self.page.scanComplete.emit()
 
 class PageAddProjectName(QtWidgets.QWizardPage):
     def __init__( self ):
