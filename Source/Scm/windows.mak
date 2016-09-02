@@ -12,6 +12,7 @@ locale\en\LC_MESSAGES\scm_workbench.mo: wb_scm_version.py
 
 clean::
 	if exist locale rmdir /s /q locale
+	echo zzz >I18N\zzzqqqzzz.current.po
 	del I18N\*.current.po
 
 include wb_scm_common.mak
