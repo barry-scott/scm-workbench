@@ -243,16 +243,18 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         if scm_project_tree_node is None:
             scm_project_tree_node = self.scm_project_tree_node
 
+
         # find all the files know to the SCM and the folder
         all_files = {}
-        if not scm_project_tree_node.isByPath():
-            # skip scanning the file system for now
-            folder = scm_project_tree_node.absolutePath()
-            for dirent in os_scandir( str( folder ) ):
-                entry = WbScmTableEntry( dirent.name )
-                entry.updateFromDirEnt( dirent )
+        if scm_project_tree_node.absolutePath().exists():
+            if not scm_project_tree_node.isByPath():
+                # skip scanning the file system for now
+                folder = scm_project_tree_node.absolutePath()
+                for dirent in os_scandir( str( folder ) ):
+                    entry = WbScmTableEntry( dirent.name )
+                    entry.updateFromDirEnt( dirent )
 
-                all_files[ entry.name ] = entry
+                    all_files[ entry.name ] = entry
 
         for name in scm_project_tree_node.getAllFileNames():
             if name not in all_files:

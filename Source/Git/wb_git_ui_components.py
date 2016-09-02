@@ -45,6 +45,10 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             self.app.log.error( '"git" command line tool not found' )
             return None
 
+        if not project.path.exists():
+            self.app.log.error( "git project's path does not exist: %s" % (project.path,) )
+            return None
+
         try:
             return wb_git_project.GitProject( self.app, project, self )
 
@@ -54,12 +58,14 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             return None
 
     def addProjectInitWizardHandler( self, wc_path ):
-        self.log.error( 'Under construction %r' % (wc_path,) )
-        return False
+        self.log.info( 'Initialise Git repository in %s' % (wc_path,) )
+
+        return wb_git_project.gitInit( self.app, wc_path )
 
     def addProjectCloneWizardHandler( self, url, wc_path ):
-        self.log.error( 'Under construction %r -> %r' % (url, wc_path) )
-        return False
+        self.log.info( 'Cloning Git repository %s into %s' % (url, wc_path) )
+
+        return wb_git_project.gitCloneFrom( self.app, self.pullProgressHandler, url, wc_path )
 
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )

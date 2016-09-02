@@ -23,7 +23,6 @@ import wb_dialog_bases
 import wb_platform_specific
 import wb_pick_path_dialogs
 
-
 #------------------------------------------------------------
 class WbScmAddProjectWizard(QtWidgets.QWizard):
     action_clone = 1
@@ -96,7 +95,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
                 self.all_existing_project_names.add( project.name.lower() )
                 self.all_existing_project_paths.add( project.path )
 
-        self.first_folder_to_scan = wb_platform_specific.getHomeFolder()
+        self.project_default_parent_folder = wb_platform_specific.getHomeFolder()
 
         self.scm_type = None
         self.action = None
@@ -266,7 +265,7 @@ class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
         self.setLayout( layout )
 
     def initializePage( self ):
-        self.wc_path.setText( str( self.wizard().home ) )
+        self.wc_path.setText( str( self.wizard().project_default_parent_folder ) )
 
     def nextId( self ):
         return self.wizard().page_id_name
@@ -356,7 +355,7 @@ class PageAddProjectScmInitBase(QtWidgets.QWizardPage):
         self.setLayout( layout )
 
     def initializePage( self ):
-        self.wc_path.setText( str( self.wizard().home ) )
+        self.wc_path.setText( str( self.wizard().project_default_parent_folder ) )
 
     def nextId( self ):
         return self.wizard().page_id_name
@@ -402,7 +401,6 @@ class PageAddProjectScmInitBase(QtWidgets.QWizardPage):
         w = self.wizard()
         w.setScmType( self.getScmType() )
         w.setAction( w.action_init )
-        w.setScmUrl( self.url.text().strip() )
         w.setWcPath( self.wc_path.text().strip() )
 
         return True
@@ -521,7 +519,7 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         if self.wc_list.count() != 0:
             return
 
-        self.thread = ScanForScmRepositoriesThread( self, self.wizard(), self.wizard().first_folder_to_scan )
+        self.thread = ScanForScmRepositoriesThread( self, self.wizard(), self.wizard().project_default_parent_folder )
         self.thread.start()
 
     def __foundRepository( self, scm_type, project_path ):
@@ -592,19 +590,19 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         return True
 
 class ScanForScmRepositoriesThread(QtCore.QThread):
-    def __init__( self, page, wizard, first_folder_to_scan ):
+    def __init__( self, page, wizard, project_default_parent_folder ):
         super().__init__()
 
         self.page = page
         self.wizard = wizard
-        self.first_folder_to_scan = first_folder_to_scan
+        self.project_default_parent_folder = project_default_parent_folder
 
         self.num_folders_scanned = 0
         self.num_scm_repos_found = 0
 
         self.stop_scan = False
 
-        self.folders_to_scan = [self.first_folder_to_scan]
+        self.folders_to_scan = [self.project_default_parent_folder]
 
     def run( self ):
         while len(self.folders_to_scan) > 0:

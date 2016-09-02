@@ -89,7 +89,8 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         focus = self.main_window.scmFocusWidget()
         if focus == 'tree':
-            return True
+            git_project = self.selectedGitProject()
+            return git_project.hasCommits()
 
         elif focus == 'table':
             # make sure all the selected entries is modified
@@ -112,7 +113,8 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         focus = self.main_window.scmFocusWidget()
 
         if focus == 'tree':
-            return True
+            git_project = self.selectedGitProject()
+            return git_project.hasCommits()
 
         elif focus == 'table':
             # make sure all the selected entries is modified
@@ -134,7 +136,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         # enable if any files staged
         git_project = self.selectedGitProject()
 
-        can_commit = False
         if git_project is None:
             return False
 
@@ -284,7 +285,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         if message != '':
             self.log.info( message )
-           
+
         self.progress.start( status )
         if is_end:
             self.log.info( status )
@@ -345,7 +346,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             status = 'Pull %s' % (stage_name,)
 
         if message != '':
-            self.log.info( message )
+            status = '%s %s' % (status, message)
 
         self.progress.start( status )
         if is_end:

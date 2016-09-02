@@ -18,6 +18,26 @@ import git.index
 
 GitCommandError = git.exc.GitCommandError
 
+def gitCloneFrom( app, progress_handler, url, wc_path ):
+    try:
+        git.repo.Repo.clone_from( url, str(wc_path), Progress( progress_handler ) )
+        return True
+
+    except GitCommandError:
+        for line in progress.allErrorLines():
+            app.log.error( line )
+        return False
+
+def gitInit( app, wc_path ):
+    try:
+        git.repo.Repo.init( str(wc_path) )
+        return True
+
+    except GitCommandError:
+        for line in progress.allErrorLines():
+            app.log.error( line )
+        return False
+
 class GitProject:
     def __init__( self, app, prefs_project, ui_components ):
         self.app = app
@@ -51,6 +71,14 @@ class GitProject:
 
     def __repr__( self ):
         return '<GitProject: %s>' % (self.prefs_project.name,)
+
+    def hasCommits( self ):
+        try:
+            self.repo.head.ref.commit
+            return True
+
+        except ValueError:
+            return False
 
     def projectName( self ):
         return self.prefs_project.name
@@ -121,10 +149,17 @@ class GitProject:
                     self.all_file_state[ repo_relative ] = WbGitFileState( self, repo_relative )
 
         # ----------------------------------------
+        # can only get info from the index if there is at least 1 commit
         self.index = git.index.IndexFile( self.repo )
 
-        head_vs_index = self.index.diff( self.repo.head.commit )
-        index_vs_working = self.index.diff( None )
+        if self.hasCommits():
+            head_vs_index = self.index.diff( self.repo.head.commit )
+            index_vs_working = self.index.diff( None )
+
+        else:
+            head_vs_index = []
+            index_vs_working = []
+
         # each ref to self.repo.untracked_files creates a new object
         # cache the value once/update
         untracked_files = self.repo.untracked_files
@@ -228,6 +263,9 @@ class GitProject:
         return all_untracked_files
 
     def canPush( self ):
+        if not self.hasCommits():
+            return False
+
         head_commit = self.repo.head.ref.commit
         tracking_branch = self.repo.head.ref.tracking_branch()
         if tracking_branch is None:
@@ -332,6 +370,9 @@ class GitProject:
         return self.index.commit( message )
 
     def cmdCommitLogForRepository( self, progress_callback, limit=None, since=None, until=None ):
+        if not self.hasCommits():
+            return []
+
         all_commit_logs = []
 
         kwds = {}
@@ -354,6 +395,9 @@ class GitProject:
         return all_commit_logs
 
     def cmdCommitLogForFile( self, progress_callback, filename, limit=None, since=None, until=None ):
+        if not self.hasCommits():
+            return []
+
         all_commit_logs = []
 
         kwds = {}
@@ -387,7 +431,6 @@ class GitProject:
             all_new = {}
             self.__treeToDict( new_tree, all_new )
             new_set = set(all_new)
-
 
             if old_tree is None:
                 all_commit_logs[ offset ]._addChanges( new_set, set(), [], set() )
@@ -444,6 +487,11 @@ class GitProject:
 
     def cmdPull( self, progress_callback, info_callback ):
         tracking_branch = self.repo.head.ref.tracking_branch()
+        if tracking_branch is None:
+            self.app.log.info( 'Cannot pull %(project_name)s as it has no remotes configured' %
+                {'project_name': self.projectName()} )
+            return
+
         remote = self.repo.remote( tracking_branch.remote_name )
 
         self.app.log.info( T_('Pull %(project_name)s %(branch)s') %
