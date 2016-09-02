@@ -55,13 +55,12 @@ popd >NUL
 
 set PATH=%BUILDER_QTDIR%\msvc2015_64\bin;%PATH%
 set PYTHONPATH=%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Common
-rem  --icon ..\Source\Windows\Resources\win_emacs.ico
 pushd %SRC_DIR%\Scm
-%PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --name "SCM Workbench" %VERBOSE%
+%PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM Workbench" %VERBOSE%
     if errorlevel 1 goto :error
 popd >NUL
 pushd %SRC_DIR%\Git
-%PYTHON% -m win_app_packager build wb_git_askpass_client_win32.py --cli %DIST_DIR% --name "SCM-Workbench-AskPass" --merge %VERBOSE%
+%PYTHON% -m win_app_packager build wb_git_askpass_client_win32.py --cli %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM-Workbench-AskPass" --merge %VERBOSE%
     if errorlevel 1 goto :error
 popd >NUL
 

@@ -84,7 +84,7 @@ this kit.
 
         self.all_icon_items.extend( [
                 r'''Name: "{group}\SCM Workbench"; Filename: "{app}\%(app_name)s.exe"''' % self.__dict__,
-                r'''Name: "{group}\Web Site"; Filename: "https://github.com/barry-scott/scm-workbench";''',
+                r'''Name: "{group}\Web Site"; Filename: "https://github.com/barry-scott/scm-workbench"; IconFilename: "{app}\%(app_name)s.exe";''',
                 #
                 #    Add an Emacs icon to the Desktop
                 #
