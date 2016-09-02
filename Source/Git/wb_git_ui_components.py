@@ -123,6 +123,9 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         m.addSeparator()
         addMenu( m, T_('Status'), self.treeActionGitStatus )
 
+        m.addSeparator()
+        addMenu( m, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerGitLogHistory, 'toolbar_images/history.png' )
+
         # ----------------------------------------
         m = mb.addMenu( T_('&Git Actions') )
         self.all_menus.append( m )
