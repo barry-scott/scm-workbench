@@ -208,7 +208,7 @@ def CommandShell( app, working_dir ):
 
 def FileBrowser( app, working_dir ):
     explorer = wb_platform_win32_specific.getWindowsDir() / 'explorer.exe'
-    command_list = [str(explorer), '/e,%s' % (working_dir,)]
+    command_list = [str(explorer), '/e,/root,"%s"' % (working_dir,)]
 
     CreateProcess( app, command_list, working_dir )
 
@@ -258,7 +258,15 @@ def CreateProcess( app, command_list, working_dir ):
     p_info = PROCESS_INFORMATION( None, None, 0, 0 )
 
     working_dir = str(working_dir)
-    command_line = ' '.join( ['"%s"' % (arg,) for arg in command_list] )
+    quoted_args = []
+    for arg in command_list:
+        arg = str(arg)
+        if '"' in arg:
+            quoted_args.append( arg )
+        else:
+            quoted_args.append( '"%s"' % (arg,) )
+
+    command_line = ' '.join( quoted_args )
 
     app.log.info( command_line )
 
