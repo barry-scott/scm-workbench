@@ -104,10 +104,11 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.log_table.setModel( self.log_model )
 
         # size columns
-        char_width = 10
-        self.log_table.setColumnWidth( self.log_model.col_author, char_width*16 )
-        self.log_table.setColumnWidth( self.log_model.col_date, char_width*16 )
-        self.log_table.setColumnWidth( self.log_model.col_message, char_width*40 )
+        em = self.log_table.fontMetrics().width( 'm' )
+        self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
+        self.log_table.setColumnWidth( self.log_model.col_date, em*16 )
+        self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
+        self.log_table.setColumnWidth( self.log_model.col_commit_id, em*30 )
 
         #----------------------------------------
         self.commit_message = QtWidgets.QTextEdit()
@@ -126,10 +127,10 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.changes_table.setModel( self.changes_model )
 
         # size columns
-        char_width = 10
-        self.changes_table.setColumnWidth( self.changes_model.col_action, char_width*6 )
-        self.changes_table.setColumnWidth( self.changes_model.col_path, char_width*60 )
-        self.changes_table.setColumnWidth( self.changes_model.col_copyfrom, char_width*60 )
+        em = self.changes_table.fontMetrics().width( 'm' )
+        self.changes_table.setColumnWidth( self.changes_model.col_action, em*6 )
+        self.changes_table.setColumnWidth( self.changes_model.col_path, em*60 )
+        self.changes_table.setColumnWidth( self.changes_model.col_copyfrom, em*60 )
 
         #----------------------------------------
         self.layout = QtWidgets.QVBoxLayout()
@@ -147,7 +148,8 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         self.setCentralWidget( self.widget )
 
-        self.resize( 900, 600 )
+        em = self.changes_table.fontMetrics().width( 'm' )
+        self.resize( 100*em, 50*em )
         self.ui_component.setTopWindow( self.app.top_window )
         self.ui_component.setMainWindow( self, None )
 
@@ -355,8 +357,9 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
     col_date = 1
     col_message = 2
+    col_commit_id = 3
 
-    column_titles = (U_('Author'), U_('Date'), U_('Message'))
+    column_titles = (U_('Author'), U_('Date'), U_('Message'), U_('Commit ID'))
 
     def __init__( self, app ):
         self.app = app
@@ -424,6 +427,9 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
             elif col == self.col_message:
                 return node.commitMessage().split('\n')[0]
+
+            elif col == self.col_commit_id:
+                return node.commitIdString()
 
             assert False
 
