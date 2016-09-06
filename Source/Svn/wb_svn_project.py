@@ -54,13 +54,14 @@ class SvnProject:
         self.__client_bg.callback_get_login = CallFunctionOnMainThread( self.app, self.ui_components.svnGetLogin )
         self.__client_bg.callback_ssl_server_trust_prompt = CallFunctionOnMainThread( self.app, self.ui_components.svnSslServerTrustPrompt )
 
-        self.tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
-        self.flat_tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+        if prefs_project is not None:
+            self.tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+            self.flat_tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
-        self.all_file_state = {}
-        self.__stale_status = False
+            self.all_file_state = {}
+            self.__stale_status = False
 
-        self.__num_uncommitted_files = 0
+            self.__num_uncommitted_files = 0
 
     def client( self ):
         if self.app.isForegroundThread():
@@ -101,7 +102,17 @@ class SvnProject:
         self.tree = SvnProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = SvnProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
-        self.__calculateStatus()
+        # protect agsint 
+        if not self.projectPath().exists():
+            self.app.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
+                            {'name': self.projectName()
+                            ,'folder': self.projectPath()} )
+
+            self.all_file_state = {}
+            self.__num_uncommitted_files = 0
+
+        else:
+            self.__calculateStatus()
 
         for path in self.all_file_state:
             self.__updateTree( path, self.all_file_state[ path ].isDir() )
@@ -218,6 +229,10 @@ class SvnProject:
         return wb_path
 
     # ------------------------------------------------------------
+    def cmdCheckout( self, url, wc_path ):
+        assert self.prefs_project is None, 'Checkout is not allowed for an existing project'
+        return self.client().checkout( url, str( wc_path ) )
+
     def cmdCleanup( self ):
         self._debug( 'cmdCleanup()' )
         self.client().cleanup( str( self.projectPath() ) )
@@ -426,7 +441,7 @@ class SvnProject:
 
     def svnCallbackNotify( self, arg_dict ):
         # svnCallbackNotify typically is running on the background thread
-        # for commands like update and checkin.
+        # for commands like checkout, update and checkin.
         #
         # update progress via the foreground thread to avoid calling Qt
         # on the background thread.
@@ -476,7 +491,6 @@ class SvnProject:
             self.app.runInForeground( self.app.top_window.progress.incInConflictCount, () )
 
         # print anything that gets through the filter
-        
         path = arg_dict['path']
 
         self.app.log.info( u'%s   %s' % (action_letter, path) )

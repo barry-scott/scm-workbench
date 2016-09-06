@@ -220,6 +220,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.timer_init = None
 
     def createProject( self, project ):
+        if not project.path.exists():
+            self.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
+                            {'name': project.name
+                            ,'folder': project.path} )
+            return None
+
         if project.scm_type in self.all_ui_components:
             return self.all_ui_components[ project.scm_type ].createProject( project )
 
@@ -546,9 +552,16 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 yield self.app.switchToForeground
 
             elif w.getAction() == w.action_clone:
+                # pre is a good place to setup progress and status
+                ui_components.addProjectPreCloneWizardHandler( w.name, w.getScmUrl(), w.getWcPath() )
+
                 yield self.app.switchToBackground
-                add_project = ui_components.addProjectCloneWizardHandler( w.getScmUrl(), w.getWcPath() )
+                # do the actual clone in the background
+                add_project = ui_components.addProjectCloneWizardHandler( w.name, w.getScmUrl(), w.getWcPath() )
+
                 yield self.app.switchToForeground
+                # post is a good place to finalise progress and status
+                ui_components.addProjectPostCloneWizardHandler()
 
             elif w.getAction() == w.action_add_existing:
                 add_project = True

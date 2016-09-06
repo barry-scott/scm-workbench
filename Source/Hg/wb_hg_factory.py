@@ -39,6 +39,8 @@ class WbHgFactory:
         return [('.hg', 'hg')]
 
 class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
+    all_supported_schemes = ('ssh', 'https', 'http')
+
     def __init__( self, wizard ):
         super().__init__()
 
@@ -47,6 +49,9 @@ class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
 
     def getScmType( self ):
         return 'hg'
+
+    def allSupportedSchemes( self ):
+        return self.all_supported_schemes
 
     def radioButtonLabel( self ):
         return T_('Clone Murcurial (hg) repository')

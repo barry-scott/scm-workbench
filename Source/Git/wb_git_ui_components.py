@@ -46,15 +46,17 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             return None
 
         if not project.path.exists():
-            self.app.log.error( "git project's path does not exist: %s" % (project.path,) )
+            self.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
+                            {'name': project.name
+                            ,'folder': project.path} )
             return None
 
         try:
             return wb_git_project.GitProject( self.app, project, self )
 
         except git.exc.InvalidGitRepositoryError as e:
-            self.app.log.error( 'Failed to add Git repo %r' % (project.path,) )
-            self.app.log.error( 'Git error: %s' % (e,) )
+            self.log.error( 'Failed to add Git repo %r' % (project.path,) )
+            self.log.error( 'Git error: %s' % (e,) )
             return None
 
     def addProjectInitWizardHandler( self, wc_path ):
@@ -62,10 +64,17 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         return wb_git_project.gitInit( self.app, wc_path )
 
-    def addProjectCloneWizardHandler( self, url, wc_path ):
+    def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
         self.log.info( 'Cloning Git repository %s into %s' % (url, wc_path) )
+        self.setStatusAction( T_('Clone %(project)s') %
+                                    {'project': name} )
 
+    def addProjectCloneWizardHandler( self, name, url, wc_path ):
         return wb_git_project.gitCloneFrom( self.app, self.pullProgressHandler, url, wc_path )
+
+    def addProjectPostCloneWizardHandler( self ):
+        self.progress.end()
+        self.setStatusAction()
 
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )

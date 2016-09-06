@@ -35,20 +35,45 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         super().__init__()
 
     def createProject( self, project ):
+        if not project.path.exists():
+            self.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
+                            {'name': project.name
+                            ,'folder': project.path} )
+            return None
+
         try:
             return wb_svn_project.SvnProject( self.app, project, self )
 
         except wb_svn_project.ClientError as e:
-            self.app.log.error( 'Failed to add SVN repo %r' % (project.path,) )
-            self.app.log.error( 'SVN error: %s' % (e,) )
+            self.log.error( 'Failed to add SVN repo %r' % (project.path,) )
+            self.log.error( 'SVN error: %s' % (e,) )
             return None
 
     def addProjectInitWizardHandler( self, wc_path ):
-        raise RuntimeError( 'SVN does not support proiject init' )
+        raise RuntimeError( 'SVN does not support project init' )
 
-    def addProjectCloneWizardHandler( self, url, wc_path ):
-        self.log.error( 'Under construction %r -> %r' % (url, wc_path) )
-        return False
+    def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
+        self.setStatusAction( T_('Checkout %(project)s') %
+                                    {'project': name} )
+        self.progress.start( T_('Checkout %(count)d') )
+
+    def addProjectCloneWizardHandler( self, name, url, wc_path ):
+        project = wb_svn_project.SvnProject( self.app, None, self )
+
+        try:
+            rev = project.cmdCheckout( url, wc_path )
+            self.log.info( 'Checked out at revision r%d' % (rev.number,) )
+            return True
+
+        except wb_svn_project.ClientError as e:
+            for line in project.clientErrorToStrList( e ):
+                self.log.error( line )
+
+            return False
+
+    def addProjectPostCloneWizardHandler( self ):
+        self.progress.end()
+        self.setStatusAction()
 
     def about( self ):
         return ['PySVN %d.%d.%d-%d' % pysvn.version

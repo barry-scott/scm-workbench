@@ -503,5 +503,9 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             return None
 
         tree_node = self.table_view.table_model.selectedScmProjectTreeNode()
-        assert isinstance( tree_node, wb_svn_project.SvnProjectTreeNode )
+
+        # if the place holder is being used return none
+        if not isinstance( tree_node, wb_svn_project.SvnProjectTreeNode ):
+            return None
+
         return tree_node

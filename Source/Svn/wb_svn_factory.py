@@ -39,6 +39,8 @@ class WbSvnFactory:
         return [('.svn', 'svn'), ('_svn', 'svn')]
 
 class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
+    all_supported_schemes = ('https', 'http')
+
     def __init__( self ):
         super().__init__()
 
@@ -47,6 +49,9 @@ class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBas
 
     def getScmType( self ):
         return 'svn'
+
+    def allSupportedSchemes( self ):
+        return self.all_supported_schemes
 
     def radioButtonLabel( self ):
         return T_('Checkout Subversion (svn) repository')

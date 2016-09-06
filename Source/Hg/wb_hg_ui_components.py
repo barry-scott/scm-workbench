@@ -39,6 +39,12 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
             self.app.log.error( 'Murcurial "hg" command line tool not found' )
             return None
 
+        if not project.path.exists():
+            self.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
+                            {'name': project.name
+                            ,'folder': project.path} )
+            return None
+
         try:
             return wb_hg_project.HgProject( self.app, project, self )
 
@@ -51,9 +57,18 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         self.log.error( 'Under construction %r' % (wc_path,) )
         return False
 
-    def addProjectCloneWizardHandler( self, url, wc_path ):
+    def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
+        self.setStatusAction( T_('Clone %(project)s') %
+                                    {'project': name} )
+        self.progress.start( T_('Clone %(count)d') )
+
+    def addProjectCloneWizardHandler( self, name, url, wc_path ):
         self.log.error( 'Under construction %r -> %r' % (url, wc_path) )
         return False
+
+    def addProjectPostCloneWizardHandler( self ):
+        self.progress.end()
+        self.setStatusAction()
 
     def about( self ):
         if shutil.which( hglib.HGPATH ) is None:

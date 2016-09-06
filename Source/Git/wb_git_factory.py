@@ -39,6 +39,8 @@ class WbGitFactory:
         return [('.git', 'git')]
 
 class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
+    all_supported_schemes = ('ssh', 'git', 'https', 'http', 'ftps', 'ftp')
+
     def __init__( self, wizard ):
         super().__init__()
 
@@ -47,6 +49,9 @@ class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
 
     def getScmType( self ):
         return 'git'
+
+    def allSupportedSchemes( self ):
+        return self.all_supported_schemes
 
     def radioButtonLabel( self ):
         return T_('Clone Git repository')

@@ -280,20 +280,37 @@ class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
         self.completeChanged.emit()
 
     def isComplete( self ):
+        if not self.isValidUrl():
+            return False
+
+        if not self.isValidPath():
+            return False
+
+        self.feedback.setText( '' )
+        return True
+
+    def isValidUrl( self ):
         url = self.url.text().strip()
         if ':' not in url or '/' not in url:
-            self.feedback.setText( T_('Fill in a HTTPS URL') )
+            self.feedback.setText( T_('Fill in a repository URL') )
             return False
 
         result = urllib.parse.urlparse( url )
-        if result.scheme.lower() != 'https':
-            self.feedback.setText( T_('Use an https: URL') )
+        scheme = result.scheme.lower()
+        all_supported_schemes = self.allSupportedSchemes()
+        if scheme not in all_supported_schemes:
+            self.feedback.setText( T_('Scheme %(scheme)s is not supported. Use one of %(all_supported_schemes)s') %
+                                    {'scheme': scheme
+                                    ,'all_supported_schemes': ', '.join( all_supported_schemes )} )
             return False
 
         if result.netloc == '' or result.path == '':
-            self.feedback.setText( T_('Fill in a HTTPS URL') )
+            self.feedback.setText( T_('Fill in a repository URL') )
             return False
 
+        return True
+
+    def isValidPath( self ):
         path =  self.wc_path.text().strip()
         if path == '':
             self.feedback.setText( T_('Fill in the Working Copy') )
@@ -318,7 +335,6 @@ class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
             self.feedback.setText( T_('%s is not an empty directory') % (path,) )
             return False
 
-        self.feedback.setText( '' )
         return True
 
     def validatePage( self ):
