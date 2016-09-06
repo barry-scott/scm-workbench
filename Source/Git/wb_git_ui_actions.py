@@ -90,6 +90,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         focus = self.main_window.scmFocusWidget()
         if focus == 'tree':
             git_project = self.selectedGitProject()
+            if git_project is None:
+                return False
+
             return git_project.hasCommits()
 
         elif focus == 'table':
@@ -114,6 +117,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         if focus == 'tree':
             git_project = self.selectedGitProject()
+            if git_project is None:
+                return False
+
             return git_project.hasCommits()
 
         elif focus == 'table':
@@ -135,7 +141,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def enablerGitCommit( self ):
         # enable if any files staged
         git_project = self.selectedGitProject()
-
         if git_project is None:
             return False
 
