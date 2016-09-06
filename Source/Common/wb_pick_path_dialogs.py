@@ -43,15 +43,19 @@ def pickExecutable( parent, executable ):
     else:
         return None
 
-def pickFolder( parent, folder ):
-    if folder is None or folder == '.':
-        folder = wb_platform_specific.getHomeFolder()
+def pickFolder( parent, orig_folder ):
+    if orig_folder is None or orig_folder == '.':
+        orig_folder = wb_platform_specific.getHomeFolder()
 
-    if not folder.exists():
-        folder = wb_platform_specific.getHomeFolder()
+    folder = orig_folder
 
-    if not folder.is_dir():
-        folder = folder.parent
+    if folder.exists():
+        if not folder.is_dir():
+            folder = folder.parent
+
+    else:
+        while not orig_folder.exists():
+            orig_folder = orig_folder.parent
 
     file_browser = QtWidgets.QFileDialog( parent )
     file_browser.setFileMode( file_browser.Directory )
@@ -68,7 +72,7 @@ def pickFolder( parent, folder ):
     file_browser.setFilter( QtCore.QDir.Hidden | QtCore.QDir.Dirs )
 
     file_browser.setDirectory( str( folder ) )
-    file_browser.selectFile( str( folder ) )
+    file_browser.selectFile( str( orig_folder ) )
 
     if file_browser.exec_():
         all_directories = file_browser.selectedFiles()
