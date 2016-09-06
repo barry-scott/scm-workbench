@@ -32,39 +32,47 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         if prefs.program is not None:
             hglib.HGPATH = str( prefs.program )
 
-        self.log.info( 'Hg using program %s' % (hglib.HGPATH,) )
+        self.log.info( T_('Hg using program %s') % (hglib.HGPATH,) )
 
     def createProject( self, project ):
         if shutil.which( hglib.HGPATH ) is None:
-            self.app.log.error( 'Murcurial "hg" command line tool not found' )
-            return None
-
-        if not project.path.exists():
-            self.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
-                            {'name': project.name
-                            ,'folder': project.path} )
+            self.log.error( T_('Murcurial "hg" command line tool not found') )
             return None
 
         try:
             return wb_hg_project.HgProject( self.app, project, self )
 
         except hglib.error.ServerError as e:
-            self.app.log.error( 'Failed to add Hg repo %r' % (project.path,) )
-            self.app.log.error( 'hg error: %s' % (e,) )
+            self.app.log.error( T_('Failed to add Hg repo %s') % (project.path,) )
+            self.app.log.error( T_('hg error: %s') % (e,) )
             return None
 
     def addProjectInitWizardHandler( self, wc_path ):
-        self.log.error( 'Under construction %r' % (wc_path,) )
-        return False
+        try:
+            wb_hg_project.hgInit( wc_path )
+            return True
+
+        except hglib.error.ServerError as e:
+            self.app.log.error( T_('Failed to init Hg repo %r') % (project.path,) )
+            self.app.log.error( T_('hg error: %s') % (e,) )
+            return False
 
     def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
         self.setStatusAction( T_('Clone %(project)s') %
                                     {'project': name} )
-        self.progress.start( T_('Clone %(count)d') )
+        self.progress.start( T_('No progress available for hg') )
 
     def addProjectCloneWizardHandler( self, name, url, wc_path ):
-        self.log.error( 'Under construction %r -> %r' % (url, wc_path) )
-        return False
+        try:
+            wb_hg_project.hgClone( url, wc_path )
+            return True
+
+        except hglib.error.ServerError as e:
+            self.app.log.error( T_('Failed to clone Hg repo from %(url)s into %(path)s') % 
+                                {'url': url
+                                ,'path': wc_path} )
+            self.app.log.error( 'hg error: %s' % (e,) )
+            return False
 
     def addProjectPostCloneWizardHandler( self ):
         self.progress.end()

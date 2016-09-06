@@ -17,6 +17,12 @@ import hglib
 import hglib.util
 import hglib.client
 
+def hgInit( wc_path ):
+    hglib.init( str(wc_path).encode('utf-8') )
+
+def hgClone( url, wc_path ):
+    hglib.clone( str(url).encode('utf-8'), str(wc_path).encode('utf-8') )
+
 def HgVersion():
     args = hglib2.util.cmdbuilder( 'version' )
     args.insert( 0, hglib.HGPATH )
@@ -168,6 +174,10 @@ class HgProject:
     # functions to retrive interesting info from the repo
     #
     #------------------------------------------------------------
+    def hasFileState( self, filename ):
+        assert isinstance( filename, pathlib.Path )
+        return filename in self.all_file_state
+
     def getFileState( self, filename ):
         assert isinstance( filename, pathlib.Path )
         # status only has enties for none CURRENT status files
