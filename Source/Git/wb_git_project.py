@@ -115,7 +115,15 @@ class GitProject:
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
-        self.__calculateStatus()
+        if not self.projectPath().exists():
+            self.app.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
+                            {'name': self.projectName()
+                            ,'folder': self.projectPath()} )
+
+            self.all_file_state = {}
+
+        else:
+            self.__calculateStatus()
 
         for path in self.all_file_state:
             self.__updateTree( path )

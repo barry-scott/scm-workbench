@@ -18,7 +18,7 @@ import hglib.util
 import hglib.client
 
 def HgVersion():
-    args = hglib.util.cmdbuilder( 'version' )
+    args = hglib2.util.cmdbuilder( 'version' )
     args.insert( 0, hglib.HGPATH )
 
     proc = hglib.util.popen( args )
@@ -79,7 +79,16 @@ class HgProject:
         self.tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
-        self.__calculateStatus()
+        if not self.projectPath().exists():
+            self.app.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
+                            {'name': self.projectName()
+                            ,'folder': self.projectPath()} )
+
+            self.all_file_state = {}
+
+        else:
+            self.__calculateStatus()
+
 
         for path in self.all_file_state:
             self.__updateTree( path )
