@@ -35,12 +35,6 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         super().__init__()
 
     def createProject( self, project ):
-        if not project.path.exists():
-            self.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
-                            {'name': project.name
-                            ,'folder': project.path} )
-            return None
-
         try:
             return wb_svn_project.SvnProject( self.app, project, self )
 
