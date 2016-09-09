@@ -64,12 +64,12 @@ class WbScmTableView(QtWidgets.QTableView):
         self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
         # size columns
-        char_width = 10
-        self.setColumnWidth( self.table_model.col_staged, char_width*4 )
-        self.setColumnWidth( self.table_model.col_status, char_width*4 )
-        self.setColumnWidth( self.table_model.col_name, char_width*32 )
-        self.setColumnWidth( self.table_model.col_date, char_width*16 )
-        self.setColumnWidth( self.table_model.col_type, char_width*6 )
+        em = self.app.fontMetrics().width( 'm' )
+        self.setColumnWidth( self.table_model.col_staged, em*4 )
+        self.setColumnWidth( self.table_model.col_status, em*4 )
+        self.setColumnWidth( self.table_model.col_name, em*32 )
+        self.setColumnWidth( self.table_model.col_date, em*16 )
+        self.setColumnWidth( self.table_model.col_type, em*6 )
 
     def tableContextMenu( self, pos ):
         self._debug( 'tableContextMenu( %r )' % (pos,) )

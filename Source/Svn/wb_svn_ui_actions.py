@@ -326,9 +326,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         return True
 
-    def enablerTableSvnAnnotate( self ):
-        return self.__enablerSvnFilesControlled()
-
     def enablerTableSvnInfo( self ):
         return self.__enablerSvnFilesControlled()
 
@@ -406,15 +403,6 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                     T_('HEAD %s') % (file_state.relativePath(),),
                     T_('Working %s') % (file_state.relativePath(),)
                     )
-
-    def tableActionSvnAnnotate( self ):
-        def execute_function( project, filename ):
-            all_lines = project.cmdAnnotate( filename )
-
-            dialog = wb_svn_info_dialog.Annotate( self.app, self.main_window, filename, project.pathForSvn( filename ), info )
-            dialog.exec_()
-
-        self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnInfo( self ):
         def execute_function( project, filename ):

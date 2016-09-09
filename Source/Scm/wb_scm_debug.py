@@ -25,8 +25,10 @@ class WbScmDebug(wb_debug.WbDebug):
         self._debug_svn_ui = False
 
         self._debug_log_history = False
+        self._debug_annotate = False
 
         super().__init__()
+
     def _debugHgUi( self, msg ):
         if self._debug_hg_ui:
             self.log.debug( 'HG-UI %s' % (msg,) )
@@ -58,3 +60,7 @@ class WbScmDebug(wb_debug.WbDebug):
     def _debugLogHistory( self, msg ):
         if self._debug_log_history:
             self.log.debug( 'LOG-HISTORY %s' % (msg,) )
+
+    def _debugAnnotate( self, msg ):
+        if self._debug_annotate:
+            self.log.debug( 'ANNOTATE %s' % (msg,) )

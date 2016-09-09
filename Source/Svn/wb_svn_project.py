@@ -385,6 +385,17 @@ class SvnProject:
 
         return all_logs
 
+    def cmdAnnotationForFile( self, filename ):
+        rev_start = self.svn_rev_r0
+        rev_end = self.svn_rev_head
+
+        all_annotation_nodes = self.client().annotate(
+                        self.pathForSvn( filename ),
+                        revision_start=rev_start,
+                        revision_end=rev_end )
+
+        return all_annotation_nodes
+
     def __addCommitChangeInformation( self, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
         for offset in range( len(all_commit_logs) ):

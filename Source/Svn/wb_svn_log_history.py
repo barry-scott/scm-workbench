@@ -92,11 +92,11 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.log_table.setModel( self.log_model )
 
         # size columns
-        char_width = 10
-        self.log_table.setColumnWidth( self.log_model.col_revision, char_width*6 )
-        self.log_table.setColumnWidth( self.log_model.col_author, char_width*16 )
-        self.log_table.setColumnWidth( self.log_model.col_date, char_width*16 )
-        self.log_table.setColumnWidth( self.log_model.col_message, char_width*40 )
+        em = self.app.fontMetrics().width( 'm' )
+        self.log_table.setColumnWidth( self.log_model.col_revision, em*6 )
+        self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
+        self.log_table.setColumnWidth( self.log_model.col_date, em*16 )
+        self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
 
         #----------------------------------------
         self.commit_message = QtWidgets.QTextEdit()
@@ -110,10 +110,9 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.changes_table.setModel( self.changes_model )
 
         # size columns
-        char_width = 10
-        self.changes_table.setColumnWidth( self.changes_model.col_action, char_width*6 )
-        self.changes_table.setColumnWidth( self.changes_model.col_path, char_width*60 )
-        self.changes_table.setColumnWidth( self.changes_model.col_copyfrom, char_width*60 )
+        self.changes_table.setColumnWidth( self.changes_model.col_action, em*6 )
+        self.changes_table.setColumnWidth( self.changes_model.col_path, em*60 )
+        self.changes_table.setColumnWidth( self.changes_model.col_copyfrom, em*60 )
 
         #----------------------------------------
         self.layout = QtWidgets.QVBoxLayout()

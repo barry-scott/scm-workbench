@@ -22,6 +22,7 @@ import wb_svn_commit_dialog
 import wb_svn_info_dialog
 import wb_svn_log_history
 import wb_svn_credential_dialogs
+import wb_svn_annotate
 
 import pysvn
 
@@ -80,6 +81,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         addMenu( m, T_('Diff Base vs. Working'), self.treeTableActionSvnDiffBaseVsWorking, self.enablerTreeTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionSvnDiffHeadVsWorking, self.enablerTreeTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Annotate'), self.tableActionSvnAnnotate, self.enablerTableSvnAnnotate )
 
         m.addSeparator()
         addMenu( m, T_('Add Folder…'), self.treeActionSvnAdd, self.enablerTreeSvnAdd )
@@ -154,7 +156,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         m.addSection( T_('Status') )
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
-        m.addSection( T_('&Actions') )
+        m.addSection( T_('Actions') )
         addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
         addMenu( m, T_('Rename…'), self.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
 
@@ -226,15 +228,32 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
         if options.exec_():
-            commit_log_view = wb_svn_log_history.WbSvnLogHistoryView(
+            log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
                     self.app,
                     T_('Commit Log for %(project)s:%(path)s') %
                             {'project': svn_project.projectName()
                             ,'path': filename},
                     self.main_window.getQIcon( 'wb.png' ) )
 
-            commit_log_view.showCommitLogForFile( svn_project, filename, options )
-            commit_log_view.show()
+            log_history_view.showCommitLogForFile( svn_project, filename, options )
+            log_history_view.show()
+
+    def enablerTableSvnAnnotate( self ):
+        if not self.isScmTypeActive():
+            return False
+
+        return True
+
+    def tableActionSvnAnnotate( self ):
+        self.table_view.tableActionViewRepo( self.__actionSvnAnnotate )
+
+    def __actionSvnAnnotate( self, svn_project, filename ):
+        annotate_view = wb_svn_annotate.WbSvnAnnotateView(
+                            self.app,
+                            T_('Annotation of %s') % (filename,),
+                            self.main_window.getQIcon( 'wb.png' ) )
+        annotate_view.showAnnotationForFile( svn_project, filename )
+        annotate_view.show()
 
     commit_key = 'svn-commit-dialog'
 
