@@ -75,10 +75,10 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.annotate_table.setColumnWidth( self.annatate_model.col_line_text, em*255 )
 
         #----------------------------------------
-        self.commit_message = QtWidgets.QTextEdit()
-        self.commit_message.setCurrentFont( self.font )
+        self.commit_message = QtWidgets.QPlainTextEdit()
+        self.commit_message.setFont( self.font )
         h = self.commit_message.fontMetrics().lineSpacing()
-        self.commit_message.setFixedHeight( h*3 )
+        self.commit_message.setFixedHeight( h*4 )
         self.commit_message.setReadOnly( True )
 
         #----------------------------------------
@@ -93,7 +93,7 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.setCentralWidget( self.widget )
 
-        self.resize( 900, 600 )
+        self.resize( 1000, 600 )
 
         self.ui_component.setTopWindow( self.app.top_window )
         self.ui_component.setMainWindow( self, None )
@@ -158,7 +158,7 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         node = self.annatate_model.annotationNode( self.current_annotations[0] )
 
         self.commit_message.clear()
-        self.commit_message.insertPlainText( 'TBD - need the commit message for %d' % (node['revision'].number,) )
+        self.commit_message.insertPlainText( 'TBD - need the commit message for %d\n2\n3\n4\n' % (node['revision'].number,) )
 
         self.updateEnableStates()
 
