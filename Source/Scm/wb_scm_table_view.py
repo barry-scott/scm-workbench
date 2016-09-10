@@ -27,8 +27,8 @@ class WbScmTableView(QtWidgets.QTableView):
         super().__init__()
 
         # short cut keys in the table view
-        self.table_keys_edit = ['\r', 'e', 'E']
-        self.table_keys_open = ['o', 'O']
+        self.table_keys_edit = ('\r', 'e', 'E')
+        self.table_keys_open = ('o', 'O')
 
         self.all_table_keys = []
         self.all_table_keys.extend( self.table_keys_edit )
@@ -147,7 +147,7 @@ class WbScmTableView(QtWidgets.QTableView):
                 for name in all_names
                 if scm_project.hasFileState( relative_folder / name )]
 
-    def tableActionViewRepo( self, execute_function, are_you_sure_function=None ):
+    def tableActionViewRepo( self, execute_function, are_you_sure_function=None, thread_switcher=False ):
         folder_path = self.selectedAbsoluteFolder()
         if folder_path is None:
             return False
@@ -167,7 +167,11 @@ class WbScmTableView(QtWidgets.QTableView):
             return False
 
         for filename in all_filenames:
-            execute_function( scm_project, filename )
+            if thread_switcher:
+                yield from execute_function( scm_project, filename )
+
+            else:
+                execute_function( scm_project, filename )
 
         return True
 

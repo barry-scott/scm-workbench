@@ -27,7 +27,7 @@ import wb_svn_ui_actions
 
 #------------------------------------------------------------
 #
-#   WbSvnLogHistoryView - show the commits from the log model
+#   WbSvnAnnotateView - show that annotation of a file
 #
 #------------------------------------------------------------
 
@@ -48,7 +48,6 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.current_commit_selections = []
         self.current_file_selection = []
 
-        self.filename = None
         self.svn_project = None
 
         self.ui_component = SvnAnnotateWindowComponents()
@@ -67,10 +66,10 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.annotate_table.setModel( self.annatate_model )
 
         # size columns
-        em = self.app.fontMetrics().width( 'm' )
+        em = self.fontMetrics().width( 'm' )
         self.annotate_table.setColumnWidth( self.annatate_model.col_revision, em*5 )
         self.annotate_table.setColumnWidth( self.annatate_model.col_author, em*10 )
-        self.annotate_table.setColumnWidth( self.annatate_model.col_date, em*16 )
+        self.annotate_table.setColumnWidth( self.annatate_model.col_date, self.fontMetrics().width( '2002-12-29 20:20:20  ' ) )
         self.annotate_table.setColumnWidth( self.annatate_model.col_line_num, em*5 )
         self.annotate_table.setColumnWidth( self.annatate_model.col_line_text, em*255 )
 
@@ -139,11 +138,8 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'svn'
 
-    def showAnnotationForFile( self, svn_project, filename ):
-        self.filename = filename
-        self.svn_project = svn_project
-
-        self.annatate_model.loadAnnotationForFile( svn_project, filename )
+    def showAnnotationForFile( self, all_annotation_nodes, all_commit_messages ):
+        self.annatate_model.loadAnnotationForFile( all_annotation_nodes, all_commit_messages )
         self.updateEnableStates()
 
     def selectionChangedAnnotation( self ):
@@ -156,9 +152,10 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.current_annotations.sort()
 
         node = self.annatate_model.annotationNode( self.current_annotations[0] )
+        log = self.annatate_model.annotationLogNode( node['revision'].number )
 
         self.commit_message.clear()
-        self.commit_message.insertPlainText( 'TBD - need the commit message for %d\n2\n3\n4\n' % (node['revision'].number,) )
+        self.commit_message.insertPlainText( log.message )
 
         self.updateEnableStates()
 
@@ -196,10 +193,15 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
         super().__init__()
 
         self.all_annotation_nodes  = []
+        self.all_commit_messages = []
 
-    def loadAnnotationForFile( self, svn_project, filename ):
+        self.font = QtGui.QFont( wb_config.face, wb_config.point_size )
+
+    def loadAnnotationForFile( self, all_annotation_nodes, all_commit_messages ):
         self.beginResetModel()
-        self.all_annotation_nodes = svn_project.cmdAnnotationForFile( filename )
+        self.all_commit_messages =  dict( [(node['revision'].number, node)
+                                            for node in all_commit_messages] )
+        self.all_annotation_nodes = all_annotation_nodes
         self.endResetModel()
 
     def rowCount( self, parent ):
@@ -224,6 +226,9 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
     def annotationNode( self, row ):
         return self.all_annotation_nodes[ row ]
 
+    def annotationLogNode( self, rev_num ):
+        return self.all_commit_messages[ rev_num ]
+
     def revForRow( self, row ):
         return self.all_annotation_nodes[ row ].revision
 
@@ -233,18 +238,19 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.DisplayRole:
             node = self.all_annotation_nodes[ index.row() ]
+            rev_num = node['revision'].number
+            log_node = self.all_commit_messages[ rev_num ]
 
             col = index.column()
 
             if col == self.col_revision:
-                return '%d' % (node['revision'].number,)
+                return '%d' % (rev_num,)
 
             elif col == self.col_author:
-                return node['author']
+                return log_node.author
 
             elif col == self.col_date:
-                return node['date']
-                #time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( node['date'] ) )
+                return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( log_node.date ) )
 
             elif col == self.col_line_num:
                 return '%d' % (node['number']+1,)
@@ -260,5 +266,9 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
 
             else:
                 return QtCore.Qt.AlignLeft
+
+        elif role == QtCore.Qt.FontRole:
+            if index.column() == self.col_line_text:
+                return self.font
 
         return None

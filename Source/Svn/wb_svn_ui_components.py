@@ -81,7 +81,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         addMenu( m, T_('Diff Base vs. Working'), self.treeTableActionSvnDiffBaseVsWorking, self.enablerTreeTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionSvnDiffHeadVsWorking, self.enablerTreeTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Annotate'), self.tableActionSvnAnnotate, self.enablerTableSvnAnnotate )
+        addMenu( m, T_('Annotate'), self.tableActionSvnAnnotate, self.enablerTableSvnAnnotate, thread_switcher=True )
 
         m.addSeparator()
         addMenu( m, T_('Add Folder…'), self.treeActionSvnAdd, self.enablerTreeSvnAdd )
@@ -244,15 +244,42 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         return True
 
-    def tableActionSvnAnnotate( self ):
-        self.table_view.tableActionViewRepo( self.__actionSvnAnnotate )
+    def tableActionSvnAnnotate( self, checked ):
+        yield from self.table_view.tableActionViewRepo( self.__actionSvnAnnotate, thread_switcher=True )
 
     def __actionSvnAnnotate( self, svn_project, filename ):
+        self.setStatusAction( T_('Annotate %s') % (filename,) )
+        self.progress.start( T_('Annotate %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        all_annotation_nodes = svn_project.cmdAnnotationForFile( filename )
+        all_annotate_revs = set()
+        for node in all_annotation_nodes:
+            all_annotate_revs.add( node['revision'].number )
+
+        yield self.switchToForeground
+
+        self.progress.end()
+        self.progress.start( T_('Annotate Commit Logs %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        rev_min = min( all_annotate_revs )
+        rev_max = max( all_annotate_revs )
+
+        all_commit_logs = svn_project.cmdCommitLogForAnnotateFile( filename, rev_max, rev_min )
+
+        yield self.switchToForeground
+
+        self.setStatusAction()
+        self.progress.end()
+
         annotate_view = wb_svn_annotate.WbSvnAnnotateView(
                             self.app,
                             T_('Annotation of %s') % (filename,),
                             self.main_window.getQIcon( 'wb.png' ) )
-        annotate_view.showAnnotationForFile( svn_project, filename )
+        annotate_view.showAnnotationForFile( all_annotation_nodes, all_commit_logs )
         annotate_view.show()
 
     commit_key = 'svn-commit-dialog'

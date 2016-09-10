@@ -389,66 +389,25 @@ class SvnProject:
         rev_start = self.svn_rev_r0
         rev_end = self.svn_rev_head
 
-        all_annotation_nodes = self.client().annotate(
+        all_annotation_nodes = self.client().annotate2(
                         self.pathForSvn( filename ),
                         revision_start=rev_start,
                         revision_end=rev_end )
 
         return all_annotation_nodes
 
-    def __addCommitChangeInformation( self, all_commit_logs ):
-        # now calculate what was added, deleted and modified in each commit
-        for offset in range( len(all_commit_logs) ):
-            new_tree = all_commit_logs[ offset ].commitTree()
-            old_tree = all_commit_logs[ offset ].commitPreviousTree()
+    def cmdCommitLogForAnnotateFile( self, filename, rev_start_num, rev_end_num ):
+        rev_start = pysvn.Revision( pysvn.opt_revision_kind.number, rev_start_num )
+        rev_end = pysvn.Revision( pysvn.opt_revision_kind.number, rev_end_num )
 
-            all_new = {}
-            self.__treeToDict( new_tree, all_new )
-            new_set = set(all_new)
+        all_logs = self.client().log(
+                        self.pathForSvn( filename ),
+                        revision_start=rev_start,
+                        revision_end=rev_end,
+                        strict_node_history=False,      # follow copy and move
+                        discover_changed_paths=False )
 
-            if old_tree is None:
-                all_commit_logs[ offset ]._addChanges( new_set, set(), [], set() )
-
-            else:
-                all_old = {}
-                self.__treeToDict( old_tree, all_old )
-
-                old_set = set(all_old)
-
-                all_added = new_set - old_set
-                all_deleted = old_set - new_set
-
-                all_renamed = []
-
-                if len(all_added) > 0:
-                    all_old_id_to_name = {}
-                    for name, id_ in all_old.items():
-                        all_old_id_to_name[ id_ ] = name
-
-                    for name in list(all_added):
-                        id_ = all_new[ name ]
-
-                        if id_ in all_old_id_to_name:
-                            all_added.remove( name )
-                            all_deleted.remove( all_old_id_to_name[ id_ ] )
-                            all_renamed.append( (name, all_old_id_to_name[ id_ ]) )
-
-                all_modified = set()
-
-                for key in all_new:
-                    if( key in all_old
-                    and all_new[ key ] != all_old[ key ] ):
-                        all_modified.add( key )
-
-                all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_renamed, all_modified )
-
-    def __treeToDict( self, tree, all_entries ):
-        for blob in tree:
-            if blob.type == 'blob':
-                all_entries[ blob.path ] = blob.hexsha
-
-        for child in tree.trees:
-            self.__treeToDict( child, all_entries )
+        return all_logs
 
     def svnCallbackNotify( self, arg_dict ):
         # svnCallbackNotify typically is running on the background thread
@@ -616,66 +575,6 @@ class WbSvnFileState:
         all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
 
         return all_content_lines
-
-class SvnCommitLogNode:
-    def __init__( self, commit ):
-        self.__commit = commit
-        self.__all_changes = []
-
-    def _addChanges( self, all_added, all_deleted, all_renamed, all_modified ):
-        for name in all_added:
-            self.__all_changes.append( ('A', name, '' ) )
-
-        for name in all_deleted:
-            self.__all_changes.append( ('D', name, '' ) )
-
-        for name, old_name in all_renamed:
-            self.__all_changes.append( ('R', name, old_name ) )
-
-        for name in all_modified:
-            self.__all_changes.append( ('M', name, '' ) )
-
-    def commitTree( self ):
-        return self.__commit.tree
-
-    def commitPreviousTree( self ):
-        if len(self.__commit.parents) == 0:
-            return None
-
-        previous_commit = self.__commit.parents[0]
-        return previous_commit.tree
-
-    def commitTreeDict( self ):
-        all_entries = {}
-        self.__treeToDict( self.commitTree(), all_entries )
-        return all_entries
-
-    def commitPreviousTreeDict( self ):
-        all_entries = {}
-
-        tree = self.commitPreviousTree()
-        if tree is not None:
-            self.__treeToDict( tree, all_entries )
-
-        return all_entries
-
-    def commitIdString( self ):
-        return self.__commit.hexsha
-
-    def commitAuthor( self ):
-        return self.__commit.author.name
-
-    def commitAuthorEmail( self ):
-        return self.__commit.author.email
-
-    def commitDate( self ):
-        return self.__commit.committed_datetime
-
-    def commitMessage( self ):
-        return self.__commit.message
-
-    def commitFileChanges( self ):
-        return self.__all_changes
 
 class SvnProjectTreeNode:
     def __init__( self, project, name, path ):
