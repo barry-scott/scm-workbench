@@ -68,7 +68,7 @@ class BackgroundThread(threading.Thread):
 #
 #   runInBackground - call function on the background thread
 #   runInForeground - call function on the foreground thread
-
+#
 #   deferRunInForeground
 #       - used to move a callback made in the background
 #         into the foreground with the args provided in the 
@@ -98,7 +98,7 @@ class BackgroundWorkMixin:
         return DeferRunInForeground( self, function )
 
     def runInBackground( self, function, args ):
-        self._debugThreading( 'switchToBackground( %r, %r )' % (function, args) )
+        self._debugThreading( 'runInBackground( %r, %r )' % (function, args) )
         self.background_thread.addWork( function, args )
 
     def runInForeground( self, function, args ):
