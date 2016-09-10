@@ -52,30 +52,30 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.ui_component = SvnAnnotateWindowComponents()
 
-        self.annatate_model = WbSvnAnnotateModel( self.app )
+        self.annotate_model = WbSvnAnnotateModel( self.app )
 
         self.setWindowTitle( title )
         self.setWindowIcon( icon )
 
-        self.font = QtGui.QFont( wb_config.face, wb_config.point_size )
+        self.fixed_font = QtGui.QFont( wb_config.face, self.font().pointSize() )
 
         #----------------------------------------
         self.annotate_table = WbAnnotateTableView( self )
         self.annotate_table.setSelectionBehavior( self.annotate_table.SelectRows )
         self.annotate_table.setSelectionMode( self.annotate_table.ExtendedSelection )
-        self.annotate_table.setModel( self.annatate_model )
+        self.annotate_table.setModel( self.annotate_model )
 
         # size columns
         em = self.fontMetrics().width( 'm' )
-        self.annotate_table.setColumnWidth( self.annatate_model.col_revision, em*5 )
-        self.annotate_table.setColumnWidth( self.annatate_model.col_author, em*10 )
-        self.annotate_table.setColumnWidth( self.annatate_model.col_date, self.fontMetrics().width( '2002-12-29 20:20:20  ' ) )
-        self.annotate_table.setColumnWidth( self.annatate_model.col_line_num, em*5 )
-        self.annotate_table.setColumnWidth( self.annatate_model.col_line_text, em*255 )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_revision, em*5 )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_author, em*10 )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_date, self.fontMetrics().width( '2002-12-29 20:20:20  ' ) )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_line_num, em*5 )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_line_text, em*255 )
 
         #----------------------------------------
         self.commit_message = QtWidgets.QPlainTextEdit()
-        self.commit_message.setFont( self.font )
+        self.commit_message.setFont( self.fixed_font )
         h = self.commit_message.fontMetrics().lineSpacing()
         self.commit_message.setFixedHeight( h*4 )
         self.commit_message.setReadOnly( True )
@@ -139,7 +139,7 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         return scm_type == 'svn'
 
     def showAnnotationForFile( self, all_annotation_nodes, all_commit_messages ):
-        self.annatate_model.loadAnnotationForFile( all_annotation_nodes, all_commit_messages )
+        self.annotate_model.loadAnnotationForFile( all_annotation_nodes, all_commit_messages )
         self.updateEnableStates()
 
     def selectionChangedAnnotation( self ):
@@ -151,8 +151,8 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.current_annotations.sort()
 
-        node = self.annatate_model.annotationNode( self.current_annotations[0] )
-        log = self.annatate_model.annotationLogNode( node['revision'].number )
+        node = self.annotate_model.annotationNode( self.current_annotations[0] )
+        log = self.annotate_model.annotationLogNode( node['revision'].number )
 
         self.commit_message.clear()
         self.commit_message.insertPlainText( log.message )
@@ -166,6 +166,11 @@ class WbAnnotateTableView(QtWidgets.QTableView):
         self._debug = main_window._debug
 
         super().__init__()
+
+        vh = self.verticalHeader()
+        vh.sectionResizeMode( vh.Fixed )
+        spacing = self.main_window.app.fontMetrics().lineSpacing()
+        vh.setDefaultSectionSize( int( spacing * 1.2 ) )
 
     def selectionChanged( self, selected, deselected ):
         self._debug( 'WbLogTableView.selectionChanged()' )
@@ -195,7 +200,7 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
         self.all_annotation_nodes  = []
         self.all_commit_messages = []
 
-        self.font = QtGui.QFont( wb_config.face, wb_config.point_size )
+        self.fixed_font = QtGui.QFont( wb_config.face, self.app.font().pointSize() )
 
     def loadAnnotationForFile( self, all_annotation_nodes, all_commit_messages ):
         self.beginResetModel()
@@ -269,6 +274,6 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
 
         elif role == QtCore.Qt.FontRole:
             if index.column() == self.col_line_text:
-                return self.font
+                return self.fixed_font
 
         return None

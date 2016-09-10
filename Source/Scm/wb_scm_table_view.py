@@ -64,7 +64,7 @@ class WbScmTableView(QtWidgets.QTableView):
         self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
         # size columns
-        em = self.app.fontMetrics().width( 'm' )
+        em = self.fontMetrics().width( 'm' )
         self.setColumnWidth( self.table_model.col_staged, em*4 )
         self.setColumnWidth( self.table_model.col_status, em*4 )
         self.setColumnWidth( self.table_model.col_name, em*32 )
