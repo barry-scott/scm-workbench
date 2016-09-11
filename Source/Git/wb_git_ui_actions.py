@@ -372,7 +372,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def tableActionGitStage( self ):
-        print( 'qqq tableActionGitStage' )
         self.__tableActionChangeRepo( self.__actionGitStage )
 
     def tableActionGitUnstage( self ):
