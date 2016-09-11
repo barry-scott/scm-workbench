@@ -81,7 +81,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         addMenu( m, T_('Diff Base vs. Working'), self.treeTableActionSvnDiffBaseVsWorking, self.enablerTreeTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionSvnDiffHeadVsWorking, self.enablerTreeTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Annotate'), self.tableActionSvnAnnotate, self.enablerTableSvnAnnotate, thread_switcher=True )
+        addMenu( m, T_('Annotate'), self.tableActionSvnAnnotate_Bg, self.enablerTableSvnAnnotate, thread_switcher=True )
 
         m.addSeparator()
         addMenu( m, T_('Add Folder…'), self.treeActionSvnAdd, self.enablerTreeSvnAdd )
@@ -92,7 +92,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png', thread_switcher=True )
         addMenu( m, T_('Status'), self.treeActionSvnStatus )
 
         # ----------------------------------------
@@ -110,7 +110,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Checkin…'), self.treeActionSvnCheckin, self.enablerSvnCheckin, 'toolbar_images/checkin.png', thread_switcher=True )
 
         m.addSeparator()
-        addMenu( m, T_('Update'), self.treeActionSvnUpdate, icon_name='toolbar_images/update.png', thread_switcher=True )
+        addMenu( m, T_('Update'), self.treeActionSvnUpdate_Bg, icon_name='toolbar_images/update.png', thread_switcher=True )
 
         m.addSeparator()
         addMenu( m, T_('Cleanup'), self.treeActionSvnCleanup )
@@ -127,7 +127,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         self.all_toolbars.append( t )
 
         addTool( t, T_('Diff'), self.treeTableActionSvnDiffBaseVsWorking, self.enablerTreeTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
-        addTool( t, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png', thread_switcher=True )
         addTool( t, T_('Info'), self.treeTableActionSvnInfo, self.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
         addTool( t, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
@@ -140,7 +140,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         t.addSeparator()
         addTool( t, T_('Checkin'), self.treeActionSvnCheckin, self.enablerSvnCheckin, 'toolbar_images/checkin.png', thread_switcher=True )
         t.addSeparator()
-        addTool( t, T_('Update'), self.treeActionSvnUpdate, icon_name='toolbar_images/update.png', thread_switcher=True )
+        addTool( t, T_('Update'), self.treeActionSvnUpdate_Bg, icon_name='toolbar_images/update.png', thread_switcher=True )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -154,7 +154,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         m.addSection( T_('Status') )
-        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png', thread_switcher=True )
 
         m.addSection( T_('Actions') )
         addMenu( m, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
@@ -184,27 +184,35 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Properties'), self.treeTableActionSvnProperties, self.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
+        addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png', thread_switcher=True )
 
-    def treeActionSvnLogHistory( self ):
+    def treeActionSvnLogHistory_Bg( self ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
 
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
-        if options.exec_():
-            svn_project = self.selectedSvnProject()
+        if not options.exec_():
+            return
 
-            log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %(project)s:%(path)s') %
-                            {'project': svn_project.projectName()
-                            ,'path': tree_node.relativePath()},
-                    self.main_window.getQIcon( 'wb.png' ) )
+        svn_project = self.selectedSvnProject()
 
-            log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), options )
-            log_history_view.show()
+        yield self.switchToBackground
+
+        all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil() )
+
+        yield self.switchToForeground
+
+        log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
+                self.app,
+                T_('Commit Log for %(project)s:%(path)s') %
+                        {'project': svn_project.projectName()
+                        ,'path': tree_node.relativePath()},
+                self.main_window.getQIcon( 'wb.png' ) )
+
+        log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), all_commit_nodes )
+        log_history_view.show()
 
     def enablerTreeTableSvnLogHistory( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
@@ -218,25 +226,35 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         return True
 
-    def tableActionSvnLogHistory( self ):
-        self.table_view.tableActionViewRepo( self.__actionSvnLogHistory )
+    def tableActionSvnLogHistory_Bg( self ):
+        yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnLogHistory_Bg )
 
-    def treeTableActionSvnLogHistory( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionSvnLogHistory, self.tableActionSvnLogHistory )
+    def treeTableActionSvnLogHistory_Bg( self, checked ):
+        self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnLogHistory_Bg, self.tableActionSvnLogHistory_Bg )
 
-    def __actionSvnLogHistory( self, svn_project, filename ):
+    def __actionSvnLogHistory_Bg( self, svn_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
-        if options.exec_():
-            log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %(project)s:%(path)s') %
-                            {'project': svn_project.projectName()
-                            ,'path': filename},
-                    self.main_window.getQIcon( 'wb.png' ) )
+        if not options.exec_():
+            return
 
-            log_history_view.showCommitLogForFile( svn_project, filename, options )
-            log_history_view.show()
+        svn_project = self.selectedSvnProject()
+
+        yield self.switchToBackground
+
+        all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil() )
+
+        yield self.switchToForeground
+
+        log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
+                self.app,
+                T_('Commit Log for %(project)s:%(path)s') %
+                        {'project': svn_project.projectName()
+                        ,'path': filename},
+                self.main_window.getQIcon( 'wb.png' ) )
+
+        log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), all_commit_nodes )
+        log_history_view.show()
 
     def enablerTableSvnAnnotate( self ):
         if not self.isScmTypeActive():
@@ -244,10 +262,10 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         return True
 
-    def tableActionSvnAnnotate( self, checked ):
-        yield from self.table_view.tableActionViewRepo( self.__actionSvnAnnotate, thread_switcher=True )
+    def tableActionSvnAnnotate_Bg( self, checked ):
+        yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnAnnotate_Bg )
 
-    def __actionSvnAnnotate( self, svn_project, filename ):
+    def __actionSvnAnnotate_Bg( self, svn_project, filename ):
         self.setStatusAction( T_('Annotate %s') % (filename,) )
         self.progress.start( T_('Annotate %(count)d'), 0 )
 
@@ -292,7 +310,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         svn_project = self.selectedSvnProject()
 
         commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
-        commit_dialog.commitAccepted.connect( self.app.threadSwitcher( self.__commitAccepted ) )
+        commit_dialog.commitAccepted.connect( self.app.threadSwitcher( self.__commitAccepted_Bg ) )
         commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user
@@ -303,7 +321,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    def __commitAccepted( self ):
+    def __commitAccepted_Bg( self ):
         svn_project = self.selectedSvnProject()
 
         commit_dialog = self.app.getSingleton( self.commit_key )

@@ -207,7 +207,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 self.log.error( line )
 
     # ------------------------------------------------------------
-    def treeActionHgPush( self, checked ):
+    def treeActionHgPush_Bg( self, checked ):
         hg_project = self.selectedHgProject().newInstance()
         self.setStatusAction( T_('Push %s') % (hg_project.projectName(),) )
 
@@ -251,7 +251,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
             self.log.info( status )
 
     # ------------------------------------------------------------
-    def treeActionHgPull( self, checked ):
+    def treeActionHgPull_Bg( self, checked ):
         hg_project = self.selectedHgProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (hg_project.projectName(),) )
 
@@ -380,11 +380,11 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
         return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
     def __tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
-        if self.table_view.tableActionViewRepo( execute_function, are_you_sure_function ):
-            hg_project = self.selectedHgProject()
-
+        def finalise( hg_project ):
             # take account of the change
             self.top_window.updateTableView()
+
+        self.table_view.tableActionViewRepo( execute_function, are_you_sure_function, finalise )
 
     # ------------------------------------------------------------
     def selectedHgProjectTreeNode( self ):

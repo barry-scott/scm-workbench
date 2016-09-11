@@ -145,8 +145,8 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Commit…'), self.treeActionGitCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), self.treeActionGitPush, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
-        addMenu( m, T_('Pull…'), self.treeActionGitPull, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addMenu( m, T_('Push…'), self.treeActionGitPush_Bg, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
+        addMenu( m, T_('Pull…'), self.treeActionGitPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
 
         if hasattr( self, 'treeActionGitDebug1' ):
             m = mb.addMenu( T_('&Git Debug') )
@@ -177,8 +177,8 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         t.addSeparator()
         addTool( t, T_('Commit'), self.treeActionGitCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        addTool( t, T_('Push'), self.treeActionGitPush, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
-        addTool( t, T_('Pull'), self.treeActionGitPull, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addTool( t, T_('Push'), self.treeActionGitPush_Bg, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
+        addTool( t, T_('Pull'), self.treeActionGitPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -215,7 +215,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
                     T_('Commit Log for %s') % (git_project.projectName(),),
                     self.main_window.getQIcon( 'wb.png' ) )
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForRepository )
+            func = self.app.threadSwitcher( commit_log_view.showCommitLogForRepository_Bg )
             func( git_project, options )
 
     def _actionGitLogHistory( self, git_project, filename ):
@@ -225,7 +225,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             commit_log_view = wb_git_log_history.WbGitLogHistoryView(
                     self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile )
+            func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile_Bg )
             func( git_project, filename, options )
 
     commit_key = 'git-commit-dialog'

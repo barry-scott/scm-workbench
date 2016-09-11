@@ -21,7 +21,6 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_tracked_qwidget
-import wb_config
 import wb_main_window
 
 import wb_scm_images
@@ -96,7 +95,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.setWindowTitle( title )
         self.setWindowIcon( icon )
 
-        self.font = QtGui.QFont( wb_config.face, wb_config.point_size )
+        self.code_font = self.app.getCodeFont()
 
         #----------------------------------------
         self.log_table = WbLogTableView( self )
@@ -113,7 +112,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         #----------------------------------------
         self.commit_message = QtWidgets.QTextEdit()
         self.commit_message.setReadOnly( True )
-        self.commit_message.setCurrentFont( self.font )
+        self.commit_message.setCurrentFont( self.code_font )
 
         #----------------------------------------
         self.changeset_id = QtWidgets.QLineEdit()
@@ -192,7 +191,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'hg'
 
-    def showCommitLogForRepository( self, hg_project, options ):
+    def showCommitLogForRepository_Bg( self, hg_project, options ):
         self.filename = None
         self.hg_project = hg_project
 
@@ -206,7 +205,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.updateEnableStates()
         self.show()
 
-    def showCommitLogForFile( self, hg_project, filename, options ):
+    def showCommitLogForFile_Bg( self, hg_project, filename, options ):
         self.filename = filename
         self.hg_project = hg_project
 

@@ -235,35 +235,59 @@ class FontTab(QtWidgets.QWidget):
 
         self.app = app
 
-        p =  self.app.prefs.font
+        p = self.app.prefs.font_ui
 
         if p.face is None or p.point_size is None:
             font = self.app.font()
-            self.face = font.family()
-            self.point_size = font.pointSize()
+            self.ui_face = font.family()
+            self.ui_point_size = font.pointSize()
 
         else:
-            self.face = p.face
-            self.point_size = p.point_size
+            self.ui_face = p.face
+            self.ui_point_size = p.point_size
 
-        self.static_text1 = QtWidgets.QLabel( T_('Font:') )
-        self.static_text2 = QtWidgets.QLabel( '%s %dpt ' % (self.face, self.point_size) )
-        self.static_text2.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Fixed )
-        self.static_text2.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        p =  self.app.prefs.font_code
 
-        font = QtGui.QFont( self.face, self.point_size )
-        self.static_text2.setFont( font )
+        if p.face is None or p.point_size is None:
+            font = self.app.font()
+            self.code_face = font.family()
+            self.code_point_size = font.pointSize()
 
-        self.btn_select_font = QtWidgets.QPushButton( T_(' Select Font... ') )
+        else:
+            self.code_face = p.face
+            self.code_point_size = p.point_size
+
+        self.ui_font_text = QtWidgets.QLabel( '%s %dpt ' % (self.ui_face, self.ui_point_size) )
+        self.ui_font_text.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Fixed )
+        self.ui_font_text.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        self.ui_font_text.setFont( QtGui.QFont( self.ui_face, self.ui_point_size ) )
+
+        self.ui_font_select_font = QtWidgets.QPushButton( T_(' Select Font... ') )
+
+        self.code_font_text = QtWidgets.QLabel( '%s %dpt ' % (self.code_face, self.code_point_size) )
+        self.code_font_text.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Fixed )
+        self.code_font_text.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        self.code_font_text.setFont( QtGui.QFont( self.code_face, self.code_point_size ) )
+
+        self.code_font_select_font = QtWidgets.QPushButton( T_(' Select Font... ') )
 
         self.grid_sizer = QtWidgets.QGridLayout()
-        self.grid_sizer.addWidget( self.static_text1, 0, 0 )
-        self.grid_sizer.addWidget( self.static_text2, 0, 1 )
-        self.grid_sizer.addWidget( self.btn_select_font, 0, 2 )
-        self.grid_sizer.setColumnStretch( 1, 2 )
-        self.grid_sizer.setRowStretch( 1, 2 )
 
-        self.btn_select_font.clicked.connect( self.onSelectFont )
+        row = 0
+        self.grid_sizer.addWidget( QtWidgets.QLabel( T_('User Interface Font:') ), row, 0 )
+        self.grid_sizer.addWidget( self.ui_font_text, row, 1 )
+        self.grid_sizer.addWidget( self.ui_font_select_font, row, 2 )
+
+        row += 1
+        self.grid_sizer.addWidget( QtWidgets.QLabel( T_('Code Font:') ), row, 0 )
+        self.grid_sizer.addWidget( self.code_font_text, row, 1 )
+        self.grid_sizer.addWidget( self.code_font_select_font, row, 2 )
+
+        self.grid_sizer.setRowStretch( row+1, row+2 )
+        self.grid_sizer.setColumnStretch( 1, 2 )
+
+        self.ui_font_select_font.clicked.connect( self.onSelectFontUserInterface )
+        self.code_font_select_font.clicked.connect( self.onSelectFontCode )
 
         self.setLayout( self.grid_sizer )
 
@@ -271,10 +295,15 @@ class FontTab(QtWidgets.QWidget):
         return T_('Fonts')
 
     def savePreferences( self ):
-        p =  self.app.prefs.font
+        p =  self.app.prefs.font_ui
 
-        p.face = self.face
-        p.point_size = self.point_size
+        p.face = self.ui_face
+        p.point_size = self.ui_point_size
+
+        p =  self.app.prefs.font_code
+
+        p.face = self.code_face
+        p.point_size = self.code_point_size
 
     def validate( self ):
         valid = True
@@ -289,16 +318,27 @@ class FontTab(QtWidgets.QWidget):
 
         return True
 
-    def onSelectFont( self, *args ):
-        font = QtGui.QFont( self.face, self.point_size )
+    def onSelectFontUserInterface( self, *args ):
+        font = QtGui.QFont( self.ui_face, self.ui_point_size )
         font, ok = QtWidgets.QFontDialog.getFont( font, self, T_('Choose font') )
 
         if ok:
-            self.face = font.family()
-            self.point_size = font.pointSize()
+            self.ui_face = font.family()
+            self.ui_point_size = font.pointSize()
 
-            self.static_text2.setText( '%s %dpt ' % (self.face, self.point_size) )
-            self.static_text2.setFont( font )
+            self.ui_font_text.setText( '%s %dpt ' % (self.ui_eface, self.ui_point_size) )
+            self.ui_font_text.setFont( font )
+
+    def onSelectFontCode( self, *args ):
+        font = QtGui.QFont( self.code_face, self.code_point_size )
+        font, ok = QtWidgets.QFontDialog.getFont( font, self, T_('Choose font') )
+
+        if ok:
+            self.code_face = font.family()
+            self.code_point_size = font.pointSize()
+
+            self.code_font_text.setText( '%s %dpt ' % (self.code_face, self.code_point_size) )
+            self.code_font_text.setFont( font )
 
 if __name__ == '__main__':
     def T_(s):

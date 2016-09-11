@@ -252,7 +252,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 self.log.error( line )
 
     # ------------------------------------------------------------
-    def treeActionGitPush( self, checked ):
+    def treeActionGitPush_Bg( self, checked ):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Push %s') % (git_project.projectName(),) )
 
@@ -296,7 +296,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             self.log.info( status )
 
     # ------------------------------------------------------------
-    def treeActionGitPull( self, checked ):
+    def treeActionGitPull_Bg( self, checked ):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
 
@@ -372,6 +372,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def tableActionGitStage( self ):
+        print( 'qqq tableActionGitStage' )
         self.__tableActionChangeRepo( self.__actionGitStage )
 
     def tableActionGitUnstage( self ):
@@ -480,12 +481,13 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
     def __tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
-        if self.table_view.tableActionViewRepo( execute_function, are_you_sure_function ):
-            git_project = self.selectedGitProject()
+        def finalise( git_project ):
             git_project.saveChanges()
 
             # take account of the change
             self.top_window.updateTableView()
+
+        self.table_view.tableActionViewRepo( execute_function, are_you_sure_function, finalise )
 
     # ------------------------------------------------------------
     def selectedGitProjectTreeNode( self ):

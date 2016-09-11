@@ -68,7 +68,8 @@ class Preferences(PreferencesNode):
     def __init__( self ):
         super().__init__()
 
-        self.font = None
+        self.font_ui = None
+        self.font_code = None
         self.main_window = None
         self.diff_window = None
         self.last_position_bookmark = None
@@ -104,7 +105,6 @@ class MainWindow(PreferencesNode):
         super().__init__()
 
         self.geometry = None
-        self.font = None
         self.all_colours = {}
 
     def getFrameGeometry( self ):
@@ -234,7 +234,8 @@ class View(PreferencesNode):
 
 scheme_nodes = (
     (SchemeNode( Preferences, 'preferences',  )
-    <<  SchemeNode( Font, 'font' )
+    <<  SchemeNode( Font, 'font_ui' )
+    <<  SchemeNode( Font, 'font_code' )
     <<  SchemeNode( MainWindow, 'main_window' )
     <<  (SchemeNode( MainWindow, 'diff_window' )
         << SchemeNode( Colour, 'colour_normal', default_attributes={'fg': wb_config.diff_colour_normal} )

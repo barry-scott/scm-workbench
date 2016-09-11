@@ -18,8 +18,6 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import wb_config
-
 import wb_tracked_qwidget
 
 def U_(s):
@@ -53,10 +51,7 @@ class WbDiffViewText(WbDiffViewBase):
     def __init__( self, app, title, icon ):
         super().__init__( app, title, icon )
 
-        self.point_size = wb_config.point_size
-        self.face = wb_config.face
-
-        self.font = QtGui.QFont( self.face, self.point_size )
+        self.code_font = self.app.getCodeFont()
 
         self.text_edit = QtWidgets.QTextEdit()
 
@@ -68,7 +63,7 @@ class WbDiffViewText(WbDiffViewBase):
         self.all_text_formats = {}
         for style, fg_colour, bg_colour in self.all_style_colours:
             format = QtGui.QTextCharFormat()
-            format.setFont( self.font )
+            format.setFont( self.code_font )
             format.setForeground( QtGui.QBrush( QtGui.QColor( str(fg_colour) ) ) )
             format.setBackground( QtGui.QBrush( QtGui.QColor( str(bg_colour) ) ) )
             self.all_text_formats[ style ] = format

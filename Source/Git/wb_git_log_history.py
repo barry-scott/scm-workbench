@@ -20,7 +20,6 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_tracked_qwidget
-import wb_config
 import wb_main_window
 
 import wb_scm_images
@@ -95,7 +94,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.setWindowTitle( title )
         self.setWindowIcon( icon )
 
-        self.font = QtGui.QFont( wb_config.face, wb_config.point_size )
+        self.code_font = self.app.getCodeFont()
 
         #----------------------------------------
         self.log_table = WbLogTableView( self )
@@ -113,12 +112,12 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         #----------------------------------------
         self.commit_message = QtWidgets.QTextEdit()
         self.commit_message.setReadOnly( True )
-        self.commit_message.setCurrentFont( self.font )
+        self.commit_message.setCurrentFont( self.code_font )
 
         #----------------------------------------
         self.commit_id = QtWidgets.QLineEdit()
         self.commit_id.setReadOnly( True )
-        self.commit_id.setFont( self.font )
+        self.commit_id.setFont( self.code_font )
 
         #----------------------------------------
         self.changes_table = WbChangesTableView( self )
@@ -194,7 +193,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'git'
 
-    def showCommitLogForRepository( self, git_project, options ):
+    def showCommitLogForRepository_Bg( self, git_project, options ):
         self.filename = None
         self.git_project = git_project
 
@@ -208,7 +207,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.updateEnableStates()
         self.show()
 
-    def showCommitLogForFile( self, git_project, filename, options ):
+    def showCommitLogForFile_Bg( self, git_project, filename, options ):
         self.filename = filename
         self.git_project = git_project
 

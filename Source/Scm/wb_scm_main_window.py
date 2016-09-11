@@ -313,7 +313,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # --- setup menus less used common menus
         m = mb.addMenu( T_('&Project') )
-        self._addMenu( m, T_('Add…'), self.projectActionAdd, thread_switcher=True )
+        self._addMenu( m, T_('Add…'), self.projectActionAdd_Bg, thread_switcher=True )
         self._addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
         self._addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
 
@@ -541,7 +541,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # project actions
     #
     #------------------------------------------------------------
-    def projectActionAdd( self, checked ):
+    def projectActionAdd_Bg( self, checked ):
         w = wb_scm_project_dialogs.WbScmAddProjectWizard( self.app )
         if w.exec_():
             ui_components = self.all_ui_components[ w.getScmType() ]
@@ -748,6 +748,18 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # else in logWidget so ignore
         return default
+
+    # like callTreeOrTableFunction with yield for use with thread switcher
+    def callTreeOrTableFunction_Bg( self, fn_tree, fn_table, default=None ):
+        if self.tree_view.hasFocus():
+            yield from fn_tree()
+
+        elif( self.table_view.hasFocus()
+        or self.filter_text.hasFocus() ):
+            yield from fn_table()
+
+        # else in logWidget so ignore
+        yield from default
 
     def tableSelectedAbsoluteFiles( self ):
         tree_node = self.selectedScmProjectTreeNode()

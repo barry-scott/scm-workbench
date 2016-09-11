@@ -17,7 +17,6 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_tracked_qwidget
-import wb_config
 import wb_main_window
 
 import wb_scm_images
@@ -83,7 +82,7 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.setWindowTitle( title )
         self.setWindowIcon( icon )
 
-        self.font = QtGui.QFont( wb_config.face, wb_config.point_size )
+        self.code_font = self.app.getCodeFont()
 
         #----------------------------------------
         self.log_table = WbLogHistoryTableView( self )
@@ -101,7 +100,7 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         #----------------------------------------
         self.commit_message = QtWidgets.QTextEdit()
         self.commit_message.setReadOnly( True )
-        self.commit_message.setCurrentFont( self.font )
+        self.commit_message.setCurrentFont( self.code_font )
 
         #----------------------------------------
         self.changes_table = WbChangesTableView( self )
@@ -174,13 +173,11 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'svn'
 
-    def showCommitLogForFile( self, svn_project, filename, options ):
+    def showCommitLogForFile( self, svn_project, filename, all_commit_nodes ):
         self.filename = filename
         self.svn_project = svn_project
 
-        self.url = svn_project.cmdInfo( self.filename ).URL
-
-        self.log_model.loadCommitLogForFile( svn_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
+        self.log_model.loadCommitLogForFile( all_commit_nodes )
         self.updateEnableStates()
 
     def selectionChangedCommit( self ):
@@ -284,9 +281,9 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
 
         self.all_commit_nodes  = []
 
-    def loadCommitLogForFile( self, svn_project, filename, limit, since, until ):
+    def loadCommitLogForFile( self, all_commit_nodes ):
         self.beginResetModel()
-        self.all_commit_nodes = svn_project.cmdCommitLogForFile( filename, limit, since, until )
+        self.all_commit_nodes = all_commit_nodes
         self.endResetModel()
 
     def rowCount( self, parent ):

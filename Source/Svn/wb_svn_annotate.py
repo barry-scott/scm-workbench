@@ -17,7 +17,6 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_tracked_qwidget
-import wb_config
 import wb_main_window
 
 import wb_scm_images
@@ -57,8 +56,6 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.setWindowTitle( title )
         self.setWindowIcon( icon )
 
-        self.fixed_font = QtGui.QFont( wb_config.face, self.font().pointSize() )
-
         #----------------------------------------
         self.annotate_table = WbAnnotateTableView( self )
         self.annotate_table.setSelectionBehavior( self.annotate_table.SelectRows )
@@ -71,11 +68,11 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.annotate_table.setColumnWidth( self.annotate_model.col_author, em*10 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_date, self.fontMetrics().width( '2002-12-29 20:20:20  ' ) )
         self.annotate_table.setColumnWidth( self.annotate_model.col_line_num, em*5 )
-        self.annotate_table.setColumnWidth( self.annotate_model.col_line_text, em*255 )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_line_text, em*80 )
 
         #----------------------------------------
         self.commit_message = QtWidgets.QPlainTextEdit()
-        self.commit_message.setFont( self.fixed_font )
+        self.commit_message.setFont( self.app.getCodeFont() )
         h = self.commit_message.fontMetrics().lineSpacing()
         self.commit_message.setFixedHeight( h*4 )
         self.commit_message.setReadOnly( True )
@@ -200,7 +197,7 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
         self.all_annotation_nodes  = []
         self.all_commit_messages = []
 
-        self.fixed_font = QtGui.QFont( wb_config.face, self.app.font().pointSize() )
+        self.fixed_font = self.app.getCodeFont()
 
     def loadAnnotationForFile( self, all_annotation_nodes, all_commit_messages ):
         self.beginResetModel()

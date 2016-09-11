@@ -217,7 +217,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.log.info( 'Cleanup finished for %s' % (tree_node.project.projectName(),) )
         self.top_window.setStatusAction()
 
-    def treeActionSvnUpdate( self, checked ):
+    def treeActionSvnUpdate_Bg( self, checked ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -472,9 +472,10 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             return
 
         try:
-            if self.table_view.tableActionViewRepo( execute_function, are_you_sure_function ):
+            def finalise( svn_project ):
                 # take account of the change
                 self.top_window.updateTableView()
+            yield from self.table_view.tableActionViewRepo_Bg( execute_function, are_you_sure_function, finalise )
 
         except wb_svn_project.ClientError as e:
             all_client_error_lines = project.clientErrorToStrList( e )

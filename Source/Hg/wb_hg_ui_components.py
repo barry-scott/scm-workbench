@@ -121,8 +121,8 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addMenu( m, T_('Commit…'), self.treeActionHgCommit, self.enablerHgCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), self.treeActionHgPush, self.enablerHgPush, 'toolbar_images/push.png', thread_switcher=True )
-        addMenu( m, T_('Pull…'), self.treeActionHgPull, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addMenu( m, T_('Push…'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png', thread_switcher=True )
+        addMenu( m, T_('Pull…'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
 
         if hasattr( self, 'treeActionHgDebug1' ):
             m = mb.addMenu( T_('&Hg Debug') )
@@ -152,8 +152,8 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addTool( t, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
         addTool( t, T_('Commit'), self.treeActionHgCommit, self.enablerHgCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        addTool( t, T_('Push'), self.treeActionHgPush, self.enablerHgPush, 'toolbar_images/push.png', thread_switcher=True )
-        addTool( t, T_('Pull'), self.treeActionHgPull, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addTool( t, T_('Push'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png', thread_switcher=True )
+        addTool( t, T_('Pull'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -183,7 +183,7 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
                     T_('Commit Log for %s') % (hg_project.projectName(),),
                     self.main_window.getQIcon( 'wb.png' ) )
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForRepository )
+            func = self.app.threadSwitcher( commit_log_view.showCommitLogForRepository_Bg )
             func( hg_project, options )
 
     def _actionHgLogHistory( self, hg_project, filename ):
@@ -193,7 +193,7 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
             commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
                     self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile )
+            func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile_Bg )
             func( hg_project, filename, options )
 
     commit_key = 'hg-commit-dialog'

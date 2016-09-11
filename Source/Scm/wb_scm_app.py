@@ -33,6 +33,7 @@ class WbScmApp(wb_app.WbApp,
     def __init__( self, args ):
         self.__git_debug = False
         self.__all_singletons = {}
+        self.__code_font = None
 
         self.all_factories = dict( [(f.scmName(), f)
                                     for f in [wb_git_factory.WbGitFactory()
@@ -103,13 +104,31 @@ class WbScmApp(wb_app.WbApp,
     def writePreferences( self ):
         super().writePreferences()
 
-        if self.prefs.font.face is not None:
-            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font.face, self.prefs.font.point_size) )
+        if self.prefs.font_ui.face is not None:
+            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
+
+        p = self.prefs.font_code
+        if p.face is None or p.point_size is None:
+            self.__code_font = self.font()
+
+        else:
+            self.__code_font = QtGui.QFont( p.face, p.point_size )
+
 
     def createMainWindow( self ):
-        if self.prefs.font.face is not None:
-            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font.face, self.prefs.font.point_size) )
+        if self.prefs.font_ui.face is not None:
+            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
+
+        p = self.prefs.font_code
+        if p.face is None or p.point_size is None:
+            self.__code_font = self.font()
+
+        else:
+            self.__code_font = QtGui.QFont( p.face, p.point_size )
 
         self.top_window = wb_scm_main_window.WbScmMainWindow( self, self.all_factories )
 
         return self.top_window
+
+    def getCodeFont( self ):
+        return self.__code_font

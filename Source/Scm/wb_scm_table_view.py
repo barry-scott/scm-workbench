@@ -147,16 +147,38 @@ class WbScmTableView(QtWidgets.QTableView):
                 for name in all_names
                 if scm_project.hasFileState( relative_folder / name )]
 
-    def tableActionViewRepo( self, execute_function, are_you_sure_function=None, thread_switcher=False ):
+    def tableActionViewRepo( self, execute_function, are_you_sure_function=None, finalise_function=None ):
+        all_filenames = self.__tableActionViewRepoPrep( are_you_sure_function )
+        if len(all_filenames) > 0:
+            scm_project = self.selectedScmProject()
+
+            for filename in all_filenames:
+                execute_function( scm_project, filename )
+
+            if finalise_function is not None:
+                finalise_function( scm_project )
+
+    # like tableActionViewRepo but uses yield for use with a thread switcher
+    def tableActionViewRepo_Bg( self, execute_function, are_you_sure_function=None, finalise_function=None ):
+        all_filenames = self.__tableActionViewRepoPrep( are_you_sure_function )
+
+        if len(all_filenames) > 0:
+            scm_project = self.selectedScmProject()
+
+            for filename in all_filenames:
+                yield from execute_function( scm_project, filename )
+
+            if finalise_function is not None:
+                yield from finalise_function( scm_project )
+
+    def __tableActionViewRepoPrep( self, are_you_sure_function ):
         folder_path = self.selectedAbsoluteFolder()
         if folder_path is None:
-            return False
+            return []
 
         all_names = self.tableSelectedFiles()
         if len(all_names) == 0:
-            return False
-
-        scm_project = self.selectedScmProject()
+            return []
 
         relative_folder = self.selectedRelativeFolder()
 
@@ -164,16 +186,9 @@ class WbScmTableView(QtWidgets.QTableView):
 
         if( are_you_sure_function is not None
         and not are_you_sure_function( all_filenames ) ):
-            return False
+            return []
 
-        for filename in all_filenames:
-            if thread_switcher:
-                yield from execute_function( scm_project, filename )
-
-            else:
-                execute_function( scm_project, filename )
-
-        return True
+        return all_filenames
 
     def enablerTableFilesExists( self ):
         return len( self._tableSelectedExistingFiles() ) > 0
