@@ -304,7 +304,8 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
     def treeActionSvnCheckin( self, checked ):
         if self.app.hasSingleton( self.commit_key ):
-            self.log.error( T_('Commit dialog is already open') )
+            commit_dialog = self.app.getSingleton( self.commit_key )
+            commit_dialog.raise_()
             return
 
         svn_project = self.selectedSvnProject()

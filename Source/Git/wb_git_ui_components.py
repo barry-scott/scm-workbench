@@ -231,7 +231,8 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     commit_key = 'git-commit-dialog'
     def treeActionGitCommit( self ):
         if self.app.hasSingleton( self.commit_key ):
-            self.log.error( 'Commit dialog is already open' )
+            commit_dialog = self.app.getSingleton( self.commit_key )
+            commit_dialog.raise_()
             return
 
         git_project = self.selectedGitProject()

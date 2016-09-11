@@ -199,7 +199,8 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
     commit_key = 'hg-commit-dialog'
     def treeActionHgCommit( self ):
         if self.app.hasSingleton( self.commit_key ):
-            self.log.error( 'Commit dialog is already open' )
+            commit_dialog = self.app.getSingleton( self.commit_key )
+            commit_dialog.raise_()
             return
 
         hg_project = self.selectedHgProject()
