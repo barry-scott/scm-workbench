@@ -126,9 +126,6 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if hg_project is None:
             return False
 
-        if self.app.hasSingleton( self.commit_key ):
-            return False
-
         # allow the commit dialog to appear
         # if there are modified files
         # which can be added using the commit dialog

@@ -281,6 +281,8 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
 
         self.all_commit_nodes  = []
 
+        self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
+
     def loadCommitLogForFile( self, all_commit_nodes ):
         self.beginResetModel()
         self.all_commit_nodes = all_commit_nodes
@@ -334,6 +336,11 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
                 return node.message.split('\n')[0]
 
             assert False
+
+        elif role == QtCore.Qt.ForegroundRole:
+            node = self.all_commit_nodes[ index.row() ]
+            if hasattr( node, 'is_tag' ):
+                return self.__brush_is_tag
 
         return None
 

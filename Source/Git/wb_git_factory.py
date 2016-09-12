@@ -29,6 +29,9 @@ class WbGitFactory:
     def uiComponents( self ):
         return wb_git_ui_components.GitMainWindowComponents()
 
+    def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
+        return wb_scm_project_dialogs.ProjectSettingsDialog( app, main_window, prefs_project, scm_project )
+
     def projectDialogClonePages( self, wizard ):
         return [PageAddProjectGitClone( wizard )]
 

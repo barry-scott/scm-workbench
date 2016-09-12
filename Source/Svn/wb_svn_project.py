@@ -330,7 +330,7 @@ class SvnProject:
         self.client().propset( prop_name, prop_value, self.pathForSvn( filename ) )
 
     def cmdInfo( self, filename ):
-        info = self.client().info2( self.pathForSvn( filename ), recurse=False )
+        info = self.client().info2( self.pathForSvn( filename ), depth=self.svn_depth_empty )
         # info is list of (path, entry)
         return info[0][1]
 
@@ -384,6 +384,54 @@ class SvnProject:
                         discover_changed_paths=True )
 
         return all_logs
+
+    def cmdTagsForFile( self, filename, oldest_revision=0 ):
+        tags_url = self.__tagsUrlForFile( filename )
+        if tags_url is None:
+            return {}
+
+        all_tag_names = set()
+        all_tag_logs = []
+
+        for log in self.client().log( tags_url, discover_changed_paths=True ):
+            for changed_path in log.changed_paths:
+                if( changed_path.copyfrom_revision is not None
+                and changed_path.copyfrom_revision.number >= oldest_revision ):
+                    tag_name = changed_path.path.split( '/' )[-1]
+                    if tag_name not in all_tag_names:
+                        all_tag_names.add( tag_name )
+
+                        log.is_tag = True
+                        all_tag_logs.append( log )
+
+        return all_tag_logs
+
+    def __tagsUrlForFile( self, filename ):
+        info = self.cmdInfo( filename )
+        return self.expandTagsUrl( self.prefs_project.tags_url, info['URL'] )
+
+    def expandTagsUrl( self, tags_url, filename_url ):
+        if tags_url is None or tags_url == '':
+            return  None
+
+        tags_url_parts = tags_url.split('/')
+        wild_parts = 0
+        while tags_url_parts[-1] == '*':
+            del tags_url_parts[-1]
+            wild_parts += 1
+
+        if wild_parts == 0:
+            return tags_url
+
+        top_url = self.cmdInfo( self.projectPath() )['URL']
+
+        # replace wild_part dirs from the filename_url
+        assert( filename_url[0:len(top_url)] == top_url )
+
+        suffix_parts = filename_url[len(top_url)+1:].split('/')
+        tags_url_parts.extend( suffix_parts[0:wild_parts] )
+
+        return '/'.join( tags_url_parts )
 
     def cmdAnnotationForFile( self, filename ):
         rev_start = self.svn_rev_r0

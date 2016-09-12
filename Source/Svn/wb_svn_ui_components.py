@@ -197,10 +197,19 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
             return
 
         svn_project = self.selectedSvnProject()
+        filename = tree_node.relativePath()
 
         yield self.switchToBackground
 
         all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil() )
+        if len(all_commit_nodes) > 0:
+            all_tag_nodes = svn_project.cmdTagsForFile( filename, all_commit_nodes[-1]['revision'].number )
+            all_commit_nodes.extend( all_tag_nodes )
+
+        def key( node ):
+            return -node['revision'].number
+
+        all_commit_nodes.sort( key=key )
 
         yield self.switchToForeground
 
@@ -208,10 +217,10 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
                 self.app,
                 T_('Commit Log for %(project)s:%(path)s') %
                         {'project': svn_project.projectName()
-                        ,'path': tree_node.relativePath()},
+                        ,'path': filename},
                 self.main_window.getQIcon( 'wb.png' ) )
 
-        log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), all_commit_nodes )
+        log_history_view.showCommitLogForFile( svn_project, filename, all_commit_nodes )
         log_history_view.show()
 
     def enablerTreeTableSvnLogHistory( self ):
@@ -230,7 +239,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnLogHistory_Bg )
 
     def treeTableActionSvnLogHistory_Bg( self, checked ):
-        self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnLogHistory_Bg, self.tableActionSvnLogHistory_Bg )
+        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnLogHistory_Bg, self.tableActionSvnLogHistory_Bg )
 
     def __actionSvnLogHistory_Bg( self, svn_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )

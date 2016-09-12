@@ -35,7 +35,8 @@ class WbDialog(QtWidgets.QDialog):
     def addRow( self, label, value ):
         label = QtWidgets.QLabel( label )
         if not isinstance( value, QtWidgets.QWidget ):
-            value = QtWidgets.QLabel( str(value) )
+            value = QtWidgets.QLineEdit( str(value) )
+            value.setReadOnly( True )
 
         row = self.nextRow()
 

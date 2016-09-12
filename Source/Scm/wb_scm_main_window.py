@@ -613,10 +613,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if tree_node is None:
             return
 
+        scm_project = self.table_view.selectedScmProject()
         old_project_name = tree_node.project.projectName()
-        project = self.app.prefs.getProject( old_project_name )
+        prefs_project = self.app.prefs.getProject( old_project_name )
 
-        dialog = wb_scm_project_dialogs.ProjectSettingsDialog( self.app, self, old_project_name )
+        dialog = self.all_factories[ self.__ui_active_scm_type ].projectSettingsDialog( self.app, self, prefs_project, scm_project )
         if dialog.exec_():
             dialog.updateProject()
 
@@ -628,9 +629,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.tree_model.delProject( old_project_name )
 
             # add under the new name
-            self.tree_model.addProject( project )
+            self.tree_model.addProject( prefs_project )
 
-            index = self.tree_model.indexFromProject( project )
+            index = self.tree_model.indexFromProject( prefs_project )
             index = self.tree_sortfilter.mapFromSource( index )
             self.tree_view.setCurrentIndex( index )
 
@@ -750,16 +751,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         return default
 
     # like callTreeOrTableFunction with yield for use with thread switcher
-    def callTreeOrTableFunction_Bg( self, fn_tree, fn_table, default=None ):
+    def callTreeOrTableFunction_Bg( self, fn_tree, fn_table ):
         if self.tree_view.hasFocus():
             yield from fn_tree()
 
         elif( self.table_view.hasFocus()
         or self.filter_text.hasFocus() ):
             yield from fn_table()
-
-        # else in logWidget so ignore
-        yield from default
 
     def tableSelectedAbsoluteFiles( self ):
         tree_node = self.selectedScmProjectTreeNode()

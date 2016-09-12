@@ -697,41 +697,55 @@ class PageAddProjectName(QtWidgets.QWizardPage):
 
 #------------------------------------------------------------
 class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
-    def __init__( self, app, parent, old_project_name ):
+    def __init__( self, app, parent, prefs_project, scm_project ):
         self.app = app
-        self.old_project_name = old_project_name
+        self.prefs_project = prefs_project
+        self.scm_project= scm_project
+
+        self.old_project_name = prefs_project.name
 
         prefs = self.app.prefs
 
         self.all_other_existing_project_names = set()
 
-        for project in prefs.getAllProjects():
-            if old_project_name != project.name:
-                self.all_other_existing_project_names.add( project.name )
-
-        self.project = prefs.getProject( old_project_name )
+        for prefs_project in prefs.getAllProjects():
+            if self.old_project_name != prefs_project.name:
+                self.all_other_existing_project_names.add( prefs_project.name )
 
         super().__init__( parent )
 
-        self.name = QtWidgets.QLineEdit( self.project.name )
+        self.name = QtWidgets.QLineEdit( self.prefs_project.name )
 
-        f = self.app.getScmFactory( self.project.scm_type )
+        f = self.app.getScmFactory( self.prefs_project.scm_type )
+
+        self.setWindowTitle( T_('Project settings for %s') % (self.prefs_project.name,) )
 
         self.addRow( T_('Name:'), self.name )
         self.addRow( T_('SCM Type:'), f.scmPresentationLongName() )
-        self.addRow( T_('Path:'), str(self.project.path) )
+        self.addRow( T_('Path:'), str(self.prefs_project.path) )
+        self.scmSpecificAddRows()
         self.addButtons()
 
         self.ok_button.setEnabled( False )
         self.name.textChanged.connect( self.enableOkButton )
 
-    def enableOkButton( self, text ):
+        em = self.app.fontMetrics().width( 'm' )
+        self.setMinimumWidth( 60*em )
+
+    def scmSpecificAddRows( self ):
+        pass
+
+    def enableOkButton( self, text=None ):
         name = self.name.text().strip().lower()
 
         # need a name that is not blank, is different and not in use
-        self.ok_button.setEnabled( name != '' and
+        self.ok_button.setEnabled( (name != '' and
                                     name != self.old_project_name.lower() and
-                                    name not in self.all_other_existing_project_names )
+                                    name not in self.all_other_existing_project_names) or
+                                    self.scmSpecificEnableOkButton() )
+
+    def scmSpecificEnableOkButton( self ):
+        return False
 
     def updateProject( self ):
         prefs = self.app.prefs
@@ -740,8 +754,14 @@ class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
         prefs.delProject( self.old_project_name )
 
         # add back in under the updated name
-        self.project.name = self.name.text().strip()
-        prefs.addProject( self.project )
+        self.prefs_project.name = self.name.text().strip()
+
+        self.scmSpecificUpdateProject()
+
+        prefs.addProject( self.prefs_project )
+
+    def scmSpecificUpdateProject( self ):
+        pass
 
 if __name__ == '__main__':
     def T_(s):
