@@ -114,20 +114,37 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.changes_table.setColumnWidth( self.changes_model.col_copyfrom, em*60 )
 
         #----------------------------------------
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget( self.log_table )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
-        self.layout.addWidget( self.commit_message )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Changed Files') ) )
-        self.layout.addWidget( self.changes_table )
+        self.commit_info_layout = QtWidgets.QVBoxLayout()
+        self.commit_info_layout.addWidget( self.log_table )
+        self.commit_info_layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
+        self.commit_info_layout.addWidget( self.commit_message )
+
+        self.commit_info = QtWidgets.QWidget()
+        self.commit_info.setLayout( self.commit_info_layout )
 
         #----------------------------------------
-        self.widget = QtWidgets.QWidget()
-        self.widget.setLayout( self.layout )
+        self.changed_files_layout = QtWidgets.QVBoxLayout()
+        self.changed_files_layout.addWidget( QtWidgets.QLabel( T_('Changed Files') ) )
+        self.changed_files_layout.addWidget( self.changes_table )
 
-        self.setCentralWidget( self.widget )
+        self.changed_files = QtWidgets.QWidget()
+        self.changed_files.setLayout( self.changed_files_layout )
 
-        self.resize( 900, 600 )
+        #----------------------------------------
+        self.v_split = QtWidgets.QSplitter()
+        self.v_split.setOrientation( QtCore.Qt.Vertical )
+
+        self.v_split.addWidget( self.log_table )
+        self.v_split.setStretchFactor( self.v_split.count()-1, 15 )
+        self.v_split.addWidget( self.commit_info )
+        self.v_split.setStretchFactor( self.v_split.count()-1, 6 )
+        self.v_split.addWidget( self.changed_files )
+        self.v_split.setStretchFactor( self.v_split.count()-1, 9 )
+
+        self.setCentralWidget( self.v_split )
+
+        ex = self.app.fontMetrics().lineSpacing()
+        self.resize( 70*em, 40*ex )
 
         self.ui_component.setTopWindow( self.app.top_window )
         self.ui_component.setMainWindow( self, None )
