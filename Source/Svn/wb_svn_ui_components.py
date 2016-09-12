@@ -199,10 +199,18 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         svn_project = self.selectedSvnProject()
         filename = tree_node.relativePath()
 
-        yield self.switchToBackground
+        self.setStatusAction( T_('Log for %(filename)s') %
+                                    {'filename': filename} )
+        self.progress.start( T_('Logs %(count)d') )
 
+        yield self.switchToBackground
         all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil() )
         if len(all_commit_nodes) > 0:
+
+            yield self.switchToForeground
+            self.progress.start( T_('Tags %(count)d') )
+
+            yield self.switchToBackground
             all_tag_nodes = svn_project.cmdTagsForFile( filename, all_commit_nodes[-1]['revision'].number )
             all_commit_nodes.extend( all_tag_nodes )
 
@@ -212,6 +220,8 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         all_commit_nodes.sort( key=key )
 
         yield self.switchToForeground
+        self.progress.end()
+        self.setStatusAction()
 
         log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
                 self.app,
