@@ -135,8 +135,8 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'svn'
 
-    def showAnnotationForFile( self, all_annotation_nodes, all_commit_messages ):
-        self.annotate_model.loadAnnotationForFile( all_annotation_nodes, all_commit_messages )
+    def showAnnotationForFile( self, all_annotation_nodes, all_commit_log_nodes ):
+        self.annotate_model.loadAnnotationForFile( all_annotation_nodes, all_commit_log_nodes )
         self.updateEnableStates()
 
     def selectionChangedAnnotation( self ):
@@ -152,7 +152,8 @@ class WbSvnAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         log = self.annotate_model.annotationLogNode( node['revision'].number )
 
         self.commit_message.clear()
-        self.commit_message.insertPlainText( log.message )
+        if log is not None:
+            self.commit_message.insertPlainText( log.message )
 
         self.updateEnableStates()
 
@@ -195,14 +196,14 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
         super().__init__()
 
         self.all_annotation_nodes  = []
-        self.all_commit_messages = []
+        self.all_commit_log_nodes = {}
 
         self.fixed_font = self.app.getCodeFont()
 
-    def loadAnnotationForFile( self, all_annotation_nodes, all_commit_messages ):
+    def loadAnnotationForFile( self, all_annotation_nodes, all_commit_log_nodes ):
         self.beginResetModel()
-        self.all_commit_messages =  dict( [(node['revision'].number, node)
-                                            for node in all_commit_messages] )
+        self.all_commit_log_nodes =  dict( [(node['revision'].number, node)
+                                            for node in all_commit_log_nodes] )
         self.all_annotation_nodes = all_annotation_nodes
         self.endResetModel()
 
@@ -229,7 +230,7 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
         return self.all_annotation_nodes[ row ]
 
     def annotationLogNode( self, rev_num ):
-        return self.all_commit_messages[ rev_num ]
+        return self.all_commit_log_nodes.get( rev_num, None )
 
     def revForRow( self, row ):
         return self.all_annotation_nodes[ row ].revision
@@ -241,7 +242,7 @@ class WbSvnAnnotateModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             node = self.all_annotation_nodes[ index.row() ]
             rev_num = node['revision'].number
-            log_node = self.all_commit_messages[ rev_num ]
+            log_node = self.all_commit_log_nodes[ rev_num ]
 
             col = index.column()
 
