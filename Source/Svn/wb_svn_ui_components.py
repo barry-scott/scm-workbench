@@ -40,8 +40,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
             return wb_svn_project.SvnProject( self.app, project, self )
 
         except wb_svn_project.ClientError as e:
-            self.log.error( 'Failed to add SVN repo %r' % (project.path,) )
-            self.log.error( 'SVN error: %s' % (e,) )
+            svn_project.logClientError( e, 'Failed to add SVN repo %r' % (project.path,) )
             return None
 
     def addProjectInitWizardHandler( self, wc_path ):
@@ -53,17 +52,15 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         self.progress.start( T_('Checkout %(count)d') )
 
     def addProjectCloneWizardHandler( self, name, url, wc_path ):
-        project = wb_svn_project.SvnProject( self.app, None, self )
+        svn_project = wb_svn_project.SvnProject( self.app, None, self )
 
         try:
-            rev = project.cmdCheckout( url, wc_path )
+            rev = svn_project.cmdCheckout( url, wc_path )
             self.log.info( 'Checked out at revision r%d' % (rev.number,) )
             return True
 
         except wb_svn_project.ClientError as e:
-            for line in project.clientErrorToStrList( e ):
-                self.log.error( line )
-
+            svn_project.logClientError( e )
             return False
 
     def addProjectPostCloneWizardHandler( self ):
@@ -186,7 +183,6 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         m.addSeparator()
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png', thread_switcher=True )
 
-
     def enablerTreeTableSvnLogHistory( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
 
@@ -194,10 +190,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         return self._enablerTreeSvnIsControlled()
 
     def enablerTableSvnLogHistory( self ):
-        if not self.isScmTypeActive():
-            return False
-
-        return True
+        return self._enablerTableSvnIsControlled()
 
     def tableActionSvnLogHistory_Bg( self ):
         yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnLogHistory_Bg )
@@ -234,8 +227,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
             all_commit_nodes = svn_project.cmdCommitLogForFile( filename, limit, since, until )
 
         except wb_svn_project.ClientError as e:
-            self.log.error( 'Cannot get commit logs for %s:%s' % (svn_project.projectName(), filename) )
-            self.log.error( 'SVN error: %s' % (e,) )
+            svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (svn_project.projectName(), filename) )
 
             yield self.switchToForeground
             return
@@ -251,8 +243,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
                 all_commit_nodes.extend( all_tag_nodes )
 
             except wb_svn_project.ClientError as e:
-                self.log.error( 'Cannot get tags for %s:%s' % (svn_project.projectName(), filename) )
-                self.log.error( 'SVN error: %s' % (e,) )
+                svn_project.logClientError( e, 'Cannot get tags for %s:%s' % (svn_project.projectName(), filename) )
                 # continue to show the logs we have got
 
         def key( node ):
@@ -289,12 +280,19 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         yield self.switchToBackground
 
-        all_annotation_nodes = svn_project.cmdAnnotationForFile( filename )
-        all_annotate_revs = set()
-        for node in all_annotation_nodes:
-            all_annotate_revs.add( node['revision'].number )
+        try:
+            all_annotation_nodes = svn_project.cmdAnnotationForFile( filename )
+            all_annotate_revs = set()
+            for node in all_annotation_nodes:
+                all_annotate_revs.add( node['revision'].number )
 
-        yield self.switchToForeground
+            yield self.switchToForeground
+
+        except wb_svn_project.ClientError as e:
+            svn_project.logClientError( e, 'Cannot get annotations for %s:%s' % (project.path, filename) )
+
+            yield self.switchToForeground
+            return
 
         self.progress.end()
         self.progress.start( T_('Annotate Commit Logs %(count)d'), 0 )
@@ -304,7 +302,12 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         rev_min = min( all_annotate_revs )
         rev_max = max( all_annotate_revs )
 
-        all_commit_logs = svn_project.cmdCommitLogForAnnotateFile( filename, rev_max, rev_min )
+        try:
+            all_commit_logs = svn_project.cmdCommitLogForAnnotateFile( filename, rev_max, rev_min )
+
+        except wb_svn_project.ClientError as e:
+            svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (project.path, filename) )
+            all_commit_logs = []
 
         yield self.switchToForeground
 
@@ -355,9 +358,17 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         yield self.switchToBackground
 
-        commit_id = svn_project.cmdCommit( message )
+        try:
+            commit_id = svn_project.cmdCommit( message )
 
-        yield self.switchToForeground
+            yield self.switchToForeground
+
+        except wb_svn_project.ClientError as e:
+            svn_project.logClientError( e, 'Cannot Check in %s' % (svn_project.projectName(),) )
+
+            yield self.switchToForeground
+            self.__commitClosed()
+            return
 
         headline = message.split('\n')[0]
         self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') %

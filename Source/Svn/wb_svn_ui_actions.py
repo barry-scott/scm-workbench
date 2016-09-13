@@ -127,16 +127,25 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if tree_node is None:
             return
 
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
-        self.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+        try:
+            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
+            self.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+
+        except wb_svn_project.ClientError as e:
+            tree_node.project.logClientError( e )
+
 
     def treeActionSvnDiffHeadVsWorking( self ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
 
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
-        self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
+        try:
+            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
+            self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
+
+        except wb_svn_project.ClientError as e:
+            tree_node.project.logClientError( e )
 
     def treeActionSvnAdd( self ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -145,8 +154,11 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         dialog = wb_svn_dialogs.WbAddFolderDialog( self.app, self.main_window, tree_node.relativePath() )
         if dialog.exec_():
-            project = tree_node.project
-            project.cmdAdd( tree_node.relativePath(), depth=dialog.getDepth(), force=dialog.getForce() )
+            try:
+                tree_node.project.cmdAdd( tree_node.relativePath(), depth=dialog.getDepth(), force=dialog.getForce() )
+
+            except wb_svn_project.ClientError as e:
+                tree_node.project.logClientError( e )
 
             self.main_window.updateTableView()
 
@@ -157,8 +169,11 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         dialog = wb_svn_dialogs.WbRevertFolderDialog( self.app, self.main_window, tree_node.absolutePath() )
         if dialog.exec_():
-            project = tree_node.project
-            project.cmdRevert( tree_node.relativePath(), depth=dialog.getDepth() )
+            try:
+                tree_node.project.cmdRevert( tree_node.relativePath(), depth=dialog.getDepth() )
+
+            except wb_svn_project.ClientError as e:
+                tree_node.project.logClientError( e )
 
             self.main_window.updateTableView()
 
@@ -169,8 +184,11 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         dialog = wb_common_dialogs.WbNewFolderDialog( self.app, self.main_window, tree_node.absolutePath() )
         if dialog.exec_():
-            project = tree_node.project
-            project.cmdMkdir( tree_node.relativePath() / dialog.getFolderName() )
+            try:
+                tree_node.project.cmdMkdir( tree_node.relativePath() / dialog.getFolderName() )
+
+            except wb_svn_project.ClientError as e:
+                tree_node.project.logClientError( e )
 
             self.main_window.updateTableView()
 
@@ -179,8 +197,12 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if tree_node is None:
             return
 
-        project = tree_node.project
-        info = project.cmdInfo( tree_node.relativePath() )
+        try:
+            info = tree_node.project.cmdInfo( tree_node.relativePath() )
+
+        except wb_svn_project.ClientError as e:
+            tree_node.project.logClientError( e )
+            return
 
         dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, tree_node.relativePath(), tree_node.absolutePath(), info )
         dialog.exec_()
@@ -190,20 +212,24 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if tree_node is None:
             return
 
-        project = tree_node.project
+        svn_project = tree_node.project
         filename = tree_node.relativePath()
-        prop_dict = project.cmdPropList( filename )
+        prop_dict = svn_project.cmdPropList( filename )
 
         dialog = wb_svn_properties_dialog.FolderPropertiesDialog( self.app, self.main_window, filename, prop_dict )
         if dialog.exec_():
             for is_present, name, value in dialog.getModifiedProperties():
-                if not is_present:
-                    # delete name
-                    project.cmdPropDel( name, filename )
+                try:
+                    if not is_present:
+                        # delete name
+                        svn_project.cmdPropDel( name, filename )
 
-                else:
-                    # add/update name value
-                    project.cmdPropSet( name, value, filename )
+                    else:
+                        # add/update name value
+                        svn_project.cmdPropSet( name, value, filename )
+
+                except wb_svn_project.ClientError as e:
+                    svn_project.logClientError( e )
 
         self.main_window.updateTableView()
 
@@ -213,8 +239,14 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             return
 
         self.top_window.setStatusAction( T_('Cleanup %s') % (tree_node.project.projectName(),) )
-        tree_node.project.cmdCleanup()
-        self.log.info( 'Cleanup finished for %s' % (tree_node.project.projectName(),) )
+
+        try:
+            tree_node.project.cmdCleanup()
+            self.log.info( 'Cleanup finished for %s' % (tree_node.project.projectName(),) )
+
+        except wb_svn_project.ClientError as e:
+            tree_node.project.logClientError( e )
+
         self.top_window.setStatusAction()
 
     def treeActionSvnUpdate_Bg( self, checked ):
@@ -236,26 +268,22 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         yield self.switchToBackground
         try:
-            project = tree_node.project
+            svn_project = tree_node.project
             filename = tree_node.relativePath()
 
-            project.initNotificationOfFilesInConflictCount()
+            svn_project.initNotificationOfFilesInConflictCount()
 
-            rev_list = project.cmdUpdate(
+            rev_list = svn_project.cmdUpdate(
                                 filename,
-                                tree_node.project.svn_rev_head,
-                                tree_node.project.svn_depth_infinity )
+                                tree_node.svn_project.svn_rev_head,
+                                tree_node.svn_project.svn_depth_infinity )
             yield self.switchToForeground
             self.__updateToRevisionProcessResults( tree_node, rev_list )
 
         except pysvn.ClientError as e:
+            svn_project.logClientError( e )
+
             yield self.switchToForeground
-
-            all_client_error_lines = project.clientErrorToStrList( e )
-            for line in all_client_error_lines:
-                self.app.log.error( line )
-
-            self.top_window.errorMessage( 'Svn Error', '\n'.join( all_client_error_lines ) )
 
         self.progress.end()
         self.setStatusAction()
@@ -263,7 +291,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.main_window.updateTableView()
 
     def __updateToRevisionProcessResults( self, tree_node, rev_list ):
-        project = tree_node.project
+        svn_project = tree_node.project
         filename = tree_node.relativePath()
 
         if rev_list is not None:
@@ -272,13 +300,13 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                     count = self.progress.getEventCount()
                     if count == 0:
                         self.log.info( T_('Updated %(project)s:%(filename)s to revision %(rev)d, no new updates') %
-                                                {'project': project.projectName()
+                                                {'project': svn_project.projectName()
                                                 ,'filename': filename
                                                 ,'rev': rev.number} )
                     else:
                         self.log.info( S_('Updated %(project)s:%(filename)s to revision %(rev)d, %(count)d new update', 
                                           'Updated %(project)s:%(filename)s to revision %(rev)d, %(count)d new updates', count) %
-                                                {'project': project.projectName()
+                                                {'project': svn_project.projectName()
                                                 ,'filename': filename
                                                 ,'rev': rev.number
                                                 ,'count': count} )
@@ -327,20 +355,20 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         return True
 
     def enablerTableSvnInfo( self ):
-        return self.__enablerSvnFilesControlled()
+        return self._enablerTableSvnIsControlled()
 
     def enablerTableSvnProperties( self ):
-        return self.__enablerSvnFilesControlled()
+        return self._enablerTableSvnIsControlled()
 
     def enablerSvnAdd( self ):
         # can only add uncontrolled files
-        return self.__enablerSvnFilesUncontrolled()
+        return self.__enablerTableSvnIsUncontrolled()
 
     def enablerSvnRevert( self ):
         # can only revert uncontrolled files
-        return self.__enablerSvnFilesControlled()
+        return self._enablerTableSvnIsControlled()
 
-    def __enablerSvnFilesUncontrolled( self ):
+    def __enablerTableSvnIsUncontrolled( self ):
         all_file_state = self.tableSelectedAllFileStates()
         if len(all_file_state) == 0:
             return False
@@ -351,7 +379,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         return True
 
-    def __enablerSvnFilesControlled( self ):
+    def _enablerTableSvnIsControlled( self ):
         all_file_state = self.tableSelectedAllFileStates()
         if len(all_file_state) == 0:
             return False
@@ -402,41 +430,61 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                     )
 
     def tableActionSvnInfo( self ):
-        def execute_function( project, filename ):
-            info = project.cmdInfo( filename )
+        def execute_function( svn_project, filename ):
+            try:
+                info = svn_project.cmdInfo( filename )
 
-            dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, filename, project.pathForSvn( filename ), info )
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+                return
+
+            dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, filename, svn_project.pathForSvn( filename ), info )
             dialog.exec_()
 
         self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnProperties( self ):
-        def execute_function( project, filename ):
-            prop_dict = project.cmdPropList( filename )
+        def execute_function( svn_project, filename ):
+            try:
+                prop_dict = svn_project.cmdPropList( filename )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+                return
 
             dialog = wb_svn_properties_dialog.FilePropertiesDialog( self.app, self.main_window, filename, prop_dict )
             if dialog.exec_():
                 for is_present, name, value in dialog.getModifiedProperties():
-                    if not is_present:
-                        # delete name
-                        project.cmdPropDel( name, filename )
-                    else:
-                        # add/update name value
-                        project.cmdPropSet( name, value, filename )
+                    try:
+                        if not is_present:
+                            # delete name
+                            svn_project.cmdPropDel( name, filename )
+                        else:
+                            # add/update name value
+                            svn_project.cmdPropSet( name, value, filename )
+
+                    except wb_svn_project.ClientError as e:
+                        svn_project.logClientError( e )
+                        return
 
             self.main_window.updateTableView()
 
         self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnAdd( self ):
-        def execute_function( project, filename ):
-            project.cmdAdd( filename )
+        def execute_function( svn_project, filename ):
+            svn_project.cmdAdd( filename )
 
         self.__tableActionSvnCmd( execute_function )
 
     def tableActionSvnRevert( self ):
-        def execute_function( project, filename ):
-            project.cmdRevert( filename )
+        def execute_function( svn_project, filename ):
+            try:
+                svn_project.cmdRevert( filename )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+                return
 
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
@@ -444,8 +492,13 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.__tableActionSvnCmd( execute_function, are_you_sure )
 
     def tableActionSvnDelete( self ):
-        def execute_function( project, filename ):
-            project.cmdDelete( filename )
+        def execute_function( svn_project, filename ):
+            try:
+                svn_project.cmdDelete( filename )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+                return
 
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
@@ -453,33 +506,34 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.__tableActionSvnCmd( execute_function, are_you_sure )
 
     def tableActionSvnRename( self ):
-        def execute_function( project, filename ):
+        def execute_function( svn_project, filename ):
             rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
             rename.setName( filename.name )
 
             if rename.exec_():
-                # handles rename for controlled and uncontrolled files
-                project.cmdRename( filename, filename.with_name( rename.getName() ) )
+                try:
+                    # handles rename for controlled and uncontrolled files
+                    svn_project.cmdRename( filename, filename.with_name( rename.getName() ) )
+
+                except wb_svn_project.ClientError as e:
+                    svn_project.logClientError( e )
 
         self.__tableActionSvnCmd( execute_function )
 
     def __tableActionSvnCmd( self, execute_function, are_you_sure_function=None ):
-        project = self.selectedSvnProject()
-        if project is None:
+        svn_project = self.selectedSvnProject()
+        if svn_project is None:
             return
 
         try:
             def finalise( svn_project ):
                 # take account of the change
                 self.top_window.updateTableView()
-            yield from self.table_view.tableActionViewRepo_Bg( execute_function, are_you_sure_function, finalise )
+
+            self.table_view.tableActionViewRepo( execute_function, are_you_sure_function, finalise )
 
         except wb_svn_project.ClientError as e:
-            all_client_error_lines = project.clientErrorToStrList( e )
-            for line in all_client_error_lines:
-                self.app.log.error( line )
-
-            self.top_window.errorMessage( 'Svn Error', '\n'.join( all_client_error_lines ) )
+            svn_project.logClientError( e )
 
         self.main_window.updateTableView()
 

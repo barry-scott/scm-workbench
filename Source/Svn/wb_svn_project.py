@@ -193,6 +193,13 @@ class SvnProject:
     # functions to retrive interesting info from the repo
     #
     #------------------------------------------------------------
+    def logClientError( self, e, msg=None ):
+        if msg is not None:
+            self.app.log.error( msg )
+
+        for line in self.clientErrorToStrList( e ):
+            self.app.log.error( line )
+
     def clientErrorToStrList( self, e ):
         client_error = [e.args[0]]
         if len(e.args) >= 2:

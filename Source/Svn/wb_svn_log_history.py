@@ -224,6 +224,13 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         node = self.changes_model.changesNode( self.current_file_selection[0] )
 
     def diffLogHistory( self ):
+        try:
+            self.__diffLogHistory()
+
+        except wb_svn_project.ClientError as e:
+            self.svn_project.logClientError( e )
+
+    def __diffLogHistory( self ):
         filestate = self.svn_project.getFileState( self.filename )
 
         if len( self.current_commit_selections ) == 1:
