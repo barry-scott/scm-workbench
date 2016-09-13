@@ -186,52 +186,6 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         m.addSeparator()
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png', thread_switcher=True )
 
-    def treeActionSvnLogHistory_Bg( self ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
-            return
-
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
-
-        if not options.exec_():
-            return
-
-        svn_project = self.selectedSvnProject()
-        filename = tree_node.relativePath()
-
-        self.setStatusAction( T_('Log for %(filename)s') %
-                                    {'filename': filename} )
-        self.progress.start( T_('Logs %(count)d') )
-
-        yield self.switchToBackground
-        all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil() )
-        if len(all_commit_nodes) > 0:
-
-            yield self.switchToForeground
-            self.progress.start( T_('Tags %(count)d') )
-
-            yield self.switchToBackground
-            all_tag_nodes = svn_project.cmdTagsForFile( filename, all_commit_nodes[-1]['revision'].number )
-            all_commit_nodes.extend( all_tag_nodes )
-
-        def key( node ):
-            return -node['revision'].number
-
-        all_commit_nodes.sort( key=key )
-
-        yield self.switchToForeground
-        self.progress.end()
-        self.setStatusAction()
-
-        log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
-                self.app,
-                T_('Commit Log for %(project)s:%(path)s') %
-                        {'project': svn_project.projectName()
-                        ,'path': filename},
-                self.main_window.getQIcon( 'wb.png' ) )
-
-        log_history_view.showCommitLogForFile( svn_project, filename, all_commit_nodes )
-        log_history_view.show()
 
     def enablerTreeTableSvnLogHistory( self ):
         return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
@@ -251,19 +205,64 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
     def treeTableActionSvnLogHistory_Bg( self, checked ):
         yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnLogHistory_Bg, self.tableActionSvnLogHistory_Bg )
 
-    def __actionSvnLogHistory_Bg( self, svn_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
-
-        if not options.exec_():
+    def treeActionSvnLogHistory_Bg( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
             return
 
-        svn_project = self.selectedSvnProject()
+        yield from self.__actionSvnLogHistory_Bg( self.selectedSvnProject(), tree_node.relativePath() )
+
+    def __actionSvnLogHistory_Bg( self, svn_project, filename ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        # as soon as possible del options to attemtp to avoid XCB errors
+        if not options.exec_():
+            del options
+            return
+
+        limit = options.getLimit()
+        since = options.getSince()
+        until = options.getUntil()
+
+        del options
+
+        self.setStatusAction( T_('Log for %(filename)s') %
+                                    {'filename': filename} )
+        self.progress.start( T_('Logs %(count)d') )
 
         yield self.switchToBackground
+        try:
+            all_commit_nodes = svn_project.cmdCommitLogForFile( filename, limit, since, until )
 
-        all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil() )
+        except wb_svn_project.ClientError as e:
+            self.log.error( 'Cannot get commit logs for %s:%s' % (svn_project.projectName(), filename) )
+            self.log.error( 'SVN error: %s' % (e,) )
+
+            yield self.switchToForeground
+            return
+
+        if len(all_commit_nodes) > 0:
+            yield self.switchToForeground
+            self.progress.start( T_('Tags %(count)d') )
+
+            yield self.switchToBackground
+            try:
+                all_tag_nodes = svn_project.cmdTagsForFile( filename, all_commit_nodes[-1]['revision'].number )
+
+                all_commit_nodes.extend( all_tag_nodes )
+
+            except wb_svn_project.ClientError as e:
+                self.log.error( 'Cannot get tags for %s:%s' % (svn_project.projectName(), filename) )
+                self.log.error( 'SVN error: %s' % (e,) )
+                # continue to show the logs we have got
+
+        def key( node ):
+            return -node['revision'].number
+
+        all_commit_nodes.sort( key=key )
 
         yield self.switchToForeground
+        self.progress.end()
+        self.setStatusAction()
 
         log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
                 self.app,
@@ -272,7 +271,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
                         ,'path': filename},
                 self.main_window.getQIcon( 'wb.png' ) )
 
-        log_history_view.showCommitLogForFile( svn_project, tree_node.relativePath(), all_commit_nodes )
+        log_history_view.showCommitLogForFile( svn_project, filename, all_commit_nodes )
         log_history_view.show()
 
     def enablerTableSvnAnnotate( self ):
