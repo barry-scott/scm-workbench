@@ -65,11 +65,16 @@ class WbScmTableView(QtWidgets.QTableView):
 
         # size columns
         em = self.fontMetrics().width( 'm' )
+        self.setColumnWidth( self.table_model.col_include, em*4 )
         self.setColumnWidth( self.table_model.col_staged, em*4 )
         self.setColumnWidth( self.table_model.col_status, em*4 )
         self.setColumnWidth( self.table_model.col_name, em*32 )
         self.setColumnWidth( self.table_model.col_date, em*16 )
         self.setColumnWidth( self.table_model.col_type, em*6 )
+
+    def setVisibleColumns( self, all_visible_columns ):
+        for col in range( self.table_model.col_num_columns ):
+            self.setColumnHidden( col, col not in all_visible_columns )
 
     def tableContextMenu( self, pos ):
         self._debug( 'tableContextMenu( %r )' % (pos,) )

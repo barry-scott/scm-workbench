@@ -137,13 +137,15 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         return all_indices
 
 class WbScmTableModel(QtCore.QAbstractTableModel):
-    col_staged = 0
-    col_status = 1
-    col_name = 2
-    col_date = 3
-    col_type = 4
+    col_include = 0
+    col_staged = 1
+    col_status = 2
+    col_name = 3
+    col_date = 4
+    col_type = 5
+    col_num_columns = 6
 
-    column_titles = [U_('Staged'), U_('Status'), U_('Name'), U_('Date'), U_('Type')]
+    column_titles = (U_('Include'), U_('Staged'), U_('Status'), U_('Name'), U_('Date'), U_('Type'))
 
     def __init__( self, app ):
         self.app = app
@@ -194,7 +196,10 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
             col = index.column()
 
-            if col == self.col_staged:
+            if col == self.col_include:
+                return entry.includeAsString()
+
+            elif col == self.col_staged:
                 return entry.stagedAsString()
 
             elif col == self.col_status:
@@ -242,7 +247,6 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
         if scm_project_tree_node is None:
             scm_project_tree_node = self.scm_project_tree_node
-
 
         # find all the files know to the SCM and the folder
         all_files = {}
@@ -357,6 +361,8 @@ class WbScmTableEntry:
         self.dirent = None
         self.status = None
 
+        self.include = True
+
     def isNotEqual( self, other ):
         return (self.name != other.name
             or self.status != other.status
@@ -395,6 +401,13 @@ class WbScmTableEntry:
         return self.status is not None and self.status.isIgnored()
 
     # ------------------------------------------------------------
+    def includeAsString( self ):
+        if self.include:
+            return T_('Include')
+
+        else:
+            return T_('Exclude')
+
     def stagedAsString( self ):
         if self.status is None:
             return ''

@@ -75,6 +75,8 @@ class WbMainWindowComponents:
         for toolbar in self.all_toolbars:
             toolbar.setVisible( True )
 
+        self.table_view.setVisibleColumns( self.all_visible_table_columns )
+
     def hideUiComponents( self ):
         for menu in self.all_menus:
             menu.menuAction().setVisible( False )

@@ -35,6 +35,9 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         self.log.info( T_('Hg using program %s') % (hglib.HGPATH,) )
 
     def createProject( self, project ):
+        tm = self.table_view.table_model
+        self.all_visible_table_columns = (tm.col_status, tm.col_name, tm.col_date)
+
         if shutil.which( hglib.HGPATH ) is None:
             self.log.error( T_('Murcurial "hg" command line tool not found') )
             return None

@@ -35,7 +35,13 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
     def __init__( self ):
         super().__init__()
 
+        self.all_visible_table_columns = None
+
+
     def createProject( self, project ):
+        tm = self.table_view.table_model
+        self.all_visible_table_columns = (tm.col_status, tm.col_name, tm.col_date)
+
         try:
             return wb_svn_project.SvnProject( self.app, project, self )
 

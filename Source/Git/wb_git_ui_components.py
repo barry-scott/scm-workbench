@@ -41,6 +41,9 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         self.saved_password = SavedPassword()
 
     def createProject( self, project ):
+        tm = self.table_view.table_model
+        self.all_visible_table_columns = (tm.col_staged, tm.col_status, tm.col_name, tm.col_date)
+
         if shutil.which( 'git' ) is None:
             self.app.log.error( '"git" command line tool not found' )
             return None

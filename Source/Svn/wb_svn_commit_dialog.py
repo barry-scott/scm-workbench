@@ -73,6 +73,8 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
+        tm = self.table_view.table_model
+        self.table_view.setVisibleColumns( (tm.col_include, tm.col_status, tm.col_name, tm.col_date) )
 
         # unchanged files should not be interesting for a commit
         self.table_view.setShowControlledAndNotChangedFiles( False )
