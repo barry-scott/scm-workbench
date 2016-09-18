@@ -24,7 +24,7 @@ def hgClone( url, wc_path ):
     hglib.clone( str(url).encode('utf-8'), str(wc_path).encode('utf-8') )
 
 def HgVersion():
-    args = hglib2.util.cmdbuilder( 'version' )
+    args = hglib.util.cmdbuilder( 'version' )
     args.insert( 0, hglib.HGPATH )
 
     proc = hglib.util.popen( args )
