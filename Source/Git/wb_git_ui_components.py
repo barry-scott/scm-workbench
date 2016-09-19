@@ -148,8 +148,8 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Commit…'), self.treeActionGitCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), self.treeActionGitPush_Bg, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
-        addMenu( m, T_('Pull…'), self.treeActionGitPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addMenu( m, T_('Push…'), self.treeActionGitPush_Bg, self.enablerGitPush, 'toolbar_images/push.png' )
+        addMenu( m, T_('Pull…'), self.treeActionGitPull_Bg, icon_name='toolbar_images/pull.png' )
 
         if hasattr( self, 'treeActionGitDebug1' ):
             m = mb.addMenu( T_('&Git Debug') )
@@ -180,8 +180,8 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         t.addSeparator()
         addTool( t, T_('Commit'), self.treeActionGitCommit, self.enablerGitCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        addTool( t, T_('Push'), self.treeActionGitPush_Bg, self.enablerGitPush, 'toolbar_images/push.png', thread_switcher=True )
-        addTool( t, T_('Pull'), self.treeActionGitPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addTool( t, T_('Push'), self.treeActionGitPush_Bg, self.enablerGitPush, 'toolbar_images/push.png' )
+        addTool( t, T_('Pull'), self.treeActionGitPull_Bg, icon_name='toolbar_images/pull.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )

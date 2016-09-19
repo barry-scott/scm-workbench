@@ -27,6 +27,8 @@ import wb_scm_images
 
 import wb_hg_ui_actions
 
+from wb_background_thread import thread_switcher
+
 #------------------------------------------------------------
 #
 #   WbHgLogHistoryView - show the commits from the log model
@@ -191,6 +193,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'hg'
 
+    @thread_switcher
     def showCommitLogForRepository_Bg( self, hg_project, options ):
         self.filename = None
         self.hg_project = hg_project
@@ -205,6 +208,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.updateEnableStates()
         self.show()
 
+    @thread_switcher
     def showCommitLogForFile_Bg( self, hg_project, filename, options ):
         self.filename = filename
         self.hg_project = hg_project

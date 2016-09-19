@@ -124,8 +124,8 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addMenu( m, T_('Commit…'), self.treeActionHgCommit, self.enablerHgCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png', thread_switcher=True )
-        addMenu( m, T_('Pull…'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addMenu( m, T_('Push…'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png' )
+        addMenu( m, T_('Pull…'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
 
         if hasattr( self, 'treeActionHgDebug1' ):
             m = mb.addMenu( T_('&Hg Debug') )
@@ -155,8 +155,8 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addTool( t, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
         addTool( t, T_('Commit'), self.treeActionHgCommit, self.enablerHgCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        addTool( t, T_('Push'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png', thread_switcher=True )
-        addTool( t, T_('Pull'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png', thread_switcher=True )
+        addTool( t, T_('Push'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png' )
+        addTool( t, T_('Pull'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )

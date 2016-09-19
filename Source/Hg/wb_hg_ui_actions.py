@@ -21,6 +21,8 @@ import wb_ui_components
 import wb_hg_project
 import wb_hg_status_view
 
+from wb_background_thread import thread_switcher
+
 #
 #   Start with the main window components interface
 #   and add actions used by the main window
@@ -204,6 +206,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 self.log.error( line )
 
     # ------------------------------------------------------------
+    @thread_switcher
     def treeActionHgPush_Bg( self, checked ):
         hg_project = self.selectedHgProject().newInstance()
         self.setStatusAction( T_('Push %s') % (hg_project.projectName(),) )
@@ -248,6 +251,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
             self.log.info( status )
 
     # ------------------------------------------------------------
+    @thread_switcher
     def treeActionHgPull_Bg( self, checked ):
         hg_project = self.selectedHgProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (hg_project.projectName(),) )

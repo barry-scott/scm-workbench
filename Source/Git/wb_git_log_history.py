@@ -19,6 +19,8 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+from wb_background_thread import thread_switcher
+
 import wb_tracked_qwidget
 import wb_main_window
 
@@ -193,6 +195,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'git'
 
+    @thread_switcher
     def showCommitLogForRepository_Bg( self, git_project, options ):
         self.filename = None
         self.git_project = git_project
@@ -207,6 +210,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.updateEnableStates()
         self.show()
 
+    @thread_switcher
     def showCommitLogForFile_Bg( self, git_project, filename, options ):
         self.filename = filename
         self.git_project = git_project

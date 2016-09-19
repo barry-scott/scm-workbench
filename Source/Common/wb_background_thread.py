@@ -166,3 +166,10 @@ class ThreadSwitchScheduler:
 
         # will be one of app.runInForeground or app.runInForeground
         where_to_go_next( self.queueNextSwitch, (generator,) )
+
+#
+#   Decorator used to set the requires_thread_switcher property on a function
+#
+def thread_switcher( fn ):
+    fn.requires_thread_switcher = True
+    return fn

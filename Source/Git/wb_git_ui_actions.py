@@ -22,6 +22,8 @@ import wb_common_dialogs
 import wb_git_project
 import wb_git_status_view
 
+from wb_background_thread import thread_switcher
+
 #
 #   Start with the main window components interface
 #   and add actions used by the main window
@@ -249,6 +251,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 self.log.error( line )
 
     # ------------------------------------------------------------
+    @thread_switcher
     def treeActionGitPush_Bg( self, checked ):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Push %s') % (git_project.projectName(),) )
@@ -293,6 +296,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             self.log.info( status )
 
     # ------------------------------------------------------------
+    @thread_switcher
     def treeActionGitPull_Bg( self, checked ):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )

@@ -25,6 +25,8 @@ import wb_svn_dialogs
 import pysvn
 import pathlib
 
+from wb_background_thread import thread_switcher
+
 #
 #   Start with the main window components interface
 #   and add actions used by the main window
@@ -249,6 +251,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         self.top_window.setStatusAction()
 
+    @thread_switcher
     def treeActionSvnUpdate_Bg( self, checked ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:

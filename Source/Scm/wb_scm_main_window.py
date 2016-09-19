@@ -44,6 +44,8 @@ import wb_main_window
 import wb_preferences
 import wb_tracked_qwidget
 
+from wb_background_thread import thread_switcher
+
 class WbScmMainWindow(wb_main_window.WbMainWindow):
     def __init__( self, app, all_factories ):
         self.table_view = None
@@ -313,7 +315,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # --- setup menus less used common menus
         m = mb.addMenu( T_('&Project') )
-        self._addMenu( m, T_('Add…'), self.projectActionAdd_Bg, thread_switcher=True )
+        self._addMenu( m, T_('Add…'), self.projectActionAdd_Bg )
         self._addMenu( m, T_('Settings…'), self.projectActionSettings, self.enablerIsProject )
         self._addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
 
@@ -541,6 +543,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     # project actions
     #
     #------------------------------------------------------------
+    @thread_switcher
     def projectActionAdd_Bg( self, checked ):
         w = wb_scm_project_dialogs.WbScmAddProjectWizard( self.app )
         if w.exec_():
@@ -751,6 +754,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         return default
 
     # like callTreeOrTableFunction with yield for use with thread switcher
+    @thread_switcher
     def callTreeOrTableFunction_Bg( self, fn_tree, fn_table ):
         if self.tree_view.hasFocus():
             yield from fn_tree()

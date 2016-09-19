@@ -17,6 +17,8 @@ from PyQt5 import QtCore
 import wb_scm_table_model
 import wb_shell_commands
 
+from wb_background_thread import thread_switcher
+
 class WbScmTableView(QtWidgets.QTableView):
     def __init__( self, app, main_window ):
         self.app = app
@@ -164,6 +166,7 @@ class WbScmTableView(QtWidgets.QTableView):
                 finalise_function( scm_project )
 
     # like tableActionViewRepo but uses yield for use with a thread switcher
+    @thread_switcher
     def tableActionViewRepo_Bg( self, execute_function, are_you_sure_function=None, finalise_function=None ):
         all_filenames = self.__tableActionViewRepoPrep( are_you_sure_function )
 
