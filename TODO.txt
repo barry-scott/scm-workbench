@@ -1,0 +1,11 @@
+Scm
+- How to automate testing of workbench.
+
+Git
+- support: git pull --rebase <remote> <branch>
+
+Svn
+- almost complete
+
+Hg
+- Only a few commands implemented
