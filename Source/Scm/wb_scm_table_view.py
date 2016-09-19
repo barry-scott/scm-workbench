@@ -243,7 +243,7 @@ class WbScmTableView(QtWidgets.QTableView):
     def tableSelectedFiles( self ):
         return [index.data( QtCore.Qt.UserRole ).name
                     for index in self.selectedIndexes()
-                    if index.column() == 0]
+                    if index.column() == self.table_model.col_name]
 
     def selectionChanged( self, selected, deselected ):
         self._debug( 'WbTableView.selectionChanged()' )
