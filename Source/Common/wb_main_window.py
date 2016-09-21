@@ -55,7 +55,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
         action = menu.addAction( icon, name )
 
         if handler is not None:
-            if getattr( handler, 'needs_thread_switcher', False ):
+            if self.app.requiresThreadSwitcher( handler ):
                 handler = self.app.threadSwitcher( handler )
 
             if checker is not None:
@@ -93,7 +93,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action = bar.addAction( icon, name )
 
         if handler is not None:
-            if getattr( handler, 'needs_thread_switcher', False ):
+            if self.app.requiresThreadSwitcher( handler ):
                 handler = self.app.threadSwitcher( handler )
 
             if checker is not None:

@@ -16,6 +16,14 @@ import types
 
 from PyQt5 import QtCore
 
+#
+#   Decorator used to set the requires_thread_switcher property on a function
+#
+_requires_thread_switcher_attr = 'requires_thread_switcher'
+def thread_switcher( fn ):
+    setattr( fn, _requires_thread_switcher_attr, True )
+    return fn
+
 class MarshalledCall:
     def __init__( self, function, args ):
         self.function = function
@@ -105,7 +113,11 @@ class BackgroundWorkMixin:
         # cannot call logging from here as this will cause the log call to be marshelled
         self.foregroundProcessSignal.emit( MarshalledCall( function, args ) )
 
+    def requiresThreadSwitcher( self, fn ):
+        return getattr( fn, _requires_thread_switcher_attr, False )
+
     def threadSwitcher( self, function ):
+        assert self.requiresThreadSwitcher( function )
         return ThreadSwitchScheduler( self, function )
 
     # alias that are better names when used from the threadSwitcher function
@@ -166,10 +178,3 @@ class ThreadSwitchScheduler:
 
         # will be one of app.runInForeground or app.runInForeground
         where_to_go_next( self.queueNextSwitch, (generator,) )
-
-#
-#   Decorator used to set the requires_thread_switcher property on a function
-#
-def thread_switcher( fn ):
-    fn.requires_thread_switcher = True
-    return fn
