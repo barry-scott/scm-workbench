@@ -191,8 +191,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def treeTableActionGitDiffHeadVsWorking( self ):
         self.main_window.callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
 
-    def treeTableActionGitLogHistory( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionGitLogHistory, self.tableActionGitLogHistory )
+    @thread_switcher
+    def treeTableActionGitLogHistory_Bg( self, checked ):
+        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionGitLogHistory_Bg, self.tableActionGitLogHistory_Bg )
 
     #------------------------------------------------------------
     #
@@ -403,8 +404,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self._debug( 'tableActionGitDiffHeadVsWorking()' )
         self.table_view.tableActionViewRepo( self.__actionGitDiffHeadVsWorking )
 
-    def tableActionGitLogHistory( self ):
-        self.table_view.tableActionViewRepo( self._actionGitLogHistory )
+    @thread_switcher
+    def tableActionGitLogHistory_Bg( self ):
+        yield from self.table_view.tableActionViewRepo_Bg( self._actionGitLogHistory_Bg )
 
     def __actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )

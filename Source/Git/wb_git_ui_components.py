@@ -28,6 +28,9 @@ import wb_git_credentials_dialog
 import git
 import git.exc
 
+from wb_background_thread import thread_switcher
+
+
 #
 #   Add tool bars and menu for use in the Main Window
 #
@@ -130,7 +133,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Status'), self.treeActionGitStatus )
 
         m.addSeparator()
-        addMenu( m, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerGitLogHistory, 'toolbar_images/history.png' )
+        addMenu( m, T_('Commit History'), self.treeTableActionGitLogHistory_Bg, self.enablerGitLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         m = mb.addMenu( T_('&Git Actions') )
@@ -168,7 +171,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         self.all_toolbars.append( t )
 
         addTool( t, T_('Diff'), self.treeTableActionGitDiffSmart, self.enablerGitDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory, self.enablerGitLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Commit History'), self.treeTableActionGitLogHistory_Bg, self.enablerGitLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('git state') )
@@ -207,29 +210,34 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Diff Staged vs. Working'), self.treeActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
     # ------------------------------------------------------------
-    def treeActionGitLogHistory( self ):
+    @thread_switcher
+    def treeActionGitLogHistory_Bg( self ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
-        if options.exec_():
-            git_project = self.selectedGitProject()
+        if not options.exec_():
+            return
 
-            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %s') % (git_project.projectName(),),
-                    self.main_window.getQIcon( 'wb.png' ) )
+        git_project = self.selectedGitProject()
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForRepository_Bg )
-            func( git_project, options )
+        commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+                self.app,
+                T_('Commit Log for %s') % (git_project.projectName(),),
+                self.main_window.getQIcon( 'wb.png' ) )
 
-    def _actionGitLogHistory( self, git_project, filename ):
+        yield from commit_log_view.showCommitLogForRepository_Bg( git_project, options )
+
+    @thread_switcher
+    def _actionGitLogHistory_Bg( self, git_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
-        if options.exec_():
-            commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                    self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
+        if not options.exec_():
+            return
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile_Bg )
-            func( git_project, filename, options )
+        commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+                self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
+
+        yield from commit_log_view.showCommitLogForFile_Bg( git_project, filename, options )
+
 
     commit_key = 'git-commit-dialog'
     def treeActionGitCommit( self ):

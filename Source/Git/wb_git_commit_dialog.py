@@ -56,7 +56,7 @@ class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         self.all_toolbars.append( t )
 
         addTool( t, T_('Diff'), self.tableActionGitDiffSmart, self.enablerGitDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.tableActionGitLogHistory, self.enablerGitLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Commit History'), self.tableActionGitLogHistory_Bg, self.enablerGitLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('git state') )
