@@ -21,6 +21,9 @@ import wb_hg_commit_dialog
 import hglib
 import shutil
 
+from wb_background_thread import thread_switcher
+
+
 class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
     def __init__( self ):
         super().__init__()
@@ -144,7 +147,7 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         self.all_toolbars.append( t )
 
         addTool( t, T_('Diff'), self.treeTableActionHgDiffSmart, self.enablerHgDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.treeTableActionHgLogHistory, self.enablerHgLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Commit History'), self.treeTableActionHgLogHistory_Bg, self.enablerHgLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('hg state') )
@@ -175,29 +178,38 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeActionHgDiffHeadVsWorking, self.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
     # ------------------------------------------------------------
-    def treeActionHgLogHistory( self ):
+    @thread_switcher
+    def treeActionHgLogHistory_Bg( self ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
-        if options.exec_():
-            hg_project = self.selectedHgProject()
+        if not options.exec_():
+            return
 
-            commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
-                    self.app,
-                    T_('Commit Log for %s') % (hg_project.projectName(),),
-                    self.main_window.getQIcon( 'wb.png' ) )
+        hg_project = self.selectedHgProject()
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForRepository_Bg )
-            func( hg_project, options )
+        commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
+                self.app,
+                T_('Commit Log for %s') % (hg_project.projectName(),),
+                self.main_window.getQIcon( 'wb.png' ) )
 
-    def _actionHgLogHistory( self, hg_project, filename ):
+        yield from commit_log_view.showCommitLogForRepository_Bg( hg_project, options )
+
+    @thread_switcher
+    def tableActionHgLogHistory_Bg( self ):
+        yield from self.table_view.tableActionViewRepo_Bg( self._actionHgLogHistory_Bg )
+
+    def _actionHgLogHistory_Bg( self, hg_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
-        if options.exec_():
-            commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
-                    self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
+        if not options.exec_():
+            return
 
-            func = self.app.threadSwitcher( commit_log_view.showCommitLogForFile_Bg )
-            func( hg_project, filename, options )
+        commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
+                self.app,
+                T_('Commit Log for %s') % (filename,),
+                self.main_window.getQIcon( 'wb.png' ) )
+
+        yield from commit_log_view.showCommitLogForFile_Bg( hg_project, filename, options )
 
     commit_key = 'hg-commit-dialog'
     def treeActionHgCommit( self ):

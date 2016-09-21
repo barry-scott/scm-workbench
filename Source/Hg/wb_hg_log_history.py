@@ -107,7 +107,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         # size columns
         em = self.app.fontMetrics().width( 'm' )
-        self.log_table.setColumnWidth( self.log_model.col_author, rem*16 )
+        self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
         self.log_table.setColumnWidth( self.log_model.col_date, em*16 )
         self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
 
@@ -119,7 +119,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         #----------------------------------------
         self.changeset_id = QtWidgets.QLineEdit()
         self.changeset_id.setReadOnly( True )
-        self.changeset_id.setFont( self.font )
+        self.changeset_id.setFont( self.code_font )
 
         #----------------------------------------
         self.changes_table = WbChangesTableView( self )
@@ -132,23 +132,41 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.changes_table.setColumnWidth( self.changes_model.col_path, em*60 )
         self.changes_table.setColumnWidth( self.changes_model.col_copyfrom, em*60 )
 
-        #----------------------------------------
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget( self.log_table )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Changeset') ) )
-        self.layout.addWidget( self.changeset_id )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
-        self.layout.addWidget( self.commit_message )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Changed Files') ) )
-        self.layout.addWidget( self.changes_table )
+        #------------------------------------------------------------
+        self.changed_files_layout = QtWidgets.QVBoxLayout()
+        self.changed_files_layout.addWidget( QtWidgets.QLabel( T_('Changed Files') ) )
+        self.changed_files_layout.addWidget( self.changes_table )
+
+        self.changed_files = QtWidgets.QWidget()
+        self.changed_files.setLayout( self.changed_files_layout )
 
         #----------------------------------------
-        self.widget = QtWidgets.QWidget()
-        self.widget.setLayout( self.layout )
+        self.commit_info_layout = QtWidgets.QVBoxLayout()
+        self.commit_info_layout.addWidget( self.log_table )
+        self.commit_info_layout.addWidget( QtWidgets.QLabel( T_('Changeset') ) )
+        self.commit_info_layout.addWidget( self.changeset_id )
+        self.commit_info_layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
+        self.commit_info_layout.addWidget( self.commit_message )
 
-        self.setCentralWidget( self.widget )
+        self.commit_info = QtWidgets.QWidget()
+        self.commit_info.setLayout( self.commit_info_layout )
 
-        self.resize( 900, 600 )
+        #----------------------------------------
+        self.v_split = QtWidgets.QSplitter()
+        self.v_split.setOrientation( QtCore.Qt.Vertical )
+
+        self.v_split.addWidget( self.log_table )
+        self.v_split.setStretchFactor( self.v_split.count()-1, 15 )
+        self.v_split.addWidget( self.commit_info )
+        self.v_split.setStretchFactor( self.v_split.count()-1, 6 )
+        self.v_split.addWidget( self.changed_files )
+        self.v_split.setStretchFactor( self.v_split.count()-1, 9 )
+
+        self.setCentralWidget( self.v_split )
+
+        ex = self.app.fontMetrics().lineSpacing()
+        self.resize( 70*em, 40*ex )
+
         self.ui_component.setTopWindow( self.app.top_window )
         self.ui_component.setMainWindow( self, None )
 

@@ -164,8 +164,9 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def treeTableActionHgDiffHeadVsWorking( self ):
         self.main_window.callTreeOrTableFunction( self.treeActionHgDiffHeadVsWorking, self.tableActionHgDiffHeadVsWorking )
 
-    def treeTableActionHgLogHistory( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionHgLogHistory, self.tableActionHgLogHistory )
+    @thread_switcher
+    def treeTableActionHgLogHistory_Bg( self, checked ):
+        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionHgLogHistory_Bg, self.tableActionHgLogHistory_Bg )
 
     #------------------------------------------------------------
     #
@@ -343,9 +344,6 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
     def tableActionHgDiffHeadVsWorking( self ):
         self._debug( 'tableActionHgDiffHeadVsWorking()' )
         self.table_view.tableActionViewRepo( self.__actionHgDiffHeadVsWorking )
-
-    def tableActionHgLogHistory( self ):
-        self.table_view.tableActionViewRepo( self._actionHgLogHistory )
 
     def __actionHgAdd( self, hg_project, filename ):
         hg_project.cmdAdd( filename )
