@@ -24,8 +24,6 @@ from wb_background_thread import thread_switcher
 import wb_tracked_qwidget
 import wb_main_window
 
-import wb_scm_images
-
 import wb_git_ui_actions
 
 #------------------------------------------------------------
@@ -76,11 +74,11 @@ class GitLogHistoryWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         return self.app.deferRunInForeground( self.__logHistoryProgress )
 
 class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
-    def __init__( self, app, title, icon ):
+    def __init__( self, app, title ):
         self.app = app
         self._debug = self.app._debugLogHistory
 
-        super().__init__( app, wb_scm_images, app._debugMainWindow )
+        super().__init__( app, app._debugMainWindow )
 
         self.current_commit_selections = []
         self.current_file_selection = []
@@ -94,7 +92,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.changes_model = WbGitChangedFilesModel( self.app )
 
         self.setWindowTitle( title )
-        self.setWindowIcon( icon )
+        self.setWindowIcon( self.app.getAppQIcon() )
 
         self.code_font = self.app.getCodeFont()
 

@@ -128,6 +128,6 @@ class WbMainWindowComponents:
     def showDiffText( self, title, all_lines ):
         assert type(all_lines) == list
 
-        window = wb_diff_unified_view.WbDiffViewText( self.app, title, self.main_window.getQIcon( 'wb.png' ) )
+        window = wb_diff_unified_view.WbDiffViewText( self.app, title )
         window.setUnifiedDiffText( all_lines )
         window.show()

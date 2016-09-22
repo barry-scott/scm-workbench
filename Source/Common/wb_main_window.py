@@ -15,14 +15,13 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 class WbMainWindow(QtWidgets.QMainWindow):
-    def __init__( self, app, image_store, debug_fn, parent=None ):
+    def __init__( self, app, debug_fn, parent=None ):
         self.app = app
         self.log = self.app.log
         self._debug = app._debugMainWindow
 
         super().__init__( parent )
 
-        self.__image_store = image_store
         self.icon_size = QtCore.QSize( 32, 32 )
 
         # list of all the WbActionState for the menus and toolbars
@@ -31,9 +30,6 @@ class WbMainWindow(QtWidgets.QMainWindow):
     # override to do what is required on app becoming active.
     def appActiveHandler( self ):
         pass
-
-    def getQIcon( self, icon_name ):
-        return self.__image_store.getQIcon( icon_name )
 
     def updateEnableStates( self ):
         self.__action_state_manager.update()
@@ -51,7 +47,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
         if icon_name is None:
             icon_name = 'toolbar_images/blank.png'
 
-        icon = self.getQIcon( icon_name )
+        icon = self.app.getQIcon( icon_name )
         action = menu.addAction( icon, name )
 
         if handler is not None:
@@ -89,7 +85,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action = bar.addAction( name )
 
         else:
-            icon = self.getQIcon( icon_name )
+            icon = self.app.getQIcon( icon_name )
             action = bar.addAction( icon, name )
 
         if handler is not None:

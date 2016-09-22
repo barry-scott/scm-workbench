@@ -18,7 +18,6 @@ import wb_main_window
 import wb_tracked_qwidget
 
 import wb_scm_table_view
-import wb_scm_images
 
 import wb_svn_ui_actions
 
@@ -63,13 +62,13 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.svn_project = svn_project
         self.table_view = None
 
-        super().__init__( app, wb_scm_images, app._debugMainWindow )
+        super().__init__( app, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         self.ui_component = SvnCommitWindowComponents()
 
         self.setWindowTitle( T_('Commit %s') % (svn_project.projectName(),) )
-        self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
+        self.setWindowIcon( self.app.getAppQIcon() )
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )

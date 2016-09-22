@@ -364,8 +364,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         commit_status_view = wb_git_status_view.WbGitStatusView(
                 self.app,
-                T_('Status for %s') % (git_project.projectName(),),
-                self.main_window.getQIcon( 'wb.png' ) )
+                T_('Status for %s') % (git_project.projectName(),) )
         commit_status_view.setStatus(
                     git_project.getUnpushedCommits(),
                     git_project.getReportStagedFiles(),

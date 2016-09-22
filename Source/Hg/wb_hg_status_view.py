@@ -16,13 +16,13 @@ from PyQt5 import QtGui
 import wb_tracked_qwidget
 
 class WbHgStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
-    def __init__( self, app, title, icon ):
+    def __init__( self, app, title ):
         self.app = app
 
         super().__init__()
 
         self.setWindowTitle( title )
-        self.setWindowIcon( icon )
+        self.setWindowIcon( self.app.getAppQIcon() )
 
         self.label_unpushed = QtWidgets.QLabel( T_('Unpushed commits') )
         self.unpushed = QtWidgets.QPlainTextEdit( '' )

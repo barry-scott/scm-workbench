@@ -18,7 +18,6 @@ import wb_main_window
 import wb_tracked_qwidget
 
 import wb_scm_table_view
-import wb_scm_images
 
 import wb_hg_ui_actions
 
@@ -71,13 +70,13 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.hg_project = hg_project
         self.table_view = None
 
-        super().__init__( app, wb_scm_images, app._debugMainWindow )
+        super().__init__( app, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         self.ui_component = HgCommitWindowComponents()
 
         self.setWindowTitle( T_('Commit %s') % (hg_project.projectName(),) )
-        self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
+        self.setWindowIcon( self.app.getAppQIcon() )
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )

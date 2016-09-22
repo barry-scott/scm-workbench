@@ -24,19 +24,18 @@ import wb_diff_processor
 
 import wb_main_window
 import wb_config
-import wb_diff_images
 import wb_tracked_qwidget
 
 class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, parent, title, file_left, header_left, file_right, header_right, ):
-        super().__init__( app, wb_diff_images, app._debugDiff, parent=parent )
+        super().__init__( app, app._debugDiff, parent=parent )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         prefs = self.app.prefs.diff_window
         geometry = prefs.geometry
 
         self.setWindowTitle( title )
-        self.setWindowIcon( wb_diff_images.getQIcon( 'wb.png' ) )
+        self.setWindowIcon( self.app.getAppQIcon() )
 
         if geometry is not None:
             geometry = QtCore.QByteArray( geometry.encode('utf-8') )

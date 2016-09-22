@@ -319,8 +319,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
         commit_status_view = wb_hg_status_view.WbHgStatusView(
                 self.app,
-                T_('Status for %s') % (hg_project.projectName(),),
-                self.main_window.getQIcon( 'wb.png' ) )
+                T_('Status for %s') % (hg_project.projectName(),) )
         commit_status_view.setStatus(
                     hg_project.getUnpushedCommits(),
                     hg_project.getReportModifiedFiles(),

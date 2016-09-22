@@ -31,7 +31,6 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_scm_version
-import wb_scm_images
 import wb_scm_preferences_dialog
 import wb_scm_table_view
 import wb_scm_tree_view
@@ -52,7 +51,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.__init_done = False
 
-        super().__init__( app, wb_scm_images, app._debugMainWindow )
+        super().__init__( app, app._debugMainWindow )
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
@@ -60,7 +59,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         win_prefs = self.app.prefs.main_window
 
         self.setWindowTitle( title )
-        self.setWindowIcon( wb_scm_images.getQIcon( 'wb.png' ) )
+        self.setWindowIcon( self.app.getAppQIcon() )
 
         # models and views
         self.__ui_active_scm_type = None

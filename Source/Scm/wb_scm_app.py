@@ -18,6 +18,7 @@ import wb_platform_specific
 import wb_scm_main_window
 import wb_scm_preferences
 import wb_scm_debug
+import wb_scm_images
 
 import wb_git_factory
 import wb_hg_factory
@@ -43,6 +44,11 @@ class WbScmApp(wb_app.WbApp,
         wb_scm_debug.WbScmDebug.__init__( self )
         wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args, ['git.cmd'] )
 
+    def getAppQIcon( self ):
+        return self.getQIcon( 'wb.png' )
+
+    def getQIcon( self, icon_name ):
+        return wb_scm_images.getQIcon( icon_name )
 
     def getScmFactory( self, scm_type ):
         return self.all_factories[ scm_type ]

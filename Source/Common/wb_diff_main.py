@@ -26,6 +26,7 @@ import wb_diff_side_by_side_view
 import wb_platform_specific
 import wb_debug
 import wb_preferences
+import wb_diff_images
 
 def noTranslation( msg ):
     return msg
@@ -63,6 +64,9 @@ class WbDiff_App(wb_app.WbApp,
 
         # self is log and app
         self.main_window.resize( 800, 600 )
+
+    def getAppQIcon( self ):
+        wb_diff_images.getQIcon( 'wb.png' )
 
     def createPreferencesManager( self ):
         return PreferencesManager(

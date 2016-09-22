@@ -271,8 +271,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
                 self.app,
                 T_('Commit Log for %(project)s:%(path)s') %
                         {'project': svn_project.projectName()
-                        ,'path': filename},
-                self.main_window.getQIcon( 'wb.png' ) )
+                        ,'path': filename} )
 
         log_history_view.showCommitLogForFile( svn_project, filename, all_commit_nodes )
         log_history_view.show()
@@ -330,8 +329,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         annotate_view = wb_svn_annotate.WbSvnAnnotateView(
                             self.app,
-                            T_('Annotation of %s') % (filename,),
-                            self.main_window.getQIcon( 'wb.png' ) )
+                            T_('Annotation of %s') % (filename,) )
         annotate_view.showAnnotationForFile( all_annotation_nodes, all_commit_logs )
         annotate_view.show()
 

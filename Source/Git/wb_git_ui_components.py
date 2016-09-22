@@ -221,8 +221,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         commit_log_view = wb_git_log_history.WbGitLogHistoryView(
                 self.app,
-                T_('Commit Log for %s') % (git_project.projectName(),),
-                self.main_window.getQIcon( 'wb.png' ) )
+                T_('Commit Log for %s') % (git_project.projectName(),) )
 
         yield from commit_log_view.showCommitLogForRepository_Bg( git_project, options )
 
@@ -234,7 +233,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
             return
 
         commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                self.app, T_('Commit Log for %s') % (filename,), self.main_window.getQIcon( 'wb.png' ) )
+                self.app, T_('Commit Log for %s') % (filename,) )
 
         yield from commit_log_view.showCommitLogForFile_Bg( git_project, filename, options )
 

@@ -29,7 +29,7 @@ class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
     style_add = 2
     style_delete = 3
 
-    def __init__( self, app, title, icon ):
+    def __init__( self, app, title ):
         self.app = app
 
         super().__init__()
@@ -44,12 +44,11 @@ class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
             )
 
         self.setWindowTitle( title )
-        if icon is not None:
-            self.setWindowIcon( icon )
+        self.setWindowIcon( self.app.getAppQIcon() )
 
 class WbDiffViewText(WbDiffViewBase):
-    def __init__( self, app, title, icon ):
-        super().__init__( app, title, icon )
+    def __init__( self, app, title ):
+        super().__init__( app, title )
 
         self.code_font = self.app.getCodeFont()
 

@@ -189,8 +189,7 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
 
         commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
                 self.app,
-                T_('Commit Log for %s') % (hg_project.projectName(),),
-                self.main_window.getQIcon( 'wb.png' ) )
+                T_('Commit Log for %s') % (hg_project.projectName(),) )
 
         yield from commit_log_view.showCommitLogForRepository_Bg( hg_project, options )
 
@@ -206,8 +205,7 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
 
         commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
                 self.app,
-                T_('Commit Log for %s') % (filename,),
-                self.main_window.getQIcon( 'wb.png' ) )
+                T_('Commit Log for %s') % (filename,) )
 
         yield from commit_log_view.showCommitLogForFile_Bg( hg_project, filename, options )
 
