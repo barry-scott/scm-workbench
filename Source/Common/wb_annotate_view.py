@@ -46,6 +46,8 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         self.annotate_table = WbAnnotateTableView( self )
         self.annotate_table.setSelectionBehavior( self.annotate_table.SelectRows )
         self.annotate_table.setSelectionMode( self.annotate_table.ExtendedSelection )
+        self.annotate_table.setAutoScroll( False )
+
         self.annotate_table.setModel( self.annotate_model )
 
         # size columns
@@ -135,11 +137,11 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         self.current_annotations.sort()
 
         node = self.annotate_model.annotationNode( self.current_annotations[0] )
-        log = self.annotate_model.annotationLogNode( node['revision'].number )
+        log = self.annotate_model.annotationLogNode( node.log_id )
 
         self.commit_message.clear()
         if log is not None:
-            self.commit_message.insertPlainText( log.message )
+            self.commit_message.insertPlainText( log.commitMessage() )
 
         self.updateEnableStates()
 
@@ -188,9 +190,8 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
 
     def loadAnnotationForFile( self, all_annotation_nodes, all_commit_log_nodes ):
         self.beginResetModel()
-        self.all_commit_log_nodes =  dict( [(node['revision'].number, node)
-                                            for node in all_commit_log_nodes] )
         self.all_annotation_nodes = all_annotation_nodes
+        self.all_commit_log_nodes = all_commit_log_nodes
         self.endResetModel()
 
     def rowCount( self, parent ):
@@ -218,34 +219,31 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
     def annotationLogNode( self, rev_num ):
         return self.all_commit_log_nodes.get( rev_num, None )
 
-    def revForRow( self, row ):
-        return self.all_annotation_nodes[ row ].revision
-
     def data( self, index, role ):
         if role == QtCore.Qt.UserRole:
             return self.all_annotation_nodes[ index.row() ]
 
         if role == QtCore.Qt.DisplayRole:
             node = self.all_annotation_nodes[ index.row() ]
-            rev_num = node['revision'].number
-            log_node = self.all_commit_log_nodes[ rev_num ]
+            log_node = self.all_commit_log_nodes[ node.log_id ]
 
             col = index.column()
 
             if col == self.col_revision:
-                return '%d' % (rev_num,)
+                return log_node.commitIdString()
 
             elif col == self.col_author:
-                return log_node.author
+                return log_node.commitAuthor()
 
             elif col == self.col_date:
-                return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( log_node.date ) )
+                # QQQ use tzlocal and pytz to get local time
+                return log_node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
 
             elif col == self.col_line_num:
-                return '%d' % (node['number']+1,)
+                return '%d' % (node.line_num,)
 
             elif col == self.col_line_text:
-                return node['line']
+                return node.line_text
 
             assert False, 'col == %r' % (col,)
 

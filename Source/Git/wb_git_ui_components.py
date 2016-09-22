@@ -24,6 +24,7 @@ import wb_git_commit_dialog
 import wb_git_log_history
 import wb_git_askpass_server
 import wb_git_credentials_dialog
+import wb_git_annotate
 
 import git
 import git.exc
@@ -128,6 +129,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff Staged vs. Working'), self.treeTableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Staged'), self.treeTableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Annotate'), self.tableActionGitAnnotate_Bg, self.enablerTableGitAnnotate )
 
         m.addSeparator()
         addMenu( m, T_('Status'), self.treeActionGitStatus )
@@ -237,6 +239,50 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         yield from commit_log_view.showCommitLogForFile_Bg( git_project, filename, options )
 
+    def enablerTableGitAnnotate( self ):
+        if not self.isScmTypeActive():
+            return False
+
+        return True
+
+    @thread_switcher
+    def tableActionGitAnnotate_Bg( self, checked ):
+        yield from self.table_view.tableActionViewRepo_Bg( self.__actionGitAnnotate_Bg )
+
+    @thread_switcher
+    def __actionGitAnnotate_Bg( self, git_project, filename ):
+        self.setStatusAction( T_('Annotate %s') % (filename,) )
+        self.progress.start( T_('Annotate %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        # when we know that exception can be raised catch it...
+        all_annotation_nodes = git_project.cmdAnnotationForFile( filename )
+
+        all_annotate_commit_ids = set()
+        for node in all_annotation_nodes:
+            all_annotate_commit_ids.add( node.log_id )
+
+        yield self.switchToForeground
+
+        self.progress.end()
+        self.progress.start( T_('Annotate Commit Logs %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        # when we know that exception can be raised catch it...
+        all_commit_logs = git_project.cmdCommitLogForAnnotateFile( filename, all_annotate_commit_ids )
+
+        yield self.switchToForeground
+
+        self.setStatusAction()
+        self.progress.end()
+
+        annotate_view = wb_git_annotate.WbGitAnnotateView(
+                            self.app,
+                            T_('Annotation of %s') % (filename,) )
+        annotate_view.showAnnotationForFile( all_annotation_nodes, all_commit_logs )
+        annotate_view.show()
 
     commit_key = 'git-commit-dialog'
     def treeActionGitCommit( self ):

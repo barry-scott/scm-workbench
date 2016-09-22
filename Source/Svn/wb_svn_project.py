@@ -15,9 +15,12 @@ import sys
 import tempfile
 import threading
 import pysvn
+import datetime
+
+import wb_read_file
+import wb_annotate_node
 
 import wb_svn_utils
-import wb_read_file
 
 ClientError = pysvn.ClientError
 
@@ -444,10 +447,18 @@ class SvnProject:
         rev_start = self.svn_rev_r0
         rev_end = self.svn_rev_head
 
-        all_annotation_nodes = self.client().annotate2(
+        all_svn_annotation_nodes = self.client().annotate2(
                         self.pathForSvn( filename ),
                         revision_start=rev_start,
                         revision_end=rev_end )
+
+        all_annotation_nodes = []
+
+        for node in all_svn_annotation_nodes:
+            all_annotation_nodes.append( wb_annotate_node.AnnotateNode(
+                    node['number']+1,
+                    node['line'],
+                    node['revision'].number ) )
 
         return all_annotation_nodes
 
@@ -462,7 +473,7 @@ class SvnProject:
                         strict_node_history=False,      # follow copy and move
                         discover_changed_paths=False )
 
-        return all_logs
+        return dict( [(log['revision'].number, SvnCommitLogNode( log )) for log in all_logs] )
 
     def svnCallbackNotify( self, arg_dict ):
         # svnCallbackNotify typically is running on the background thread
@@ -749,3 +760,25 @@ class CallFunctionOnMainThread:
         self.cv.release()
 
         self.app.log.debug( 'CallFunctionOnMainThread._onMainThread returning %r' % self.function )
+
+class SvnCommitLogNode:
+    def __init__( self, node ):
+        self.__node = node
+
+    def commitId( self ):
+        return self.__node['revision'].number
+
+    def commitIdString( self ):
+        return '%d' % (self.commitId(),)
+
+    def commitAuthor( self ):
+        return self.__node['author']
+
+    def commitAuthorEmail( self ):
+        return ''
+
+    def commitDate( self ):
+        return datetime.datetime.utcfromtimestamp( self.__node['date'] )
+
+    def commitMessage( self ):
+        return self.__node['message']

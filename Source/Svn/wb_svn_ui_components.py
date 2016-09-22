@@ -290,7 +290,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
             all_annotation_nodes = svn_project.cmdAnnotationForFile( filename )
             all_annotate_revs = set()
             for node in all_annotation_nodes:
-                all_annotate_revs.add( node['revision'].number )
+                all_annotate_revs.add( node.log_id )
 
             yield self.switchToForeground
 

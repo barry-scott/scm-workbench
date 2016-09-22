@@ -12,6 +12,8 @@
 '''
 import pathlib
 
+import wb_annotate_node
+
 import git
 import git.exc
 import git.index
@@ -71,6 +73,19 @@ class GitProject:
 
     def __repr__( self ):
         return '<GitProject: %s>' % (self.prefs_project.name,)
+
+    def pathForGit( self, path ):
+        assert isinstance( path, pathlib.Path )
+        # return abs path
+        return str( self.projectPath() / path )
+
+    def pathForWb( self, str_path ):
+        assert type( str_path ) == str
+        wb_path = pathlib.Path( str_path )
+        if wb_path.is_absolute():
+            wb_path = wb_path.relative_to( self.projectPath() )
+
+        return wb_path
 
     def hasCommits( self ):
         try:
@@ -344,31 +359,26 @@ class GitProject:
         self.__stale_index = True
 
     def cmdDiffFolder( self, folder, head, staged ):
-        abs_path = str( self.prefs_project.path / folder )
-
         if head and staged:
-            return self.repo.git.diff( 'HEAD', str(abs_path), staged=staged )
+            return self.repo.git.diff( 'HEAD', self.pathForGit( folder ), staged=staged )
 
         elif staged:
-            return self.repo.git.diff( str(abs_path), staged=True )
+            return self.repo.git.diff( self.pathForGit( folder ), staged=True )
 
         elif head:
-            return self.repo.git.diff( 'HEAD', str(abs_path), staged=False )
+            return self.repo.git.diff( 'HEAD', self.pathForGit( folder ), staged=False )
 
         else:
-            return self.repo.git.diff( str(abs_path), staged=False )
+            return self.repo.git.diff( self.pathForGit( folder ), staged=False )
 
     def cmdDiffWorkingVsCommit( self, filename, commit ):
-        abs_path = str( self.projectPath() / filename )
-        return self.repo.git.diff( commit, abs_path, staged=False )
+        return self.repo.git.diff( commit, self.pathForGit( filename ), staged=False )
 
     def cmdDiffStagedVSCommit( self, filename, commit ):
-        abs_path = str( self.projectPath() / filename )
-        return self.repo.git.diff( commit, abs_path, staged=True )
+        return self.repo.git.diff( commit, self.pathForGit( filename ), staged=True )
 
     def cmdDiffCommitVsCommit( self, filename, old_commit, new_commit ):
-        abs_path = str( self.projectPath() / filename )
-        return self.repo.git.diff( old_commit, new_commit, '--', abs_path )
+        return self.repo.git.diff( old_commit, new_commit, '--', self.pathForGit( filename ) )
 
     def cmdShow( self, what ):
         return self.repo.git.show( what )
@@ -492,6 +502,31 @@ class GitProject:
 
         for child in tree.trees:
             self.__treeToDict( child, all_entries )
+
+    def cmdAnnotationForFile( self, filename, rev=None ):
+        if rev is None:
+            rev = 'HEAD'
+
+        all_annotate_nodes = []
+
+        line_num = 0
+        for commit, all_lines in self.repo.blame( rev, self.pathForGit( filename ) ):
+            commit_id = commit.hexsha
+            for line_text in all_lines:
+                line_num += 1
+                all_annotate_nodes.append(
+                    wb_annotate_node.AnnotateNode( line_num, line_text, commit_id ) )
+
+        return all_annotate_nodes
+
+    def cmdCommitLogForAnnotateFile( self, filename, all_commit_ids ):
+        all_commit_logs = {}
+
+        for commit_id in all_commit_ids:
+            commit = self.repo.commit( commit_id )
+            all_commit_logs[ commit_id ] = GitCommitLogNode( commit )
+
+        return all_commit_logs
 
     def cmdPull( self, progress_callback, info_callback ):
         tracking_branch = self.repo.head.ref.tracking_branch()
@@ -802,6 +837,9 @@ class GitCommitLogNode:
             self.__treeToDict( tree, all_entries )
 
         return all_entries
+
+    def commitId( self ):
+        return self.__commit.hexsha
 
     def commitIdString( self ):
         return self.__commit.hexsha
