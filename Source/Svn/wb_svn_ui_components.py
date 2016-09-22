@@ -221,14 +221,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
         # as soon as possible del options to attemtp to avoid XCB errors
         if not options.exec_():
-            del options
             return
-
-        limit = options.getLimit()
-        since = options.getSince()
-        until = options.getUntil()
-
-        del options
 
         self.setStatusAction( T_('Log for %(filename)s') %
                                     {'filename': filename} )
@@ -236,7 +229,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
 
         yield self.switchToBackground
         try:
-            all_commit_nodes = svn_project.cmdCommitLogForFile( filename, limit, since, until )
+            all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil())
 
         except wb_svn_project.ClientError as e:
             svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (svn_project.projectName(), filename) )
