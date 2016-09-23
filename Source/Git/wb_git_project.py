@@ -743,7 +743,10 @@ class WbGitFileState:
         return self.__staged_abbrev != ''
 
     def canRevert( self ):
-        return self.__unstaged_abbrev != '' or self.__staged_abbrev != ''
+        return (self.isUnstagedDeleted()
+               or self.isUnstagedModified()
+               or self.isStagedDeleted()
+               or self.isStagedModified())
 
     # ------------------------------------------------------------
     def canDiffHeadVsStaged( self ):
