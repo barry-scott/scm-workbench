@@ -11,10 +11,6 @@
 
 
 '''
-import sys
-import time
-import datetime
-
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -404,7 +400,7 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
     def dateStringForRow( self, row ):
         node = self.all_commit_nodes[ row ]
-        return node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
+        return self.app.formatDatetime( node.commitDate() )
 
     def rowCount( self, parent ):
         return len( self.all_commit_nodes )
@@ -441,7 +437,7 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
                 return '%s <%s>' % (node.commitAuthor(), node.commitAuthorEmail())
 
             elif col == self.col_date:
-                return node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
+                return self.app.formatDatetime( node.commitDate() )
 
             elif col == self.col_message:
                 return node.commitMessage().split('\n')[0]

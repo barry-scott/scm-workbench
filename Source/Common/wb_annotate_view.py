@@ -10,8 +10,6 @@
     wb_svn_annotate.py
 
 '''
-import time
-
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -236,8 +234,7 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
                 return log_node.commitAuthor()
 
             elif col == self.col_date:
-                # QQQ use tzlocal and pytz to get local time
-                return log_node.commitDate().strftime( '%Y-%m-%d %H:%M:%S' )
+                return self.app.formatDatetime( log_node.commitDate() )
 
             elif col == self.col_line_num:
                 return '%d' % (node.line_num,)

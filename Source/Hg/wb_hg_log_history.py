@@ -11,9 +11,6 @@
 
 
 '''
-import sys
-import time
-import datetime
 import pathlib
 
 from PyQt5 import QtWidgets
@@ -395,7 +392,7 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
 
     def dateStringForRow( self, row ):
         node = self.all_commit_nodes[ row ]
-        return node.date.strftime( '%Y-%m-%d %H:%M:%S' )
+        return self.app.formatDatetime( node.date )
 
     def rowCount( self, parent ):
         return len( self.all_commit_nodes )
@@ -432,7 +429,7 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
                 return node.author
 
             elif col == self.col_date:
-                return node.date.strftime( '%Y-%m-%d %H:%M:%S' )
+                return self.app.formatDatetime( node.date )
 
             elif col == self.col_message:
                 return node.message.split('\n')[0]

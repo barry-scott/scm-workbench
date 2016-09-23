@@ -10,11 +10,10 @@
     wb_scm_table_model.py
 
 '''
+import os
+
 from PyQt5 import QtGui
 from PyQt5 import QtCore
-
-import os
-import time
 
 class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
     def __init__( self, app, parent=None ):
@@ -255,14 +254,14 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                 # skip scanning the file system for now
                 folder = scm_project_tree_node.absolutePath()
                 for dirent in os_scandir( str( folder ) ):
-                    entry = WbScmTableEntry( dirent.name )
+                    entry = WbScmTableEntry( self.app, dirent.name )
                     entry.updateFromDirEnt( dirent )
 
                     all_files[ entry.name ] = entry
 
         for name in scm_project_tree_node.getAllFileNames():
             if name not in all_files:
-                entry = WbScmTableEntry( name )
+                entry = WbScmTableEntry( self.app, name )
 
             else:
                 entry = all_files[ name ]
@@ -356,7 +355,8 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         return self.scm_project_tree_node.relativePath()
 
 class WbScmTableEntry:
-    def __init__( self, name ):
+    def __init__( self, app, name ):
+        self.app = app
         self.name = name
         self.dirent = None
         self.status = None
@@ -388,7 +388,7 @@ class WbScmTableEntry:
             return '-'
 
         else:
-            return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( self.dirent.stat().st_mtime ) )
+            return self.app.formatDatetime( self.dirent.stat().st_mtime )
 
     # ------------------------------------------------------------
     def isControlled( self ):

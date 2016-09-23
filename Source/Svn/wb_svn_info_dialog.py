@@ -74,15 +74,15 @@ class InfoDialog(QtWidgets.QDialog):
             self.addRow( T_('Last Changed Revision:'), info.last_changed_rev.number )
 
         if info.last_changed_date:
-            self.addRow( T_('Last Changed Date:'), wb_svn_utils.fmtDateTime( info.last_changed_date ) )
+            self.addRow( T_('Last Changed Date:'), self.app.formatDatetime( info.last_changed_date ) )
 
         self.addGroup( T_('Lock') )
         lock_info = info.lock
         if lock_info is not None:
             self.addRow( T_('Lock Owner:'), lock_info.owner )
-            self.addRow( T_('Lock Creation Date:'), wb_svn_utils.fmtDateTime( lock_info.creation_date ) )
+            self.addRow( T_('Lock Creation Date:'), self.app.formatDatetime( lock_info.creation_date ) )
             if lock_info.expiration_date is not None:
-                self.addRow( T_('Lock Expiration Date:'), wb_svn_utils.fmtDateTime( lock_info.expiration_date ) )
+                self.addRow( T_('Lock Expiration Date:'), self.app.formatDatetime( lock_info.expiration_date ) )
             self.addRow( T_('Lock Token:'), lock_info.token )
             self.addRow( T_('Lock Comment:'), lock_info.comment )
         else:
@@ -114,10 +114,10 @@ class InfoDialog(QtWidgets.QDialog):
                 self.addRow( T_('Copied From Revision:'), wc_info['copyfrom_rev'].number )
 
         if wc_info['text_time']:
-            self.addRow( T_('Text Last Updated:'), wb_svn_utils.fmtDateTime( wc_info['text_time'] ) )
+            self.addRow( T_('Text Last Updated:'), self.app.formatDatetime( wc_info['text_time'] ) )
 
         if wc_info['prop_time']:
-            self.addRow( T_('Properties Last Updated:'), wb_svn_utils.fmtDateTime( wc_info['prop_time'] ) )
+            self.addRow( T_('Properties Last Updated:'), self.app.formatDatetime( wc_info['prop_time'] ) )
 
         if wc_info['checksum']:
             self.addRow( T_('Checksum:'), wc_info['checksum'] )

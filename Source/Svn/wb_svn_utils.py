@@ -11,8 +11,6 @@
 
 '''
 import pysvn
-import time
-import locale
 
 # code assumes svn 1.9 as a minimum version
 class SvnVersionInfo:
@@ -24,13 +22,6 @@ class SvnVersionInfo:
         # add svn features tests here
 
 version_info = SvnVersionInfo()
-
-def fmtDateTime( val ):
-    encoding = locale.getlocale()[1]
-    if type( val ) == float:
-        val = time.localtime( val )
-
-    return time.strftime( '%d-%b-%Y %H:%M:%S', val )
 
 wc_status_kind_map = {
 pysvn.wc_status_kind.missing:       '?',

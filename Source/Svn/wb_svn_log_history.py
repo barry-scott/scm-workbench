@@ -10,8 +10,6 @@
     wb_svn_history.py
 
 '''
-import time
-
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -352,7 +350,7 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
                 return node.author
 
             elif col == self.col_date:
-                return time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime( node.date ) )
+                return self.app.formatDatetime( node.date )
 
             elif col == self.col_message:
                 return node.message.split('\n')[0]

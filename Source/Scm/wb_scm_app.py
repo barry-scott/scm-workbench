@@ -13,6 +13,7 @@
 import sys
 
 import wb_app
+import wb_date
 import wb_platform_specific
 
 import wb_scm_main_window
@@ -43,6 +44,11 @@ class WbScmApp(wb_app.WbApp,
 
         wb_scm_debug.WbScmDebug.__init__( self )
         wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args, ['git.cmd'] )
+
+    def formatDatetime( self, datetime_or_timestamp ):
+        dt = wb_date.localDatetime( datetime_or_timestamp )
+
+        return dt.strftime( '%Y-%m-%d %H:%M:%S' )
 
     def getAppQIcon( self ):
         return self.getQIcon( 'wb.png' )

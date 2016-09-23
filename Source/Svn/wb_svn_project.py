@@ -15,8 +15,8 @@ import sys
 import tempfile
 import threading
 import pysvn
-import datetime
 
+import wb_date
 import wb_read_file
 import wb_annotate_node
 
@@ -778,7 +778,7 @@ class SvnCommitLogNode:
         return ''
 
     def commitDate( self ):
-        return datetime.datetime.utcfromtimestamp( self.__node['date'] )
+        return wb_date.utcDatetime( self.__node['date'] )
 
     def commitMessage( self ):
         return self.__node['message']
