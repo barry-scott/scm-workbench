@@ -414,7 +414,16 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         git_project.cmdUnstage( 'HEAD', filename )
 
     def __actionGitRevert( self, git_project, filename ):
-        git_project.cmdRevert( 'HEAD', filename )
+        file_state = git_project.getFileState( filename )
+        if( file_state.isStagedModified()
+        and (file_state.isUnstagedModified()
+            or file_state.isUnstagedDeleted()) ):
+            # revert to staged (--)
+            git_project.cmdRevert( '--', filename )
+
+        else:
+            # revert to HEAD
+            git_project.cmdRevert( 'HEAD', filename )
 
     def __actionGitDelete( self, git_project, filename ):
         git_project.cmdDelete( filename )

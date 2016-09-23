@@ -46,6 +46,7 @@ class GitProject:
         self.ui_components = ui_components
 
         self._debug = self.app._debugGitProject
+        self._debugTree = self.app._debugGitTreeProject
 
         self.prefs_project = prefs_project
         self.repo = git.Repo( str( prefs_project.path ) )
@@ -220,25 +221,26 @@ class GitProject:
 
     def __updateTree( self, path ):
         assert isinstance( path, pathlib.Path ), 'path %r' % (path,)
-        self._debug( '__updateTree path %r' % (path,) )
+        self._debugTree( '__updateTree path %r' % (path,) )
         node = self.tree
 
-        self._debug( '__updateTree path.parts %r' % (path.parts,) )
+        self._debugTree( '__updateTree path.parts %r' % (path.parts,) )
 
         for index, name in enumerate( path.parts[0:-1] ):
-            self._debug( '__updateTree name %r at node %r' % (name,node) )
+            self._debugTree( '__updateTree name %r at node %r' % (name,node) )
 
             if not node.hasFolder( name ):
                 node.addFolder( name, GitProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
 
             node = node.getFolder( name )
 
-        self._debug( '__updateTree addFile %r to node %r' % (path, node) )
+        self._debugTree( '__updateTree addFile %r to node %r' % (path, node) )
         node.addFileByName( path )
         self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
-        self.tree._dumpTree( 0 )
+        if self.app._debug_git_tree_project:
+            self.tree._dumpTree( 0 )
 
     #------------------------------------------------------------
     #
@@ -333,9 +335,9 @@ class GitProject:
         self.__stale_index = True
 
     def cmdRevert( self, rev, filename ):
-        self._debug( 'cmdRevert( %r )' % (filename,) )
+        self._debug( 'cmdRevert( %r, %r )' % (rev, filename) )
 
-        self.repo.git.checkout( 'HEAD', filename )
+        self.repo.git.checkout( rev, filename )
         self.__stale_index = True
 
     def cmdDelete( self, filename ):
