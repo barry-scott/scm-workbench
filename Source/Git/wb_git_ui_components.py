@@ -39,6 +39,8 @@ from wb_background_thread import thread_switcher
 #
 class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def __init__( self ):
+        self.all_visible_table_columns = None
+
         super().__init__()
 
         self.askpass_server = None

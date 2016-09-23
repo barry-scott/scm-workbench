@@ -26,6 +26,8 @@ from wb_background_thread import thread_switcher
 
 class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
     def __init__( self ):
+        self.all_visible_table_columns = None
+
         super().__init__()
 
     def setTopWindow( self, top_window ):

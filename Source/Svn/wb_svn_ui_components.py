@@ -35,10 +35,9 @@ from wb_background_thread import thread_switcher
 #
 class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
     def __init__( self ):
-        super().__init__()
-
         self.all_visible_table_columns = None
 
+        super().__init__()
 
     def createProject( self, project ):
         tm = self.table_view.table_model
