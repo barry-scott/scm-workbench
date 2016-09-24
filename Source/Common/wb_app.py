@@ -166,6 +166,9 @@ class WbApp(QtWidgets.QApplication,
         self.log.info( 'find %r' % (gettext.find( 'scm-workbench', str(locale_path) ),) )
         self.log.info( 'info %r' % (self.translation.info(),) )
 
+        for path in sys.path:
+            self.log.info( 'sys.path: %r' % (path,) )
+
         for var in sorted( os.environ.keys() ):
             self.log.info( 'Environment %s=%s' % (var, os.environ[ var ]) )
 
