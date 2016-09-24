@@ -161,9 +161,6 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.timer_init.setSingleShot( True )
         self.timer_init.start( 0 )
 
-    def scmFocusWidget( self ):
-        return 'table'
-
     def completeStatupInitialisation( self ):
         self._debug( 'completeStatupInitialisation()' )
 

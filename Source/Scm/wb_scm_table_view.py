@@ -74,6 +74,11 @@ class WbScmTableView(QtWidgets.QTableView):
         self.setColumnWidth( self.table_model.col_date, em*16 )
         self.setColumnWidth( self.table_model.col_type, em*6 )
 
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'table' )
+
     def setVisibleColumns( self, all_visible_columns ):
         for col in range( self.table_model.col_num_columns ):
             self.setColumnHidden( col, col not in all_visible_columns )

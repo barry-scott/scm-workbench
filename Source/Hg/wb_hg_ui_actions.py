@@ -53,7 +53,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if not self.main_window.isScmTypeActive( 'hg' ):
             return False
 
-        focus = self.main_window.scmFocusWidget()
+        focus = self.main_window.focusIsIn()
 
         if focus == 'tree':
             return True
@@ -79,7 +79,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if not self.main_window.isScmTypeActive( 'hg' ):
             return False
 
-        focus = self.main_window.scmFocusWidget()
+        focus = self.main_window.focusIsIn()
         if focus == 'tree':
             return True
 
@@ -101,7 +101,7 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if not self.main_window.isScmTypeActive( 'hg' ):
             return False
 
-        focus = self.main_window.scmFocusWidget()
+        focus = self.main_window.focusIsIn()
 
         if focus == 'tree':
             return True

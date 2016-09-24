@@ -32,3 +32,8 @@ class WbScmTreeView(QtWidgets.QTreeView):
         # have the sort filter convert the indexes
         sortfilter = self.model()
         sortfilter.selectionChanged( selected, deselected )
+
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'tree' )

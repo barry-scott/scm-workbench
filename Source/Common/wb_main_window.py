@@ -27,6 +27,16 @@ class WbMainWindow(QtWidgets.QMainWindow):
         # list of all the WbActionState for the menus and toolbars
         self.__action_state_manager = WbActionStateManager( self._debug )
 
+        self.__focus_is_in = None
+
+    #------------------------------------------------------------
+    def setFocusIsIn( self, widget_type ):
+        self.__focus_is_in = widget_type
+
+    def focusIsIn( self ):
+        return self.__focus_is_in
+
+    #------------------------------------------------------------
     # override to do what is required on app becoming active.
     def appActiveHandler( self ):
         pass

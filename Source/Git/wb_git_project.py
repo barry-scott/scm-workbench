@@ -124,7 +124,7 @@ class GitProject:
         self.updateState()
 
     def updateState( self ):
-        self._debug( 'updateState()' )
+        self._debug( 'updateState() repo=%s' % (self.projectPath(),) )
         assert not self.__dirty_index, 'repo is dirty, forgot to call saveChanges?'
 
         # rebuild the tree

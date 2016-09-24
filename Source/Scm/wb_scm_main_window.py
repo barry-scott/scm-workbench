@@ -431,17 +431,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         return scm_project_tree_node.relativePath() == pathlib.Path( '.' )
 
-    def scmFocusWidget( self ):
-        if self.tree_view.hasFocus():
-            return 'tree'
-
-        elif( self.table_view.hasFocus()
-        or self.filter_text.hasFocus() ):
-            return 'table'
-
-        else:
-            return None
-
     #------------------------------------------------------------
     #
     #   Event handlers

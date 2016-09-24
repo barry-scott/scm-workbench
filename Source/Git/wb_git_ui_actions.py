@@ -51,13 +51,17 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         return self.__enablerGitFiles( wb_git_project.WbGitFileState.canUnstage )
 
     def enablerGitFilesRevert( self ):
-        return self.__enablerGitFiles( wb_git_project.WbGitFileState.canRevert )
+        self._debug( 'QQQ enablerGitFilesRevert' )
+        rc = self.__enablerGitFiles( wb_git_project.WbGitFileState.canRevert )
+        self._debug( 'QQQ enablerGitFilesRevert rc %r' % (rc,) )
+        return rc
 
     def __enablerGitFiles( self, predicate ):
         if not self.main_window.isScmTypeActive( 'git' ):
             return False
 
-        focus = self.main_window.scmFocusWidget()
+        focus = self.main_window.focusIsIn()
+        self._debug( 'qqq __enablerGitFiles focus %r' % (focus,) )
 
         if focus == 'tree':
             return True
@@ -68,6 +72,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 return False
 
             for obj in all_file_states:
+                self._debug( 'qqq __enablerGitFiles file_state %r' % (obj,) )
                 if not predicate( obj ):
                     return False
 
@@ -89,7 +94,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if not self.main_window.isScmTypeActive( 'git' ):
             return False
 
-        focus = self.main_window.scmFocusWidget()
+        focus = self.main_window.focusIsIn()
         if focus == 'tree':
             git_project = self.selectedGitProject()
             if git_project is None:
@@ -115,7 +120,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         if not self.main_window.isScmTypeActive( 'git' ):
             return False
 
-        focus = self.main_window.scmFocusWidget()
+        focus = self.main_window.focusIsIn()
 
         if focus == 'tree':
             git_project = self.selectedGitProject()
