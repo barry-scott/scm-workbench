@@ -38,7 +38,7 @@ def __sigchld_handler( signum, frame ):
         pass
 
 def getTerminalProgramList():
-    return ['Terminal', 'iTerm', 'iTerm2 V3']
+    return ['Terminal', 'iTerm2']
 
 def getFileBrowserProgramList():
     return ['Finder']
@@ -86,11 +86,8 @@ def ShellOpen( app, working_dir, all_filenames ):
 
 def CommandShell( app, working_dir ):
     p = app.prefs.shell
-    if p.terminal_program == 'iTerm':
-        CommandShell_iTerm( app, working_dir )
-
-    elif p.terminal_program == 'iTerm2 V3':
-        CommandShell_iTerm2_V3( app, working_dir )
+    if p.terminal_program == 'iTerm2':
+        CommandShell_iTerm2( app, working_dir )
 
     else:
         CommandShell_Terminal( app, working_dir )
@@ -109,53 +106,7 @@ def __titleFromPath( working_dir ):
 
     return ' '.join( title )
 
-def CommandShell_iTerm( app, working_dir ):
-    p = app.prefs.shell
-
-    # calc a title that is leaf to root so that the leaf shows up in a task bar first
-    title = __titleFromPath( working_dir )
-    commands = u'cd "%s"' % (str(working_dir).replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
-
-    if len( p.terminal_init ) > 0:
-        commands = commands + u';export WB_WD="$PWD"; . "%s"' % (p.terminal_init.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
-
-    contents = u'''
-tell application "iTerm"
-    activate 
-
-    -- make a new terminal
-    set work_bench_term to (make new terminal) 
-
-    -- talk to the new terminal
-    tell work_bench_term 
-        activate current session
-        launch session "Default Session"
-
-        -- talk to the session
-        tell the last session
-            set name to "%(title)s"
-
-            -- execute a command
-            exec command "/bin/bash"
-
-            write text "%(commands)s"
-
-        end tell
-
-    end tell
-
-end
-''' %   {'title': title.replace( '"', '\\"' )
-        ,'commands': commands.replace( '"', '\\"' )}
-
-    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt', encoding='utf=8' )
-    app.all_temp_files.append( f.name )
-    f.write( contents )
-    f.close()
-
-    __run_command( app, u'/usr/bin/osascript', [f.name] )
-
-def CommandShell_iTerm2_V3( app, working_dir ):
+def CommandShell_iTerm2( app, working_dir ):
     p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
@@ -166,8 +117,7 @@ def CommandShell_iTerm2_V3( app, working_dir ):
         commands = commands + u';export WB_WD="$PWD"; . "%s"' % (init_cmd.replace( '"', '\\\\"' ).replace( '$', '\\\\$' ),)
 
     contents = u'''
-tell application "iTerm2"
-    activate 
+tell application "iTerm"
     -- make a new terminal
     create window with default profile command "/bin/bash -l"
     tell current window
