@@ -8,9 +8,7 @@ PYSVN_PATH=$( ${PYTHON} -c 'import pysvn;print(pysvn.__path__[0])' )
 PY_VER=$( ${PYTHON} -c 'import sys;print( "%d.%d" % (sys.version_info.major, sys.version_info.minor) )' )
 DIST_DIR=app.tmp
 
-rm -rf build
 rm -rf ${DIST_DIR}
-
 mkdir -p ${DIST_DIR}
 
 pushd ${SRC_DIR}/Common
@@ -40,7 +38,7 @@ cp                ${SRC_DIR}/wb.png       ${DIST_DIR}/wb.iconset/icon_512x512@2x
 iconutil -c icns ${DIST_DIR}/wb.iconset
 
 export PYTHONPATH=${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
-${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --no-strip 2>&1 | tee py2app.log
+${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip 2>&1 | tee py2app.log
 
 # py2app copies the wrong dylibs for pysvn
 cp \
