@@ -278,8 +278,8 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
             rev_list = svn_project.cmdUpdate(
                                 filename,
-                                tree_node.svn_project.svn_rev_head,
-                                tree_node.svn_project.svn_depth_infinity )
+                                svn_project.svn_rev_head,
+                                svn_project.svn_depth_infinity )
             yield self.switchToForeground
             self.__updateToRevisionProcessResults( tree_node, rev_list )
 
