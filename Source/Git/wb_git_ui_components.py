@@ -310,7 +310,7 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def __commitAccepted( self ):
         commit_dialog = self.app.getSingleton( self.commit_key )
 
-        git_project = self.selectedGitProject()
+        git_project = commit_dialog.getGitProject()
         message = commit_dialog.getMessage()
         commit_id = git_project.cmdCommit( message )
 

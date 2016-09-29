@@ -232,6 +232,9 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         text = self.message.toPlainText()
         self.ok_button.setEnabled( text.strip() != '' and self.git_project.numStagedFiles() != 0 )
 
+    def getGitProject( self ):
+        return self.git_project
+
     def getMessage( self ):
         return self.message.toPlainText().strip()
 
