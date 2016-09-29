@@ -40,14 +40,10 @@ iconutil -c icns ${DIST_DIR}/wb.iconset
 export PYTHONPATH=${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
 ${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip 2>&1 | tee py2app.log
 
-# py2app copies the wrong dylibs for pysvn
-cp \
-    "${PYSVN_PATH}"/*.dylib \
-    "${DIST_DIR}/SCM Workbench-Devel.app/Contents/Frameworks"
-
 pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 
 ${PYTHON} ${KIT_DIR}/build_fix_install_rpath.py fix Resources/lib/python${PY_VER}/lib-dynload/PyQt5/*.so
+${PYTHON} ${KIT_DIR}/build_fix_install_rpath.py fix Frameworks/libsvn*.dylib Frameworks/libserf*.dylib
 
 for LIBNAME in \
     QtCore \
