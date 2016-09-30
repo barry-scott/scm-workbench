@@ -144,7 +144,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
     col_type = 5
     col_num_columns = 6
 
-    column_titles = (U_('Include'), U_('Staged'), U_('Status'), U_('Name'), U_('Date'), U_('Type'))
+    column_titles = (U_('Commit'), U_('Staged'), U_('Status'), U_('Name'), U_('Date'), U_('Type'))
 
     def __init__( self, app ):
         self.app = app
@@ -156,6 +156,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         self.scm_project_tree_node = None
 
         self.all_files = []
+        self.all_included_files = None
 
         self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 0, 255 ) )
         self.__brush_is_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
@@ -196,7 +197,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             col = index.column()
 
             if col == self.col_include:
-                return entry.includeAsString()
+                return 'X' if entry.name in self.all_included_files else ''
 
             elif col == self.col_staged:
                 return entry.stagedAsString()
@@ -237,6 +238,9 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
         return None
 
+    def setIncludedFilesSet( self, all_included_files ):
+        self.all_included_files = all_included_files
+
     def setScmProjectTreeNode( self, scm_project_tree_node ):
         self.refreshTable( scm_project_tree_node )
 
@@ -276,6 +280,15 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             self.beginResetModel()
             self.all_files = sorted( all_files.values() )
             self.endResetModel()
+
+            # see if self.all_included_files needs setting up
+            if self.all_included_files is not None:
+                for entry in self.all_files:
+                    if entry.canCommit():
+                        self.all_included_files.add( entry.name )
+
+            else:
+                self.all_included_files = set()
 
         else:
             parent = QtCore.QModelIndex()
@@ -361,7 +374,8 @@ class WbScmTableEntry:
         self.dirent = None
         self.status = None
 
-        self.include = True
+    def __repr__( self ):
+        return '<WbScmTableEntry: n: %r s: %r>' % (self.name, self.status)
 
     def isNotEqual( self, other ):
         return (self.name != other.name
@@ -400,14 +414,10 @@ class WbScmTableEntry:
     def isIgnore( self ):
         return self.status is not None and self.status.isIgnored()
 
+    def canCommit( self ):
+        return self.status is not None and self.status.canCommit()
+
     # ------------------------------------------------------------
-    def includeAsString( self ):
-        if self.include:
-            return T_('Include')
-
-        else:
-            return T_('Exclude')
-
     def stagedAsString( self ):
         if self.status is None:
             return ''

@@ -27,13 +27,15 @@ class WbMainWindow(QtWidgets.QMainWindow):
         # list of all the WbActionState for the menus and toolbars
         self.__action_state_manager = WbActionStateManager( self._debug )
 
-        self.__focus_is_in = None
+        self.__focus_is_in = 'tree'
 
     #------------------------------------------------------------
     def setFocusIsIn( self, widget_type ):
+        assert widget_type == 'tree' or widget_type == 'table'
         self.__focus_is_in = widget_type
 
     def focusIsIn( self ):
+        assert self.__focus_is_in == 'tree' or self.__focus_is_in == 'table'
         return self.__focus_is_in
 
     #------------------------------------------------------------
@@ -113,7 +115,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
 
         if checker is not None:
             action.setCheckable( True )
-            self.__action_state_manager.addChecker( action, enabler )
+            self.__action_state_manager.addChecker( action, checker )
 
 class WbActionStateManager:
     def __init__( self, debug_fn ):

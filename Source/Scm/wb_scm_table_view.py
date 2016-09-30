@@ -119,6 +119,9 @@ class WbScmTableView(QtWidgets.QTableView):
         return self.table_sortfilter.show_ignored
 
     # ------------------------------------------------------------
+    def setIncludedFilesSet( self, all_included_files ):
+        self.table_model.setIncludedFilesSet( all_included_files )
+
     def setScmProjectTreeNode( self, tree_node ):
         self.table_model.setScmProjectTreeNode( tree_node )
 

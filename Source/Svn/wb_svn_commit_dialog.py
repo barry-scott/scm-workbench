@@ -39,8 +39,10 @@ class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), self.tableActionSvnAdd, self.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), self.tableActionSvnRevert, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), self.tableActionSvnAddAndInclude, self.enablerSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), self.tableActionSvnRevertAndExclude, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+
+        addTool( t, 'Include', self.tableActionCommitInclude, self.enablerSvnCommitInclude, checker=self.checkerActionCommitInclude )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -52,6 +54,57 @@ class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         m.addSection( T_('Info' ) )
         addMenu( m, T_('Information'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
         addMenu( m, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
+
+    def tableActionSvnAddAndInclude( self ):
+        def execute_function( svn_project, filename ):
+            svn_project.cmdAdd( filename )
+            self.main_window.addCommitIncludedFile( filename )
+
+        self._tableActionSvnCmd( execute_function )
+
+    def tableActionSvnRevertAndExclude( self ):
+        def execute_function( svn_project, filename ):
+            try:
+                svn_project.cmdRevert( filename )
+                self.main_window.removeCommitIncludedFile( filename )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+                return
+
+        def are_you_sure( all_filenames ):
+            return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
+
+        self._tableActionSvnCmd( execute_function, are_you_sure )
+
+    def tableActionCommitInclude( self, checked ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return
+
+        for entry in all_file_states:
+            if checked:
+                self.main_window.addCommitIncludedFile( entry.relativePath() )
+
+            else:
+
+                self.main_window.removeCommitIncludedFile( entry.relativePath() )
+
+        # take account of the changes
+        self.top_window.updateTableView()
+
+    def checkerActionCommitInclude( self ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return False
+
+        tv = self.main_window.table_view
+
+        for entry in all_file_states:
+            if entry.relativePath() not in self.main_window.all_included_files:
+                return False
+
+        return True
 
 class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()
@@ -74,6 +127,9 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
         tm = self.table_view.table_model
         self.table_view.setVisibleColumns( (tm.col_include, tm.col_status, tm.col_name, tm.col_date) )
+
+        self.all_included_files = set()
+        self.table_view.setIncludedFilesSet( self.all_included_files )
 
         # unchanged files should not be interesting for a commit
         self.table_view.setShowControlledAndNotChangedFiles( False )
@@ -218,9 +274,21 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def handleAccepted( self ):
         self.commitAccepted.emit()
 
+    def addCommitIncludedFile( self, filename ):
+        self.all_included_files.add( filename )
+        self.enableOkButton()
+
+    def removeCommitIncludedFile( self, filename ):
+        self.all_included_files.discard( filename )
+        self.enableOkButton()
+
     def enableOkButton( self ):
-        text = self.message.toPlainText()
-        self.ok_button.setEnabled( text.strip() != '' )
+        self.ok_button.setEnabled(
+                self.message.toPlainText().strip() != ''
+                and len( self.all_included_files ) > 0 )
+
+    def getAllCommitIncludedFiles( self ):
+        return self.all_included_files
 
     def getMessage( self ):
         return self.message.toPlainText().strip()

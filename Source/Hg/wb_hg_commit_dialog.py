@@ -81,6 +81,9 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
 
+        self.all_included_files = set()
+        self.table_view.setIncludedFilesSet( self.all_included_files )
+
         # unchanged files should not be interesting for a commit
         self.table_view.setShowControlledAndNotChangedFiles( False )
 

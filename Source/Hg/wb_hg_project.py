@@ -472,6 +472,9 @@ class WbHgFileState:
         return self.__state == 'R'
 
     # ------------------------------------------------------------
+    def canCommit( self ):
+        return  self.isAdded() or self.isModified() or self.isDeleted()
+
     def canAdd( self ):
         return self.isUncontrolled()
 

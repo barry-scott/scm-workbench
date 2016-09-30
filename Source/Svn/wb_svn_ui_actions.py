@@ -50,16 +50,16 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     #
     #------------------------------------------------------------
     def enablerTreeTableSvnInfo( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnInfo, self.enablerTableSvnInfo, default=False )
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnInfo, self.enablerTableSvnInfo )
 
     def enablerTreeTableSvnProperties( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnProperties, self.enablerTableSvnProperties, default=False )
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnProperties, self.enablerTableSvnProperties )
 
     def enablerTreeTableSvnDiffBaseVsWorking( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, default=False )
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking )
 
     def enablerTreeTableSvnDiffHeadVsWorking( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, default=False )
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking )
 
     # ------------------------------------------------------------
     def treeTableActionSvnDiffBaseVsWorking( self ):
@@ -371,6 +371,9 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         # can only revert uncontrolled files
         return self._enablerTableSvnIsControlled()
 
+    def enablerSvnCommitInclude( self ):
+        return self._enablerTableSvnIsControlled()
+
     def __enablerTableSvnIsUncontrolled( self ):
         all_file_state = self.tableSelectedAllFileStates()
         if len(all_file_state) == 0:
@@ -444,7 +447,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, filename, svn_project.pathForSvn( filename ), info )
             dialog.exec_()
 
-        self.__tableActionSvnCmd( execute_function )
+        self._tableActionSvnCmd( execute_function )
 
     def tableActionSvnProperties( self ):
         def execute_function( svn_project, filename ):
@@ -472,13 +475,13 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
             self.main_window.updateTableView()
 
-        self.__tableActionSvnCmd( execute_function )
+        self._tableActionSvnCmd( execute_function )
 
     def tableActionSvnAdd( self ):
         def execute_function( svn_project, filename ):
             svn_project.cmdAdd( filename )
 
-        self.__tableActionSvnCmd( execute_function )
+        self._tableActionSvnCmd( execute_function )
 
     def tableActionSvnRevert( self ):
         def execute_function( svn_project, filename ):
@@ -492,7 +495,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
 
-        self.__tableActionSvnCmd( execute_function, are_you_sure )
+        self._tableActionSvnCmd( execute_function, are_you_sure )
 
     def tableActionSvnDelete( self ):
         def execute_function( svn_project, filename ):
@@ -506,7 +509,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
-        self.__tableActionSvnCmd( execute_function, are_you_sure )
+        self._tableActionSvnCmd( execute_function, are_you_sure )
 
     def tableActionSvnRename( self ):
         def execute_function( svn_project, filename ):
@@ -521,9 +524,9 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 except wb_svn_project.ClientError as e:
                     svn_project.logClientError( e )
 
-        self.__tableActionSvnCmd( execute_function )
+        self._tableActionSvnCmd( execute_function )
 
-    def __tableActionSvnCmd( self, execute_function, are_you_sure_function=None ):
+    def _tableActionSvnCmd( self, execute_function, are_you_sure_function=None ):
         svn_project = self.selectedSvnProject()
         if svn_project is None:
             return

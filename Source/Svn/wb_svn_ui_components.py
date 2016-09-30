@@ -191,7 +191,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
     def enablerTreeTableSvnLogHistory( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory, default=False )
+        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory )
 
     def enablerTreeSvnLogHistory( self ):
         return self._enablerTreeSvnIsControlled()
@@ -354,6 +354,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         commit_dialog = self.app.getSingleton( self.commit_key )
 
         message = commit_dialog.getMessage()
+        all_commit_files = commit_dialog.getAllCommitIncludedFiles()
 
         # hide the dialog
         commit_dialog.hide()
@@ -364,7 +365,7 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         yield self.switchToBackground
 
         try:
-            commit_id = svn_project.cmdCommit( message )
+            commit_id = svn_project.cmdCommit( message, all_commit_files )
 
             yield self.switchToForeground
 

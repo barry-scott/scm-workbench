@@ -730,26 +730,27 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if self.__ui_active_scm_type is not None:
             self.all_ui_components[ self.__ui_active_scm_type ].getTableContextMenu().exec_( global_pos )
 
-    def callTreeOrTableFunction( self, fn_tree, fn_table, default=None ):
-        if self.tree_view.hasFocus():
+    def callTreeOrTableFunction( self, fn_tree, fn_table ):
+        if self.focusIsIn() == 'tree':
             return fn_tree()
 
-        elif( self.table_view.hasFocus()
-        or self.filter_text.hasFocus() ):
+        elif self.focusIsIn() == 'table':
             return fn_table()
 
-        # else in logWidget so ignore
-        return default
+        else:
+            assert False, 'must be tree or table but is %r' % (self.focusIsIn(),)
 
     # like callTreeOrTableFunction with yield for use with thread switcher
     @thread_switcher
     def callTreeOrTableFunction_Bg( self, fn_tree, fn_table ):
-        if self.tree_view.hasFocus():
+        if self.focusIsIn() == 'tree':
             yield from fn_tree()
 
-        elif( self.table_view.hasFocus()
-        or self.filter_text.hasFocus() ):
+        elif self.focusIsIn() == 'table':
             yield from fn_table()
+
+        else:
+            assert False, 'must be tree or table but is %r' % (self.focusIsIn(),)
 
     def tableSelectedAbsoluteFiles( self ):
         tree_node = self.selectedScmProjectTreeNode()

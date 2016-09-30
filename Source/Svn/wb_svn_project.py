@@ -589,9 +589,13 @@ class WbSvnFileState:
     def isIgnored( self ):
         return self.__state is None or self.__state.node_status == pysvn.wc_status_kind.ignored
 
+    def canCommit( self ):
+        return (self.__state is not None
+                and self.__state.node_status in (pysvn.wc_status_kind.added, pysvn.wc_status_kind.modified, pysvn.wc_status_kind.deleted))
+
     # --------------------
     def isAdded( self ):
-        return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.add
+        return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.added
 
     def isModified( self ):
         return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.modified

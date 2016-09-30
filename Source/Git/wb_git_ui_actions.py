@@ -44,6 +44,9 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
     #   Enabler handlers
     #
     #------------------------------------------------------------
+    def enablerGitCommitInclude( self ):
+        return self.__enablerGitFiles( wb_git_project.WbGitFileState.canCommit )
+
     def enablerGitFilesStage( self ):
         return self.__enablerGitFiles( wb_git_project.WbGitFileState.canStage )
 
@@ -51,9 +54,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         return self.__enablerGitFiles( wb_git_project.WbGitFileState.canUnstage )
 
     def enablerGitFilesRevert( self ):
-        self._debug( 'QQQ enablerGitFilesRevert' )
         rc = self.__enablerGitFiles( wb_git_project.WbGitFileState.canRevert )
-        self._debug( 'QQQ enablerGitFilesRevert rc %r' % (rc,) )
         return rc
 
     def __enablerGitFiles( self, predicate ):
@@ -61,7 +62,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             return False
 
         focus = self.main_window.focusIsIn()
-        self._debug( 'qqq __enablerGitFiles focus %r' % (focus,) )
 
         if focus == 'tree':
             return True
@@ -72,7 +72,6 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 return False
 
             for obj in all_file_states:
-                self._debug( 'qqq __enablerGitFiles file_state %r' % (obj,) )
                 if not predicate( obj ):
                     return False
 
@@ -378,47 +377,47 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def tableActionGitStage( self ):
-        self.__tableActionChangeRepo( self.__actionGitStage )
+        self._tableActionChangeRepo( self._actionGitStage )
 
     def tableActionGitUnstage( self ):
-        self.__tableActionChangeRepo( self.__actionGitUnStage )
+        self._tableActionChangeRepo( self._actionGitUnstage )
 
     def tableActionGitRevert( self ):
-        self.__tableActionChangeRepo( self.__actionGitRevert, self.__areYouSureRevert )
+        self._tableActionChangeRepo( self._actionGitRevert, self._areYouSureRevert )
 
     def tableActionGitDelete( self ):
-        self.__tableActionChangeRepo( self.__actionGitDelete, self.__areYouSureDelete )
+        self._tableActionChangeRepo( self._actionGitDelete, self._areYouSureDelete )
 
     def tableActionGitRename( self ):
-        self.__tableActionChangeRepo( self.__actionGitRename )
+        self._tableActionChangeRepo( self._actionGitRename )
 
     def tableActionGitDiffSmart( self ):
         self._debug( 'tableActionGitDiffSmart()' )
-        self.table_view.tableActionViewRepo( self.__actionGitDiffSmart )
+        self.table_view.tableActionViewRepo( self._actionGitDiffSmart )
 
     def tableActionGitDiffStagedVsWorking( self ):
         self._debug( 'tableActionGitDiffStagedVsWorking()' )
-        self.table_view.tableActionViewRepo( self.__actionGitDiffStagedVsWorking )
+        self.table_view.tableActionViewRepo( self._actionGitDiffStagedVsWorking )
 
     def tableActionGitDiffHeadVsStaged( self ):
         self._debug( 'tableActionGitDiffHeadVsStaged()' )
-        self.table_view.tableActionViewRepo( self.__actionGitDiffHeadVsStaged )
+        self.table_view.tableActionViewRepo( self._actionGitDiffHeadVsStaged )
 
     def tableActionGitDiffHeadVsWorking( self ):
         self._debug( 'tableActionGitDiffHeadVsWorking()' )
-        self.table_view.tableActionViewRepo( self.__actionGitDiffHeadVsWorking )
+        self.table_view.tableActionViewRepo( self._actionGitDiffHeadVsWorking )
 
     @thread_switcher
     def tableActionGitLogHistory_Bg( self ):
         yield from self.table_view.tableActionViewRepo_Bg( self._actionGitLogHistory_Bg )
 
-    def __actionGitStage( self, git_project, filename ):
+    def _actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )
 
-    def __actionGitUnStage( self, git_project, filename ):
+    def _actionGitUnstage( self, git_project, filename ):
         git_project.cmdUnstage( 'HEAD', filename )
 
-    def __actionGitRevert( self, git_project, filename ):
+    def _actionGitRevert( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
         if( file_state.isStagedModified()
         and (file_state.isUnstagedModified()
@@ -430,10 +429,10 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             # revert to HEAD
             git_project.cmdRevert( 'HEAD', filename )
 
-    def __actionGitDelete( self, git_project, filename ):
+    def _actionGitDelete( self, git_project, filename ):
         git_project.cmdDelete( filename )
 
-    def __actionGitRename( self, git_project, filename ):
+    def _actionGitRename( self, git_project, filename ):
         filestate = git_project.getFileState( filename )
 
         rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
@@ -443,19 +442,19 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
             # handles rename for controlled and uncontrolled files
             git_project.cmdRename( filename, filename.with_name( rename.getName() ) )
 
-    def __actionGitDiffSmart( self, git_project, filename ):
+    def _actionGitDiffSmart( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
         if file_state.canDiffStagedVsWorking():
-            self.__actionGitDiffStagedVsWorking( git_project, filename )
+            self._actionGitDiffStagedVsWorking( git_project, filename )
 
         elif file_state.canDiffHeadVsStaged():
-            self.__actionGitDiffHeadVsStaged( git_project, filename )
+            self._actionGitDiffHeadVsStaged( git_project, filename )
 
         elif file_state.canDiffHeadVsWorking():
-            self.__actionGitDiffHeadVsWorking( git_project, filename )
+            self._actionGitDiffHeadVsWorking( git_project, filename )
 
-    def __actionGitDiffHeadVsWorking( self, git_project, filename ):
+    def _actionGitDiffHeadVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
         self.diffTwoFiles(
@@ -466,7 +465,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 T_('Work %s') % (filename,)
                 )
 
-    def __actionGitDiffStagedVsWorking( self, git_project, filename ):
+    def _actionGitDiffStagedVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
         self.diffTwoFiles(
@@ -477,7 +476,7 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 T_('Work %s') % (filename,)
                 )
 
-    def __actionGitDiffHeadVsStaged( self, git_project, filename ):
+    def _actionGitDiffHeadVsStaged( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
         self.diffTwoFiles(
@@ -489,13 +488,13 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
                 )
 
     #------------------------------------------------------------
-    def __areYouSureRevert( self, all_filenames ):
+    def _areYouSureRevert( self, all_filenames ):
         return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
 
-    def __areYouSureDelete( self, all_filenames ):
+    def _areYouSureDelete( self, all_filenames ):
         return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
-    def __tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
+    def _tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
         def finalise( git_project ):
             git_project.saveChanges()
 

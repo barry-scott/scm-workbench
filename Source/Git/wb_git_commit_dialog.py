@@ -37,9 +37,9 @@ class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Diff Staged vs. Working'), self.tableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
-        addMenu( m, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Stage'), self.tableActionGitStageAndInclude, self.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), self.tableActionGitUnstageAndExclude, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), self.tableActionGitRevertAndExclude, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
         addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
 
@@ -61,9 +61,63 @@ class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         t = addToolBar( T_('git state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Stage'), self.tableActionGitStage, self.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addTool( t, T_('Unstage'), self.tableActionGitUnstage, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addTool( t, T_('Revert'), self.tableActionGitRevert, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Stage'), self.tableActionGitStageAndInclude, self.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addTool( t, T_('Unstage'), self.tableActionGitUnstageAndExclude, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addTool( t, T_('Revert'), self.tableActionGitRevertAndExclude, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+
+        addTool( t, 'Include', self.tableActionCommitInclude, self.enablerGitCommitInclude, checker=self.checkerActionCommitInclude )
+
+    def tableActionGitStageAndInclude( self ):
+        self._tableActionChangeRepo( self._actionGitStageAndInclude )
+
+    def _actionGitStageAndInclude( self, git_project, filename ):
+        self._actionGitStage( git_project, filename )
+        self.main_window.all_included_files.add( filename )
+
+    def tableActionGitUnstageAndExclude( self ):
+        self._tableActionChangeRepo( self._actionGitUnstageAndExclude )
+
+    def _actionGitUnstageAndExclude( self, git_project, filename ):
+        self._actionGitUnstage( git_project, filename )
+        self.main_window.all_included_files.discard( filename )
+
+    def tableActionGitRevertAndExclude( self ):
+        self._tableActionChangeRepo( self._actionGitRevertAndExclude, self._areYouSureRevert )
+
+    def _actionGitRevertAndExclude( self, git_project, filename ):
+        self._actionGitRevert( git_project, filename )
+
+        if not git_project.getFileState( filename ).canCommit():
+            self.main_window.all_included_files.discard( filename )
+
+    def tableActionCommitInclude( self, checked ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return
+
+        for entry in all_file_states:
+            if checked:
+                self.main_window.all_included_files.add( entry.relativePath() )
+
+            else:
+
+                self.main_window.all_included_files.discard( entry.relativePath() )
+
+        # take account of the changes
+        self.top_window.updateTableView()
+
+    def checkerActionCommitInclude( self ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return False
+
+        tv = self.main_window.table_view
+
+        for entry in all_file_states:
+            if entry.relativePath() not in self.main_window.all_included_files:
+                return False
+
+        return True
 
 class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()
@@ -84,6 +138,9 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
+
+        self.all_included_files = set()
+        self.table_view.setIncludedFilesSet( self.all_included_files )
 
         # unchanged files should not be interesting for a commit
         self.table_view.setShowControlledAndNotChangedFiles( False )
@@ -234,6 +291,9 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
     def getGitProject( self ):
         return self.git_project
+
+    def getAllCommitIncludedFiles( self ):
+        return self.all_included_files
 
     def getMessage( self ):
         return self.message.toPlainText().strip()

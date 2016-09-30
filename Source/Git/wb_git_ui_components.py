@@ -312,6 +312,8 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         git_project = commit_dialog.getGitProject()
         message = commit_dialog.getMessage()
+        all_commit_files = commit_dialog.getAllCommitIncludedFiles()
+        print( 'qqq work to do with the all_commit_files???' )
         commit_id = git_project.cmdCommit( message )
 
         headline = message.split('\n')[0]

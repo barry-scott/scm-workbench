@@ -611,6 +611,9 @@ class WbGitFileState:
         return ('<WbGitFileState: calc %r, S=%r, U=%r' %
                 (self.__state_calculated, self.__staged_abbrev, self.__unstaged_abbrev))
 
+    def relativePath( self ):
+        return self.__filepath
+
     def absolutePath( self ):
         return self.__project.projectPath() / self.__filepath
 
@@ -738,6 +741,9 @@ class WbGitFileState:
         return self.__unstaged_abbrev == 'D'
 
     # ------------------------------------------------------------
+    def canCommit( self ):
+        return self.__staged_abbrev != ''
+
     def canStage( self ):
         return self.__unstaged_abbrev != '' or self.__untracked
 
