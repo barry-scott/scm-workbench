@@ -56,7 +56,7 @@ popd >NUL
 set PATH=%BUILDER_QTDIR%\msvc2015_64\bin;%PATH%
 set PYTHONPATH=%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Common
 pushd %SRC_DIR%\Scm
-%PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM Workbench" %VERBOSE%
+%PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM Workbench" --modules-allowed-to-be-missing-file %BUILDER_TOP_DIR%\Kit\Windows\modules-allowed-to-be-missing.txt %VERBOSE%
     if errorlevel 1 goto :error
 popd >NUL
 pushd %SRC_DIR%\Git
