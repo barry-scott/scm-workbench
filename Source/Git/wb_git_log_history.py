@@ -15,6 +15,8 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import pathlib
+
 from wb_background_thread import thread_switcher
 
 import wb_tracked_qwidget
@@ -341,11 +343,11 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         else: # folder
             if commit_new is None:
-                text = self.git_project.cmdDiffWorkingVsCommit( '.', commit_old )
+                text = self.git_project.cmdDiffWorkingVsCommit( pathlib.Path('.'), commit_old )
                 self.ui_component.showDiffText( title, text.split('\n') )
 
             else:
-                text = self.git_project.cmdDiffCommitVsCommit( '.', commit_old, commit_new )
+                text = self.git_project.cmdDiffCommitVsCommit( pathlib.Path('.'), commit_old, commit_new )
                 self.ui_component.showDiffText( title, text.split('\n') )
 
 class WbLogTableView(QtWidgets.QTableView):
