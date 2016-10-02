@@ -15,6 +15,8 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 class WbMainWindow(QtWidgets.QMainWindow):
+    focus_is_in_names = ('tree', 'table')
+
     def __init__( self, app, debug_fn, parent=None ):
         self.app = app
         self.log = self.app.log
@@ -27,15 +29,15 @@ class WbMainWindow(QtWidgets.QMainWindow):
         # list of all the WbActionState for the menus and toolbars
         self.__action_state_manager = WbActionStateManager( self._debug )
 
-        self.__focus_is_in = 'tree'
+        self.__focus_is_in = self.focus_is_in_names[0]
 
     #------------------------------------------------------------
     def setFocusIsIn( self, widget_type ):
-        assert widget_type == 'tree' or widget_type == 'table'
+        assert widget_type in self.focus_is_in_names
         self.__focus_is_in = widget_type
 
     def focusIsIn( self ):
-        assert self.__focus_is_in == 'tree' or self.__focus_is_in == 'table'
+        assert self.__focus_is_in in self.focus_is_in_names
         return self.__focus_is_in
 
     #------------------------------------------------------------

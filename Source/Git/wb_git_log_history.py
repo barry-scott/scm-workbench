@@ -49,16 +49,17 @@ class GitLogHistoryWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addMenu( m, T_('Diff'), self.tableActionGitDiffLogHistory, self.enablerTableGitDiffLogHistory, 'toolbar_images/diff.png' )
 
     def enablerTableGitDiffLogHistory( self ):
-        return len(self.main_window.current_commit_selections) in (1,2)
+        return self.main_window.enablerTableGitDiffLogHistory()
 
     def tableActionGitDiffLogHistory( self ):
-        self.main_window.diffLogHistory()
+        return self.main_window.tableActionGitDiffLogHistory()
 
     def enablerTableGitAnnotateLogHistory( self ):
-        return len(self.main_window.current_commit_selections) in (1,2)
+        return self.main_window.enablerTableGitAnnotateLogHistory()
 
     def tableActionGitAnnotateLogHistory( self ):
         self.main_window.annotateLogHistory()
+
 
     def __logHistoryProgress( self, count, total ):
         if total > 0:
@@ -72,11 +73,13 @@ class GitLogHistoryWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         return self.app.deferRunInForeground( self.__logHistoryProgress )
 
 class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
+    focus_is_in_names = ('commits', 'changes')
     def __init__( self, app, title ):
         self.app = app
         self._debug = self.app._debugLogHistory
 
         super().__init__( app, app._debugMainWindow )
+
 
         self.current_commit_selections = []
         self.current_file_selection = []
@@ -259,10 +262,40 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def selectionChangedFile( self ):
         self.current_file_selection = [index.row() for index in self.changes_table.selectedIndexes() if index.column() == 0]
         self.updateEnableStates()
-        if len(self.current_file_selection) == 0:
-            return
 
-        node = self.changes_model.changesNode( self.current_file_selection[0] )
+    def enablerTableGitDiffLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            return len(self.current_commit_selections) in (1,2)
+
+        elif focus == 'changes':
+            if len(self.current_file_selection) == 0:
+                return False
+
+            type_, filename, old_filename = self.changes_model.changesNode( self.current_file_selection[0] )
+            return type_ in 'M'
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def tableActionGitDiffLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            self.diffLogHistory()
+
+        elif focus == 'changes':
+            self.diffFileChanges()
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def enablerTableGitAnnotateLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            return len(self.current_commit_selections) in (1,2)
+
+        else:
+            return False
 
     def diffLogHistory( self ):
         #
@@ -350,9 +383,38 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                 text = self.git_project.cmdDiffCommitVsCommit( pathlib.Path('.'), commit_old, commit_new )
                 self.ui_component.showDiffText( title, text.split('\n') )
 
+    def diffFileChanges( self ):
+        type_, filename, old_filename = self.changes_model.changesNode( self.current_file_selection[0] )
+
+        commit_new = self.log_model.commitForRow( self.current_commit_selections[0] )
+        date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
+        commit_old = '%s^1' % (commit_new,)
+
+        title_vars = {'commit_old': commit_old
+                     ,'commit_new': commit_new
+                     ,'date_new': date_new}
+
+
+        heading_new = T_('%(date_new)s commit %(commit_new)s') % title_vars
+        heading_old = T_('commit %(commit_old)s') % title_vars
+
+        title = T_('Diff %s') % (filename,)
+
+        filepath = pathlib.Path( filename )
+
+        text_new = self.git_project.getTextLinesForCommit( filepath, commit_new )
+        text_old = self.git_project.getTextLinesForCommit( filepath, commit_old )
+
+        self.ui_component.diffTwoFiles(
+                title,
+                text_old,
+                text_new,
+                heading_old,
+                heading_new
+                )
+
     def annotateLogHistory( self ):
         self.log.error( 'annotateLogHistory TBD' )
-
 
 
 class WbLogTableView(QtWidgets.QTableView):
@@ -370,6 +432,11 @@ class WbLogTableView(QtWidgets.QTableView):
 
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
+
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'commits' )
 
 class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
@@ -468,6 +535,11 @@ class WbChangesTableView(QtWidgets.QTableView):
 
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
+
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'changes' )
 
 class WbGitChangedFilesModel(QtCore.QAbstractTableModel):
     col_action = 0
