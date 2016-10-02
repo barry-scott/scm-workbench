@@ -350,6 +350,11 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                 text = self.git_project.cmdDiffCommitVsCommit( pathlib.Path('.'), commit_old, commit_new )
                 self.ui_component.showDiffText( title, text.split('\n') )
 
+    def annotateLogHistory( self ):
+        self.log.error( 'annotateLogHistory TBD' )
+
+
+
 class WbLogTableView(QtWidgets.QTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
