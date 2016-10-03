@@ -209,8 +209,11 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                 if entry.is_dir():
                     return entry.name + os.sep
 
+                elif entry.is_symlink():
+                    return entry.name + '@'
+
                 else:
-                    return str(entry.name)
+                    return entry.name
 
             elif col == self.col_date:
                 return entry.fileDate()
@@ -397,12 +400,15 @@ class WbScmTableEntry:
     def is_dir( self ):
         return self.dirent is not None and self.dirent.is_dir()
 
+    def is_symlink( self ):
+        return self.dirent is not None and self.dirent.is_symlink()
+
     def fileDate( self ):
         if self.dirent is None:
             return '-'
 
         else:
-            return self.app.formatDatetime( self.dirent.stat().st_mtime )
+            return self.app.formatDatetime( self.dirent.stat( follow_symlinks=not self.dirent.is_symlink() ).st_mtime )
 
     # ------------------------------------------------------------
     def isControlled( self ):
@@ -448,4 +454,3 @@ class DirEntPre35:
     def is_dir( self ):
         import stat
         return stat.S_ISDIR( self.__stat.st_mode )
-
