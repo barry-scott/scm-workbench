@@ -16,6 +16,7 @@ from PyQt5 import QtCore
 
 import wb_main_window
 import wb_tracked_qwidget
+import wb_common_dialogs
 
 import wb_scm_table_view
 
