@@ -251,6 +251,18 @@ class HgProject:
         assert type( bytes_path ) == bytes
         return pathlib.Path( bytes_path.decode( sys.getfilesystemencoding() ) )
 
+    def getTextLinesForRevision( self, filepath, rev ):
+        if type( rev ) == int:
+            rev = '%d' % (rev,)
+        # else its a string like 'tip'
+
+        text = self.cmdCat( filepath, rev=rev )
+        all_lines = text.split('\n')
+        if all_lines[-1] == '':
+            return all_lines[:-1]
+        else:
+            return all_lines
+
     def cmdCat( self, filename, rev=None ):
         byte_result = self.repo.cat( [self.pathForHg( filename )], rev=rev )
         return byte_result.decode( 'utf-8' )

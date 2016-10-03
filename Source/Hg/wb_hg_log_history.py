@@ -12,6 +12,7 @@
 
 '''
 import pathlib
+import pytz
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
@@ -49,13 +50,13 @@ class HgLogHistoryWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addMenu( m, T_('Diff'), self.tableActionHgDiffLogHistory, self.enablerTableHgDiffLogHistory, 'toolbar_images/diff.png' )
 
     def enablerTableHgDiffLogHistory( self ):
-        return len(self.main_window.current_commit_selections) in (1,2)
+        return self.main_window.enablerTableHgDiffLogHistory()
 
     def tableActionHgDiffLogHistory( self ):
-        self.main_window.diffLogHistory()
+        self.main_window.tableActionHgDiffLogHistory()
 
     def enablerTableHgAnnotateLogHistory( self ):
-        return len(self.main_window.current_commit_selections) in (1,2)
+        return self.main_window.enablerTableHgAnnotateLogHistory()
 
     def tableActionHgAnnotateLogHistory( self ):
         self.main_window.annotateLogHistory()
@@ -72,6 +73,7 @@ class HgLogHistoryWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         return self.app.deferRunInForeground( self.__logHistoryProgress )
 
 class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
+    focus_is_in_names = ('commits', 'changes')
     def __init__( self, app, title ):
         self.app = app
         self._debug = self.app._debugLogHistory
@@ -254,6 +256,29 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         self.updateEnableStates()
 
+    def enablerTableHgDiffLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            return len(self.current_commit_selections) in (1,2)
+
+        elif focus == 'changes':
+            if len(self.current_file_selection) == 0:
+                return False
+
+            type_, filename = self.changes_model.changesNode( self.current_file_selection[0] )
+            return type_ in 'M'
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def enablerTableHgAnnotateLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            return len(self.current_commit_selections) in (1,2)
+
+        else:
+            return False
+
     def selectionChangedFile( self ):
         self.current_file_selection = [index.row() for index in self.changes_table.selectedIndexes() if index.column() == 0]
         self.updateEnableStates()
@@ -261,6 +286,17 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
             return
 
         node = self.changes_model.changesNode( self.current_file_selection[0] )
+
+    def tableActionHgDiffLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            self.diffLogHistory()
+
+        elif focus == 'changes':
+            self.diffFileChanges()
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
 
     def diffLogHistory( self ):
         #
@@ -298,7 +334,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
                          ,'commit_new': commit_new
                          ,'date_new': date_new}
 
-            heading_new = T_('%(date_new)s commit %(commit_new)s') % title_vars
+            heading_new = T_('commit %(commit_new)s date %(date_new)s') % title_vars
 
         if self.filename is not None:
             title = T_('Diff File %s') % (self.filename,)
@@ -306,7 +342,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         else:
             title = T_('Diff Project %s' % (self.hg_project.projectName(),) )
 
-        heading_old = T_('%(date_old)s commit %(commit_old)s') % title_vars
+        heading_old = T_('commit %(commit_old)s date %(date_old)s') % title_vars
 
         #
         #   figure out the text to diff
@@ -341,6 +377,38 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
                 text = self.hg_project.cmdDiffCommitVsCommit( repo_path, commit_old, commit_new )
                 self.ui_component.showDiffText( title, text.split('\n') )
 
+    def diffFileChanges( self ):
+        type_, filename = self.changes_model.changesNode( self.current_file_selection[0] )
+
+        rev_new = self.log_model.revisionForRow( self.current_commit_selections[0] )
+        rev_old = rev_new - 1
+        date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
+
+        title_vars = {'rev_old': rev_old
+                     ,'rev_new': rev_new
+                     ,'date_new': date_new}
+
+        heading_new = T_('commit %(rev_new)s date %(date_new)s') % title_vars
+        heading_old = T_('commit %(rev_old)s') % title_vars
+
+        title = T_('Diff %s') % (filename,)
+
+        filepath = pathlib.Path( filename )
+
+        text_new = self.hg_project.getTextLinesForRevision( filepath, rev_new )
+        text_old = self.hg_project.getTextLinesForRevision( filepath, rev_old )
+
+        self.ui_component.diffTwoFiles(
+                title,
+                text_old,
+                text_new,
+                heading_old,
+                heading_new
+                )
+
+    def annotateLogHistory( self ):
+        self.log.error( 'annotateLogHistory TBD' )
+
 class WbLogTableView(QtWidgets.QTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
@@ -356,6 +424,11 @@ class WbLogTableView(QtWidgets.QTableView):
 
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
+
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'commits' )
 
 class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
@@ -389,7 +462,7 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
 
     def dateStringForRow( self, row ):
         node = self.all_commit_nodes[ row ]
-        return self.app.formatDatetime( node.date )
+        return self.app.formatDatetime( node.date.replace( tzinfo=pytz.utc ) )
 
     def rowCount( self, parent ):
         return len( self.all_commit_nodes )
@@ -426,7 +499,8 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
                 return node.author
 
             elif col == self.col_date:
-                return self.app.formatDatetime( node.date )
+                dt = node.date.replace( tzinfo=pytz.utc )
+                return self.app.formatDatetime( dt )
 
             elif col == self.col_message:
                 return node.message.split('\n')[0]
@@ -450,6 +524,11 @@ class WbChangesTableView(QtWidgets.QTableView):
 
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
+
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'changes' )
 
 class WbHgChangedFilesModel(QtCore.QAbstractTableModel):
     col_action = 0
@@ -497,7 +576,6 @@ class WbHgChangedFilesModel(QtCore.QAbstractTableModel):
     def data( self, index, role ):
         if role == QtCore.Qt.UserRole:
             return self.all_changes[ index.row() ]
-
 
         if role == QtCore.Qt.DisplayRole:
             type_, filename = self.all_changes[ index.row() ]

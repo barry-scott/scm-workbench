@@ -233,14 +233,18 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
     def tableActionSvnDiffLogHistory( self ):
         focus = self.focusIsIn()
-        if focus == 'commits':
-            self.diffLogHistory()
+        try:
+            if focus == 'commits':
+                self.diffLogHistory()
 
-        elif focus == 'changes':
-            self.diffFileChanges()
+            elif focus == 'changes':
+                self.diffFileChanges()
 
-        else:
-            assert False, 'focus not as expected: %r' % (focus,)
+            else:
+                assert False, 'focus not as expected: %r' % (focus,)
+
+        except wb_svn_project.ClientError as e:
+            self.svn_project.logClientError( e )
 
     def enablerTableSvnAnnotateLogHistory( self ):
         focus = self.focusIsIn()
@@ -251,29 +255,34 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
             return False
 
     def diffLogHistory( self ):
-        try:
-            self.__diffLogHistory()
-
-        except wb_svn_project.ClientError as e:
-            self.svn_project.logClientError( e )
-
-    def __diffLogHistory( self ):
         filestate = self.svn_project.getFileState( self.filename )
 
         if len( self.current_commit_selections ) == 1:
             # diff working against rev
             rev_new = self.svn_project.svn_rev_working
             rev_old = self.log_model.revForRow( self.current_commit_selections[0] )
+            date_old = self.log_model.dateStringForRow( self.current_commit_selections[0] )
 
-            heading_new = 'Working'
-            heading_old = 'r%d' % (rev_old.number,)
+            title_vars = {'rev_old': rev_old.number
+                         ,'date_old': date_old}
+
+            heading_new = T_('Working')
+            heading_old = T_('r%(rev_old)d date %(date_old)s') % title_vars
 
         else:
             rev_new = self.log_model.revForRow( self.current_commit_selections[0] )
+            date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
             rev_old = self.log_model.revForRow( self.current_commit_selections[-1] )
+            date_old = self.log_model.dateStringForRow( self.current_commit_selections[-1] )
 
-            heading_new = 'r%d' % (rev_new.number,)
-            heading_old = 'r%d' % (rev_old.number,)
+            title_vars = {'rev_old': rev_old.number
+                         ,'date_old': date_old
+                         ,'rev_new': rev_new.number
+                         ,'date_new': date_new}
+
+
+            heading_new = T_('r%(rev_new)d date %(date_new)s') % title_vars
+            heading_old = T_('r%(rev_old)d date %(date_old)s') % title_vars
 
         if filestate.isDir():
             title = T_('Diff %s') % (self.filename,)
@@ -299,13 +308,6 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                     )
 
     def diffFileChanges( self ):
-        try:
-            self.__diffFileChanges()
-
-        except wb_svn_project.ClientError as e:
-            self.svn_project.logClientError( e )
-
-    def __diffFileChanges( self ):
         node = self.changes_model.changesNode( self.current_file_selection[0] )
         filename = node.path
 
@@ -406,6 +408,9 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
 
     def revForRow( self, row ):
         return self.all_commit_nodes[ row ].revision
+
+    def dateStringForRow( self, row ):
+        return self.app.formatDatetime( self.all_commit_nodes[ row ].date )
 
     def data( self, index, role ):
         if role == QtCore.Qt.UserRole:

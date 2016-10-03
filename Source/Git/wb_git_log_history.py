@@ -336,7 +336,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                          ,'date_new': date_new}
 
 
-            heading_new = T_('%(date_new)s commit %(commit_new)s') % title_vars
+            heading_new = T_('commit %(commit_new)s date %(date_new)s') % title_vars
 
         if self.filename is not None:
             title = T_('Diff File %s') % (self.filename,)
@@ -344,7 +344,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         else:
             title = T_('Diff Project %s' % (self.git_project.projectName(),) )
 
-        heading_old = T_('%(date_old)s commit %(commit_old)s') % title_vars
+        heading_old = T_('commit %(commit_old)s date %(date_old)s') % title_vars
 
         #
         #   figure out the text to diff
@@ -393,7 +393,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                      ,'commit_new': commit_new
                      ,'date_new': date_new}
 
-        heading_new = T_('%(date_new)s commit %(commit_new)s') % title_vars
+        heading_new = T_('commit %(commit_new)s date %(date_new)s') % title_vars
         heading_old = T_('commit %(commit_old)s') % title_vars
 
         title = T_('Diff %s') % (filename,)
