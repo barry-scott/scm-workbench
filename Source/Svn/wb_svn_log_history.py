@@ -7,9 +7,11 @@
 
  ====================================================================
 
-    wb_svn_history.py
+    wb_svn_log_history.py
 
 '''
+import pathlib
+
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -18,6 +20,7 @@ import wb_tracked_qwidget
 import wb_main_window
 
 import wb_svn_ui_actions
+import wb_svn_project
 
 
 #------------------------------------------------------------
@@ -46,18 +49,19 @@ class SvnLogHistoryWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addMenu( m, T_('Diff'), self.tableActionSvnDiffLogHistory, self.enablerTableSvnDiffLogHistory, 'toolbar_images/diff.png' )
 
     def enablerTableSvnDiffLogHistory( self ):
-        return len(self.main_window.current_commit_selections) in (1,2)
+        return self.main_window.enablerTableSvnDiffLogHistory()
 
     def tableActionSvnDiffLogHistory( self ):
-        self.main_window.diffLogHistory()
+        self.main_window.tableActionSvnDiffLogHistory()
 
     def enablerTableSvnAnnotateLogHistory( self ):
-        return len(self.main_window.current_commit_selections) in (1,2)
+        return self.main_window.enablerTableSvnAnnotateLogHistory()
 
     def tableActionSvnAnnotateLogHistory( self ):
         self.main_window.annotateLogHistory()
 
 class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
+    focus_is_in_names = ('commits', 'changes')
     def __init__( self, app, title ):
         self.app = app
         self._debug = self.app._debugLogHistory
@@ -211,10 +215,40 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def selectionChangedFile( self ):
         self.current_file_selection = [index.row() for index in self.changes_table.selectedIndexes() if index.column() == 0]
         self.updateEnableStates()
-        if len(self.current_file_selection) == 0:
-            return
 
-        node = self.changes_model.changesNode( self.current_file_selection[0] )
+    def enablerTableSvnDiffLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            return len(self.current_commit_selections) in (1,2)
+
+        elif focus == 'changes':
+            if len(self.current_file_selection) == 0:
+                return False
+
+            node = self.changes_model.changesNode( self.current_file_selection[0] )
+            return node.action in 'M'
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def tableActionSvnDiffLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            self.diffLogHistory()
+
+        elif focus == 'changes':
+            self.diffFileChanges()
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def enablerTableSvnAnnotateLogHistory( self ):
+        focus = self.focusIsIn()
+        if focus == 'commits':
+            return len(self.current_commit_selections) in (1,2)
+
+        else:
+            return False
 
     def diffLogHistory( self ):
         try:
@@ -264,6 +298,45 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                     heading_new
                     )
 
+    def diffFileChanges( self ):
+        try:
+            self.__diffFileChanges()
+
+        except wb_svn_project.ClientError as e:
+            self.svn_project.logClientError( e )
+
+    def __diffFileChanges( self ):
+        node = self.changes_model.changesNode( self.current_file_selection[0] )
+        filename = node.path
+
+        rev_new = self.log_model.revForRow( self.current_commit_selections[0] ).number
+        rev_old = rev_new - 1
+
+        heading_new = 'r%d' % (rev_new,)
+        heading_old = 'r%d' % (rev_old,)
+
+        title = T_('Diff %s') % (filename,)
+
+
+        info = self.svn_project.cmdInfo( pathlib.Path('.') )
+
+        url = info[ 'repos_root_URL' ] + filename
+
+        text_new = self.svn_project.getTextLinesForRevisionFromUrl( url, rev_new )
+        text_old = self.svn_project.getTextLinesForRevisionFromUrl( url, rev_old )
+
+        self.ui_component.diffTwoFiles(
+                title,
+                text_old,
+                text_new,
+                heading_old,
+                heading_new
+                )
+
+    def annotateLogHistory( self ):
+        self.log.error( 'annotateLogHistory TBD' )
+
+
 class WbLogHistoryTableView(QtWidgets.QTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
@@ -280,6 +353,10 @@ class WbLogHistoryTableView(QtWidgets.QTableView):
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
 
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'commits' )
 
 class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
     col_revision = 0
@@ -376,6 +453,11 @@ class WbChangesTableView(QtWidgets.QTableView):
 
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
+
+    def focusInEvent( self, event ):
+        super().focusInEvent( event )
+
+        self.main_window.setFocusIsIn( 'changes' )
 
 class WbSvnChangedFilesModel(QtCore.QAbstractTableModel):
     col_action = 0

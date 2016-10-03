@@ -333,6 +333,15 @@ class SvnProject:
 
         return prop_dict
 
+    def getTextLinesForRevisionFromUrl( self, url, rev_num ):
+        all_content_lines = self.client().cat(
+                                    url_or_path=url,
+                                    revision=pysvn.Revision( pysvn.opt_revision_kind.number, rev_num ) )
+
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+
+        return all_content_lines
+
     def cmdPropDel( self, prop_name, filename ):
         self.client().propdel( prop_name, self.pathForSvn( filename ) )
 
