@@ -60,7 +60,6 @@ class GitLogHistoryWindowComponents(wb_git_ui_actions.GitMainWindowActions):
     def tableActionGitAnnotateLogHistory( self ):
         self.main_window.annotateLogHistory()
 
-
     def __logHistoryProgress( self, count, total ):
         if total > 0:
             if count == 0:
@@ -393,7 +392,6 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         title_vars = {'commit_old': commit_old
                      ,'commit_new': commit_new
                      ,'date_new': date_new}
-
 
         heading_new = T_('%(date_new)s commit %(commit_new)s') % title_vars
         heading_old = T_('commit %(commit_old)s') % title_vars
