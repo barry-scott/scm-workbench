@@ -163,7 +163,7 @@ class WbActionSetStateBase:
 
     def setState( self, cache ):
         state = self.__callHandler( cache )
-        assert state in (True, False), 'setState "%r" return %r not bool' % (self.enabler_handler, state)
+        assert state in (True, False), 'setState "%r" return %r not bool' % (self.handler, state)
 
         self.setActionState( state )
 
