@@ -26,8 +26,8 @@ import wb_svn_ui_actions
 #   add tool bars and menu for use in the commit window
 #
 class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, factory ):
+        super().__init__( factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
         # ----------------------------------------
@@ -35,6 +35,7 @@ class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         addTool( t, T_('Diff'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addTool( t, T_('Info'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
         addTool( t, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
+        addTool( t, T_('Commit History'), self.tableActionSvnLogHistory_Bg, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('svn state') )
@@ -55,6 +56,7 @@ class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         m.addSection( T_('Info' ) )
         addMenu( m, T_('Information'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
         addMenu( m, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
+        addMenu( m, T_('Commit History'), self.tableActionSvnLogHistory_Bg, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
     def tableActionSvnAddAndInclude( self ):
         def execute_function( svn_project, filename ):
@@ -119,7 +121,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         super().__init__( app, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
-        self.ui_component = SvnCommitWindowComponents()
+        self.ui_component = SvnCommitWindowComponents( self.app.getScmFactory( 'svn' ) )
 
         self.setWindowTitle( T_('Commit %s') % (svn_project.projectName(),) )
         self.setWindowIcon( self.app.getAppQIcon() )

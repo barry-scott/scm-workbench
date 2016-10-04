@@ -46,7 +46,7 @@ import wb_tracked_qwidget
 from wb_background_thread import thread_switcher
 
 class WbScmMainWindow(wb_main_window.WbMainWindow):
-    def __init__( self, app, all_factories ):
+    def __init__( self, app, all_scm_types ):
         self.table_view = None
 
         self.__init_done = False
@@ -68,10 +68,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
         self.__setupTreeViewAndModel()
 
-        self.all_factories = all_factories
-        self.all_ui_components = dict( [(factory.scmName(), factory.uiComponents()) for factory in all_factories.values()] )
-
-        for scm_type in self.all_ui_components:
+        self.all_ui_components = {}
+        for scm_type in all_scm_types:
+            self.all_ui_components[ scm_type ] = self.app.getScmFactory( scm_type ).uiComponents()
             self.all_ui_components[ scm_type ].setMainWindow( self, self.table_view )
 
         # setup the chrome
@@ -608,7 +607,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         old_project_name = tree_node.project.projectName()
         prefs_project = self.app.prefs.getProject( old_project_name )
 
-        dialog = self.all_factories[ self.__ui_active_scm_type ].projectSettingsDialog( self.app, self, prefs_project, scm_project )
+        dialog = self.app.getScmFactory( self.__ui_active_scm_type ).projectSettingsDialog( self.app, self, prefs_project, scm_project )
         if dialog.exec_():
             dialog.updateProject()
 

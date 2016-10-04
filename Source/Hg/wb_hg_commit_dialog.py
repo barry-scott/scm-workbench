@@ -19,14 +19,15 @@ import wb_tracked_qwidget
 
 import wb_scm_table_view
 
+import wb_hg_log_history
 import wb_hg_ui_actions
 
 #
 #   add tool bars and menu for use in the commit window
 #
 class HgCommitWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, factory ):
+        super().__init__( factory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -52,7 +53,7 @@ class HgCommitWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         self.all_toolbars.append( t )
 
         addTool( t, T_('Diff'), self.tableActionHgDiffSmart, self.enablerHgDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.tableActionHgLogHistory, self.enablerHgLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Commit History'), self.tableActionHgLogHistory_Bg, self.enablerHgLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('hg state') )
@@ -73,7 +74,7 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         super().__init__( app, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
-        self.ui_component = HgCommitWindowComponents()
+        self.ui_component = HgCommitWindowComponents( self.app.getScmFactory( 'hg' ) )
 
         self.setWindowTitle( T_('Commit %s') % (hg_project.projectName(),) )
         self.setWindowIcon( self.app.getAppQIcon() )

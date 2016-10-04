@@ -34,8 +34,8 @@ from wb_background_thread import thread_switcher
 #   add tool bars and menu for use in the log history window
 #
 class HgLogHistoryWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, factory ):
+        super().__init__( factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
         # ----------------------------------------
@@ -86,7 +86,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.filename = None
         self.hg_project = None
 
-        self.ui_component = HgLogHistoryWindowComponents()
+        self.ui_component = HgLogHistoryWindowComponents( self.app.getScmFactory( 'hg' ) )
 
         self.log_model = WbHgLogHistoryModel( self.app )
         self.changes_model = WbHgChangedFilesModel( self.app )

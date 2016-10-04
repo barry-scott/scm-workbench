@@ -17,6 +17,8 @@ import hglib
 import hglib.util
 import hglib.client
 
+HgCommandError = hglib.error.CommandError
+
 def hgInit( wc_path ):
     hglib.init( str(wc_path).encode('utf-8') )
 
@@ -380,21 +382,15 @@ class HgProject:
         for child in tree.trees:
             self.__treeToDict( child, all_entries )
 
-    def cmdPull( self, progress_callback, info_callback ):
+    def cmdPull( self ):
         self._debug( 'cmdPull()' )
-        return
 
-        for remote in self.repo.remotes:
-            for info in remote.pull( progress=Progress( progress_callback ) ):
-                info_callback( info )
+        self.repo.pull( update=True )
 
-    def cmdPush( self, progress_callback, info_callback ):
+    def cmdPush( self ):
         self._debug( 'cmdPush()' )
-        return
 
-        for remote in self.repo.remotes:
-            for info in remote.push( progress=Progress( progress_callback ) ):
-                info_callback( info )
+        self.repo.push()
 
 class WbHgLog:
     def __init__( self, data, repo ):

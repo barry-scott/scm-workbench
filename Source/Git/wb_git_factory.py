@@ -10,7 +10,9 @@
     wb_git_factory.py
 
 '''
+import wb_git_log_history
 import wb_git_ui_components
+
 import wb_scm_project_dialogs
 
 class WbGitFactory:
@@ -27,7 +29,7 @@ class WbGitFactory:
         return 'Git'
 
     def uiComponents( self ):
-        return wb_git_ui_components.GitMainWindowComponents()
+        return wb_git_ui_components.GitMainWindowComponents( self )
 
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
         return wb_scm_project_dialogs.ProjectSettingsDialog( app, main_window, prefs_project, scm_project )
@@ -40,6 +42,9 @@ class WbGitFactory:
 
     def folderDetection( self ):
         return [('.git', 'git')]
+
+    def logHistoryView( self, app, title ):
+        return wb_git_log_history.WbGitLogHistoryView( app, title )
 
 class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('ssh', 'git', 'https', 'http', 'ftps', 'ftp')

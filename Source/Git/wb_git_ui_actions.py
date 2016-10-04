@@ -16,6 +16,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import wb_log_history_options_dialog
 import wb_ui_components
 import wb_common_dialogs
 
@@ -33,8 +34,8 @@ from wb_background_thread import thread_switcher
 #   appropiate to each context
 #
 class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
-    def __init__( self ):
-        super().__init__( 'git' )
+    def __init__( self, factory ):
+        super().__init__( 'git', factory )
 
     def setupDebug( self ):
         self._debug = self.main_window.app._debugGitUi
@@ -408,8 +409,20 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.table_view.tableActionViewRepo( self._actionGitDiffHeadVsWorking )
 
     @thread_switcher
-    def tableActionGitLogHistory_Bg( self ):
+    def tableActionGitLogHistory_Bg( self, checked=None ):
         yield from self.table_view.tableActionViewRepo_Bg( self._actionGitLogHistory_Bg )
+
+    @thread_switcher
+    def _actionGitLogHistory_Bg( self, git_project, filename ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if not options.exec_():
+            return
+
+        commit_log_view = self.factory.logHistoryView(
+                self.app, T_('Commit Log for %s') % (filename,) )
+
+        yield from commit_log_view.showCommitLogForFile_Bg( git_project, filename, options )
 
     def _actionGitStage( self, git_project, filename ):
         git_project.cmdStage( filename )

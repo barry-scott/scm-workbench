@@ -16,6 +16,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+import wb_log_history_options_dialog
 import wb_ui_components
 
 import wb_hg_project
@@ -32,8 +33,8 @@ from wb_background_thread import thread_switcher
 #   appropiate to each context
 #
 class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
-    def __init__( self ):
-        super().__init__( 'hg' )
+    def __init__( self, factory ):
+        super().__init__( 'hg', factory )
 
     def setupDebug( self ):
         self._debug = self.main_window.app._debugHgUi
@@ -165,8 +166,24 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
         self.main_window.callTreeOrTableFunction( self.treeActionHgDiffHeadVsWorking, self.tableActionHgDiffHeadVsWorking )
 
     @thread_switcher
-    def treeTableActionHgLogHistory_Bg( self, checked ):
+    def treeTableActionHgLogHistory_Bg( self, checked=None ):
         yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionHgLogHistory_Bg, self.tableActionHgLogHistory_Bg )
+
+    @thread_switcher
+    def tableActionHgLogHistory_Bg( self, checked=None ):
+        yield from self.table_view.tableActionViewRepo_Bg( self._actionHgLogHistory_Bg )
+
+    def _actionHgLogHistory_Bg( self, hg_project, filename ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if not options.exec_():
+            return
+
+        commit_log_view = self.factory.logHistoryView(
+                self.app,
+                T_('Commit Log for %s') % (filename,) )
+
+        yield from commit_log_view.showCommitLogForFile_Bg( hg_project, filename, options )
 
     #------------------------------------------------------------
     #

@@ -16,8 +16,9 @@ import wb_diff_unified_view
 import wb_diff_side_by_side_view
 
 class WbMainWindowComponents:
-    def __init__( self, scm_type ):
+    def __init__( self, scm_type, factory ):
         self.scm_type = scm_type
+        self.factory = factory
 
         self.top_window = None
         self.main_window = None

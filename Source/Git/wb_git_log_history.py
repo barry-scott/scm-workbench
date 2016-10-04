@@ -33,8 +33,8 @@ import wb_git_ui_actions
 #   add tool bars and menu for use in the log history window
 #
 class GitLogHistoryWindowComponents(wb_git_ui_actions.GitMainWindowActions):
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, factory ):
+        super().__init__( factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
         # ----------------------------------------
@@ -86,7 +86,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.filename = None
         self.git_project = None
 
-        self.ui_component = GitLogHistoryWindowComponents()
+        self.ui_component = GitLogHistoryWindowComponents( self.app.getScmFactory( 'git' ) )
 
         self.log_model = WbGitLogHistoryModel( self.app )
         self.changes_model = WbGitChangedFilesModel( self.app )

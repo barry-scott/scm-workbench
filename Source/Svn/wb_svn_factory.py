@@ -10,8 +10,9 @@
     wb_svn_factory.py
 
 '''
+import wb_svn_log_history
 import wb_svn_ui_components
-import wb_scm_project_dialogs
+
 import wb_scm_project_dialogs
 
 import pathlib
@@ -34,7 +35,7 @@ class WbSvnFactory:
         return 'Subversion (SVN)'
 
     def uiComponents( self ):
-        return wb_svn_ui_components.SvnMainWindowComponents()
+        return wb_svn_ui_components.SvnMainWindowComponents( self )
 
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
         return SvnProjectSettingsDialog( app, main_window, prefs_project, scm_project )
@@ -47,6 +48,9 @@ class WbSvnFactory:
 
     def folderDetection( self ):
         return [('.svn', 'svn'), ('_svn', 'svn')]
+
+    def logHistoryView( self, app, title ):
+        return wb_svn_log_history.WbSvnLogHistoryView( app, title )
 
 class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def __init__( self, app, parent, prefs_project, scm_project ):

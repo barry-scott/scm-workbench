@@ -11,6 +11,8 @@
 
 '''
 import wb_hg_ui_components
+import wb_hg_log_history
+
 import wb_scm_project_dialogs
 
 class WbHgFactory:
@@ -27,7 +29,7 @@ class WbHgFactory:
         return 'Mercurial (HG)'
 
     def uiComponents( self ):
-        return wb_hg_ui_components.HgMainWindowComponents()
+        return wb_hg_ui_components.HgMainWindowComponents( self )
 
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
         return wb_scm_project_dialogs.ProjectSettingsDialog( app, main_window, prefs_project, scm_project )
@@ -40,6 +42,9 @@ class WbHgFactory:
 
     def folderDetection( self ):
         return [('.hg', 'hg')]
+
+    def logHistoryView( self, app, title ):
+        return wb_hg_log_history.WbHgLogHistoryView( app, title )
 
 class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('ssh', 'https', 'http')

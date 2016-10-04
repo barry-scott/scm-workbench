@@ -25,10 +25,10 @@ from wb_background_thread import thread_switcher
 
 
 class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
-    def __init__( self ):
+    def __init__( self, factory ):
         self.all_visible_table_columns = None
 
-        super().__init__()
+        super().__init__( factory )
 
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )
@@ -189,27 +189,11 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
 
         hg_project = self.selectedHgProject()
 
-        commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
+        commit_log_view = self.factory.logHistoryView(
                 self.app,
                 T_('Commit Log for %s') % (hg_project.projectName(),) )
 
         yield from commit_log_view.showCommitLogForRepository_Bg( hg_project, options )
-
-    @thread_switcher
-    def tableActionHgLogHistory_Bg( self ):
-        yield from self.table_view.tableActionViewRepo_Bg( self._actionHgLogHistory_Bg )
-
-    def _actionHgLogHistory_Bg( self, hg_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
-
-        if not options.exec_():
-            return
-
-        commit_log_view = wb_hg_log_history.WbHgLogHistoryView(
-                self.app,
-                T_('Commit Log for %s') % (filename,) )
-
-        yield from commit_log_view.showCommitLogForFile_Bg( hg_project, filename, options )
 
     commit_key = 'hg-commit-dialog'
     def treeActionHgCommit( self ):

@@ -33,8 +33,8 @@ import wb_svn_project
 #   add tool bars and menu for use in the log history window
 #
 class SvnLogHistoryWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, factory ):
+        super().__init__( factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
         # ----------------------------------------
@@ -74,7 +74,7 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.filename = None
         self.svn_project = None
 
-        self.ui_component = SvnLogHistoryWindowComponents()
+        self.ui_component = SvnLogHistoryWindowComponents( self.app.getScmFactory( 'svn' ) )
 
         self.log_model = WbSvnLogHistoryModel( self.app )
         self.changes_model = WbSvnChangedFilesModel( self.app )

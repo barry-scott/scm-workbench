@@ -21,7 +21,6 @@ import wb_platform_specific
 import wb_git_ui_actions
 import wb_git_project
 import wb_git_commit_dialog
-import wb_git_log_history
 import wb_git_askpass_server
 import wb_git_credentials_dialog
 import wb_git_annotate
@@ -38,10 +37,10 @@ from wb_background_thread import thread_switcher
 #   add the commit code at this level to avoid import loops
 #
 class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
-    def __init__( self ):
+    def __init__( self, factory ):
         self.all_visible_table_columns = None
 
-        super().__init__()
+        super().__init__( factory )
 
         self.askpass_server = None
         self.saved_password = SavedPassword()
@@ -223,23 +222,11 @@ class GitMainWindowComponents(wb_git_ui_actions.GitMainWindowActions):
 
         git_project = self.selectedGitProject()
 
-        commit_log_view = wb_git_log_history.WbGitLogHistoryView(
+        commit_log_view = self.factory.logHistoryView(
                 self.app,
                 T_('Commit Log for %s') % (git_project.projectName(),) )
 
         yield from commit_log_view.showCommitLogForRepository_Bg( git_project, options )
-
-    @thread_switcher
-    def _actionGitLogHistory_Bg( self, git_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
-
-        if not options.exec_():
-            return
-
-        commit_log_view = wb_git_log_history.WbGitLogHistoryView(
-                self.app, T_('Commit Log for %s') % (filename,) )
-
-        yield from commit_log_view.showCommitLogForFile_Bg( git_project, filename, options )
 
     def enablerTableGitAnnotate( self ):
         if not self.isScmTypeActive():

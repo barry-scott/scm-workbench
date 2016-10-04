@@ -25,8 +25,8 @@ import wb_git_ui_actions
 #   add tool bars and menu for use in the commit window
 #
 class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, factory ):
+        super().__init__( factory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -131,7 +131,7 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         super().__init__( app, app._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
-        self.ui_component = GitCommitWindowComponents()
+        self.ui_component = GitCommitWindowComponents( self.app.getScmFactory( 'git' ) )
 
         self.setWindowTitle( T_('Commit %s') % (git_project.projectName(),) )
         self.setWindowIcon( self.app.getAppQIcon() )

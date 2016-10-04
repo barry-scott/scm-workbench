@@ -20,7 +20,6 @@ import wb_svn_ui_actions
 import wb_svn_project
 import wb_svn_commit_dialog
 import wb_svn_info_dialog
-import wb_svn_log_history
 import wb_svn_credential_dialogs
 import wb_svn_annotate
 
@@ -34,10 +33,10 @@ from wb_background_thread import thread_switcher
 #   add the commit code at this level to avoid import loops
 #
 class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
-    def __init__( self ):
+    def __init__( self, factory ):
         self.all_visible_table_columns = None
 
-        super().__init__()
+        super().__init__( factory )
 
     def createProject( self, project ):
         tm = self.table_view.table_model
@@ -190,83 +189,6 @@ class SvnMainWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
         m.addSeparator()
         addMenu( m, T_('Log History'), self.treeTableActionSvnLogHistory_Bg, self.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
-    def enablerTreeTableSvnLogHistory( self ):
-        return self.main_window.callTreeOrTableFunction( self.enablerTreeSvnLogHistory, self.enablerTableSvnLogHistory )
-
-    def enablerTreeSvnLogHistory( self ):
-        return self._enablerTreeSvnIsControlled()
-
-    def enablerTableSvnLogHistory( self ):
-        return self._enablerTableSvnIsControlled()
-
-    @thread_switcher
-    def tableActionSvnLogHistory_Bg( self ):
-        yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnLogHistory_Bg )
-
-    @thread_switcher
-    def treeTableActionSvnLogHistory_Bg( self, checked ):
-        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnLogHistory_Bg, self.tableActionSvnLogHistory_Bg )
-
-    @thread_switcher
-    def treeActionSvnLogHistory_Bg( self ):
-        tree_node = self.selectedSvnProjectTreeNode()
-        if tree_node is None:
-            return
-
-        yield from self.__actionSvnLogHistory_Bg( self.selectedSvnProject(), tree_node.relativePath() )
-
-    @thread_switcher
-    def __actionSvnLogHistory_Bg( self, svn_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
-        # as soon as possible del options to attemtp to avoid XCB errors
-        if not options.exec_():
-            return
-
-        self.setStatusAction( T_('Log for %(filename)s') %
-                                    {'filename': filename} )
-        self.progress.start( T_('Logs %(count)d') )
-
-        yield self.switchToBackground
-        try:
-            all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil())
-
-        except wb_svn_project.ClientError as e:
-            svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (svn_project.projectName(), filename) )
-
-            yield self.switchToForeground
-            return
-
-        if len(all_commit_nodes) > 0:
-            yield self.switchToForeground
-            self.progress.start( T_('Tags %(count)d') )
-
-            yield self.switchToBackground
-            try:
-                all_tag_nodes = svn_project.cmdTagsForFile( filename, all_commit_nodes[-1]['revision'].number )
-
-                all_commit_nodes.extend( all_tag_nodes )
-
-            except wb_svn_project.ClientError as e:
-                svn_project.logClientError( e, 'Cannot get tags for %s:%s' % (svn_project.projectName(), filename) )
-                # continue to show the logs we have got
-
-        def key( node ):
-            return -node['revision'].number
-
-        all_commit_nodes.sort( key=key )
-
-        yield self.switchToForeground
-        self.progress.end()
-        self.setStatusAction()
-
-        log_history_view = wb_svn_log_history.WbSvnLogHistoryView(
-                self.app,
-                T_('Commit Log for %(project)s:%(path)s') %
-                        {'project': svn_project.projectName()
-                        ,'path': filename} )
-
-        log_history_view.showCommitLogForFile( svn_project, filename, all_commit_nodes )
-        log_history_view.show()
 
     def enablerTableSvnAnnotate( self ):
         if not self.isScmTypeActive():

@@ -24,8 +24,8 @@ import wb_svn_ui_actions
 #   add tool bars and menu for use in the log history window
 #
 class SvnAnnotateWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, factory ):
+        super().__init__( factory )
 
 class WbSvnAnnotateView(wb_annotate_view.WbAnnotateView):
     def __init__( self, app, title ):
