@@ -206,14 +206,18 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                 return entry.statusAsString()
 
             elif col == self.col_name:
+                # entry.name maybe a pathlib.Path object
+                name = str(entry.name)
+
                 if entry.is_dir():
-                    return entry.name + os.sep
+                    return name + os.sep
 
                 elif entry.is_symlink():
-                    return entry.name + '@'
+                    return name + '@'
 
                 else:
-                    return entry.name
+                    # name can be a 
+                    return name
 
             elif col == self.col_date:
                 return entry.fileDate()
