@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>SCM Workbench design notes</title>
+</head>
+<body>
+<h1>SCM Workbench design notes</h1>
+
+<h2>Overviews</h2>
+
+<p>The structure of SCM workbench is evolving as new design challenges come up.</p>
+<p>This document aims to record the key parts of the design and guide developers
+to the rules that under pin the design.</p>
+
+<h2>UI structure</h2>
+
+<p>The root the application is the WbScmApplication object.
+It will create the main window and pass in a set of factories, one for each supported SCM (Source code manager).</p>
+
+<p>The main window then creates one ui_component object for each SCM type.</p>
+<p>It is the job of the ui_components object to define the look of the UI specific to its SCM type.</p>
+<p>The UI elements, menus, toolbars etc are defined in a ui_components module.</p>
+<p>The enablers and actions for the ui elements are defined in a ui_actions module.</p>
+
+<p>To avoid import cycles key objects are created via the SCM factories. One example is
+the log hostory view that is used from the ui_component and from the commit dialogs.</p>
+
+<h2>Threading model</h2>
+
+<p>All UI operations are always performed on the foreground thread.</p>
+<p>All long running operations are always performed on the background thread.</p>
+<p>The wb_background_thread module is responsible for providing the background thread
+and the services that move work between the foreground and background threads.</p>
+
+</body>
+</html>
