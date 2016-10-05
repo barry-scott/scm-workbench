@@ -16,34 +16,35 @@ from PyQt5 import QtCore
 
 import wb_main_window
 import wb_tracked_qwidget
+import wb_ui_components
 
 import wb_scm_table_view
-
-import wb_git_ui_actions
 
 feature_selective_commit = False
 
 #
 #   add tool bars and menu for use in the commit window
 #
-class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
+class GitCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
-        super().__init__( factory )
+        super().__init__( 'git', factory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
+        act = self.ui_actions
+
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionGitDiffHeadVsWorking, self.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff HEAD vs. Staged'), self.tableActionGitDiffHeadVsStaged, self.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff Staged vs. Working'), self.tableActionGitDiffStagedVsWorking, self.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionGitDiffHeadVsWorking, act.enablerGitDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Staged'), act.tableActionGitDiffHeadVsStaged, act.enablerGitDiffHeadVsStaged, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Staged vs. Working'), act.tableActionGitDiffStagedVsWorking, act.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
-        addMenu( m, T_('Stage'), self.tableActionGitStageAndInclude, self.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), self.tableActionGitUnstageAndExclude, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), self.tableActionGitRevertAndExclude, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Stage'), act.tableActionGitStageAndInclude, act.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), act.tableActionGitUnstageAndExclude, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), act.tableActionGitRevertAndExclude, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        addMenu( m, T_('Delete…'), self.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Delete…'), act.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
         t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
@@ -52,75 +53,26 @@ class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addTool( t, 'Git', self.main_window.projectActionSettings )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
+        act = self.ui_actions
+
         # ----------------------------------------
         t = addToolBar( T_('git info') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Diff'), self.tableActionGitDiffSmart, self.enablerGitDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.tableActionGitLogHistory_Bg, self.enablerGitLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Diff'), act.tableActionGitDiffSmart, act.enablerGitDiffSmart, 'toolbar_images/diff.png' )
+        addTool( t, T_('Commit History'), act.tableActionGitLogHistory_Bg, act.enablerGitLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('git state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Stage'), self.tableActionGitStageAndInclude, self.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addTool( t, T_('Unstage'), self.tableActionGitUnstageAndExclude, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addTool( t, T_('Revert'), self.tableActionGitRevertAndExclude, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Stage'), act.tableActionGitStageAndInclude, act.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addTool( t, T_('Unstage'), act.tableActionGitUnstageAndExclude, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addTool( t, T_('Revert'), act.tableActionGitRevertAndExclude, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
 
         if feature_selective_commit:
-            addTool( t, 'Include', self.tableActionCommitInclude, self.enablerGitCommitInclude, checker=self.checkerActionCommitInclude )
+            addTool( t, 'Include', act.tableActionCommitInclude, act.enablerGitCommitInclude, checker=act.checkerActionCommitInclude )
 
-    def tableActionGitStageAndInclude( self ):
-        self._tableActionChangeRepo( self._actionGitStageAndInclude )
-
-    def _actionGitStageAndInclude( self, git_project, filename ):
-        self._actionGitStage( git_project, filename )
-        self.main_window.all_included_files.add( filename )
-
-    def tableActionGitUnstageAndExclude( self ):
-        self._tableActionChangeRepo( self._actionGitUnstageAndExclude )
-
-    def _actionGitUnstageAndExclude( self, git_project, filename ):
-        self._actionGitUnstage( git_project, filename )
-        self.main_window.all_included_files.discard( filename )
-
-    def tableActionGitRevertAndExclude( self ):
-        self._tableActionChangeRepo( self._actionGitRevertAndExclude, self._areYouSureRevert )
-
-    def _actionGitRevertAndExclude( self, git_project, filename ):
-        self._actionGitRevert( git_project, filename )
-
-        if not git_project.getFileState( filename ).canCommit():
-            self.main_window.all_included_files.discard( filename )
-
-    def tableActionCommitInclude( self, checked ):
-        all_file_states = self.tableSelectedAllFileStates()
-        if len(all_file_states) == 0:
-            return
-
-        for entry in all_file_states:
-            if checked:
-                self.main_window.all_included_files.add( entry.relativePath() )
-
-            else:
-
-                self.main_window.all_included_files.discard( entry.relativePath() )
-
-        # take account of the changes
-        self.top_window.updateTableView()
-
-    def checkerActionCommitInclude( self ):
-        all_file_states = self.tableSelectedAllFileStates()
-        if len(all_file_states) == 0:
-            return False
-
-        tv = self.main_window.table_view
-
-        for entry in all_file_states:
-            if entry.relativePath() not in self.main_window.all_included_files:
-                return False
-
-        return True
 
 class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()

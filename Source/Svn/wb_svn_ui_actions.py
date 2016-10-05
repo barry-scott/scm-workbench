@@ -15,13 +15,14 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_log_history_options_dialog
-import wb_ui_components
+import wb_ui_actions
 import wb_common_dialogs
 
 import wb_svn_project
 import wb_svn_info_dialog
 import wb_svn_properties_dialog
 import wb_svn_dialogs
+import wb_svn_commit_dialog
 
 import pysvn
 import pathlib
@@ -36,7 +37,7 @@ from wb_background_thread import thread_switcher
 #   then derive to add tool bars and menus
 #   appropiate to each context
 #
-class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
+class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def __init__( self, factory ):
         super().__init__( 'svn', factory )
 
@@ -418,7 +419,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
     #
     #------------------------------------------------------------
     def enablerTableSvnDiffBaseVsWorking( self ):
-        if not self.isScmTypeActive():
+        if not self.main_window.isScmTypeActive( 'svn' ):
             return False
 
         all_file_state = self.tableSelectedAllFileStates()
@@ -432,7 +433,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
         return True
 
     def enablerTableSvnDiffHeadVsWorking( self ):
-        if not self.isScmTypeActive():
+        if not self.main_window.isScmTypeActive( 'svn' ):
             return False
 
         return True
@@ -625,7 +626,7 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def selectedSvnProjectTreeNode( self ):
-        if not self.isScmTypeActive():
+        if not self.main_window.isScmTypeActive( 'svn' ):
             return None
 
         tree_node = self.table_view.table_model.selectedScmProjectTreeNode()
@@ -635,3 +636,325 @@ class SvnMainWindowActions(wb_ui_components.WbMainWindowComponents):
             return None
 
         return tree_node
+
+    def enablerTableSvnAnnotate( self ):
+        if not self.main_window.isScmTypeActive( 'svn' ):
+            return False
+
+        return True
+
+    @thread_switcher
+    def tableActionSvnAnnotate_Bg( self, checked ):
+        yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnAnnotate_Bg )
+
+    @thread_switcher
+    def __actionSvnAnnotate_Bg( self, svn_project, filename ):
+        self.setStatusAction( T_('Annotate %s') % (filename,) )
+        self.progress.start( T_('Annotate %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        try:
+            all_annotation_nodes = svn_project.cmdAnnotationForFile( filename )
+            all_annotate_revs = set()
+            for node in all_annotation_nodes:
+                all_annotate_revs.add( node.log_id )
+
+            yield self.switchToForeground
+
+        except wb_svn_project.ClientError as e:
+            svn_project.logClientError( e, 'Cannot get annotations for %s:%s' % (project.path, filename) )
+
+            yield self.switchToForeground
+            return
+
+        self.progress.end()
+        self.progress.start( T_('Annotate Commit Logs %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        rev_min = min( all_annotate_revs )
+        rev_max = max( all_annotate_revs )
+
+        try:
+            all_commit_logs = svn_project.cmdCommitLogForAnnotateFile( filename, rev_max, rev_min )
+
+        except wb_svn_project.ClientError as e:
+            svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (project.path, filename) )
+            all_commit_logs = []
+
+        yield self.switchToForeground
+
+        self.setStatusAction()
+        self.progress.end()
+
+        annotate_view = wb_svn_annotate.WbSvnAnnotateView(
+                            self.app,
+                            T_('Annotation of %s') % (filename,) )
+        annotate_view.showAnnotationForFile( all_annotation_nodes, all_commit_logs )
+        annotate_view.show()
+
+    commit_key = 'svn-commit-dialog'
+
+    def treeActionSvnCheckin( self, checked ):
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.getSingleton( self.commit_key )
+            commit_dialog.raise_()
+            return
+
+        svn_project = self.selectedSvnProject()
+
+        commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
+        commit_dialog.commitAccepted.connect( self.app.threadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitClosed.connect( self.__commitClosed )
+
+        # show to the user
+        commit_dialog.show()
+
+        self.app.addSingleton( self.commit_key, commit_dialog )
+
+        # enabled states may have changed
+        self.main_window.updateActionEnabledStates()
+
+    @thread_switcher
+    def __commitAccepted_Bg( self ):
+        svn_project = self.selectedSvnProject()
+
+        commit_dialog = self.app.getSingleton( self.commit_key )
+
+        message = commit_dialog.getMessage()
+        all_commit_files = commit_dialog.getAllCommitIncludedFiles()
+
+        # hide the dialog
+        commit_dialog.hide()
+
+        self.setStatusAction( T_('Check in %s') % (svn_project.projectName(),) )
+        self.progress.start( T_('Sent %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        try:
+            commit_id = svn_project.cmdCommit( message, all_commit_files )
+
+            yield self.switchToForeground
+
+        except wb_svn_project.ClientError as e:
+            svn_project.logClientError( e, 'Cannot Check in %s' % (svn_project.projectName(),) )
+
+            yield self.switchToForeground
+            self.__commitClosed()
+            return
+
+        headline = message.split('\n')[0]
+        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') %
+                {'headline': headline, 'commit_id': commit_id} )
+
+        self.setStatusAction( T_('Ready') )
+        self.progress.end()
+
+        self.__commitClosed()
+
+    def __commitClosed( self ):
+        # on top window close the commit_key may already have been pop'ed
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.popSingleton( self.commit_key )
+            commit_dialog.close()
+
+        # take account of any changes
+        self.main_window.updateTableView()
+
+        # enabled states may have changed
+        self.main_window.updateActionEnabledStates()
+
+    #============================================================
+    #
+    # actions for commit dialog
+    #
+    #============================================================
+    def tableActionSvnAddAndInclude( self ):
+        def execute_function( svn_project, filename ):
+            svn_project.cmdAdd( filename )
+            self.main_window.addCommitIncludedFile( filename )
+
+        self._tableActionSvnCmd( execute_function )
+
+    def tableActionSvnRevertAndExclude( self ):
+        def execute_function( svn_project, filename ):
+            try:
+                svn_project.cmdRevert( filename )
+                self.main_window.removeCommitIncludedFile( filename )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+                return
+
+        def are_you_sure( all_filenames ):
+            return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
+
+        self._tableActionSvnCmd( execute_function, are_you_sure )
+
+    def tableActionCommitInclude( self, checked ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return
+
+        for entry in all_file_states:
+            if checked:
+                self.main_window.addCommitIncludedFile( entry.relativePath() )
+
+            else:
+
+                self.main_window.removeCommitIncludedFile( entry.relativePath() )
+
+        # take account of the changes
+        self.top_window.updateTableView()
+
+    def checkerActionCommitInclude( self ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return False
+
+        tv = self.main_window.table_view
+
+        for entry in all_file_states:
+            if entry.relativePath() not in self.main_window.all_included_files:
+                return False
+
+        return True
+
+    #============================================================
+    #
+    # actions for log history view
+    #
+    #============================================================
+    def enablerTableSvnDiffLogHistory( self ):
+        mw = self.main_window
+
+        focus = mw.focusIsIn()
+        if focus == 'commits':
+            return len(mw.current_commit_selections) in (1,2)
+
+        elif focus == 'changes':
+            if len(mw.current_file_selection) == 0:
+                return False
+
+            node = mw.changes_model.changesNode( mw.current_file_selection[0] )
+            return node.action in 'M'
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def tableActionSvnDiffLogHistory( self ):
+        mw = self.main_window
+
+        focus = mw.focusIsIn()
+        try:
+            if focus == 'commits':
+                self.diffLogHistory()
+
+            elif focus == 'changes':
+                self.diffFileChanges()
+
+            else:
+                assert False, 'focus not as expected: %r' % (focus,)
+
+        except wb_svn_project.ClientError as e:
+            mw.svn_project.logClientError( e )
+
+    def enablerTableSvnAnnotateLogHistory( self ):
+        mw = self.main_window
+
+        focus = mw.focusIsIn()
+        if focus == 'commits':
+            return len(mw.current_commit_selections) in (1,2)
+
+        else:
+            return False
+
+    def diffLogHistory( self ):
+        mw = self.main_window
+
+        filestate = mw.svn_project.getFileState( mw.filename )
+
+        if len( mw.current_commit_selections ) == 1:
+            # diff working against rev
+            rev_new = mw.svn_project.svn_rev_working
+            rev_old = mw.log_model.revForRow( mw.current_commit_selections[0] )
+            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+
+            title_vars = {'rev_old': rev_old.number
+                         ,'date_old': date_old}
+
+            heading_new = T_('Working')
+            heading_old = T_('r%(rev_old)d date %(date_old)s') % title_vars
+
+        else:
+            rev_new = mw.log_model.revForRow( mw.current_commit_selections[0] )
+            date_new = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+            rev_old = mw.log_model.revForRow( mw.current_commit_selections[-1] )
+            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[-1] )
+
+            title_vars = {'rev_old': rev_old.number
+                         ,'date_old': date_old
+                         ,'rev_new': rev_new.number
+                         ,'date_new': date_new}
+
+
+            heading_new = T_('r%(rev_new)d date %(date_new)s') % title_vars
+            heading_old = T_('r%(rev_old)d date %(date_old)s') % title_vars
+
+        if filestate.isDir():
+            title = T_('Diff %s') % (mw.filename,)
+            text = mw.svn_project.cmdDiffRevisionVsRevision( mw.filename, rev_old, rev_new )
+            self.showDiffText( title, text.split('\n') )
+
+        else:
+            title = T_('Diff %s') % (mw.filename,)
+            if rev_new == mw.svn_project.svn_rev_working:
+                text_new = filestate.getTextLinesWorking()
+
+            else:
+                text_new = filestate.getTextLinesForRevision( rev_new )
+
+            text_old = filestate.getTextLinesForRevision( rev_old )
+
+            self.diffTwoFiles(
+                    title,
+                    text_old,
+                    text_new,
+                    heading_old,
+                    heading_new
+                    )
+
+    def diffFileChanges( self ):
+        mw = self.main_window
+
+        node = mw.changes_model.changesNode( mw.current_file_selection[0] )
+        filename = node.path
+
+        rev_new = mw.log_model.revForRow( mw.current_commit_selections[0] ).number
+        rev_old = rev_new - 1
+
+        heading_new = 'r%d' % (rev_new,)
+        heading_old = 'r%d' % (rev_old,)
+
+        title = T_('Diff %s') % (filename,)
+
+
+        info = mw.svn_project.cmdInfo( pathlib.Path('.') )
+
+        url = info[ 'repos_root_URL' ] + filename
+
+        text_new = mw.svn_project.getTextLinesForRevisionFromUrl( url, rev_new )
+        text_old = mw.svn_project.getTextLinesForRevisionFromUrl( url, rev_old )
+
+        self.diffTwoFiles(
+                title,
+                text_old,
+                text_new,
+                heading_old,
+                heading_new
+                )
+
+    def tableActionSvnAnnotateLogHistory( self ):
+        self.log.error( 'annotateLogHistory TBD' )

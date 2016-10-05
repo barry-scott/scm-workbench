@@ -12,6 +12,7 @@
 '''
 import wb_git_log_history_view
 import wb_git_ui_components
+import wb_git_ui_actions
 
 import wb_scm_project_dialogs
 
@@ -30,6 +31,9 @@ class WbGitFactory:
 
     def uiComponents( self ):
         return wb_git_ui_components.GitMainWindowComponents( self )
+
+    def uiActions( self ):
+        return wb_git_ui_actions.GitMainWindowActions( self )
 
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
         return wb_scm_project_dialogs.ProjectSettingsDialog( app, main_window, prefs_project, scm_project )

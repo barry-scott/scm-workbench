@@ -11,6 +11,7 @@
 
 '''
 import wb_hg_ui_components
+import wb_hg_ui_actions
 import wb_hg_log_history_view
 
 import wb_scm_project_dialogs
@@ -30,6 +31,9 @@ class WbHgFactory:
 
     def uiComponents( self ):
         return wb_hg_ui_components.HgMainWindowComponents( self )
+
+    def uiActions( self ):
+        return wb_hg_ui_actions.HgMainWindowActions( self )
 
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
         return wb_scm_project_dialogs.ProjectSettingsDialog( app, main_window, prefs_project, scm_project )

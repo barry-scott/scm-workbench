@@ -12,6 +12,7 @@
 '''
 import wb_svn_log_history_view
 import wb_svn_ui_components
+import wb_svn_ui_actions
 
 import wb_scm_project_dialogs
 
@@ -36,6 +37,9 @@ class WbSvnFactory:
 
     def uiComponents( self ):
         return wb_svn_ui_components.SvnMainWindowComponents( self )
+
+    def uiActions( self ):
+        return wb_svn_ui_actions.SvnMainWindowActions( self )
 
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
         return SvnProjectSettingsDialog( app, main_window, prefs_project, scm_project )

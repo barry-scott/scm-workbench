@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_hg_commit_dialog_view.py
+    wb_hg_commit_dialog.py
 
 '''
 from PyQt5 import QtWidgets
@@ -16,29 +16,31 @@ from PyQt5 import QtCore
 
 import wb_main_window
 import wb_tracked_qwidget
+import wb_ui_components
 
 import wb_scm_table_view
 
-import wb_hg_ui_actions
 
 #
 #   add tool bars and menu for use in the commit window
 #
-class HgCommitWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
+class HgCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
-        super().__init__( factory )
+        super().__init__( 'hg', factory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
+        act = self.ui_actions
+
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionHgDiffHeadVsWorking, self.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Hg Actions') )
-        addMenu( m, T_('Add'), self.tableActionHgAdd, self.enablerHgFilesAdd, 'toolbar_images/include.png' )
+        addMenu( m, T_('Add'), act.tableActionHgAdd, act.enablerHgFilesAdd, 'toolbar_images/include.png' )
         m.addSeparator()
-        addMenu( m, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
-        addMenu( m, T_('Delete…'), self.tableActionHgDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), act.tableActionHgDelete, act.main_window.table_view.enablerTableFilesExists )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
         t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
@@ -47,19 +49,21 @@ class HgCommitWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addTool( t, 'Hg', self.main_window.projectActionSettings )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
+        act = self.ui_actions
+
         # ----------------------------------------
         t = addToolBar( T_('hg info') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Diff'), self.tableActionHgDiffSmart, self.enablerHgDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.tableActionHgLogHistory_Bg, self.enablerHgLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Diff'), act.tableActionHgDiffSmart, act.enablerHgDiffSmart, 'toolbar_images/diff.png' )
+        addTool( t, T_('Commit History'), act.tableActionHgLogHistory_Bg, act.enablerHgLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('hg state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), self.tableActionHgAdd, self.enablerHgFilesAdd, 'toolbar_images/include.png' )
-        addTool( t, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), act.tableActionHgAdd, act.enablerHgFilesAdd, 'toolbar_images/include.png' )
+        addTool( t, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
 
 class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()

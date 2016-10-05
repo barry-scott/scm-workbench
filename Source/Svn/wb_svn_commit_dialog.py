@@ -20,94 +20,47 @@ import wb_common_dialogs
 
 import wb_scm_table_view
 
-import wb_svn_ui_actions
+import wb_ui_components
 
 #
 #   add tool bars and menu for use in the commit window
 #
-class SvnCommitWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
+class SvnCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
-        super().__init__( factory )
+        super().__init__( 'svn', factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
+        act = self.ui_actions
+
         # ----------------------------------------
         t = addToolBar( T_('svn info') )
-        addTool( t, T_('Diff'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
-        addTool( t, T_('Info'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
-        addTool( t, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
-        addTool( t, T_('Commit History'), self.tableActionSvnLogHistory_Bg, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Diff'), act.tableActionSvnDiffBaseVsWorking, act.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
+        addTool( t, T_('Info'), act.tableActionSvnInfo, act.enablerTableSvnInfo, 'toolbar_images/info.png' )
+        addTool( t, T_('Properties'), act.tableActionSvnProperties, act.enablerTableSvnProperties, 'toolbar_images/property.png' )
+        addTool( t, T_('Commit History'), act.tableActionSvnLogHistory_Bg, act.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), self.tableActionSvnAddAndInclude, self.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), self.tableActionSvnRevertAndExclude, self.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), act.tableActionSvnAddAndInclude, act.enablerSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), act.tableActionSvnRevertAndExclude, act.enablerSvnRevert, 'toolbar_images/revert.png' )
 
-        addTool( t, 'Include', self.tableActionCommitInclude, self.enablerSvnCommitInclude, checker=self.checkerActionCommitInclude )
+        addTool( t, 'Include', act.tableActionCommitInclude, act.enablerSvnCommitInclude, checker=act.checkerActionCommitInclude )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
+        act = self.ui_actions
+
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff Base vs. Working'), self.tableActionSvnDiffBaseVsWorking, self.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionSvnDiffHeadVsWorking, self.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff Base vs. Working'), act.tableActionSvnDiffBaseVsWorking, act.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionSvnDiffHeadVsWorking, act.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Info' ) )
-        addMenu( m, T_('Information'), self.tableActionSvnInfo, self.enablerTableSvnInfo, 'toolbar_images/info.png' )
-        addMenu( m, T_('Properties'), self.tableActionSvnProperties, self.enablerTableSvnProperties, 'toolbar_images/property.png' )
-        addMenu( m, T_('Commit History'), self.tableActionSvnLogHistory_Bg, self.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
-
-    def tableActionSvnAddAndInclude( self ):
-        def execute_function( svn_project, filename ):
-            svn_project.cmdAdd( filename )
-            self.main_window.addCommitIncludedFile( filename )
-
-        self._tableActionSvnCmd( execute_function )
-
-    def tableActionSvnRevertAndExclude( self ):
-        def execute_function( svn_project, filename ):
-            try:
-                svn_project.cmdRevert( filename )
-                self.main_window.removeCommitIncludedFile( filename )
-
-            except wb_svn_project.ClientError as e:
-                svn_project.logClientError( e )
-                return
-
-        def are_you_sure( all_filenames ):
-            return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
-
-        self._tableActionSvnCmd( execute_function, are_you_sure )
-
-    def tableActionCommitInclude( self, checked ):
-        all_file_states = self.tableSelectedAllFileStates()
-        if len(all_file_states) == 0:
-            return
-
-        for entry in all_file_states:
-            if checked:
-                self.main_window.addCommitIncludedFile( entry.relativePath() )
-
-            else:
-
-                self.main_window.removeCommitIncludedFile( entry.relativePath() )
-
-        # take account of the changes
-        self.top_window.updateTableView()
-
-    def checkerActionCommitInclude( self ):
-        all_file_states = self.tableSelectedAllFileStates()
-        if len(all_file_states) == 0:
-            return False
-
-        tv = self.main_window.table_view
-
-        for entry in all_file_states:
-            if entry.relativePath() not in self.main_window.all_included_files:
-                return False
-
-        return True
+        addMenu( m, T_('Information'), act.tableActionSvnInfo, act.enablerTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), act.tableActionSvnProperties, act.enablerTableSvnProperties, 'toolbar_images/property.png' )
+        addMenu( m, T_('Commit History'), act.tableActionSvnLogHistory_Bg, act.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
 class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     commitAccepted = QtCore.pyqtSignal()

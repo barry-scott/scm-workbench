@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_ui_components.py.py
+    wb_git_ui_actions.py.py
 
 '''
 import sys
@@ -17,11 +17,12 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_log_history_options_dialog
-import wb_ui_components
+import wb_ui_actions
 import wb_common_dialogs
 
 import wb_git_project
 import wb_git_status_view
+import wb_git_commit_dialog
 
 from wb_background_thread import thread_switcher
 
@@ -33,7 +34,7 @@ from wb_background_thread import thread_switcher
 #   then derive to add tool bars and menus
 #   appropiate to each context
 #
-class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
+class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def __init__( self, factory ):
         super().__init__( 'git', factory )
 
@@ -518,9 +519,350 @@ class GitMainWindowActions(wb_ui_components.WbMainWindowComponents):
 
     # ------------------------------------------------------------
     def selectedGitProjectTreeNode( self ):
-        if not self.isScmTypeActive():
+        mw = self.main_window
+
+        if not mw.isScmTypeActive( 'git' ):
             return None
 
-        tree_node = self.main_window.selectedScmProjectTreeNode()
+        tree_node = mw.selectedScmProjectTreeNode()
         assert isinstance( tree_node, wb_git_project.GitProjectTreeNode )
         return tree_node
+
+    # ------------------------------------------------------------
+    @thread_switcher
+    def treeActionGitLogHistory_Bg( self ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if not options.exec_():
+            return
+
+        git_project = self.selectedGitProject()
+
+        commit_log_view = self.factory.logHistoryView(
+                self.app,
+                T_('Commit Log for %s') % (git_project.projectName(),) )
+
+        yield from commit_log_view.showCommitLogForRepository_Bg( git_project, options )
+
+    def enablerTableGitAnnotate( self ):
+        if not self.main_window.isScmTypeActive( 'git' ):
+            return False
+
+        return True
+
+    @thread_switcher
+    def tableActionGitAnnotate_Bg( self, checked ):
+        yield from self.table_view.tableActionViewRepo_Bg( self.__actionGitAnnotate_Bg )
+
+    @thread_switcher
+    def __actionGitAnnotate_Bg( self, git_project, filename ):
+        self.setStatusAction( T_('Annotate %s') % (filename,) )
+        self.progress.start( T_('Annotate %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        # when we know that exception can be raised catch it...
+        all_annotation_nodes = git_project.cmdAnnotationForFile( filename )
+
+        all_annotate_commit_ids = set()
+        for node in all_annotation_nodes:
+            all_annotate_commit_ids.add( node.log_id )
+
+        yield self.switchToForeground
+
+        self.progress.end()
+        self.progress.start( T_('Annotate Commit Logs %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        # when we know that exception can be raised catch it...
+        all_commit_logs = git_project.cmdCommitLogForAnnotateFile( filename, all_annotate_commit_ids )
+
+        yield self.switchToForeground
+
+        self.setStatusAction()
+        self.progress.end()
+
+        annotate_view = wb_git_annotate.WbGitAnnotateView(
+                            self.app,
+                            T_('Annotation of %s') % (filename,) )
+        annotate_view.showAnnotationForFile( all_annotation_nodes, all_commit_logs )
+        annotate_view.show()
+
+    commit_key = 'git-commit-dialog'
+    def treeActionGitCommit( self ):
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.getSingleton( self.commit_key )
+            commit_dialog.raise_()
+            return
+
+        git_project = self.selectedGitProject()
+
+        commit_dialog = wb_git_commit_dialog.WbGitCommitDialog( self.app, git_project )
+        commit_dialog.commitAccepted.connect( self.__commitAccepted )
+        commit_dialog.commitClosed.connect( self.__commitClosed )
+
+        # show to the user
+        commit_dialog.show()
+
+        self.app.addSingleton( self.commit_key, commit_dialog )
+
+        # enabled states may have changed
+        self.main_window.updateActionEnabledStates()
+
+    def __commitAccepted( self ):
+        commit_dialog = self.app.getSingleton( self.commit_key )
+
+        git_project = commit_dialog.getGitProject()
+        message = commit_dialog.getMessage()
+        all_commit_files = commit_dialog.getAllCommitIncludedFiles()
+        # qqq TODO: cmdCommit does not support all_commit_files yet
+        commit_id = git_project.cmdCommit( message )
+
+        headline = message.split('\n')[0]
+        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
+
+        self.__commitClosed()
+
+    def __commitClosed( self ):
+        # on top window close the commit_key may already have been pop'ed
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.popSingleton( self.commit_key )
+            commit_dialog.close()
+
+        # take account of any changes
+        self.main_window.updateTableView()
+
+        # enabled states may have changed
+        self.main_window.updateActionEnabledStates()
+
+    #============================================================
+    #
+    # actions for commit dialog
+    #
+    #============================================================
+    def tableActionGitStageAndInclude( self ):
+        self._tableActionChangeRepo( self._actionGitStageAndInclude )
+
+    def _actionGitStageAndInclude( self, git_project, filename ):
+        self._actionGitStage( git_project, filename )
+        self.main_window.all_included_files.add( filename )
+
+    def tableActionGitUnstageAndExclude( self ):
+        self._tableActionChangeRepo( self._actionGitUnstageAndExclude )
+
+    def _actionGitUnstageAndExclude( self, git_project, filename ):
+        self._actionGitUnstage( git_project, filename )
+        self.main_window.all_included_files.discard( filename )
+
+    def tableActionGitRevertAndExclude( self ):
+        self._tableActionChangeRepo( self._actionGitRevertAndExclude, self._areYouSureRevert )
+
+    def _actionGitRevertAndExclude( self, git_project, filename ):
+        self._actionGitRevert( git_project, filename )
+
+        if not git_project.getFileState( filename ).canCommit():
+            self.main_window.all_included_files.discard( filename )
+
+    def tableActionCommitInclude( self, checked ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return
+
+        for entry in all_file_states:
+            if checked:
+                self.main_window.all_included_files.add( entry.relativePath() )
+
+            else:
+
+                self.main_window.all_included_files.discard( entry.relativePath() )
+
+        # take account of the changes
+        self.top_window.updateTableView()
+
+    def checkerActionCommitInclude( self ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return False
+
+        tv = self.main_window.table_view
+
+        for entry in all_file_states:
+            if entry.relativePath() not in self.main_window.all_included_files:
+                return False
+
+        return True
+
+    #============================================================
+    #
+    # actions for log history view
+    #
+    #============================================================
+    def enablerTableGitDiffLogHistory( self ):
+        return self.main_window.enablerTableGitDiffLogHistory()
+
+    def tableActionGitDiffLogHistory( self ):
+        return self.main_window.tableActionGitDiffLogHistory()
+
+    def enablerTableGitAnnotateLogHistory( self ):
+        return self.main_window.enablerTableGitAnnotateLogHistory()
+
+    def tableActionGitAnnotateLogHistory( self ):
+        self.main_window.annotateLogHistory()
+
+    #------------------------------------------------------------
+    def enablerTableGitDiffLogHistory( self ):
+        focus = self.main_window.focusIsIn()
+        if focus == 'commits':
+            return len(self.main_window.current_commit_selections) in (1,2)
+
+        elif focus == 'changes':
+            if len(self.main_window.current_file_selection) == 0:
+                return False
+
+            type_, filename, old_filename = self.main_window.changes_model.changesNode( self.current_file_selection[0] )
+            return type_ in 'M'
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def tableActionGitDiffLogHistory( self ):
+        focus = self.main_window.focusIsIn()
+        if focus == 'commits':
+            self.diffLogHistory()
+
+        elif focus == 'changes':
+            self.diffFileChanges()
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def enablerTableGitAnnotateLogHistory( self ):
+        focus = self.main_window.focusIsIn()
+        if focus == 'commits':
+            return len(self.main_window.current_commit_selections) in (1,2)
+
+        else:
+            return False
+
+    def diffLogHistory( self ):
+        mw = self.main_window
+
+        #
+        #   Figure out the refs for the diff and set up title and headings
+        #
+        if len( mw.current_commit_selections ) == 1:
+            # diff working against rev
+            commit_new = None
+            commit_old = mw.log_model.commitForRow( mw.current_commit_selections[0] )
+            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+
+            title_vars = {'commit_old': commit_old
+                         ,'date_old': date_old}
+
+            if mw.filename is not None:
+                filestate = mw.git_project.getFileState( mw.filename )
+
+                if filestate.isStagedModified():
+                    heading_new = 'Staged'
+
+                elif filestate.isUnstagedModified():
+                    heading_new = 'Working'
+
+                else:
+                    heading_new = 'HEAD'
+
+            else: # Repository
+                heading_new = 'Working'
+
+        else:
+            commit_new = mw.log_model.commitForRow( mw.current_commit_selections[0] )
+            date_new = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+            commit_old = mw.log_model.commitForRow( mw.current_commit_selections[-1] )
+            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[-1] )
+
+            title_vars = {'commit_old': commit_old
+                         ,'date_old': date_old
+                         ,'commit_new': commit_new
+                         ,'date_new': date_new}
+
+            heading_new = T_('commit %(commit_new)s date %(date_new)s') % title_vars
+
+        if mw.filename is not None:
+            title = T_('Diff File %s') % (mw.filename,)
+
+        else:
+            title = T_('Diff Project %s' % (self.git_project.projectName(),) )
+
+        heading_old = T_('commit %(commit_old)s date %(date_old)s') % title_vars
+
+        #
+        #   figure out the text to diff
+        #
+        if mw.filename is not None:
+            filestate = mw.git_project.getFileState( mw.filename )
+
+            if commit_new is None:
+                if filestate.isStagedModified():
+                    text_new = filestate.getTextLinesStaged()
+
+                else:
+                    # either we want HEAD or the modified working
+                    text_new = filestate.getTextLinesWorking()
+
+            else:
+                text_new = filestate.getTextLinesForCommit( commit_new )
+
+            text_old = filestate.getTextLinesForCommit( commit_old )
+
+            self.diffTwoFiles(
+                    title,
+                    text_old,
+                    text_new,
+                    heading_old,
+                    heading_new
+                    )
+
+        else: # folder
+            if commit_new is None:
+                text = mw.git_project.cmdDiffWorkingVsCommit( pathlib.Path('.'), commit_old )
+                self.showDiffText( title, text.split('\n') )
+
+            else:
+                text = mw.git_project.cmdDiffCommitVsCommit( pathlib.Path('.'), commit_old, commit_new )
+                self.showDiffText( title, text.split('\n') )
+
+    def diffFileChanges( self ):
+        mw = self.main_window
+
+        type_, filename, old_filename = mw.changes_model.changesNode( mw.current_file_selection[0] )
+
+        commit_new = mw.log_model.commitForRow( mw.current_commit_selections[0] )
+        date_new = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+        commit_old = '%s^1' % (commit_new,)
+
+        title_vars = {'commit_old': commit_old
+                     ,'commit_new': commit_new
+                     ,'date_new': date_new}
+
+        heading_new = T_('commit %(commit_new)s date %(date_new)s') % title_vars
+        heading_old = T_('commit %(commit_old)s') % title_vars
+
+        title = T_('Diff %s') % (filename,)
+
+        filepath = pathlib.Path( filename )
+
+        text_new = mw.git_project.getTextLinesForCommit( filepath, commit_new )
+        text_old = mw.git_project.getTextLinesForCommit( filepath, commit_old )
+
+        self.diffTwoFiles(
+                title,
+                text_old,
+                text_new,
+                heading_old,
+                heading_new
+                )
+
+    def annotateLogHistory( self ):
+        self.log.error( 'annotateLogHistory TBD' )
+

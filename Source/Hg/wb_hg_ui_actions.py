@@ -17,7 +17,8 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_log_history_options_dialog
-import wb_ui_components
+import wb_hg_commit_dialog
+import wb_ui_actions
 
 import wb_hg_project
 import wb_hg_status_view
@@ -32,7 +33,7 @@ from wb_background_thread import thread_switcher
 #   then derive to add tool bars and menus
 #   appropiate to each context
 #
-class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
+class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def __init__( self, factory ):
         super().__init__( 'hg', factory )
 
@@ -409,3 +410,221 @@ class HgMainWindowActions(wb_ui_components.WbMainWindowComponents):
         tree_node = self.main_window.selectedScmProjectTreeNode()
         assert isinstance( tree_node, wb_hg_project.HgProjectTreeNode )
         return tree_node
+
+    # ------------------------------------------------------------
+    @thread_switcher
+    def treeActionHgLogHistory_Bg( self ):
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+
+        if not options.exec_():
+            return
+
+        hg_project = self.selectedHgProject()
+
+        commit_log_view = self.factory.logHistoryView(
+                self.app,
+                T_('Commit Log for %s') % (hg_project.projectName(),) )
+
+        yield from commit_log_view.showCommitLogForRepository_Bg( hg_project, options )
+
+    commit_key = 'hg-commit-dialog'
+    def treeActionHgCommit( self ):
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.getSingleton( self.commit_key )
+            commit_dialog.raise_()
+            return
+
+        hg_project = self.selectedHgProject()
+
+        commit_dialog = wb_hg_commit_dialog.WbHgCommitDialog( self.app, hg_project )
+        commit_dialog.commitAccepted.connect( self.__commitAccepted )
+        commit_dialog.commitClosed.connect( self.__commitClosed )
+
+        # show to the user
+        commit_dialog.show()
+
+        self.app.addSingleton( self.commit_key, commit_dialog )
+
+        # enabled states may have changed
+        self.main_window.updateActionEnabledStates()
+
+    def __commitAccepted( self ):
+        commit_dialog = self.app.getSingleton( self.commit_key )
+
+        hg_project = self.selectedHgProject()
+        message = commit_dialog.getMessage()
+        commit_id = hg_project.cmdCommit( message )
+
+        headline = message.split('\n')[0]
+        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
+
+        self.__commitClosed()
+
+    def __commitClosed( self ):
+        # on top window close the commit_key may already have been pop'ed
+        if self.app.hasSingleton( self.commit_key ):
+            commit_dialog = self.app.popSingleton( self.commit_key )
+            commit_dialog.close()
+
+        # take account of any changes
+        self.main_window.updateTableView()
+
+        # enabled states may have changed
+        self.main_window.updateActionEnabledStates()
+
+    #============================================================
+    #
+    # actions for log history view
+    #
+    #============================================================
+    def enablerTableHgDiffLogHistory( self ):
+        mw = self.main_window
+
+        focus = mw.focusIsIn()
+        if focus == 'commits':
+            return len(mw.current_commit_selections) in (1,2)
+
+        elif focus == 'changes':
+            if len(mw.current_file_selection) == 0:
+                return False
+
+            type_, filename = mw.changes_model.changesNode( mw.current_file_selection[0] )
+            return type_ in 'M'
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def enablerTableHgAnnotateLogHistory( self ):
+        mw = self.main_window
+        focus = mw.focusIsIn()
+        if focus == 'commits':
+            return len(mw.current_commit_selections) in (1,2)
+
+        else:
+            return False
+
+    def tableActionHgDiffLogHistory( self ):
+        focus = self.main_window.focusIsIn()
+        if focus == 'commits':
+            self.diffLogHistory()
+
+        elif focus == 'changes':
+            self.diffFileChanges()
+
+        else:
+            assert False, 'focus not as expected: %r' % (focus,)
+
+    def diffLogHistory( self ):
+        mw = self.main_window
+
+        #
+        #   Figure out the refs for the diff and set up title and headings
+        #
+        if len( mw.current_commit_selections ) == 1:
+            # diff working against rev
+            commit_new = None
+            commit_old = mw.log_model.revisionForRow( mw.current_commit_selections[0] )
+            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+
+            title_vars = {'commit_old': commit_old
+                         ,'date_old': date_old}
+
+            if mw.filename is not None:
+                filestate = mw.hg_project.getFileState( mw.filename )
+
+                if filestate.isModified():
+                    heading_new = 'Working'
+
+                else:
+                    heading_new = 'HEAD'
+
+            else: # Repository
+                heading_new = 'Working'
+
+        else:
+            commit_new = mw.log_model.revisionForRow( mw.current_commit_selections[0] )
+            date_new = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+            commit_old = mw.log_model.revisionForRow( mw.current_commit_selections[-1] )
+            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[-1] )
+
+            title_vars = {'commit_old': commit_old
+                         ,'date_old': date_old
+                         ,'commit_new': commit_new
+                         ,'date_new': date_new}
+
+            heading_new = T_('commit %(commit_new)s date %(date_new)s') % title_vars
+
+        if mw.filename is not None:
+            title = T_('Diff File %s') % (mw.filename,)
+
+        else:
+            title = T_('Diff Project %s' % (mw.hg_project.projectName(),) )
+
+        heading_old = T_('commit %(commit_old)s date %(date_old)s') % title_vars
+
+        #
+        #   figure out the text to diff
+        #
+        if mw.filename is not None:
+            filestate = mw.hg_project.getFileState( mw.filename )
+
+            if commit_new is None:
+                # either we want HEAD or the modified working
+                text_new = filestate.getTextLinesWorking()
+
+            else:
+                text_new = filestate.getTextLinesForRevision( commit_new )
+
+            text_old = filestate.getTextLinesForRevision( commit_old )
+
+            self.diffTwoFiles(
+                    title,
+                    text_old,
+                    text_new,
+                    heading_old,
+                    heading_new
+                    )
+
+        else: # folder
+            repo_path = pathlib.Path( '.' )
+            if commit_new is None:
+                text = mw.hg_project.cmdDiffWorkingVsCommit( repo_path, commit_old )
+                self.showDiffText( title, text.split('\n') )
+
+            else:
+                text = mw.hg_project.cmdDiffCommitVsCommit( repo_path, commit_old, commit_new )
+                self.showDiffText( title, text.split('\n') )
+
+    def diffFileChanges( self ):
+        mw = self.main_window
+
+        type_, filename = mw.changes_model.changesNode( mw.current_file_selection[0] )
+
+        rev_new = mw.log_model.revisionForRow( mw.current_commit_selections[0] )
+        rev_old = rev_new - 1
+        date_new = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+
+        title_vars = {'rev_old': rev_old
+                     ,'rev_new': rev_new
+                     ,'date_new': date_new}
+
+        heading_new = T_('commit %(rev_new)s date %(date_new)s') % title_vars
+        heading_old = T_('commit %(rev_old)s') % title_vars
+
+        title = T_('Diff %s') % (filename,)
+
+        filepath = pathlib.Path( filename )
+
+        text_new = mw.hg_project.getTextLinesForRevision( filepath, rev_new )
+        text_old = mw.hg_project.getTextLinesForRevision( filepath, rev_old )
+
+        self.diffTwoFiles(
+                title,
+                text_old,
+                text_new,
+                heading_old,
+                heading_new
+                )
+
+    def tableActionHgAnnotateLogHistory( self ):
+        self.log.error( 'annotateLogHistory TBD' )

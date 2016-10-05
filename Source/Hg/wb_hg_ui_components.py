@@ -12,10 +12,8 @@
 '''
 import wb_log_history_options_dialog
 
-import wb_hg_ui_actions
+import wb_ui_components
 import wb_hg_project
-
-import wb_hg_commit_dialog
 
 import hglib
 import shutil
@@ -23,11 +21,11 @@ import shutil
 from wb_background_thread import thread_switcher
 
 
-class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
+class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
         self.all_visible_table_columns = None
 
-        super().__init__( factory )
+        super().__init__( 'hg', factory )
 
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )
@@ -105,36 +103,38 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addTool( t, 'Hg', self.main_window.projectActionSettings )
 
     def setupMenuBar( self, mb, addMenu ):
+        act = self.ui_actions
+
         # ----------------------------------------
         m = mb.addMenu( T_('&Hg Information') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Diff HEAD vs. Working'), self.treeTableActionHgDiffHeadVsWorking, self.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), act.treeTableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Status'), self.treeActionHgStatus )
+        addMenu( m, T_('Status'), act.treeActionHgStatus )
 
         # ----------------------------------------
         m = mb.addMenu( T_('&Hg Actions') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Add'), self.tableActionHgAdd, self.enablerHgFilesAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Add'), act.tableActionHgAdd, act.enablerHgFilesAdd, 'toolbar_images/add.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
-        addMenu( m, T_('Delete…'), self.tableActionHgDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), act.tableActionHgDelete, act.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Commit…'), self.treeActionHgCommit, self.enablerHgCommit, 'toolbar_images/commit.png' )
+        addMenu( m, T_('Commit…'), act.treeActionHgCommit, act.enablerHgCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png' )
-        addMenu( m, T_('Pull…'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
+        addMenu( m, T_('Push…'), act.treeActionHgPush_Bg, act.enablerHgPush, 'toolbar_images/push.png' )
+        addMenu( m, T_('Pull…'), act.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
 
         if hasattr( self, 'treeActionHgDebug1' ):
             m = mb.addMenu( T_('&Hg Debug') )
             self.all_menus.append( m )
-            addMenu( m, T_('Debug 1'), self.treeActionHgDebug1 )
+            addMenu( m, T_('Debug 1'), act.treeActionHgDebug1 )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
         t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
@@ -143,98 +143,45 @@ class HgMainWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
         addTool( t, 'Hg', self.main_window.projectActionSettings )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
+        act = self.ui_actions
+
         # ----------------------------------------
         t = addToolBar( T_('hg info') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Diff'), self.treeTableActionHgDiffSmart, self.enablerHgDiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), self.treeTableActionHgLogHistory_Bg, self.enablerHgLogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Diff'), act.treeTableActionHgDiffSmart, act.enablerHgDiffSmart, 'toolbar_images/diff.png' )
+        addTool( t, T_('Commit History'), act.treeTableActionHgLogHistory_Bg, act.enablerHgLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('hg state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), self.tableActionHgAdd, self.enablerHgFilesAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Add'), act.tableActionHgAdd, act.enablerHgFilesAdd, 'toolbar_images/add.png' )
         t.addSeparator()
-        addTool( t, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
-        addTool( t, T_('Commit'), self.treeActionHgCommit, self.enablerHgCommit, 'toolbar_images/commit.png' )
+        addTool( t, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Commit'), act.treeActionHgCommit, act.enablerHgCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
-        addTool( t, T_('Push'), self.treeActionHgPush_Bg, self.enablerHgPush, 'toolbar_images/push.png' )
-        addTool( t, T_('Pull'), self.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
+        addTool( t, T_('Push'), act.treeActionHgPush_Bg, act.enablerHgPush, 'toolbar_images/push.png' )
+        addTool( t, T_('Pull'), act.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
+        act = self.ui_actions
+
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.tableActionHgDiffHeadVsWorking, self.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Hg Actions') )
-        addMenu( m, T_('Revert'), self.tableActionHgRevert, self.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        addMenu( m, T_('Delete…'), self.tableActionHgDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Delete…'), act.tableActionHgDelete, act.main_window.table_view.enablerTableFilesExists )
 
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )
+
+        act = self.ui_actions
+
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), self.treeActionHgDiffHeadVsWorking, self.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff HEAD vs. Working'), act.treeActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
-    # ------------------------------------------------------------
-    @thread_switcher
-    def treeActionHgLogHistory_Bg( self ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
-
-        if not options.exec_():
-            return
-
-        hg_project = self.selectedHgProject()
-
-        commit_log_view = self.factory.logHistoryView(
-                self.app,
-                T_('Commit Log for %s') % (hg_project.projectName(),) )
-
-        yield from commit_log_view.showCommitLogForRepository_Bg( hg_project, options )
-
-    commit_key = 'hg-commit-dialog'
-    def treeActionHgCommit( self ):
-        if self.app.hasSingleton( self.commit_key ):
-            commit_dialog = self.app.getSingleton( self.commit_key )
-            commit_dialog.raise_()
-            return
-
-        hg_project = self.selectedHgProject()
-
-        commit_dialog = wb_hg_commit_dialog.WbHgCommitDialog( self.app, hg_project )
-        commit_dialog.commitAccepted.connect( self.__commitAccepted )
-        commit_dialog.commitClosed.connect( self.__commitClosed )
-
-        # show to the user
-        commit_dialog.show()
-
-        self.app.addSingleton( self.commit_key, commit_dialog )
-
-        # enabled states may have changed
-        self.main_window.updateActionEnabledStates()
-
-    def __commitAccepted( self ):
-        commit_dialog = self.app.getSingleton( self.commit_key )
-
-        hg_project = self.selectedHgProject()
-        message = commit_dialog.getMessage()
-        commit_id = hg_project.cmdCommit( message )
-
-        headline = message.split('\n')[0]
-        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
-
-        self.__commitClosed()
-
-    def __commitClosed( self ):
-        # on top window close the commit_key may already have been pop'ed
-        if self.app.hasSingleton( self.commit_key ):
-            commit_dialog = self.app.popSingleton( self.commit_key )
-            commit_dialog.close()
-
-        # take account of any changes
-        self.main_window.updateTableView()
-
-        # enabled states may have changed
-        self.main_window.updateActionEnabledStates()

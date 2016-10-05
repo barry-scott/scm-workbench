@@ -20,8 +20,7 @@ from PyQt5 import QtCore
 
 import wb_tracked_qwidget
 import wb_main_window
-
-import wb_hg_ui_actions
+import wb_ui_components
 
 from wb_background_thread import thread_switcher
 
@@ -33,33 +32,28 @@ from wb_background_thread import thread_switcher
 #
 #   add tool bars and menu for use in the log history window
 #
-class HgLogHistoryWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
+class HgLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
-        super().__init__( factory )
+        super().__init__( 'hg', factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
+        act = self.ui_actions
+
         # ----------------------------------------
         t = addToolBar( T_('hg info') )
-        addTool( t, T_('Diff'), self.tableActionHgDiffLogHistory, self.enablerTableHgDiffLogHistory, 'toolbar_images/diff.png' )
-        addTool( t, T_('Annotate'), self.tableActionHgAnnotateLogHistory, self.enablerTableHgAnnotateLogHistory )
+        addTool( t, T_('Diff'), act.tableActionHgDiffLogHistory, act.enablerTableHgDiffLogHistory, 'toolbar_images/diff.png' )
+        addTool( t, T_('Annotate'), act.tableActionHgAnnotateLogHistory, act.enablerTableHgAnnotateLogHistory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
+        act = self.ui_actions
+
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff'), self.tableActionHgDiffLogHistory, self.enablerTableHgDiffLogHistory, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff'), act.tableActionHgDiffLogHistory, act.enablerTableHgDiffLogHistory, 'toolbar_images/diff.png' )
 
-    def enablerTableHgDiffLogHistory( self ):
-        return self.main_window.enablerTableHgDiffLogHistory()
-
-    def tableActionHgDiffLogHistory( self ):
-        self.main_window.tableActionHgDiffLogHistory()
-
-    def enablerTableHgAnnotateLogHistory( self ):
-        return self.main_window.enablerTableHgAnnotateLogHistory()
-
-    def tableActionHgAnnotateLogHistory( self ):
-        self.main_window.annotateLogHistory()
+    def deferedLogHistoryProgress( self ):
+        return self.app.deferRunInForeground( self.__logHistoryProgress )
 
     def __logHistoryProgress( self, count, total ):
         if total > 0:
@@ -69,8 +63,6 @@ class HgLogHistoryWindowComponents(wb_hg_ui_actions.HgMainWindowActions):
             else:
                 self.progress.incEventCount()
 
-    def deferedLogHistoryProgress( self ):
-        return self.app.deferRunInForeground( self.__logHistoryProgress )
 
 class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     focus_is_in_names = ('commits', 'changes')
@@ -256,29 +248,6 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         self.updateEnableStates()
 
-    def enablerTableHgDiffLogHistory( self ):
-        focus = self.focusIsIn()
-        if focus == 'commits':
-            return len(self.current_commit_selections) in (1,2)
-
-        elif focus == 'changes':
-            if len(self.current_file_selection) == 0:
-                return False
-
-            type_, filename = self.changes_model.changesNode( self.current_file_selection[0] )
-            return type_ in 'M'
-
-        else:
-            assert False, 'focus not as expected: %r' % (focus,)
-
-    def enablerTableHgAnnotateLogHistory( self ):
-        focus = self.focusIsIn()
-        if focus == 'commits':
-            return len(self.current_commit_selections) in (1,2)
-
-        else:
-            return False
-
     def selectionChangedFile( self ):
         self.current_file_selection = [index.row() for index in self.changes_table.selectedIndexes() if index.column() == 0]
         self.updateEnableStates()
@@ -286,128 +255,6 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
             return
 
         node = self.changes_model.changesNode( self.current_file_selection[0] )
-
-    def tableActionHgDiffLogHistory( self ):
-        focus = self.focusIsIn()
-        if focus == 'commits':
-            self.diffLogHistory()
-
-        elif focus == 'changes':
-            self.diffFileChanges()
-
-        else:
-            assert False, 'focus not as expected: %r' % (focus,)
-
-    def diffLogHistory( self ):
-        #
-        #   Figure out the refs for the diff and set up title and headings
-        #
-        if len( self.current_commit_selections ) == 1:
-            # diff working against rev
-            commit_new = None
-            commit_old = self.log_model.revisionForRow( self.current_commit_selections[0] )
-            date_old = self.log_model.dateStringForRow( self.current_commit_selections[0] )
-
-            title_vars = {'commit_old': commit_old
-                         ,'date_old': date_old}
-
-            if self.filename is not None:
-                filestate = self.hg_project.getFileState( self.filename )
-
-                if filestate.isModified():
-                    heading_new = 'Working'
-
-                else:
-                    heading_new = 'HEAD'
-
-            else: # Repository
-                heading_new = 'Working'
-
-        else:
-            commit_new = self.log_model.revisionForRow( self.current_commit_selections[0] )
-            date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
-            commit_old = self.log_model.revisionForRow( self.current_commit_selections[-1] )
-            date_old = self.log_model.dateStringForRow( self.current_commit_selections[-1] )
-
-            title_vars = {'commit_old': commit_old
-                         ,'date_old': date_old
-                         ,'commit_new': commit_new
-                         ,'date_new': date_new}
-
-            heading_new = T_('commit %(commit_new)s date %(date_new)s') % title_vars
-
-        if self.filename is not None:
-            title = T_('Diff File %s') % (self.filename,)
-
-        else:
-            title = T_('Diff Project %s' % (self.hg_project.projectName(),) )
-
-        heading_old = T_('commit %(commit_old)s date %(date_old)s') % title_vars
-
-        #
-        #   figure out the text to diff
-        #
-        if self.filename is not None:
-            filestate = self.hg_project.getFileState( self.filename )
-
-            if commit_new is None:
-                # either we want HEAD or the modified working
-                text_new = filestate.getTextLinesWorking()
-
-            else:
-                text_new = filestate.getTextLinesForRevision( commit_new )
-
-            text_old = filestate.getTextLinesForRevision( commit_old )
-
-            self.ui_component.diffTwoFiles(
-                    title,
-                    text_old,
-                    text_new,
-                    heading_old,
-                    heading_new
-                    )
-
-        else: # folder
-            repo_path = pathlib.Path( '.' )
-            if commit_new is None:
-                text = self.hg_project.cmdDiffWorkingVsCommit( repo_path, commit_old )
-                self.ui_component.showDiffText( title, text.split('\n') )
-
-            else:
-                text = self.hg_project.cmdDiffCommitVsCommit( repo_path, commit_old, commit_new )
-                self.ui_component.showDiffText( title, text.split('\n') )
-
-    def diffFileChanges( self ):
-        type_, filename = self.changes_model.changesNode( self.current_file_selection[0] )
-
-        rev_new = self.log_model.revisionForRow( self.current_commit_selections[0] )
-        rev_old = rev_new - 1
-        date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
-
-        title_vars = {'rev_old': rev_old
-                     ,'rev_new': rev_new
-                     ,'date_new': date_new}
-
-        heading_new = T_('commit %(rev_new)s date %(date_new)s') % title_vars
-        heading_old = T_('commit %(rev_old)s') % title_vars
-
-        title = T_('Diff %s') % (filename,)
-
-        filepath = pathlib.Path( filename )
-
-        text_new = self.hg_project.getTextLinesForRevision( filepath, rev_new )
-        text_old = self.hg_project.getTextLinesForRevision( filepath, rev_old )
-
-        self.ui_component.diffTwoFiles(
-                title,
-                text_old,
-                text_new,
-                heading_old,
-                heading_new
-                )
-
-    def annotateLogHistory( self ):
-        self.log.error( 'annotateLogHistory TBD' )
 
 class WbLogTableView(QtWidgets.QTableView):
     def __init__( self, main_window ):
@@ -520,10 +367,10 @@ class WbChangesTableView(QtWidgets.QTableView):
     def selectionChanged( self, selected, deselected ):
         self._debug( 'WbChangesTableView.selectionChanged()' )
 
-        self.main_window.selectionChangedFile()
-
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
+
+        self.main_window.selectionChangedFile()
 
     def focusInEvent( self, event ):
         super().focusInEvent( event )

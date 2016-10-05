@@ -1,6 +1,10 @@
 <html>
 <head>
 <title>SCM Workbench design notes</title>
+<style>
+h1, h2 { color: #4444aa; }
+p { width: 40em; }
+</style>
 </head>
 <body>
 <h1>SCM Workbench design notes</h1>
@@ -14,7 +18,8 @@ to the rules that under pin the design.</p>
 <h2>UI structure</h2>
 
 <p>The root the application is the WbScmApplication object.
-It will create the main window and pass in a set of factories, one for each supported SCM (Source code manager).</p>
+It will create the main window and pass in a set of factories,
+one for each supported SCM (Source code manager).</p>
 
 <p>The main window then creates one ui_component object for each SCM type.</p>
 <p>It is the job of the ui_components object to define the look of the UI specific to its SCM type.</p>
@@ -24,10 +29,13 @@ It will create the main window and pass in a set of factories, one for each supp
 <p>To avoid import cycles key objects are created via the SCM factories. One example is
 the log hostory view that is used from the ui_component and from the commit dialogs.</p>
 
+<p>The SCM's ui_actions is used by all main windows for a SCM, the top_window, log view and commit view.</p>
+
 <h2>Threading model</h2>
 
-<p>All UI operations are always performed on the foreground thread.</p>
-<p>All long running operations are always performed on the background thread.</p>
+<p>Workbench using two threads. The "foreground" thread for operating the PyQt GUI and
+the "background" thread that is used top run all long running tasks.</p>
+
 <p>The wb_background_thread module is responsible for providing the background thread
 and the services that move work between the foreground and background threads.</p>
 

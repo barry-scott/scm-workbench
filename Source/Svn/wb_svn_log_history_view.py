@@ -18,8 +18,8 @@ from PyQt5 import QtCore
 
 import wb_tracked_qwidget
 import wb_main_window
+import wb_ui_components
 
-import wb_svn_ui_actions
 import wb_svn_project
 
 
@@ -32,33 +32,26 @@ import wb_svn_project
 #
 #   add tool bars and menu for use in the log history window
 #
-class SvnLogHistoryWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
+class SvnLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
-        super().__init__( factory )
+        super().__init__( 'svn', factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
+        act = self.ui_actions
+
         # ----------------------------------------
         t = addToolBar( T_('svn info') )
-        addTool( t, T_('Diff'), self.tableActionSvnDiffLogHistory, self.enablerTableSvnDiffLogHistory, 'toolbar_images/diff.png' )
-        addTool( t, T_('Annotate'), self.tableActionSvnAnnotateLogHistory, self.enablerTableSvnAnnotateLogHistory )
+        addTool( t, T_('Diff'), act.tableActionSvnDiffLogHistory, act.enablerTableSvnDiffLogHistory, 'toolbar_images/diff.png' )
+        addTool( t, T_('Annotate'), act.tableActionSvnAnnotateLogHistory, act.enablerTableSvnAnnotateLogHistory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
 
+        act = self.ui_actions
+
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff'), self.tableActionSvnDiffLogHistory, self.enablerTableSvnDiffLogHistory, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff'), act.tableActionSvnDiffLogHistory, act.enablerTableSvnDiffLogHistory, 'toolbar_images/diff.png' )
 
-    def enablerTableSvnDiffLogHistory( self ):
-        return self.main_window.enablerTableSvnDiffLogHistory()
-
-    def tableActionSvnDiffLogHistory( self ):
-        self.main_window.tableActionSvnDiffLogHistory()
-
-    def enablerTableSvnAnnotateLogHistory( self ):
-        return self.main_window.enablerTableSvnAnnotateLogHistory()
-
-    def tableActionSvnAnnotateLogHistory( self ):
-        self.main_window.annotateLogHistory()
 
 class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     focus_is_in_names = ('commits', 'changes')
@@ -215,129 +208,6 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def selectionChangedFile( self ):
         self.current_file_selection = [index.row() for index in self.changes_table.selectedIndexes() if index.column() == 0]
         self.updateEnableStates()
-
-    def enablerTableSvnDiffLogHistory( self ):
-        focus = self.focusIsIn()
-        if focus == 'commits':
-            return len(self.current_commit_selections) in (1,2)
-
-        elif focus == 'changes':
-            if len(self.current_file_selection) == 0:
-                return False
-
-            node = self.changes_model.changesNode( self.current_file_selection[0] )
-            return node.action in 'M'
-
-        else:
-            assert False, 'focus not as expected: %r' % (focus,)
-
-    def tableActionSvnDiffLogHistory( self ):
-        focus = self.focusIsIn()
-        try:
-            if focus == 'commits':
-                self.diffLogHistory()
-
-            elif focus == 'changes':
-                self.diffFileChanges()
-
-            else:
-                assert False, 'focus not as expected: %r' % (focus,)
-
-        except wb_svn_project.ClientError as e:
-            self.svn_project.logClientError( e )
-
-    def enablerTableSvnAnnotateLogHistory( self ):
-        focus = self.focusIsIn()
-        if focus == 'commits':
-            return len(self.current_commit_selections) in (1,2)
-
-        else:
-            return False
-
-    def diffLogHistory( self ):
-        filestate = self.svn_project.getFileState( self.filename )
-
-        if len( self.current_commit_selections ) == 1:
-            # diff working against rev
-            rev_new = self.svn_project.svn_rev_working
-            rev_old = self.log_model.revForRow( self.current_commit_selections[0] )
-            date_old = self.log_model.dateStringForRow( self.current_commit_selections[0] )
-
-            title_vars = {'rev_old': rev_old.number
-                         ,'date_old': date_old}
-
-            heading_new = T_('Working')
-            heading_old = T_('r%(rev_old)d date %(date_old)s') % title_vars
-
-        else:
-            rev_new = self.log_model.revForRow( self.current_commit_selections[0] )
-            date_new = self.log_model.dateStringForRow( self.current_commit_selections[0] )
-            rev_old = self.log_model.revForRow( self.current_commit_selections[-1] )
-            date_old = self.log_model.dateStringForRow( self.current_commit_selections[-1] )
-
-            title_vars = {'rev_old': rev_old.number
-                         ,'date_old': date_old
-                         ,'rev_new': rev_new.number
-                         ,'date_new': date_new}
-
-
-            heading_new = T_('r%(rev_new)d date %(date_new)s') % title_vars
-            heading_old = T_('r%(rev_old)d date %(date_old)s') % title_vars
-
-        if filestate.isDir():
-            title = T_('Diff %s') % (self.filename,)
-            text = self.svn_project.cmdDiffRevisionVsRevision( self.filename, rev_old, rev_new )
-            self.ui_component.showDiffText( title, text.split('\n') )
-
-        else:
-            title = T_('Diff %s') % (self.filename,)
-            if rev_new == self.svn_project.svn_rev_working:
-                text_new = filestate.getTextLinesWorking()
-
-            else:
-                text_new = filestate.getTextLinesForRevision( rev_new )
-
-            text_old = filestate.getTextLinesForRevision( rev_old )
-
-            self.ui_component.diffTwoFiles(
-                    title,
-                    text_old,
-                    text_new,
-                    heading_old,
-                    heading_new
-                    )
-
-    def diffFileChanges( self ):
-        node = self.changes_model.changesNode( self.current_file_selection[0] )
-        filename = node.path
-
-        rev_new = self.log_model.revForRow( self.current_commit_selections[0] ).number
-        rev_old = rev_new - 1
-
-        heading_new = 'r%d' % (rev_new,)
-        heading_old = 'r%d' % (rev_old,)
-
-        title = T_('Diff %s') % (filename,)
-
-
-        info = self.svn_project.cmdInfo( pathlib.Path('.') )
-
-        url = info[ 'repos_root_URL' ] + filename
-
-        text_new = self.svn_project.getTextLinesForRevisionFromUrl( url, rev_new )
-        text_old = self.svn_project.getTextLinesForRevisionFromUrl( url, rev_old )
-
-        self.ui_component.diffTwoFiles(
-                title,
-                text_old,
-                text_new,
-                heading_old,
-                heading_new
-                )
-
-    def annotateLogHistory( self ):
-        self.log.error( 'annotateLogHistory TBD' )
-
 
 class WbLogHistoryTableView(QtWidgets.QTableView):
     def __init__( self, main_window ):
