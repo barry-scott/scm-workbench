@@ -14,8 +14,6 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import wb_log_history_options_dialog
-
 import wb_svn_ui_actions
 import wb_svn_project
 import wb_svn_commit_dialog
