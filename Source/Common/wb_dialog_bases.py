@@ -14,8 +14,6 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import pathlib
-
 class WbDialog(QtWidgets.QDialog):
     def __init__( self, parent=None ):
         super().__init__( parent )

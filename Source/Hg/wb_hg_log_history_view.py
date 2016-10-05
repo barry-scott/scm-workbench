@@ -11,7 +11,6 @@
 
 
 '''
-import pathlib
 import pytz
 
 from PyQt5 import QtWidgets

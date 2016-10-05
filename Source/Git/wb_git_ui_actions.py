@@ -11,6 +11,7 @@
 
 '''
 import sys
+import pathlib
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
@@ -792,7 +793,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             title = T_('Diff File %s') % (mw.filename,)
 
         else:
-            title = T_('Diff Project %s' % (self.git_project.projectName(),) )
+            title = T_('Diff Project %s' % (mw.git_project.projectName(),) )
 
         heading_old = T_('commit %(commit_old)s date %(date_old)s') % title_vars
 

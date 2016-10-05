@@ -11,6 +11,7 @@
 
 '''
 import sys
+import pathlib
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui

@@ -12,7 +12,6 @@
     wb_scm_preferences.py
 
 '''
-import pathlib
 import sys
 
 import wb_preferences

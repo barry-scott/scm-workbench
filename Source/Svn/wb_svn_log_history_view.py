@@ -10,8 +10,6 @@
     wb_svn_log_history.py
 
 '''
-import pathlib
-
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore

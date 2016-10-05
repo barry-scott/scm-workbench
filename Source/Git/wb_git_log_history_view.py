@@ -15,8 +15,6 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-import pathlib
-
 from wb_background_thread import thread_switcher
 
 import wb_tracked_qwidget
