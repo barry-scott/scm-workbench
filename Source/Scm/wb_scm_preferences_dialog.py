@@ -326,7 +326,7 @@ class FontTab(QtWidgets.QWidget):
             self.ui_face = font.family()
             self.ui_point_size = font.pointSize()
 
-            self.ui_font_text.setText( '%s %dpt ' % (self.ui_eface, self.ui_point_size) )
+            self.ui_font_text.setText( '%s %dpt ' % (self.ui_face, self.ui_point_size) )
             self.ui_font_text.setFont( font )
 
     def onSelectFontCode( self, *args ):
