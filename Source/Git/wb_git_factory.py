@@ -10,7 +10,7 @@
     wb_git_factory.py
 
 '''
-import wb_git_log_history
+import wb_git_log_history_view
 import wb_git_ui_components
 
 import wb_scm_project_dialogs
@@ -44,7 +44,7 @@ class WbGitFactory:
         return [('.git', 'git')]
 
     def logHistoryView( self, app, title ):
-        return wb_git_log_history.WbGitLogHistoryView( app, title )
+        return wb_git_log_history_view.WbGitLogHistoryView( app, title )
 
 class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('ssh', 'git', 'https', 'http', 'ftps', 'ftp')

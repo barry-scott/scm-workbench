@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_hg_commit_dialog.py
+    wb_hg_commit_dialog_view.py
 
 '''
 from PyQt5 import QtWidgets
@@ -19,7 +19,6 @@ import wb_tracked_qwidget
 
 import wb_scm_table_view
 
-import wb_hg_log_history
 import wb_hg_ui_actions
 
 #

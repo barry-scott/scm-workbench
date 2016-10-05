@@ -10,7 +10,7 @@
     wb_svn_factory.py
 
 '''
-import wb_svn_log_history
+import wb_svn_log_history_view
 import wb_svn_ui_components
 
 import wb_scm_project_dialogs
@@ -50,7 +50,7 @@ class WbSvnFactory:
         return [('.svn', 'svn'), ('_svn', 'svn')]
 
     def logHistoryView( self, app, title ):
-        return wb_svn_log_history.WbSvnLogHistoryView( app, title )
+        return wb_svn_log_history_view.WbSvnLogHistoryView( app, title )
 
 class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def __init__( self, app, parent, prefs_project, scm_project ):

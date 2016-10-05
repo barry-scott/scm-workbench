@@ -11,7 +11,7 @@
 
 '''
 import wb_hg_ui_components
-import wb_hg_log_history
+import wb_hg_log_history_view
 
 import wb_scm_project_dialogs
 
@@ -44,7 +44,7 @@ class WbHgFactory:
         return [('.hg', 'hg')]
 
     def logHistoryView( self, app, title ):
-        return wb_hg_log_history.WbHgLogHistoryView( app, title )
+        return wb_hg_log_history_view.WbHgLogHistoryView( app, title )
 
 class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('ssh', 'https', 'http')

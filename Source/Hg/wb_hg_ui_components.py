@@ -14,7 +14,6 @@ import wb_log_history_options_dialog
 
 import wb_hg_ui_actions
 import wb_hg_project
-import wb_hg_log_history
 
 import wb_hg_commit_dialog
 
