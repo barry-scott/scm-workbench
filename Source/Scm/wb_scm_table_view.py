@@ -28,6 +28,8 @@ class WbScmTableView(QtWidgets.QTableView):
 
         super().__init__()
 
+        self.all_visible_columns = None
+
         # short cut keys in the table view
         self.table_keys_edit = ('\r', 'e', 'E')
         self.table_keys_open = ('o', 'O')
@@ -74,14 +76,26 @@ class WbScmTableView(QtWidgets.QTableView):
         self.setColumnWidth( self.table_model.col_date, em*16 )
         self.setColumnWidth( self.table_model.col_type, em*6 )
 
+    def setFilterText( self, text ):
+        # setting the filter text some times has the side effect of
+        # showing all columns. This is assumed to be a bug in Qt.
+        self.table_sortfilter.setFilterText( text )
+
+        # force the column visibity incase it was overrinned by setFilterText.
+        self.applyVisibleColumns()
+
     def focusInEvent( self, event ):
         super().focusInEvent( event )
 
         self.main_window.setFocusIsIn( 'table' )
 
     def setVisibleColumns( self, all_visible_columns ):
+        self.all_visible_columns = all_visible_columns
+        self.applyVisibleColumns()
+
+    def applyVisibleColumns( self ):
         for col in range( self.table_model.col_num_columns ):
-            self.setColumnHidden( col, col not in all_visible_columns )
+            self.setColumnHidden( col, col not in self.all_visible_columns )
 
     def tableContextMenu( self, pos ):
         self._debug( 'tableContextMenu( %r )' % (pos,) )
