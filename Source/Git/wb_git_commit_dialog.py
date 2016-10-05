@@ -21,6 +21,8 @@ import wb_scm_table_view
 
 import wb_git_ui_actions
 
+feature_selective_commit = False
+
 #
 #   add tool bars and menu for use in the commit window
 #
@@ -65,7 +67,8 @@ class GitCommitWindowComponents(wb_git_ui_actions.GitMainWindowActions):
         addTool( t, T_('Unstage'), self.tableActionGitUnstageAndExclude, self.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
         addTool( t, T_('Revert'), self.tableActionGitRevertAndExclude, self.enablerGitFilesRevert, 'toolbar_images/revert.png' )
 
-        addTool( t, 'Include', self.tableActionCommitInclude, self.enablerGitCommitInclude, checker=self.checkerActionCommitInclude )
+        if feature_selective_commit:
+            addTool( t, 'Include', self.tableActionCommitInclude, self.enablerGitCommitInclude, checker=self.checkerActionCommitInclude )
 
     def tableActionGitStageAndInclude( self ):
         self._tableActionChangeRepo( self._actionGitStageAndInclude )
@@ -138,6 +141,12 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
+        tm = self.table_view.table_model
+        if feature_selective_commit:
+            self.table_view.setVisibleColumns( (tm.col_include, tm.col_staged, tm.col_status, tm.col_name, tm.col_date) )
+
+        else:
+            self.table_view.setVisibleColumns( (tm.col_staged, tm.col_status, tm.col_name, tm.col_date) )
 
         self.all_included_files = set()
         self.table_view.setIncludedFilesSet( self.all_included_files )
