@@ -126,8 +126,11 @@ class ThreadSafeLogFacade:
 
     def __printErrorList( self, msg, tb_list ):
         self.error( msg )
-        for line in tb_list:
-            self.error( line )
+        for compound_line in tb_list:
+            if compound_line.endswith( '\n' ):
+                compound_line = compound_line[:-1]
+            for line in compound_line.split('\n'):
+                self.error( line )
 
     def __dispatch( self, func, args ):
         if self.__app.isForegroundThread():
