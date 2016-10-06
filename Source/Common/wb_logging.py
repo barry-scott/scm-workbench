@@ -25,6 +25,8 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+INFOHEADER = logging.INFO + 1
+
 class AppLoggingMixin:
     def __init__( self, extra_logger_names=None ):
         self.log = None
@@ -99,6 +101,9 @@ class ThreadSafeLogFacade:
     def __init__( self, app, thread_unsafe_log ):
         self.__app = app
         self.__log = thread_unsafe_log
+
+    def infoheader( self, msg ):
+        self.__dispatch( self.__log.log, (INFOHEADER, msg,) )
 
     def info( self, msg ):
         self.__dispatch( self.__log.info, (msg,) )
@@ -253,6 +258,9 @@ class WidgetLogHandler(logging.Handler):
         elif level >= logging.WARNING:
             self.log_widget.writeWarning( msg )
 
+        elif level >= INFOHEADER:
+            self.log_widget.writeInfo( msg, True )
+
         elif level >= logging.INFO:
             self.log_widget.writeInfo( msg )
 
@@ -270,6 +278,7 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
     style_warning = 3
     style_critical = 4
     style_debug = 5
+    style_divider = 6
 
     all_style_colours = (
         (style_normal,   '#000000', '#ffffff'),
@@ -278,6 +287,7 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
         (style_warning,  '#008000', '#ffffff'),    # Green
         (style_critical, '#BA55D3', '#ffffff'),    # Medium Orchid
         (style_debug,    '#191970', '#cccccc'),
+        (style_divider,  '#cccccc', '#ffffff'),
         )
 
     def __init__( self, app ):
@@ -294,7 +304,15 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
         self.setReadOnly( True )
         self.setTextInteractionFlags( QtCore.Qt.TextSelectableByMouse|QtCore.Qt.TextSelectableByKeyboard )
 
-    def writeStyledText( self, text, style ):
+    def writeStyledText( self, text, style, divider=False ):
+        if divider:
+            self.moveCursor( QtGui.QTextCursor.End )
+            cursor = self.textCursor()
+            cursor.beginEditBlock()
+            cursor.setCharFormat( self.all_text_formats[ self.style_divider ] )
+            cursor.insertText( '\u2500'*100 + '\n' )
+            cursor.endEditBlock()
+
         self.moveCursor( QtGui.QTextCursor.End )
 
         cursor = self.textCursor()
@@ -311,8 +329,8 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
     def writeError( self, text ):
         self.writeStyledText( text, self.style_error )
 
-    def writeInfo( self, text ):
-        self.writeStyledText( text, self.style_info )
+    def writeInfo( self, text, divider=False ):
+        self.writeStyledText( text, self.style_info, divider )
 
     def writeWarning( self, text ):
         self.writeStyledText( text, self.style_warning )

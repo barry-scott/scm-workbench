@@ -340,14 +340,16 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         path = tree_node.relativePath()
         if path == pathlib.Path( '.' ):
-            self.setStatusAction( T_('Update %(project)s') %
-                                        {'project': tree_node.project.projectName()} )
+            msg = (T_('Update %(project)s') %
+                        {'project': tree_node.project.projectName()})
 
         else:
-            self.setStatusAction( T_('Update %(project)s:%(filename)s') %
-                                        {'project': tree_node.project.projectName()
-                                        ,'filename': path} )
+            msg = (T_('Update %(project)s:%(filename)s') %
+                        {'project': tree_node.project.projectName()
+                        ,'filename': path})
 
+        self.log.infoheader( msg )
+        self.setStatusAction( msg )
         self.progress.start( T_('Updated %(count)d') )
 
         yield self.switchToBackground
@@ -728,7 +730,9 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # hide the dialog
         commit_dialog.hide()
 
-        self.setStatusAction( T_('Check in %s') % (svn_project.projectName(),) )
+        msg = T_('Check in %s') % (svn_project.projectName(),)
+        self.log.infoheader( msg )
+        self.setStatusAction( msg )
         self.progress.start( T_('Sent %(count)d'), 0 )
 
         yield self.switchToBackground

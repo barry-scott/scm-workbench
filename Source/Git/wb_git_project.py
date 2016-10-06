@@ -543,13 +543,13 @@ class GitProject:
     def cmdPull( self, progress_callback, info_callback ):
         tracking_branch = self.repo.head.ref.tracking_branch()
         if tracking_branch is None:
-            self.app.log.info( 'Cannot pull %(project_name)s as it has no remotes configured' %
+            self.app.log.infoheader( 'Cannot pull %(project_name)s as it has no remotes configured' %
                 {'project_name': self.projectName()} )
             return
 
         remote = self.repo.remote( tracking_branch.remote_name )
 
-        self.app.log.info( T_('Pull %(project_name)s %(branch)s') %
+        self.app.log.infoheader( T_('Pull %(project_name)s %(branch)s') %
                                 {'project_name': self.projectName()
                                 ,'branch': tracking_branch.name} )
         progress = Progress( progress_callback )
@@ -571,7 +571,7 @@ class GitProject:
         tracking_branch = self.repo.head.ref.tracking_branch()
         remote = self.repo.remote( tracking_branch.remote_name )
 
-        self.app.log.info( T_('Push %(project_name)s %(branch)s') %
+        self.app.log.infoheader( T_('Push %(project_name)s %(branch)s') %
                                 {'project_name': self.projectName()
                                 ,'branch': tracking_branch.name} )
         progress = Progress( progress_callback )

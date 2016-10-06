@@ -621,7 +621,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         commit_id = git_project.cmdCommit( message )
 
         headline = message.split('\n')[0]
-        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
+        self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
         self.__commitClosed()
 
