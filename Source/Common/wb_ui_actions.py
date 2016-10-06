@@ -54,7 +54,7 @@ class WbMainWindowActions:
         self.setupDebug()
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debugMainWindow
+        self._debug = self.main_window.app._debug_options._debugMainWindow
 
     def tableSelectedAllFileStates( self ):
         if self.table_view is None:

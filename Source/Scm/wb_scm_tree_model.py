@@ -42,7 +42,7 @@ class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
 class WbScmTreeModel(QtGui.QStandardItemModel):
     def __init__( self, app, table_model ):
         self.app = app
-        self._debug = self.app._debugTreeModel
+        self._debug = self.app._debug_options._debugTreeModel
         self.table_model = table_model
 
         super().__init__()

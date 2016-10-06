@@ -149,7 +149,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debugTableModel
+        self._debug = self.app._debug_options._debugTableModel
 
         super().__init__()
 

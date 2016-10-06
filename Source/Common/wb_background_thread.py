@@ -49,7 +49,7 @@ class BackgroundThread(threading.Thread):
     def run( self ):
         while self.running:
             function = self.work_queue.get( block=True, timeout=None )
-            self.app._debugThreading( 'BackgroundThread.run dispatching %r' % (function,) )
+            self.app._debug_options._debugThreading( 'BackgroundThread.run dispatching %r' % (function,) )
 
             try:
                 function()
@@ -58,7 +58,7 @@ class BackgroundThread(threading.Thread):
                 self.app.log.exception( 'function failed on background thread' )
 
     def addWork( self, function, args ):
-        self.app._debugThreading( 'BackgroundThread.addWork( %r, %r )' % (function, args) )
+        self.app._debug_options._debugThreading( 'BackgroundThread.addWork( %r, %r )' % (function, args) )
         assert self.running
         self.work_queue.put( MarshalledCall( function, args ), block=False, timeout=None )
 
@@ -106,7 +106,7 @@ class BackgroundWorkMixin:
         return DeferRunInForeground( self, function )
 
     def runInBackground( self, function, args ):
-        self._debugThreading( 'runInBackground( %r, %r )' % (function, args) )
+        self._debug_options._debugThreading( 'runInBackground( %r, %r )' % (function, args) )
         self.background_thread.addWork( function, args )
 
     def runInForeground( self, function, args ):
@@ -125,7 +125,7 @@ class BackgroundWorkMixin:
     switchToBackground = runInBackground
 
     def __runInForeground( self, function ):
-        self._debugThreading( '__runInForeground( %r )' % (function,) )
+        self._debug_options._debugThreading( '__runInForeground( %r )' % (function,) )
 
         try:
             function()
@@ -145,9 +145,10 @@ class ThreadSwitchScheduler:
     def __init__( self, app, function ):
         self.app = app
         self.function = function
+        self._debugThreading = self.app._debug_options._debugThreading
 
     def __call__( self, *args, **kwds ):
-        self.app._debugThreading( 'ThreadSwitchScheduler: __call__( %r, %r )' % (args, kwds) )
+        self._debugThreading( 'ThreadSwitchScheduler: __call__( %r, %r )' % (args, kwds) )
 
         try:
             # call the function
@@ -165,12 +166,12 @@ class ThreadSwitchScheduler:
             self.app.log.exception( 'ThreadSwitchScheduler' )
 
     def queueNextSwitch( self, generator ):
-        self.app._debugThreading( 'queueNextSwitch<%r>()' % (generator,) )
+        self._debugThreading( 'queueNextSwitch<%r>()' % (generator,) )
 
         # result tells where to schedule the generator to next
         try:
             where_to_go_next = next( generator )
-            self.app._debugThreading( 'queueNextSwitch<%r>() next=>%r' % (generator, where_to_go_next) )
+            self._debugThreading( 'queueNextSwitch<%r>() next=>%r' % (generator, where_to_go_next) )
 
         except StopIteration:
             # no problem all done

@@ -30,8 +30,7 @@ import wb_git_preferences
 
 from PyQt5 import QtGui
 
-class WbScmApp(wb_app.WbApp,
-               wb_scm_debug.WbScmDebug):
+class WbScmApp(wb_app.WbApp):
     def __init__( self, args ):
         self.__git_debug = False
         self.__all_singletons = {}
@@ -42,8 +41,7 @@ class WbScmApp(wb_app.WbApp,
                                              ,wb_hg_factory.WbHgFactory()
                                              ,wb_svn_factory.WbSvnFactory()]] )
 
-        wb_scm_debug.WbScmDebug.__init__( self )
-        wb_app.WbApp.__init__( self, ('Scm', 'Workbench'), args, ['git.cmd'] )
+        super().__init__( ('Scm', 'Workbench'), args, debug_class=wb_scm_debug.WbScmDebug, extra_loggers=['git.cmd'],  )
 
     def formatDatetime( self, datetime_or_timestamp ):
         dt = wb_date.localDatetime( datetime_or_timestamp )

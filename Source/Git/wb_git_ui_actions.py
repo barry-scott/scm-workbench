@@ -40,7 +40,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         super().__init__( 'git', factory )
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debugGitUi
+        self._debug = self.main_window.app._debug_options._debugGitUi
 
     #------------------------------------------------------------
     #

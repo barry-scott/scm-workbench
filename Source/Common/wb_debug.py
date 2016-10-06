@@ -11,32 +11,39 @@
 
 '''
 import time
+class WbDebugOption:
+    __slots__ = ('__enabled', '_log', '__name', '__fmt')
 
-class WbDebug:
-    def __init__( self ):
+    def __init__( self, log, name ):
+        assert log is not None
+        self.__enabled = False
+        self._log = log
+        self.__name = name
+        self.__fmt = '%s %%s' % (name,)
+
+    def __repr__( self ):
+        return '<WbDebugOption: %s enabled=%r>' % (self.__name, self.isEnabled())
+
+    def enable( self, state=True ):
+        self.__enabled = state
+
+    def isEnabled( self ):
+        return self.__enabled
+
+    def __call__( self, msg ):
+        if self.__enabled:
+            self._log.debug( self.__fmt % (msg,) )
+
+class WbDebugSpeedOption(WbDebugOption):
+    __slots__ = ('__speed_start_time', '__speed_last_event_time')
+
+    def __init__( self, log, name ):
+        super().__init__( log, name )
         self.__speed_start_time = time.time()
         self.__speed_last_event_time = self.__speed_start_time
 
-        self._debug_speed = False
-        self._debug_app = False
-        self._debug_threading = False
-        self._debug_main_window = False
-        self._debug_tree_model = False
-        self._debug_table_model = False
-        self._debug_diff = False
-
-    def setDebug( self, str_options ):
-        for option in [s.strip().lower() for s in str_options.split(',')]:
-            name = '_debug_%s' % (option.replace( '-', '_' ),)
-            if hasattr( self, name ):
-                setattr( self, name, True )
-
-            else:
-                msg = 'Unknown debug option %s - see wb_debug.py for available options' % (option,)
-                print( msg )
-
-    def _debugSpeed( self, msg, start_timer=False ):
-        if self._debug_speed:
+    def __call__( self, msg, start_timer=False ):
+        if self.isEnabled():
             now = time.time()
             if start_timer:
                 self.__speed_start_time = now
@@ -46,34 +53,30 @@ class WbDebug:
             last_delta = now - self.__speed_last_event_time
             self.__speed_last_event_time = now
 
-            self.log.debug( 'SPEED %.6f %.6f %s' % (start_delta, last_delta, msg,) )
+            self._log.debug( 'SPEED %.6f %.6f %s' % (start_delta, last_delta, msg,) )
 
-    # wb_app
-    def _debugApp( self, msg ):
-        if self._debug_app:
-            self.log.debug( 'APP %s' % (msg,) )
+class WbDebug:
+    def __init__( self, log ):
+        self._log = log
+        self._debugSpeed = WbDebugSpeedOption( self._log, 'SPEED' )
+        self._debugApp = self.addDebugOption( 'APP' )
+        self._debugThreading = self.addDebugOption( 'THREADING' )
+        self._debugMainWindow = self.addDebugOption( 'MAIN WINDOW' )
+        self._debugTreeModel = self.addDebugOption( 'TREE MODEL' )
+        self._debugTableModel = self.addDebugOption( 'TABLE MODEL' )
+        self._debugDiff = self.addDebugOption( 'DIFF' )
 
-    # wb_app and wb_background_thread
-    def _debugThreading( self, msg ):
-        if self._debug_threading:
-            self.log.debug( 'THREADING %s' % (msg,) )
+    def setDebug( self, str_options ):
+        print( 'qqq setDebug str_options %r' % (str_options,) )
+        for option in [s.strip().lower() for s in str_options.split(',')]:
+            name = '_debug%s' % (''.join( s.capitalize() for s in option.lower().split('-') ),)
+            print( 'qqq setDebug name %r' % (name,) )
+            if hasattr( self, name ):
+                getattr( self, name ).enable( True )
 
-    # wb_tree_model
-    def _debugTreeModel( self, msg ):
-        if self._debug_tree_model:
-            self.log.debug( 'TREE-MODEL %s' % (msg,) )
+            else:
+                msg = 'Unknown debug option %s - see wb_debug.py for available options' % (option,)
+                print( msg )
 
-    # wb_table_model
-    def _debugTableModel( self, msg ):
-        if self._debug_table_model:
-            self.log.debug( 'TABLE-MODEL %s' % (msg,) )
-
-    # wb_main_window
-    def _debugMainWindow( self, msg ):
-        if self._debug_main_window:
-            self.log.debug( 'MAIN-WINDOW %s' % (msg,) )
-
-    # wb_diff*
-    def _debugDiff( self, msg ):
-        if self._debug_diff:
-            self.log.debug( 'DIFF %s' % (msg,) )
+    def addDebugOption( self, name ):
+        return WbDebugOption( self._log, name )

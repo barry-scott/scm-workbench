@@ -71,7 +71,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.svn_project = svn_project
         self.table_view = None
 
-        super().__init__( app, app._debugMainWindow )
+        super().__init__( app, app._debug_options._debugMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         self.ui_component = SvnCommitWindowComponents( self.app.getScmFactory( 'svn' ) )

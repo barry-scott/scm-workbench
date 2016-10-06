@@ -45,8 +45,8 @@ class GitProject:
         self.app = app
         self.ui_components = ui_components
 
-        self._debug = self.app._debugGitProject
-        self._debugTree = self.app._debugGitTreeProject
+        self._debug = self.app._debug_options._debugGitProject
+        self._debugTree = self.app._debug_options._debugGitUpdateTree
 
         self.prefs_project = prefs_project
         self.repo = git.Repo( str( prefs_project.path ) )
@@ -239,7 +239,7 @@ class GitProject:
         self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
-        if self.app._debug_git_tree_project:
+        if self._debugTree.isEnabled():
             self.tree._dumpTree( 0 )
 
     #------------------------------------------------------------

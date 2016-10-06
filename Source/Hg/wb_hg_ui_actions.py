@@ -39,7 +39,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         super().__init__( 'hg', factory )
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debugHgUi
+        self._debug = self.main_window.app._debug_options._debugHgUi
 
     #------------------------------------------------------------
     #
@@ -215,10 +215,18 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
                                         (tree_node.relativePath(),), diff_text.split('\n') )
 
     def __logHgCommandError( self, e ):
-        self.log.error( "'%s' returned with exit code %i" %
-                        (' '.join(str(i) for i in e.command), e.status) )
-        if e.stderr:
-            all_lines = e.stderr.decode( sys.getdefaultencoding() ).split('\n')
+        if e.out:
+            all_lines = e.out.decode( sys.getdefaultencoding() ).split('\n')
+            if all_lines[-1] == '':
+                del all_lines[-1]
+
+            for line in all_lines:
+                self.log.info( line )
+
+        self.log.error( "Hg command '%s' returned with exit code %i" %
+                        (' '.join( [arg.decode( sys.getdefaultencoding() ) for arg in e.args] ), e.ret) )
+        if e.err:
+            all_lines = e.err.decode( sys.getdefaultencoding() ).split('\n')
             if all_lines[-1] == '':
                 del all_lines[-1]
 

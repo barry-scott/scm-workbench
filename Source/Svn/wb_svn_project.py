@@ -37,8 +37,8 @@ class SvnProject:
         self.app = app
         self.ui_components = ui_components
 
-        self._debug = self.app._debugSvnProject
-        self._debugUpdateTree = self.app._debugSvnUpdateTree
+        self._debug = self.app._debug_options._debugSvnProject
+        self._debugUpdateTree = self.app._debug_options._debugSvnUpdateTree
 
         self.__notification_of_files_in_conflict = 0
 

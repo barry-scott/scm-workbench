@@ -61,7 +61,7 @@ class WbMainWindowComponents:
         self.ui_actions.setMainWindow( main_window, table_view )
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debugMainWindow
+        self._debug = self.main_window.app._debug_options._debugMainWindow
 
     def getAllPerferenceTabs( self ):
         return []

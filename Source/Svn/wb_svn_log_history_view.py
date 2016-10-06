@@ -55,9 +55,9 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     focus_is_in_names = ('commits', 'changes')
     def __init__( self, app, title ):
         self.app = app
-        self._debug = self.app._debugLogHistory
+        self._debug = self.app._debug_options._debugLogHistory
 
-        super().__init__( app, app._debugMainWindow )
+        super().__init__( app, app._debug_options._debugMainWindow )
 
         self.current_commit_selections = []
         self.current_file_selection = []
@@ -239,7 +239,7 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debugLogHistory
+        self._debug = self.app._debug_options._debugLogHistory
 
         super().__init__()
 
@@ -342,7 +342,7 @@ class WbSvnChangedFilesModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debugLogHistory
+        self._debug = self.app._debug_options._debugLogHistory
 
         super().__init__()
 

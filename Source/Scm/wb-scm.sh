@@ -9,9 +9,10 @@ fi
 SCMPYTHONPATH=${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Hg:${BUILDER_TOP_DIR}/Source/Svn:${BUILDER_TOP_DIR}/Source/Common
 
 # for override libraries
-OVERRIDE_PYTHONPATH=~/wc/git/GitPython
+OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython
+OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib
 
-for PART in "${SCMPYTHONPATH}" "${OVERRIDE_PYTHONPATH}"
+for PART in "${SCMPYTHONPATH}" "${OVERRIDE_PYTHONPATH_1}" "${OVERRIDE_PYTHONPATH_2}"
 do
     if [ "${PART}" != "" ]
     then

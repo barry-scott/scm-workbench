@@ -51,7 +51,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.__init_done = False
 
-        super().__init__( app, app._debugMainWindow )
+        super().__init__( app, app._debug_options._debugMainWindow )
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )

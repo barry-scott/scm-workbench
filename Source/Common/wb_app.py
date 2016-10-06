@@ -38,7 +38,7 @@ class WbApp(QtWidgets.QApplication,
              wb_logging.AppLoggingMixin,
              wb_background_thread.BackgroundWorkMixin):
 
-    def __init__( self, app_name_parts, args, extra_loggers=None ):
+    def __init__( self, app_name_parts, args, debug_class, extra_loggers=None ):
         self.top_window = None
         self.main_window = None
         # used to set the names of files and windows for this app
@@ -84,6 +84,8 @@ class WbApp(QtWidgets.QApplication,
 
         self.all_positional_args = []
 
+        debug_config_string = None
+
         while len(args) > 1:
             arg = args[ 1 ]
 
@@ -104,7 +106,7 @@ class WbApp(QtWidgets.QApplication,
 
             elif arg == '--debug' and len(args) > 2:
                 self.__debug = True
-                self.setDebug( args[2] )
+                debug_config_string = args[2]
                 del args[ 1 ]
                 del args[ 1 ]
 
@@ -155,10 +157,16 @@ class WbApp(QtWidgets.QApplication,
 
         # part 1 of settings up logging
 
-        self.setupScmDebug()
-
-        # and logging
         self.setupLogging()
+
+        # and debug trace
+        self._debug_options = debug_class( self.log )
+        if debug_config_string is not None:
+            self._debug_options.setDebug( debug_config_string )
+
+        self._debugApp = self._debug_options._debugApp
+
+        self.setupScmDebug()
 
         # these messages just go into the log file not the log widget
         self.log.info( 'startup_dir %s' % (self.startup_dir,) )

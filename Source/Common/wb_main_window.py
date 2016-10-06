@@ -20,7 +20,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def __init__( self, app, debug_fn, parent=None ):
         self.app = app
         self.log = self.app.log
-        self._debug = app._debugMainWindow
+        self._debug = app._debug_options._debugMainWindow
 
         super().__init__( parent )
 

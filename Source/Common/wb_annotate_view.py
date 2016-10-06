@@ -26,9 +26,9 @@ import wb_main_window
 class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, ui_component, title ):
         self.app = app
-        self._debug = self.app._debugAnnotate
+        self._debug = self.app._debug_options._debugAnnotate
 
-        super().__init__( app, app._debugMainWindow )
+        super().__init__( app, app._debug_options._debugMainWindow )
 
         self.current_commit_selections = []
         self.current_file_selection = []
@@ -174,7 +174,7 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debugAnnotate
+        self._debug = self.app._debug_options._debugAnnotate
 
         super().__init__()
 

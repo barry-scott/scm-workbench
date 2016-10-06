@@ -42,7 +42,9 @@ class HgProject:
         self.app = app
         self.ui_components = ui_components
 
-        self._debug = self.app._debugHgProject
+        self._debug = self.app._debug_options._debugHgProject
+        self._debugTree = self.app._debug_options._debugHgUpdateTree
+        self._traceProtocol = self.app._debug_options._debugHgProtocolTrace
 
         self.prefs_project = prefs_project
         self.repo = hglib.open( str( prefs_project.path ) )
@@ -53,6 +55,18 @@ class HgProject:
         self.all_file_state = {}
 
         self.__num_modified_files = 0
+
+    def enableProtocolTrace( self, state ):
+        if self._traceProtocol.isEnabled():
+            # setprotocoltrace is not in older version of hglib
+            if hasattr( self.repo, 'setprotocoltrace' ):
+                if state:
+                    self.repo.setprotocoltrace( self.traceHgProtocol )
+                else:
+                    self.repo.setprotocoltrace( None )
+
+    def traceHgProtocol( self, channel, data ):
+        self._traceProtocol( 'ch: %r, data: %r' % (channel, data) )
 
     def scmType( self ):
         return 'hg'
@@ -101,7 +115,7 @@ class HgProject:
         for path in self.all_file_state:
             self.__updateTree( path )
 
-        #self.dumpTree()
+        self.dumpTree()
 
     def __calculateStatus( self ):
         self.all_file_state = {}
@@ -151,25 +165,26 @@ class HgProject:
                 self.__num_modified_files += 1
 
     def __updateTree( self, path ):
-        self._debug( '__updateTree path %r' % (path,) )
+        self._debugTree( '__updateTree path %r' % (path,) )
         node = self.tree
 
-        self._debug( '__updateTree path.parts %r' % (path.parts,) )
+        self._debugTree( '__updateTree path.parts %r' % (path.parts,) )
 
         for index, name in enumerate( path.parts[0:-1] ):
-            self._debug( '__updateTree name %r at node %r' % (name,node) )
+            self._debugTree( '__updateTree name %r at node %r' % (name,node) )
 
             if not node.hasFolder( name ):
                 node.addFolder( name, HgProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
 
             node = node.getFolder( name )
 
-        self._debug( '__updateTree addFile %r to node %r' % (path, node) )
+        self._debugTree( '__updateTree addFile %r to node %r' % (path, node) )
         node.addFileByName( path )
         self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
-        self.tree._dumpTree( 0 )
+        if self._debugTree.isEnabled():
+            self.tree._dumpTree( 0 )
 
     #------------------------------------------------------------
     #
@@ -208,7 +223,9 @@ class HgProject:
         return all_untracked_files
 
     def canPush( self ):
-        return False
+        print( 'qqq need canPush' )
+        return True
+
         for commit in self.repo.iter_commits( None, max_count=1 ):
             commit_id = commit.hexsha
 
@@ -221,6 +238,7 @@ class HgProject:
         return False
 
     def getUnpushedCommits( self ):
+        print( 'qqq need getUnpushedCommits' )
         return []
 
         last_pushed_commit_id = ''
@@ -382,15 +400,28 @@ class HgProject:
         for child in tree.trees:
             self.__treeToDict( child, all_entries )
 
-    def cmdPull( self ):
+    def cmdPull( self, progress, info ):
         self._debug( 'cmdPull()' )
+        self.enableProtocolTrace( True )
+        try:
+            self.repo.pull( update=True, prompt=self.promptHandler )
 
-        self.repo.pull( update=True )
+        finally:
+            self.enableProtocolTrace( False )
 
-    def cmdPush( self ):
+    def cmdPush( self, progress, info ):
         self._debug( 'cmdPush()' )
 
-        self.repo.push()
+        self.enableProtocolTrace( True )
+        try:
+            self.repo.push()
+
+        finally:
+            self.enableProtocolTrace( False )
+
+    def promptHandler( self, max_response_size, output ):
+        self._debug( 'promptHandler( %r, %r )' % (max_response_size, output) )
+        return b''
 
 class WbHgLog:
     def __init__( self, data, repo ):
@@ -631,10 +662,10 @@ class HgProjectTreeNode:
         return name in self.__all_folders
 
     def _dumpTree( self, indent ):
-        self.project._debug( 'dump: %*s%r' % (indent, '', self) )
+        self.project._debugTree( 'dump: %*s%r' % (indent, '', self) )
 
         for file in sorted( self.__all_files ):
-            self.project._debug( 'dump %*s   file: %r' % (indent, '', file) )
+            self.project._debugTree( 'dump %*s   file: %r' % (indent, '', file) )
 
         for folder in sorted( self.__all_folders ):
             self.__all_folders[ folder ]._dumpTree( indent+4 )

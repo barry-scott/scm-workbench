@@ -28,7 +28,7 @@ import wb_tracked_qwidget
 
 class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, parent, title, file_left, header_left, file_right, header_right, ):
-        super().__init__( app, app._debugDiff, parent=parent )
+        super().__init__( app, app._debug_options._debugDiff, parent=parent )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         prefs = self.app.prefs.diff_window
@@ -240,7 +240,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
     syncScroll = QtCore.pyqtSignal()
 
     def __init__( self, app, parent, name=None ):
-        self._debug = app._debugDiff
+        self._debug = app._debug_options._debugDiff
         self.name = name    # used for debug
         self.text_body_other = None
 
