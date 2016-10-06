@@ -13,13 +13,12 @@
 import pathlib
 import sys
 import tempfile
-import threading
 import pysvn
 
 import wb_date
 import wb_read_file
 import wb_annotate_node
-
+import wb_background_thread
 import wb_svn_utils
 
 ClientError = pysvn.ClientError
@@ -54,8 +53,8 @@ class SvnProject:
         self.__client_bg.exception_style = 1
         self.__client_bg.commit_info_style = 2
         self.__client_bg.callback_notify = self.svnCallbackNotify
-        self.__client_bg.callback_get_login = CallFunctionOnMainThread( self.app, self.ui_components.svnGetLogin )
-        self.__client_bg.callback_ssl_server_trust_prompt = CallFunctionOnMainThread( self.app, self.ui_components.svnSslServerTrustPrompt )
+        self.__client_bg.callback_get_login = wb_background_thread.GetReturnFromCallingFunctionOnMainThread( self.app, self.ui_components.svnGetLogin )
+        self.__client_bg.callback_ssl_server_trust_prompt = wb_background_thread.GetReturnFromCallingFunctionOnMainThread( self.app, self.ui_components.svnSslServerTrustPrompt )
 
         if prefs_project is not None:
             self.tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
@@ -735,44 +734,6 @@ class SvnProjectTreeNode:
             entry = WbSvnFileState( self.project, None )
 
         return entry
-
-#
-#    Used to allow a call to function on the background thread
-#    to block until the result return on the main thread is available
-#
-class CallFunctionOnMainThread:
-    def __init__( self, app, function ):
-        self.app = app
-        self.function = function
-
-        self.cv = threading.Condition()
-        self.result = None
-
-    def __call__( self, *args ):
-        self.app.log.debug( 'CallFunctionOnMainThread.__call__ calling %r' % self.function )
-        self.cv.acquire()
-
-        self.app.runInForeground( self.__onMainThread, args )
-
-        self.cv.wait()
-        self.cv.release()
-
-        self.app.log.debug( 'CallFunctionOnMainThread.__call__ returning %r' % self.function )
-        return self.result
-
-    def __onMainThread( self, *args ):
-        self.app.log.debug( 'CallFunctionOnMainThread._onMainThread calling %r' % self.function )
-        try:
-            self.result = self.function( *args )
-
-        finally:
-            pass
-
-        self.cv.acquire()
-        self.cv.notify()
-        self.cv.release()
-
-        self.app.log.debug( 'CallFunctionOnMainThread._onMainThread returning %r' % self.function )
 
 class SvnCommitLogNode:
     def __init__( self, node ):

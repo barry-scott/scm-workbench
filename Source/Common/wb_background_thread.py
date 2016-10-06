@@ -179,3 +179,43 @@ class ThreadSwitchScheduler:
 
         # will be one of app.runInForeground or app.runInForeground
         where_to_go_next( self.queueNextSwitch, (generator,) )
+
+#------------------------------------------------------------
+#
+#    Used to allow a call to function on the background thread
+#    to block until the result return on the main thread is available
+#
+#------------------------------------------------------------
+class GetReturnFromCallingFunctionOnMainThread:
+    def __init__( self, app, function ):
+        self.app = app
+        self.function = function
+
+        self.cv = threading.Condition()
+        self.result = None
+
+    def __call__( self, *args ):
+        self.app.log.debug( 'CallFunctionOnMainThread.__call__ calling %r' % self.function )
+        self.cv.acquire()
+
+        self.app.runInForeground( self.__onMainThread, args )
+
+        self.cv.wait()
+        self.cv.release()
+
+        self.app.log.debug( 'CallFunctionOnMainThread.__call__ returning %r' % self.function )
+        return self.result
+
+    def __onMainThread( self, *args ):
+        self.app.log.debug( 'CallFunctionOnMainThread._onMainThread calling %r' % self.function )
+        try:
+            self.result = self.function( *args )
+
+        finally:
+            pass
+
+        self.cv.acquire()
+        self.cv.notify()
+        self.cv.release()
+
+        self.app.log.debug( 'CallFunctionOnMainThread._onMainThread returning %r' % self.function )
