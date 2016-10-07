@@ -259,7 +259,7 @@ class WidgetLogHandler(logging.Handler):
             self.log_widget.writeWarning( msg )
 
         elif level >= INFOHEADER:
-            self.log_widget.writeInfo( msg, True )
+            self.log_widget.writeInfoHeader( msg )
 
         elif level >= logging.INFO:
             self.log_widget.writeInfo( msg )
@@ -292,6 +292,8 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
         (style_info,        '#803080', '#ffffff'),  # light purple
         )
 
+    divider_text = '\u2500'*60 + '\n'
+
     def __init__( self, app ):
         self.app = app
 
@@ -306,19 +308,7 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
         self.setReadOnly( True )
         self.setTextInteractionFlags( QtCore.Qt.TextSelectableByMouse|QtCore.Qt.TextSelectableByKeyboard )
 
-    def writeStyledText( self, text, style, divider=False ):
-
-        if divider:
-            if style == self.style_info:
-                style = self.style_infoheader
-
-            self.moveCursor( QtGui.QTextCursor.End )
-            cursor = self.textCursor()
-            cursor.beginEditBlock()
-            cursor.setCharFormat( self.all_text_formats[ self.style_divider ] )
-            cursor.insertText( '\u2500'*60 + '\n' )
-            cursor.endEditBlock()
-
+    def __writeStyledText( self, text, style ):
         self.moveCursor( QtGui.QTextCursor.End )
 
         cursor = self.textCursor()
@@ -330,22 +320,26 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
         self.ensureCursorVisible()
 
     def writeNormal( self, text ):
-        self.writeStyledText( text, self.style_normal )
+        self.__writeStyledText( text, self.style_normal )
 
     def writeError( self, text ):
-        self.writeStyledText( text, self.style_error )
+        self.__writeStyledText( text, self.style_error )
 
-    def writeInfo( self, text, divider=False ):
-        self.writeStyledText( text, self.style_info, divider )
+    def writeInfoHeader( self, text ):
+        self.__writeStyledText( self.divider_text, self.style_divider )
+        self.__writeStyledText( text, self.style_infoheader )
+
+    def writeInfo( self, text ):
+        self.__writeStyledText( text, self.style_info )
 
     def writeWarning( self, text ):
-        self.writeStyledText( text, self.style_warning )
+        self.__writeStyledText( text, self.style_warning )
 
     def writeCritical( self, text ):
-        self.writeStyledText( text, self.style_critical )
+        self.__writeStyledText( text, self.style_critical )
 
     def writeDebug( self, text ):
-        self.writeStyledText( text, self.style_debug )
+        self.__writeStyledText( text, self.style_debug )
 
     def clearText( self ):
         self.clear()
@@ -387,7 +381,6 @@ class RotatingFileHandler(logging.FileHandler):
         """
         Do a rollover, as described in __init__().
         """
-
         self.stream.close()
         if self.backupCount > 0:
             prefix, suffix = os.path.splitext( self.baseFilename )
