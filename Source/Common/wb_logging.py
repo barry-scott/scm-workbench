@@ -316,7 +316,7 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
             cursor = self.textCursor()
             cursor.beginEditBlock()
             cursor.setCharFormat( self.all_text_formats[ self.style_divider ] )
-            cursor.insertText( '\u2500'*100 + '\n' )
+            cursor.insertText( '\u2500'*60 + '\n' )
             cursor.endEditBlock()
 
         self.moveCursor( QtGui.QTextCursor.End )
