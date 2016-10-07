@@ -31,6 +31,7 @@ def getFileBrowserProgramList():
     return ['Explorer']
 
 def EditFile( app, working_dir, all_filenames ):
+    app.log.infoheader( T_('Edit %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     p = app.prefs.editor
 
     if p.program:
@@ -93,8 +94,8 @@ def __getShellExecuteErrorMessage( err ):
         return getErrorMessage( err )
 
 def ShellOpen( app, working_dir, all_filenames ):
+    app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     for filename in all_filenames:
-        app.log.info( T_('Open %s') % (filename,) )
         ShellExecuteW = ctypes.windll.shell32.ShellExecuteW
         rc = ShellExecuteW( None, 'open', str(filename), None, str(working_dir), SW_SHOWNORMAL )
         if rc <= 32:
@@ -108,6 +109,7 @@ def ShellOpen( app, working_dir, all_filenames ):
                                 ,'error': __getShellExecuteErrorMessage()} )
 
 def CommandShell( app, working_dir ):
+    app.log.infoheader( 'Shell in %s' % (working_dir,) )
     p = app.prefs.shell
 
     abs_terminal_program = shutil.which( '%s.exe' % (p.terminal_program,) )
@@ -207,6 +209,8 @@ def CommandShell( app, working_dir ):
     CreateProcess( app, command_list, working_dir )
 
 def FileBrowser( app, working_dir ):
+    app.log.infoheader( 'Browse files in %s' % (working_dir,) )
+
     explorer = wb_platform_win32_specific.getWindowsDir() / 'explorer.exe'
     command_list = [str(explorer), '/e,/root,"%s"' % (working_dir,)]
 

@@ -279,15 +279,17 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
     style_critical = 4
     style_debug = 5
     style_divider = 6
+    style_infoheader = 7
 
     all_style_colours = (
-        (style_normal,   '#000000', '#ffffff'),
-        (style_error,    '#DC143C', '#ffffff'),    # Crimson
-        (style_info,     '#191970', '#ffffff'),    # Midnight Blue
-        (style_warning,  '#008000', '#ffffff'),    # Green
-        (style_critical, '#BA55D3', '#ffffff'),    # Medium Orchid
-        (style_debug,    '#191970', '#cccccc'),
-        (style_divider,  '#cccccc', '#ffffff'),
+        (style_normal,      '#000000', '#ffffff'),
+        (style_error,       '#DC143C', '#ffffff'),  # Crimson
+        (style_warning,     '#008000', '#ffffff'),  # Green
+        (style_critical,    '#BA55D3', '#ffffff'),  # Medium Orchid
+        (style_debug,       '#191970', '#cccccc'),
+        (style_divider,     '#cccccc', '#ffffff'),  # Grey
+        (style_infoheader,  '#191970', '#ffffff'),  # Midnight Blue
+        (style_info,        '#803080', '#ffffff'),  # light purple
         )
 
     def __init__( self, app ):
@@ -305,7 +307,11 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
         self.setTextInteractionFlags( QtCore.Qt.TextSelectableByMouse|QtCore.Qt.TextSelectableByKeyboard )
 
     def writeStyledText( self, text, style, divider=False ):
+
         if divider:
+            if style == self.style_info:
+                style = self.style_infoheader
+
             self.moveCursor( QtGui.QTextCursor.End )
             cursor = self.textCursor()
             cursor.beginEditBlock()

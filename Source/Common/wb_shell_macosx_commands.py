@@ -50,6 +50,7 @@ def ShellDiffFiles( app, args ):
     return __run_command_with_output( app, app.prefs.getDiffTool().shell_diff_tool, args )
 
 def EditFile( app, working_dir, all_filenames ):
+    app.log.infoheader( T_('Edit %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     all_filenames = [str(path) for path in all_filenames]
 
     p = app.prefs.editor
@@ -74,6 +75,7 @@ def EditFile( app, working_dir, all_filenames ):
         os.chdir( cur_dir )
 
 def ShellOpen( app, working_dir, all_filenames ):
+    app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     all_filenames = [str(path) for path in all_filenames]
 
     cur_dir = os.getcwd()
@@ -85,6 +87,7 @@ def ShellOpen( app, working_dir, all_filenames ):
         os.chdir( cur_dir )
 
 def CommandShell( app, working_dir ):
+    app.log.infoheader( 'Shell in %s' % (working_dir,) )
     p = app.prefs.shell
     if p.terminal_program == 'iTerm2':
         CommandShell_iTerm2( app, working_dir )
@@ -174,6 +177,7 @@ def CommandShell_Terminal( app, working_dir ):
     __run_command( app, u'/usr/bin/open', [f.name] )
 
 def FileBrowser( app, working_dir ):
+    app.log.infoheader( 'Browse files in %s' % (working_dir,) )
     __run_command( app, u'/usr/bin/open', [u'-a', u'Finder', working_dir] )
 
 def __run_command( app, cmd, args ):

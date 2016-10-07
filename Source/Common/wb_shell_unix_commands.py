@@ -49,13 +49,14 @@ def getFileBrowserProgramList():
     return gui_file_browsers[:]
 
 def EditFile( app, working_dir, all_filenames ):
+    app.log.infoheader( T_('Edit %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     p = app.prefs.editor
 
     editor = p.program
     if editor == '':
         app.log.warning( T_('Please configure the editor in the Preferences Editor tab') )
         return
-    
+
     options = p.options
 
     editor_args = []
@@ -64,10 +65,11 @@ def EditFile( app, working_dir, all_filenames ):
 
     editor_args.extend( all_filenames )
 
+
     __run_command( app, editor, editor_args, working_dir )
 
 def ShellOpen( app, working_dir, all_filenames ):
-    app.log.info( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
+    app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
 
     for filename in all_filenames:
         # xdg-open only accepts 1 filename at a time
@@ -94,6 +96,7 @@ def __titleFromPath( working_dir ):
     return ' '.join( title )
 
 def CommandShell( app, working_dir ):
+    app.log.infoheader( 'Shell in %s' % (working_dir,) )
     p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
@@ -101,7 +104,7 @@ def CommandShell( app, working_dir ):
 
     with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.sh' ) as f:
         app.all_temp_files.append( f.name )
-        
+
         if len( p.terminal_init ) > 0:
             f.write( ". '%s'\n" % (p.terminal_init,) )
         f.write( 'exec "$SHELL" -i\n' )
@@ -147,6 +150,7 @@ def CommandShell( app, working_dir ):
         del os.environ['WB_WD']
 
 def FileBrowser( app, working_dir ):
+    app.log.infoheader( 'Browse files in %s' % (working_dir,) )
     p = app.prefs.shell
 
     path = os.environ.get("PATH")
