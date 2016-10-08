@@ -47,11 +47,6 @@ class WbApp(QtWidgets.QApplication,
         # setup the platform specific support
         wb_platform_specific.setupPlatform( self.app_name_parts, sys.argv[0] )
 
-        # plugins folder exists when win_app_packager creates an .EXE
-        qt_plugin_dir = wb_platform_specific.getAppDir() / 'plugins'
-        if qt_plugin_dir.exists():
-            QtWidgets.QApplication.setLibraryPaths( [str(qt_plugin_dir)] )
-
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
         if extra_loggers is None:
