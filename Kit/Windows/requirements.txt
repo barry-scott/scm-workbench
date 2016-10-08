@@ -3,6 +3,10 @@
 #
 #   pip install --requirement requirements.txt
 #
+
+# get pysvn from http://pysvn.tigris.org/
+# pysvn>1.9.3 with svn 1.9 support
+
 GitPython>=2.0.8
 PyQt5>=5.7
 python-hglib>=2.2
