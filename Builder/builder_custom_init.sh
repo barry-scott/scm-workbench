@@ -7,7 +7,7 @@ case ${BUILDER_CFG_PLATFORM} in
 Darwin)
     export BUILDER_CFG_PLATFORM=MacOSX
     export PYTHON=python${PYTHON_VERSION}
-    export BUILDER_QTDIR=$HOME/Qt-5.6.1-1/5.6
+    export BUILDER_QTDIR=$HOME/Qt-5.7.0/5.7
     ;;
 
 Linux)
