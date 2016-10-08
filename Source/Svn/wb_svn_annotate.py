@@ -11,7 +11,7 @@
 
 '''
 import wb_annotate_view
-import wb_svn_ui_actions
+import wb_ui_components
 
 
 #------------------------------------------------------------
@@ -23,10 +23,11 @@ import wb_svn_ui_actions
 #
 #   add tool bars and menu for use in the log history window
 #
-class SvnAnnotateWindowComponents(wb_svn_ui_actions.SvnMainWindowActions):
+class SvnAnnotateWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
         super().__init__( factory )
 
 class WbSvnAnnotateView(wb_annotate_view.WbAnnotateView):
     def __init__( self, app, title ):
-        super().__init__( app, SvnAnnotateWindowComponents(), title )
+        ui_components = SvnAnnotateWindowComponents( app.getScmFactory( 'svn' ) )
+        super().__init__( app, ui_components, title )

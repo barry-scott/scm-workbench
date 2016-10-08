@@ -24,7 +24,6 @@ import wb_git_ui_actions
 import wb_git_project
 import wb_git_askpass_server
 import wb_git_credentials_dialog
-import wb_git_annotate
 
 import git
 import git.exc

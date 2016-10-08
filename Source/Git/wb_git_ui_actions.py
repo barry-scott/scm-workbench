@@ -24,6 +24,7 @@ import wb_common_dialogs
 import wb_git_project
 import wb_git_status_view
 import wb_git_commit_dialog
+import wb_git_annotate
 
 from wb_background_thread import thread_switcher
 

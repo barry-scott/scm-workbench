@@ -11,8 +11,7 @@
 
 '''
 import wb_annotate_view
-import wb_git_ui_actions
-
+import wb_ui_components
 
 #------------------------------------------------------------
 #
@@ -23,10 +22,11 @@ import wb_git_ui_actions
 #
 #   add tool bars and menu for use in the log history window
 #
-class GitAnnotateWindowComponents(wb_git_ui_actions.GitMainWindowActions):
+class GitAnnotateWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
-        super().__init__( factory )
+        super().__init__( 'git', factory )
 
 class WbGitAnnotateView(wb_annotate_view.WbAnnotateView):
     def __init__( self, app, title ):
-        super().__init__( app, GitAnnotateWindowComponents(), title )
+        ui_components = GitAnnotateWindowComponents( app.getScmFactory( 'git' ) )
+        super().__init__( app, ui_components, title )
