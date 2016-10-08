@@ -1,4 +1,8 @@
 #
 #   modules-allowed-to-be-missing.txt
 #
-urlparse
+netbios
+win32wnet
+pkg_resources.extern.packaging
+pkg_resources.extern.six.moves
+pkg_resources.extern.six

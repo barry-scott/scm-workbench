@@ -1,0 +1,13 @@
+#
+#   SCM Workbench requirements for Windows
+#
+#   pip install --requirement requirements.txt
+#
+GitPython>=2.0.8
+PyQt5>=5.7
+python-hglib>=2.2
+pytz>=2016.7
+QScintilla>=2.9.3
+tzlocal>=1.2.2
+win-app-packager>=1.2.2
+xml-preferences>=1.1.2

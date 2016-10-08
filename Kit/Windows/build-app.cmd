@@ -9,15 +9,6 @@ if "%BUILDER_TOP_DIR%" == "" (
     echo BUILDER_TOP_DIR is not defined - hint builder not run?
     exit /b 1
 )
-if "%BUILDER_QTDIR%" == "" (
-    echo BUILDER_QTDIR is not defined - hint  update builder_custom_init.cmd?
-    exit /b 1
-)
-if not exist "%BUILDER_QTDIR%" (
-    echo BUILDER_QTDIR folder does not exist - hint update builder_custom_init.cmd?
-    exit /b 1
-)
-
 if "%1" == "--debug" (
     shift
     set VERBOSE=--verbose
@@ -53,7 +44,6 @@ nmake -f windows.mak
     if errorlevel 1 goto :error
 popd >NUL
 
-set PATH=%BUILDER_QTDIR%\msvc2015_64\bin;%PATH%
 set PYTHONPATH=%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Common
 pushd %SRC_DIR%\Scm
 %PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM Workbench" --modules-allowed-to-be-missing-file %BUILDER_TOP_DIR%\Kit\Windows\modules-allowed-to-be-missing.txt %VERBOSE%
@@ -64,21 +54,16 @@ pushd %SRC_DIR%\Git
     if errorlevel 1 goto :error
 popd >NUL
 
-echo Info: copy Qt plugins\platforms
-mkdir %DIST_DIR%\plugins\platforms
-xcopy /q %BUILDER_QTDIR%\msvc2015_64\plugins\platforms\qwindows.dll %DIST_DIR%\plugins\platforms\
-    if errorlevel 1 goto :error
-
-echo Info: copy Qt plugins\imageformats
-mkdir %DIST_DIR%\plugins\imageformats
-xcopy /q %BUILDER_QTDIR%\msvc2015_64\plugins\imageformats\*.dll %DIST_DIR%\plugins\imageformats\
-    if errorlevel 1 goto :error
-del /q %DIST_DIR%\plugins\imageformats\*d.dll
-
-echo Info: copy Qt plugins\iconengine
-mkdir %DIST_DIR%\plugins\iconengines
-xcopy /q %BUILDER_QTDIR%\msvc2015_64\plugins\iconengines\*.dll %DIST_DIR%\plugins\iconengines\
-    if errorlevel 1 goto :error
+goto :eof
+echo Info: Remove unneeded files
+del %DIST_DIR%\PyWinAppRes\Lib\distutils\command\wininst-*.exe
+del %DIST_DIR%\PyWinAppRes\Lib\site-packages\pysvn\unins000.*
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\site-packages\PyQt5\Qt\qsci\api
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\ctypes\test
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\site-packages\git\test
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\site-packages\gitdb\test
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\site-packages\smmap\test
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\unittest\test
 
 echo Info: build-app.cmd done
 goto :eof
