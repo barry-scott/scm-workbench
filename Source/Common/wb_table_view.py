@@ -20,12 +20,13 @@ from PyQt5 import QtWidgets
 #   close up the spacing
 #
 class WbTableView(QtWidgets.QTableView):
-    def __init__( self ):
+    def __init__( self, spacing_scale=1.4, alternate_row_shading=True ):
         super().__init__()
 
+        self.setAlternatingRowColors( alternate_row_shading )
         self.setShowGrid( False )
 
         vh = self.verticalHeader()
         vh.sectionResizeMode( vh.Fixed )
-        spacing = self.fontMetrics().lineSpacing()
-        vh.setDefaultSectionSize( int( spacing * 1.4 ) )
+        line_spacing = self.fontMetrics().lineSpacing()
+        vh.setDefaultSectionSize( int( line_spacing * spacing_scale ) )

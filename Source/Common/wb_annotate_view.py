@@ -43,7 +43,6 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         #----------------------------------------
         self.annotate_table = WbAnnotateTableView( self )
         self.annotate_table.setSelectionBehavior( self.annotate_table.SelectRows )
-        self.annotate_table.setSelectionMode( self.annotate_table.ExtendedSelection )
         self.annotate_table.setAutoScroll( False )
 
         self.annotate_table.setModel( self.annotate_model )
@@ -52,7 +51,7 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         em = self.fontMetrics().width( 'm' )
         self.annotate_table.setColumnWidth( self.annotate_model.col_revision, em*5 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_author, em*10 )
-        self.annotate_table.setColumnWidth( self.annotate_model.col_date, self.fontMetrics().width( '2002-12-29 20:20:20  ' ) )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_date, self.fontMetrics().width( '2002-12-29 20:20:20   ' ) )
         self.annotate_table.setColumnWidth( self.annotate_model.col_line_num, em*5 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_line_text, em*80 )
 
@@ -158,16 +157,19 @@ class WbAnnotateTableView(wb_table_view.WbTableView):
 
         self._debug = main_window._debug
 
-        super().__init__()
+        super().__init__( spacing_scale=1.1, alternate_row_shading=False )
 
     def selectionChanged( self, selected, deselected ):
         self._debug( 'WbLogTableView.selectionChanged()' )
 
-        self.main_window.selectionChangedAnnotation()
-
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
 
+        current_annotations = [index for index in self.selectedIndexes() if index.column() == 0]
+        if len(current_annotations) > 0:
+            self.scrollTo( current_annotations[0] )
+
+        self.main_window.selectionChangedAnnotation()
 
 class WbAnnotateModel(QtCore.QAbstractTableModel):
     col_revision = 0
