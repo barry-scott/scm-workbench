@@ -60,20 +60,23 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         self.commit_message = QtWidgets.QPlainTextEdit()
         self.commit_message.setFont( self.app.getCodeFont() )
         h = self.commit_message.fontMetrics().lineSpacing()
-        self.commit_message.setFixedHeight( h*4 )
         self.commit_message.setReadOnly( True )
 
         #----------------------------------------
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget( self.annotate_table )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
-        self.layout.addWidget( self.commit_message )
+        self.v_message_layout = QtWidgets.QVBoxLayout()
+        self.v_message_layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
+        self.v_message_layout.addWidget( self.commit_message )
 
-        #----------------------------------------
-        self.widget = QtWidgets.QWidget()
-        self.widget.setLayout( self.layout )
+        self.v_message_widget = QtWidgets.QWidget()
+        self.v_message_widget.setLayout( self.v_message_layout )
 
-        self.setCentralWidget( self.widget )
+        # ----------------------------------------
+        self.v_split = QtWidgets.QSplitter()
+        self.v_split.setOrientation( QtCore.Qt.Vertical )
+        self.v_split.addWidget( self.annotate_table )
+        self.v_split.addWidget( self.v_message_widget )
+
+        self.setCentralWidget( self.v_split )
 
         self.resize( 1000, 600 )
 
@@ -98,6 +101,13 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         self.annotate_table.setFocus()
 
         self.timer_init = None
+
+        # set splitter position
+        table_size_ratio = 0.8
+        height = sum( self.v_split.sizes() )
+        table_height = int( height * table_size_ratio )
+        message_height = height - table_height
+        self.v_split.setSizes( [table_height, message_height] )
 
     def setupMenuBar( self, mb ):
         self.ui_component.setupMenuBar( mb, self._addMenu )
