@@ -165,7 +165,7 @@ class WbAnnotateTableView(wb_table_view.WbTableView):
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
 
-        current_annotations = [index for index in self.selectedIndexes() if index.column() == 0]
+        current_annotations = [index for index in self.selectedIndexes() if index.column() == WbAnnotateModel.col_line_num]
         if len(current_annotations) > 0:
             self.scrollTo( current_annotations[0] )
 
