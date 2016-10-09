@@ -16,10 +16,11 @@ from PyQt5 import QtCore
 
 import wb_scm_table_model
 import wb_shell_commands
+import wb_table_view
 
 from wb_background_thread import thread_switcher
 
-class WbScmTableView(QtWidgets.QTableView):
+class WbScmTableView(wb_table_view.WbTableView):
     def __init__( self, app, main_window ):
         self.app = app
         self.main_window = main_window

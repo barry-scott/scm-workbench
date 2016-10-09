@@ -46,7 +46,9 @@ class WbHgStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         self.setLayout( self.layout )
 
-        self.resize( 800, 600 )
+        em = self.app.fontMetrics().width( 'm' )
+        ex = self.app.fontMetrics().lineSpacing()
+        self.resize( 100*em, 50*ex )
 
     def setStatus( self, all_unpushed_commits, all_modified_files, all_untracked_files ):
         unpushed_text = '\n'.join( ['"%s" id %s' % (commit.message.split('\n')[0], commit.hexsha) for commit in all_unpushed_commits] )

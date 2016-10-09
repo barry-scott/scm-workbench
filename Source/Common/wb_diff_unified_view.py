@@ -69,7 +69,9 @@ class WbDiffViewText(WbDiffViewBase):
 
         self.text_edit.setReadOnly( True )
 
-        self.resize( 1100, 700 )
+        em = self.app.fontMetrics().width( 'm' )
+        ex = self.app.fontMetrics().lineSpacing()
+        self.resize( 130*em, 45*ex )
 
     def setUnifiedDiffText( self, all_lines ):
         for line in all_lines:

@@ -167,7 +167,9 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.setCentralWidget( self.widget )
 
-        self.resize( 800, 700 )
+        em = self.app.fontMetrics().width( 'm' )
+        ex = self.app.fontMetrics().lineSpacing()
+        self.resize( 100*em, 50*ex )
 
         self.ok_button.setEnabled( False )
 

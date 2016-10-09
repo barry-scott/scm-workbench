@@ -19,6 +19,7 @@ from wb_background_thread import thread_switcher
 
 import wb_tracked_qwidget
 import wb_main_window
+import wb_table_view
 
 import wb_ui_components
 
@@ -155,7 +156,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.setCentralWidget( self.v_split )
 
         ex = self.app.fontMetrics().lineSpacing()
-        self.resize( 70*em, 40*ex )
+        self.resize( 90*em, 40*ex )
 
         self.ui_component.setTopWindow( self.app.top_window )
         self.ui_component.setMainWindow( self, None )
@@ -253,8 +254,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.current_file_selection = [index.row() for index in self.changes_table.selectedIndexes() if index.column() == 0]
         self.updateEnableStates()
 
-
-class WbLogTableView(QtWidgets.QTableView):
+class WbLogTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
@@ -357,13 +357,15 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
         return None
 
-class WbChangesTableView(QtWidgets.QTableView):
+class WbChangesTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
         self._debug = main_window._debug
 
         super().__init__()
+
+        self.setShowGrid( False )
 
     def selectionChanged( self, selected, deselected ):
         self._debug( 'WbChangesTableView.selectionChanged()' )

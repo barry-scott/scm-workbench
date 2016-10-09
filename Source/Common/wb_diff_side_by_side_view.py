@@ -42,7 +42,9 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
             self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
 
         else:
-            self.resize( 1100, 600 )
+            em = self.app.fontMetrics().width( 'm' )
+            ex = self.app.fontMetrics().lineSpacing()
+            self.resize( 130*em, 45*ex )
 
         self.setupToolBar()
         self.setupStatusBar( self.statusBar() )

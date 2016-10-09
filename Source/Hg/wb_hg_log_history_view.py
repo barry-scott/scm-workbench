@@ -20,6 +20,7 @@ from PyQt5 import QtCore
 import wb_tracked_qwidget
 import wb_main_window
 import wb_ui_components
+import wb_table_view
 
 from wb_background_thread import thread_switcher
 
@@ -255,7 +256,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         node = self.changes_model.changesNode( self.current_file_selection[0] )
 
-class WbLogTableView(QtWidgets.QTableView):
+class WbLogTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
@@ -355,7 +356,7 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
 
         return None
 
-class WbChangesTableView(QtWidgets.QTableView):
+class WbChangesTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 

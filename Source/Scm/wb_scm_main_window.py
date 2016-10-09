@@ -92,7 +92,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
 
         else:
-            self.resize( 800, 600 )
+            em = self.app.fontMetrics().width( 'm' )
+            ex = self.app.fontMetrics().lineSpacing()
+            self.resize( 100*em, 50*ex )
 
         # window major widgets
         self.filter_text = QtWidgets.QLineEdit()

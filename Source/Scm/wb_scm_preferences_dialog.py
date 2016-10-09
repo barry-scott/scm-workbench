@@ -49,7 +49,9 @@ class WbScmPreferencesDialog(QtWidgets.QDialog):
 
         self.setLayout( self.layout )
 
-        self.resize( 600, 500 )
+        em = self.app.fontMetrics().width( 'm' )
+        ex = self.app.fontMetrics().lineSpacing()
+        self.resize( 75*em, 40*ex )
 
     def savePreferences( self ):
         for index in range( self.tabs.count() ):

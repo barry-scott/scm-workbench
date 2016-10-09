@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_svn_annotate.py
+    wb_annotate_view.py
 
 '''
 from PyQt5 import QtWidgets
@@ -16,7 +16,7 @@ from PyQt5 import QtCore
 
 import wb_tracked_qwidget
 import wb_main_window
-
+import wb_table_view
 
 #------------------------------------------------------------
 #
@@ -78,7 +78,9 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
 
         self.setCentralWidget( self.v_split )
 
-        self.resize( 1000, 600 )
+        em = self.app.fontMetrics().width( 'm' )
+        ex = self.app.fontMetrics().lineSpacing()
+        self.resize( 100*em, 45*ex )
 
         self.ui_component.setTopWindow( self.app.top_window )
         self.ui_component.setMainWindow( self, None )
@@ -150,18 +152,13 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
 
         self.updateEnableStates()
 
-class WbAnnotateTableView(QtWidgets.QTableView):
+class WbAnnotateTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
         self._debug = main_window._debug
 
         super().__init__()
-
-        vh = self.verticalHeader()
-        vh.sectionResizeMode( vh.Fixed )
-        spacing = self.main_window.app.fontMetrics().lineSpacing()
-        vh.setDefaultSectionSize( int( spacing * 1.2 ) )
 
     def selectionChanged( self, selected, deselected ):
         self._debug( 'WbLogTableView.selectionChanged()' )
