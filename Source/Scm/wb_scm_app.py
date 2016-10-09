@@ -114,8 +114,7 @@ class WbScmApp(wb_app.WbApp):
     def writePreferences( self ):
         super().writePreferences()
 
-        if self.prefs.font_ui.face is not None:
-            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
+        self.setAppStyles()
 
         p = self.prefs.font_code
         if p.face is None or p.point_size is None:
@@ -125,9 +124,20 @@ class WbScmApp(wb_app.WbApp):
             self.__code_font = QtGui.QFont( p.face, p.point_size )
 
 
-    def createMainWindow( self ):
+    # place fix style changes in this list
+    app_style_sheet = [
+        ]
+    def setAppStyles( self ):
+        style_sheet_pieces = self.app_style_sheet[:]
         if self.prefs.font_ui.face is not None:
-            self.setStyleSheet( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
+            style_sheet_pieces.append( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
+
+        style_sheet = '\n'.join( style_sheet_pieces )
+        self._debugApp( style_sheet )
+        self.setStyleSheet( style_sheet )
+
+    def createMainWindow( self ):
+        self.setAppStyles()
 
         p = self.prefs.font_code
         if p.face is None or p.point_size is None:
