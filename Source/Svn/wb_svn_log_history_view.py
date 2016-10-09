@@ -41,7 +41,7 @@ class SvnLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
         # ----------------------------------------
         t = addToolBar( T_('svn info') )
         addTool( t, T_('Diff'), act.tableActionSvnDiffLogHistory, act.enablerTableSvnDiffLogHistory, 'toolbar_images/diff.png' )
-        addTool( t, T_('Annotate'), act.tableActionSvnAnnotateLogHistory, act.enablerTableSvnAnnotateLogHistory )
+        #addTool( t, T_('Annotate'), act.tableActionSvnAnnotateLogHistory, act.enablerTableSvnAnnotateLogHistory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )

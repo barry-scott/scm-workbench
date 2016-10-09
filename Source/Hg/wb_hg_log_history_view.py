@@ -42,7 +42,7 @@ class HgLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
         # ----------------------------------------
         t = addToolBar( T_('hg info') )
         addTool( t, T_('Diff'), act.tableActionHgDiffLogHistory, act.enablerTableHgDiffLogHistory, 'toolbar_images/diff.png' )
-        addTool( t, T_('Annotate'), act.tableActionHgAnnotateLogHistory, act.enablerTableHgAnnotateLogHistory )
+        #addTool( t, T_('Annotate'), act.tableActionHgAnnotateLogHistory, act.enablerTableHgAnnotateLogHistory )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )

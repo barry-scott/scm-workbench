@@ -41,7 +41,7 @@ class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
         # ----------------------------------------
         t = addToolBar( T_('git info') )
         addTool( t, T_('Diff'), act.tableActionGitDiffLogHistory, act.enablerTableGitDiffLogHistory, 'toolbar_images/diff.png' )
-        addTool( t, T_('Annotate'), act.tableActionGitAnnotateLogHistory, act.enablerTableGitAnnotateLogHistory )
+        #addTool( t, T_('Annotate'), act.tableActionGitAnnotateLogHistory, act.enablerTableGitAnnotateLogHistory )
 
     def setupTableContextMenu( self, m, addMenu ):
         act = self.ui_actions
