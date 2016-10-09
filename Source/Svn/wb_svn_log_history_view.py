@@ -86,7 +86,7 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         em = self.app.fontMetrics().width( 'm' )
         self.log_table.setColumnWidth( self.log_model.col_revision, em*6 )
         self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
-        self.log_table.setColumnWidth( self.log_model.col_date, em*16 )
+        self.log_table.setColumnWidth( self.log_model.col_date, em*20 )
         self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
 
         #----------------------------------------
@@ -184,6 +184,9 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.svn_project = svn_project
 
         self.log_model.loadCommitLogForFile( all_commit_nodes )
+
+        self.log_table.resizeColumnToContents( self.log_model.col_date )
+
         self.updateEnableStates()
 
     def selectionChangedCommit( self ):

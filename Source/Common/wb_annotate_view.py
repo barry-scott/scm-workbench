@@ -51,7 +51,7 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         em = self.fontMetrics().width( 'm' )
         self.annotate_table.setColumnWidth( self.annotate_model.col_revision, em*5 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_author, em*10 )
-        self.annotate_table.setColumnWidth( self.annotate_model.col_date, self.fontMetrics().width( '2002-12-29 20:20:20   ' ) )
+        self.annotate_table.setColumnWidth( self.annotate_model.col_date, em*20 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_line_num, em*5 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_line_text, em*80 )
 
@@ -131,6 +131,10 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
 
     def showAnnotationForFile( self, all_annotation_nodes, all_commit_log_nodes ):
         self.annotate_model.loadAnnotationForFile( all_annotation_nodes, all_commit_log_nodes )
+
+        self.annotate_table.resizeColumnToContents( self.annotate_model.col_date )
+        self.annotate_table.resizeColumnToContents( self.annotate_model.col_line_num )
+
         self.updateEnableStates()
 
     def selectionChangedAnnotation( self ):

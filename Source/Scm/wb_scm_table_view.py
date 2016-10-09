@@ -74,7 +74,7 @@ class WbScmTableView(wb_table_view.WbTableView):
         self.setColumnWidth( self.table_model.col_staged, em*4 )
         self.setColumnWidth( self.table_model.col_status, em*4 )
         self.setColumnWidth( self.table_model.col_name, em*32 )
-        self.setColumnWidth( self.table_model.col_date, em*16 )
+        self.setColumnWidth( self.table_model.col_date, em*20 )
         self.setColumnWidth( self.table_model.col_type, em*6 )
 
     def setFilterText( self, text ):

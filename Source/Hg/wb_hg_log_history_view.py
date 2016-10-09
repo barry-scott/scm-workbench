@@ -97,7 +97,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         # size columns
         em = self.app.fontMetrics().width( 'm' )
         self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
-        self.log_table.setColumnWidth( self.log_model.col_date, em*16 )
+        self.log_table.setColumnWidth( self.log_model.col_date, em*20 )
         self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
 
         #----------------------------------------
@@ -208,6 +208,8 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         yield self.app.switchToForeground
 
+        self.log_table.resizeColumnToContents( self.log_model.col_date )
+
         self.ui_component.progress.end()
         self.updateEnableStates()
         self.show()
@@ -222,6 +224,8 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.log_model.loadCommitLogForFile( self.ui_component.deferedLogHistoryProgress(), hg_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
 
         yield self.app.switchToForeground
+
+        self.log_table.resizeColumnToContents( self.log_model.col_date )
 
         self.ui_component.progress.end()
         self.updateEnableStates()
