@@ -388,7 +388,9 @@ class GitProject:
     def getTextLinesForCommit( self, filepath, commit_id ):
         assert isinstance( filepath, pathlib.Path ), 'expecting pathlib.Path got %r' % (filepath,)
 
-        text = self.cmdShow( '%s:%s' % (commit_id, filepath) )
+        # git show wants a posix path, it does not work with '\' path seperators
+        git_filepath = pathlib.PurePosixPath( filepath )
+        text = self.cmdShow( '%s:%s' % (commit_id, git_filepath) )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
             return all_lines[:-1]
