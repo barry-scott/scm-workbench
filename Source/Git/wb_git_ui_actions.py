@@ -714,15 +714,17 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     #------------------------------------------------------------
     def enablerTableGitDiffLogHistory( self ):
-        focus = self.main_window.focusIsIn()
+        mw = self.main_window
+
+        focus = mw.focusIsIn()
         if focus == 'commits':
-            return len(self.main_window.current_commit_selections) in (1,2)
+            return len(mw.current_commit_selections) in (1,2)
 
         elif focus == 'changes':
-            if len(self.main_window.current_file_selection) == 0:
+            if len(mw.current_file_selection) == 0:
                 return False
 
-            type_, filename, old_filename = self.main_window.changes_model.changesNode( self.current_file_selection[0] )
+            type_, filename, old_filename = mw.changes_model.changesNode( mw.current_file_selection[0] )
             return type_ in 'M'
 
         else:
