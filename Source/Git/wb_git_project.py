@@ -806,7 +806,8 @@ class WbGitFileState:
             return all_lines
 
     def getTextLinesForCommit( self, commit_id ):
-        text = self.__project.cmdShow( '%s:%s' % (commit_id, self.__filepath) )
+        git_filepath = pathlib.PurePosixPath( self.__filepath )
+        text = self.__project.cmdShow( '%s:%s' % (commit_id, git_filepath) )
         all_lines = text.split('\n')
         if all_lines[-1] == '':
             return all_lines[:-1]
