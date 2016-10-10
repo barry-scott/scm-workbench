@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_svn_info_dialog.py
+    wb_svn_credential_dialogs.py
 
 '''
 from PyQt5 import QtWidgets
