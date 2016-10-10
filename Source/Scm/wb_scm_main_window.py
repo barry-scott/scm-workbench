@@ -178,6 +178,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.updateActionEnabledStates()
 
+        if self.__ui_active_scm_type is not None:
+            # force the UI into shape - like setup of columns in table view
+            self.all_ui_components[ self.__ui_active_scm_type ].showUiComponents()
+
         self.log.debug( 'Debug messages are enabled' )
 
     def loadProjects( self ):
