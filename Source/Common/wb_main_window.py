@@ -31,6 +31,20 @@ class WbMainWindow(QtWidgets.QMainWindow):
 
         self.__focus_is_in = self.focus_is_in_names[0]
 
+        # Often the rest of init has to be done after the widgets are rendered
+        # for example to set focus on a widget
+        self.__timer_init = QtCore.QTimer()
+        self.__timer_init.timeout.connect( self.__completeInit )
+        self.__timer_init.setSingleShot( True )
+        self.__timer_init.start( 0 )
+
+    def __completeInit( self ):
+        self.__timer_init = None
+        self.completeInit()
+
+    def completeInit( self ):
+        pass
+
     #------------------------------------------------------------
     def setFocusIsIn( self, widget_type ):
         assert widget_type in self.focus_is_in_names

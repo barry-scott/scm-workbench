@@ -30,6 +30,20 @@ class WbDialog(QtWidgets.QDialog):
 
         self.setLayout( self.grid_layout )
 
+        # Often the rest of init has to be done after the widgets are rendered
+        # for example to set focus on a widget
+        self.__timer_init = QtCore.QTimer()
+        self.__timer_init.timeout.connect( self.__completeInit )
+        self.__timer_init.setSingleShot( True )
+        self.__timer_init.start( 0 )
+
+    def __completeInit( self ):
+        self.__timer_init = None
+        self.completeInit()
+
+    def completeInit( self ):
+        pass
+
     def addRow( self, label, value ):
         label = QtWidgets.QLabel( label )
         if not isinstance( value, QtWidgets.QWidget ):

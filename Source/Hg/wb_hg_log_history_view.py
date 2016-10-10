@@ -164,19 +164,10 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.setupToolBar()
         self.__setupTableContextMenu()
 
-        # The rest of init has to be done after the widgets are rendered
-        self.timer_init = QtCore.QTimer()
-        self.timer_init.timeout.connect( self.completeStatupInitialisation )
-        self.timer_init.setSingleShot( True )
-        self.timer_init.start( 0 )
-
-    def completeStatupInitialisation( self ):
-        self._debug( 'completeStatupInitialisation()' )
-
+    def completeInit( self ):
+        self._debug( 'completeInit()' )
         # set focus
         self.log_table.setFocus()
-
-        self.timer_init = None
 
     def setupMenuBar( self, mb ):
         self.ui_component.setupMenuBar( mb, self._addMenu )

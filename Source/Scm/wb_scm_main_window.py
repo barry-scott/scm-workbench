@@ -162,14 +162,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.timer_update_enable_states.timeout.connect( self.updateActionEnabledStates )
         self.timer_update_enable_states.setSingleShot( True )
 
-        # The rest of init has to be done after the widgets are rendered
-        self.timer_init = QtCore.QTimer()
-        self.timer_init.timeout.connect( self.completeStatupInitialisation )
-        self.timer_init.setSingleShot( True )
-        self.timer_init.start( 0 )
-
-    def completeStatupInitialisation( self ):
-        self._debug( 'completeStatupInitialisation()' )
+    def completeInit( self ):
+        self._debug( 'completeInit()' )
 
         self.tree_view.setFocus()
 
@@ -183,8 +177,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.updateActionEnabledStates()
 
         self.log.debug( 'Debug messages are enabled' )
-
-        self.timer_init = None
 
         self.setStatusAction( T_('Loading projects') )
         self.progress.start( '%(percent)3d%%', len(self.app.prefs.getAllProjects()) )

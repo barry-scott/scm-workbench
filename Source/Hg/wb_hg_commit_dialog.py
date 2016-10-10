@@ -164,14 +164,8 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
         self.message.textChanged.connect( self.enableOkButton )
 
-        # The rest of init has to be done after the widgets are rendered
-        self.timer_init = QtCore.QTimer()
-        self.timer_init.timeout.connect( self.completeStatupInitialisation )
-        self.timer_init.setSingleShot( True )
-        self.timer_init.start( 0 )
-
-    def completeStatupInitialisation( self ):
-        self._debug( 'completeStatupInitialisation()' )
+    def completeInit( self ):
+        self._debug( 'completeInit()' )
 
         # set focus
         self.message.setFocus()
@@ -186,8 +180,6 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.v_split.setSizes( [table_height, message_height] )
 
         self.updateActionEnabledStates()
-
-        self.timer_init = None
 
     def setupMenuBar( self, mb ):
         m = mb.addMenu( T_('&View') )
