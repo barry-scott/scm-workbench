@@ -174,44 +174,46 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         table_width = width - tree_width
         self.h_split.setSizes( [tree_width, table_width] )
 
+        self.loadProjects()
+
         self.updateActionEnabledStates()
 
         self.log.debug( 'Debug messages are enabled' )
 
-        self.setStatusAction( T_('Loading projects') )
-        self.progress.start( '%(percent)3d%%', len(self.app.prefs.getAllProjects()) )
-
+    def loadProjects( self ):
         # load up all the projects
-        self.__project_index = 0
+        self.tree_view.setSortingEnabled( False )
+        for project in self.app.prefs.getAllProjects():
+            self.tree_model.addProject( project )
 
-        self.timer_init = QtCore.QTimer()
-        self.timer_init.timeout.connect( self.loadNextProject )
-        self.timer_init.setSingleShot( True )
-        self.timer_init.start( 0 )
-
-    def loadNextProject( self ):
-        if self.tree_model.loadNextProject( self.__project_index ):
-            self.progress.incEventCount()
-            self.__project_index += 1
-            self.timer_init.start( 0 )
+        # if there is a bookmark select that project
+        # otherwise select the first project
+        bookmark = self.app.prefs.last_position_bookmark
+        if bookmark is not None:
+            project = self.app.prefs.getProject( bookmark.project_name )
+            index = self.tree_model.indexFromProject( project )
 
         else:
-            # select the first project
-            bookmark = self.app.prefs.last_position_bookmark
+            index = self.tree_model.getFirstProjectIndex()
+
+        self.tree_view.sortByColumn( 0, QtCore.Qt.DescendingOrder )
+        self.tree_view.setSortingEnabled( True )
+
+        if index is not None:
+            index = self.tree_sortfilter.mapFromSource( index )
+            self.tree_view.setCurrentIndex( index )
+
+            # load in the project
+            self.updateTableView()
+
             if bookmark is not None:
+                # move to bookmarked folder
                 index = self.tree_model.indexFromBookmark( bookmark )
-
-            else:
-                index = self.tree_model.getFirstProjectIndex()
-
-            if index is not None:
                 index = self.tree_sortfilter.mapFromSource( index )
-                self._debug( 'Selecting project in tree' )
                 self.tree_view.setCurrentIndex( index )
 
-            self.setStatusAction()
-            self.progress.end()
-            self.timer_init = None
+            self.tree_view.scrollTo( index )
+
 
     def createProject( self, project ):
         if not project.path.exists():
@@ -562,6 +564,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 index = self.tree_model.indexFromProject( project )
                 index = self.tree_sortfilter.mapFromSource( index )
                 self.tree_view.setCurrentIndex( index )
+                # load in the project
+                self.updateTableView()
                 self.tree_view.setSortingEnabled( True )
 
     def projectActionDelete( self ):

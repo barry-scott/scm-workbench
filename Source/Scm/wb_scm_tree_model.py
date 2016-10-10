@@ -63,7 +63,6 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         if scm_project is None:
             scm_project = wb_scm_project_place_holder.ScmProjectPlaceholder( self.app, project )
 
-        scm_project.updateState()
         tree_node = ProjectTreeNode( self, scm_project.tree )
         self.all_scm_projects[ scm_project.tree.name ] = (scm_project, tree_node)
         self.appendRow( tree_node )
@@ -131,7 +130,6 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         item = self.invisibleRootItem()
 
         for name in [bookmark.project_name] + list( bookmark.path.parts ):
-
             row = 0
             while True:
                 child = item.child( row )
