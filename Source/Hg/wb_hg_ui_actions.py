@@ -18,11 +18,13 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_log_history_options_dialog
-import wb_hg_commit_dialog
 import wb_ui_actions
+import wb_common_dialogs
 
+import wb_hg_commit_dialog
 import wb_hg_project
 import wb_hg_status_view
+import wb_hg_credential_dialogs 
 
 from wb_background_thread import thread_switcher
 
@@ -37,6 +39,8 @@ from wb_background_thread import thread_switcher
 class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def __init__( self, factory ):
         super().__init__( 'hg', factory )
+
+        self.__hg_credential_cache = HgCredentialCache()
 
     def setupDebug( self ):
         self._debug = self.main_window.app._debug_options._debugHgUi
@@ -237,14 +241,18 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     @thread_switcher
     def treeActionHgPush_Bg( self, checked ):
         hg_project = self.selectedHgProject().newInstance()
-        self.setStatusAction( T_('Push %s') % (hg_project.projectName(),) )
+        msg = T_('Push %s') % (hg_project.projectName(),)
+        self.log.infoheader( msg )
+        self.setStatusAction( msg )
 
         yield self.switchToBackground
 
         try:
             hg_project.cmdPush(
-                self.deferRunInForeground( self.pushProgressHandler ),
-                self.deferRunInForeground( self.pushInfoHandler ) )
+                self.deferRunInForeground( self.pullOutputHandler ),
+                self.deferRunInForeground( self.pullErrorHandler ),
+                self.hgCredentialsPrompt,
+                self.hgAuthFailed )
 
         except wb_hg_project.HgCommandError as e:
             self.__logHgCommandError( e )
@@ -256,40 +264,23 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.setStatusGeneral()
 
         self.main_window.updateActionEnabledStates()
-
-    def pushInfoHandler( self, info ):
-        self.log.info( 'Push summary: %s' % (info.summary,) )
-
-    def pushProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
-        if type(cur_count) in (int,float):
-            if type(max_count) in (int,float):
-                status = 'Push %s %d/%d' % (stage_name, int(cur_count), int(max_count))
-
-            else:
-                status = 'Push %s %d' % (stage_name, int(cur_count))
-
-        else:
-            status = 'Push %s' % (stage_name,)
-
-        if message != '':
-            self.log.info( message )
-
-        self.progress.start( status )
-        if is_end:
-            self.log.info( status )
 
     # ------------------------------------------------------------
     @thread_switcher
     def treeActionHgPull_Bg( self, checked ):
         hg_project = self.selectedHgProject().newInstance()
-        self.setStatusAction( T_('Pull %s') % (hg_project.projectName(),) )
+        msg = T_('Pull %s') % (hg_project.projectName(),)
+        self.log.infoheader( msg )
+        self.setStatusAction( msg )
 
         yield self.switchToBackground
 
         try:
             hg_project.cmdPull(
-                self.deferRunInForeground( self.pullProgressHandler ),
-                self.deferRunInForeground( self.pullInfoHandler ) )
+                self.deferRunInForeground( self.pullOutputHandler ),
+                self.deferRunInForeground( self.pullErrorHandler ),
+                self.hgCredentialsPrompt,
+                self.hgAuthFailed )
 
         except wb_hg_project.HgCommandError as e:
             self.__logHgCommandError( e )
@@ -301,46 +292,39 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.setStatusGeneral()
         self.main_window.updateActionEnabledStates()
 
-    def pullInfoHandler( self, info ):
-        if info.note != '':
-            self.log.info( 'Pull Note: %s' % (info.note,) )
+    #------------------------------------------------------------
+    def pullOutputHandler( self, line ):
+        self.log.info( line )
 
-        for state, state_name in (
-                    (info.NEW_TAG, T_('New tag')),
-                    (info.NEW_HEAD, T_('New head')),
-                    (info.HEAD_UPTODATE, T_('Head up to date')),
-                    (info.TAG_UPDATE, T_('Tag update')),
-                    (info.FORCED_UPDATE, T_('Forced update')),
-                    (info.FAST_FORWARD, T_('Fast forward')),
-                    ):
-            if (info.flags&state) != 0:
-                self.log.info( T_('Pull status: %(state_name)s for %(name)s') % {'state_name': state_name, 'name': info.name} )
+    def pullErrorHandler( self, line ):
+        self.log.error( line )
 
-        for state, state_name in (
-                    (info.REJECTED, T_('Rejected')),
-                    (info.ERROR, T_('Error'))
-                    ):
-            if (info.flags&state) != 0:
-                self.log.error( T_('Pull status: %(state_name)s') % {'state_name': state_name} )
+    hg_username_prompt = 'user:'
+    hg_password_prompt = 'password:'
+    def hgCredentialsPrompt( self, url, realm, prompt ):
+        print( 'qqq hgCredentialsPrompt( %r, %r, %r )' % (url, realm, prompt) )
 
-    def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count=None, message='' ):
-        if type(cur_count) in (int,float):
-            if type(max_count) in (int,float):
-                status = 'Pull %s %d/%d' % (stage_name, int(cur_count), int(max_count))
+        if prompt not in (self.hg_username_prompt, self.hg_password_prompt):
+            self.log.error( 'Unknown prompt "%s"' % (prompt,) )
+            return ''
 
-            else:
-                status = 'Pull %s %d' % (stage_name, int(cur_count))
+        if not self.__hg_credential_cache.hasCredentials( url ):
+            dialog = wb_hg_credential_dialogs.WbHgGetLoginDialog( self.main_window, url, realm )
+            if not dialog.exec_():
+                return ''
 
-        else:
-            status = 'Pull %s' % (stage_name,)
+            self.__hg_credential_cache.addCredentials( url, dialog.getUsername(), dialog.getPassword() )
 
-        if message != '':
-            self.log.info( message )
+        if prompt == self.hg_username_prompt:
+            return self.__hg_credential_cache.username( url )
 
-        self.progress.start( status )
-        if is_end:
-            self.log.info( status )
+        elif prompt == self.hg_password_prompt:
+            return self.__hg_credential_cache.password( url )
 
+    def hgAuthFailed( self, url ):
+        self.__hg_credential_cache.removeCredentials( url )
+
+    #------------------------------------------------------------
     def treeActionHgStatus( self ):
         hg_project = self.selectedHgProject()
 
@@ -413,7 +397,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     # ------------------------------------------------------------
     def selectedHgProjectTreeNode( self ):
-        if not self.isScmTypeActive():
+        if not self.main_window.isScmTypeActive( 'hg' ):
             return None
 
         tree_node = self.main_window.selectedScmProjectTreeNode()
@@ -465,7 +449,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         commit_id = hg_project.cmdCommit( message )
 
         headline = message.split('\n')[0]
-        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
+        self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
         self.__commitClosed()
 
@@ -637,3 +621,25 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     def tableActionHgAnnotateLogHistory( self ):
         self.log.error( 'annotateLogHistory TBD' )
+
+class HgCredentialCache:
+    def __init__( self ):
+        self.__username = {}
+        self.__password = {}
+
+    def addCredentials( self, url, username, password ):
+        self.__username[ url ] = username
+        self.__password[ url ] = password
+
+    def hasCredentials( self, url ):
+        return url in self.__username
+
+    def removeCredentials( self, url ):
+        self.__username.pop( url, None )
+        self.__password.pop( url, None )
+
+    def username( self, url ):
+        return self.__username[ url ]
+
+    def password( self, url ):
+        return self.__password[ url ]

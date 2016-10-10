@@ -13,6 +13,8 @@
 import pathlib
 import sys
 
+import wb_background_thread
+
 import hglib
 import hglib.util
 import hglib.client
@@ -400,28 +402,113 @@ class HgProject:
         for child in tree.trees:
             self.__treeToDict( child, all_entries )
 
-    def cmdPull( self, progress, info ):
+    def cmdPull( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         self._debug( 'cmdPull()' )
+
+        # does hglib have the IO changes?
+        if not hasattr( self.repo, 'setprotocoltrace' ):
+            self.repo.pull( update=True )
+            return
+
         self.enableProtocolTrace( True )
         try:
-            self.repo.pull( update=True, prompt=self.promptHandler )
+            io = WbHgIoHandler( self.app, self._debug, out_handler, err_handler, prompt_handler, auth_failed_handler )
+            self.repo.pull( update=True, cbprompt=io.hgPromptHandler, cbout=io.hgOutputHandler, cberr=io.hgErrorHandler )
 
         finally:
             self.enableProtocolTrace( False )
 
-    def cmdPush( self, progress, info ):
+    def cmdPush( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         self._debug( 'cmdPush()' )
 
+        # does hglib have the IO changes?
+        if not hasattr( self.repo, 'setprotocoltrace' ):
+            self.repo.push()
+            return
+
         self.enableProtocolTrace( True )
         try:
-            self.repo.push()
+            io = WbHgIoHandler( self.app, self._debug, out_handler, err_handler, prompt_handler, auth_failed_handler )
+            self.repo.push( cbprompt=io.hgPromptHandler, cbout=io.hgOutputHandler, cberr=io.hgErrorHandler )
 
         finally:
             self.enableProtocolTrace( False )
 
-    def promptHandler( self, max_response_size, output ):
+class WbHgOutBuffer:
+    def __init__( self, cb ):
+        self.__cb = cb
+        self.__buffer = ''
+
+        self.__realm = ''
+        self.__url = ''
+
+        self.__auth_failed = False
+
+    def handleOutput( self, data ):
+        text = data.decode( sys.getdefaultencoding() )
+        self.__buffer = self.__buffer + text
+
+        while '\n' in self.__buffer:
+            line, self.__buffer = self.__buffer.split( '\n', 1 )
+
+            # save special values
+            if line.startswith( 'realm:' ):
+                self.__realm = line.split( ':', 1 )[-1].strip()
+                continue
+
+            elif line.startswith( 'http authorization required for ' ):
+                self.__url = line[len('http authorization required for '):].strip()
+
+            elif line =='abort: authorization failed':
+                self.__auth_failed = True
+
+            self.__cb( line )
+
+    def getPrompt( self ):
+        prompt = self.__buffer
+        self.__buffer = ''
+        return prompt
+
+    def getUrl( self ):
+        return self.__url
+
+    def getRealm( self ):
+        return self.__realm
+
+    def getAuthFailed( self ):
+        auth_failed = self.__auth_failed
+        self.__auth_failed = False
+        return auth_failed
+
+class WbHgIoHandler:
+    def __init__( self, app, debug, cb_output, cb_error, cb_prompt, cb_auth_failed ):
+        self.__app = app
+        self._debug = debug
+        self.__cb_prompt = cb_prompt
+        self.__cb_auth_failed = cb_auth_failed
+        self.__output_buffer = WbHgOutBuffer( cb_output )
+        self.__error_buffer = WbHgOutBuffer( cb_error )
+
+    def hgPromptHandler( self, max_response_size, output ):
         self._debug( 'promptHandler( %r, %r )' % (max_response_size, output) )
-        return b''
+        prompt = self.__error_buffer.getPrompt().strip()
+        if prompt == '':
+            prompt = self.__output_buffer.getPrompt().strip()
+
+        self._debug( 'promptHandler prompt: %r' % (prompt,) )
+        get_result_fn = wb_background_thread.GetReturnFromCallingFunctionOnMainThread( self.__app, self.__cb_prompt )
+        result = get_result_fn( self.__output_buffer.getUrl(), self.__output_buffer.getRealm(), prompt )
+
+        self._debug( 'promptHandler result: %r' % (result,) )
+        return ('%s\n' % (result,)).encode( sys.getdefaultencoding() )
+
+    def hgOutputHandler( self, data ):
+        self.__output_buffer.handleOutput( data )
+
+    def hgErrorHandler( self, data ):
+        self.__error_buffer.handleOutput( data )
+        if self.__error_buffer.getAuthFailed():
+            self.__cb_auth_failed( self.__output_buffer.getUrl() )
 
 class WbHgLog:
     def __init__( self, data, repo ):
