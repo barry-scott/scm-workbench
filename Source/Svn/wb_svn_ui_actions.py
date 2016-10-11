@@ -707,7 +707,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         svn_project = self.selectedSvnProject()
 
         commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
-        commit_dialog.commitAccepted.connect( self.app.threadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
         commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user

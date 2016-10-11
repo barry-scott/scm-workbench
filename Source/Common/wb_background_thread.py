@@ -24,6 +24,11 @@ def thread_switcher( fn ):
     setattr( fn, _requires_thread_switcher_attr, True )
     return fn
 
+# predicate to detect function that requires a ThreadSwitchScheduler
+def requiresThreadSwitcher( fn ):
+    return getattr( fn, _requires_thread_switcher_attr, False )
+
+#------------------------------------------------------------
 class MarshalledCall:
     def __init__( self, function, args ):
         self.function = function
@@ -113,12 +118,12 @@ class BackgroundWorkMixin:
         # cannot call logging from here as this will cause the log call to be marshelled
         self.foregroundProcessSignal.emit( MarshalledCall( function, args ) )
 
-    def requiresThreadSwitcher( self, fn ):
-        return getattr( fn, _requires_thread_switcher_attr, False )
+    def wrapWithThreadSwitcher( self, function ):
+        if requiresThreadSwitcher( function ):
+            return ThreadSwitchScheduler( self, function )
 
-    def threadSwitcher( self, function ):
-        assert self.requiresThreadSwitcher( function )
-        return ThreadSwitchScheduler( self, function )
+        else:
+            return function
 
     # alias that are better names when used from the threadSwitcher function
     switchToForeground = runInForeground
