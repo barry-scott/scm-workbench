@@ -21,6 +21,8 @@ class InfoDialog(QtWidgets.QDialog):
     def __init__( self, app, parent, rel_path, abs_path, info ):
         super().__init__( parent )
 
+        self.app = app
+
         self.setWindowTitle( T_('Svn Info for %s') % (rel_path,) )
 
         self.v_layout = QtWidgets.QVBoxLayout()
