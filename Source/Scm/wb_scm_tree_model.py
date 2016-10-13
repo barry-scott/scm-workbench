@@ -93,17 +93,18 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         if self.selected_node is None:
             return
 
+        scm_project = self.selected_node.scm_project_tree_node.project
+        self.app.top_window.setStatusAction( T_('Update status of %s') % (scm_project.projectName(),) )
         yield self.app.switchToBackground
-
-        # update the project data and reset the table model
-        project = self.selected_node.scm_project_tree_node.project
-        project.updateState()
-
+        # update the project data
+        scm_project.updateState()
         yield self.app.switchToForeground
+        self.app.top_window.setStatusAction()
 
         # add new nodes
-        scm_project, tree_node = self.all_scm_projects[ project.tree.name ]
+        scm_project, tree_node = self.all_scm_projects[ scm_project.tree.name ]
 
+        # reset the table model
         tree_node.update( scm_project.tree )
 
         self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
@@ -205,6 +206,8 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         if need_to_refresh:
             yield from self.refreshTree_Bg()
+
+            self.app.top_window.setStatusAction()
 
         else:
             self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
