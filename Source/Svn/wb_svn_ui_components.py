@@ -88,12 +88,12 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Annotate'), act.tableActionSvnAnnotate_Bg, act.enablerTableSvnAnnotate )
 
         m.addSeparator()
-        addMenu( m, T_('Add Folder…'), act.treeActionSvnAdd, act.enablerTreeSvnAdd )
-        addMenu( m, T_('New Folder…'), act.treeActionSvnMkdir, act.enablerTreeSvnMkdir )
+        addMenu( m, T_('Add Folder…'), act.treeActionSvnAdd_Bg, act.enablerTreeSvnAdd )
+        addMenu( m, T_('New Folder…'), act.treeActionSvnMkdir_Bg, act.enablerTreeSvnMkdir )
 
         m.addSeparator()
-        addMenu( m, T_('Information'), act.treeTableActionSvnInfo, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
-        addMenu( m, T_('Properties'), act.treeTableActionSvnProperties, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
+        addMenu( m, T_('Information'), act.treeTableActionSvnInfo_Bg, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), act.treeTableActionSvnProperties_Bg, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         m.addSeparator()
         addMenu( m, T_('Log History'), act.treeTableActionSvnLogHistory_Bg, act.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
@@ -103,12 +103,12 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Svn Actions') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Add'), act.tableActionSvnAdd, act.enablerSvnAdd, 'toolbar_images/add.png' )
-        addMenu( m, T_('Rename…'), act.tableActionSvnRename, act.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Rename…'), act.tableActionSvnRename_Bg, act.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Revert…'), act.tableActionSvnRevert, act.enablerSvnRevert, 'toolbar_images/revert.png' )
-        addMenu( m, T_('Delete…'), act.tableActionSvnDelete, act.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
+        addMenu( m, T_('Revert…'), act.tableActionSvnRevert_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), act.tableActionSvnDelete_Bg, act.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
 
         m.addSeparator()
         addMenu( m, T_('Checkin…'), act.treeActionSvnCheckin, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
@@ -134,15 +134,15 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         addTool( t, T_('Diff'), act.treeTableActionSvnDiffBaseVsWorking, act.enablerTreeTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addTool( t, T_('Log History'), act.treeTableActionSvnLogHistory_Bg, act.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
-        addTool( t, T_('Info'), act.treeTableActionSvnInfo, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
-        addTool( t, T_('Properties'), act.treeTableActionSvnProperties, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
+        addTool( t, T_('Info'), act.treeTableActionSvnInfo_Bg, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addTool( t, T_('Properties'), act.treeTableActionSvnProperties_Bg, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), act.tableActionSvnAdd, act.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), act.tableActionSvnRevert, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), act.tableActionSvnRevert_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
         addTool( t, T_('Checkin'), act.treeActionSvnCheckin, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
         t.addSeparator()
@@ -158,19 +158,19 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionSvnDiffHeadVsWorking, act.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Info' ) )
-        addMenu( m, T_('Information'), act.treeTableActionSvnInfo, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
-        addMenu( m, T_('Properties'), act.treeTableActionSvnProperties, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
+        addMenu( m, T_('Information'), act.treeTableActionSvnInfo_Bg, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), act.treeTableActionSvnProperties_Bg, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         m.addSection( T_('Status') )
         addMenu( m, T_('Log History'), act.treeTableActionSvnLogHistory_Bg, act.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
         m.addSection( T_('Actions') )
-        addMenu( m, T_('Add'), act.tableActionSvnAdd, act.enablerSvnAdd, 'toolbar_images/add.png' )
-        addMenu( m, T_('Rename…'), act.tableActionSvnRename, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Rename…'), act.tableActionSvnRename_Bg, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Revert'), act.tableActionSvnRevert, act.enablerSvnRevert, 'toolbar_images/revert.png' )
-        addMenu( m, T_('Delete…'), act.tableActionSvnDelete, self.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
+        addMenu( m, T_('Revert'), act.tableActionSvnRevert_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), act.tableActionSvnDelete_Bg, self.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
 
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )
@@ -182,15 +182,15 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff HEAD vs. Working'), act.treeActionSvnDiffHeadVsWorking, act.enablerTreeSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Actions') )
-        addMenu( m, T_('Add Folder…'), act.treeActionSvnAdd, act.enablerTreeSvnAdd )
-        addMenu( m, T_('New Folder…'), act.treeActionSvnMkdir, act.enablerTreeSvnMkdir )
+        addMenu( m, T_('Add Folder…'), act.treeActionSvnAdd_Bg, act.enablerTreeSvnAdd )
+        addMenu( m, T_('New Folder…'), act.treeActionSvnMkdir_Bg, act.enablerTreeSvnMkdir )
 
         m.addSeparator()
-        addMenu( m, T_('Revert…'), act.treeActionSvnRevert, act.enablerTreeSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Revert…'), act.treeActionSvnRevert_Bg, act.enablerTreeSvnRevert, 'toolbar_images/revert.png' )
 
         m.addSection( T_('Info' ) )
-        addMenu( m, T_('Information'), act.treeTableActionSvnInfo, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
-        addMenu( m, T_('Properties'), act.treeTableActionSvnProperties, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
+        addMenu( m, T_('Information'), act.treeTableActionSvnInfo_Bg, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), act.treeTableActionSvnProperties_Bg, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
         m.addSeparator()
         addMenu( m, T_('Log History'), act.treeTableActionSvnLogHistory_Bg, act.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )

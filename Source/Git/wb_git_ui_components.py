@@ -144,13 +144,13 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Git Actions') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Stage'), act.tableActionGitStage, act.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), act.tableActionGitUnstage, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), act.tableActionGitRevert, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Stage'), act.tableActionGitStage_Bg, act.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), act.tableActionGitUnstage_Bg, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), act.tableActionGitRevert_Bg, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Rename…'), act.tableActionGitRename, self.main_window.table_view.enablerTableFilesExists )
-        addMenu( m, T_('Delete…'), act.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Rename…'), act.tableActionGitRename_Bg, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Delete…'), act.tableActionGitDelete_Bg, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
         addMenu( m, T_('Commit…'), act.treeActionGitCommit, act.enablerGitCommit, 'toolbar_images/commit.png' )
@@ -184,9 +184,9 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('git state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Stage'), act.tableActionGitStage, act.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addTool( t, T_('Unstage'), act.tableActionGitUnstage, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addTool( t, T_('Revert'), act.tableActionGitRevert, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Stage'), act.tableActionGitStage_Bg, act.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addTool( t, T_('Unstage'), act.tableActionGitUnstage_Bg, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addTool( t, T_('Revert'), act.tableActionGitRevert_Bg, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
         addTool( t, T_('Commit'), act.treeActionGitCommit, act.enablerGitCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
@@ -204,12 +204,12 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff Staged vs. Working'), act.tableActionGitDiffStagedVsWorking, act.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
-        addMenu( m, T_('Stage'), act.tableActionGitStage, act.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), act.tableActionGitUnstage, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), act.tableActionGitRevert, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Stage'), act.tableActionGitStage_Bg, act.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), act.tableActionGitUnstage_Bg, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), act.tableActionGitRevert_Bg, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        addMenu( m, T_('Rename…'), act.tableActionGitRename, self.main_window.table_view.enablerTableFilesExists )
-        addMenu( m, T_('Delete…'), act.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Rename…'), act.tableActionGitRename_Bg, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Delete…'), act.tableActionGitDelete_Bg, self.main_window.table_view.enablerTableFilesExists )
 
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )

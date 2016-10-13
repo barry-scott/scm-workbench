@@ -40,11 +40,11 @@ class GitCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff Staged vs. Working'), act.tableActionGitDiffStagedVsWorking, act.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Git Actions') )
-        addMenu( m, T_('Stage'), act.tableActionGitStageAndInclude, act.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addMenu( m, T_('Unstage'), act.tableActionGitUnstageAndExclude, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addMenu( m, T_('Revert'), act.tableActionGitRevertAndExclude, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Stage'), act.tableActionGitStageAndInclude_Bg, act.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addMenu( m, T_('Unstage'), act.tableActionGitUnstageAndExclude_Bg, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addMenu( m, T_('Revert'), act.tableActionGitRevertAndExclude_Bg, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        addMenu( m, T_('Delete…'), act.tableActionGitDelete, self.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Delete…'), act.tableActionGitDelete_Bg, self.main_window.table_view.enablerTableFilesExists )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
         t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
@@ -66,12 +66,12 @@ class GitCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('git state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Stage'), act.tableActionGitStageAndInclude, act.enablerGitFilesStage, 'toolbar_images/include.png' )
-        addTool( t, T_('Unstage'), act.tableActionGitUnstageAndExclude, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
-        addTool( t, T_('Revert'), act.tableActionGitRevertAndExclude, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Stage'), act.tableActionGitStageAndInclude_Bg, act.enablerGitFilesStage, 'toolbar_images/include.png' )
+        addTool( t, T_('Unstage'), act.tableActionGitUnstageAndExclude_Bg, act.enablerGitFilesUnstage, 'toolbar_images/exclude.png' )
+        addTool( t, T_('Revert'), act.tableActionGitRevertAndExclude_Bg, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
 
         if feature_selective_commit:
-            addTool( t, 'Include', act.tableActionCommitInclude, act.enablerGitCommitInclude, checker=act.checkerActionCommitInclude )
+            addTool( t, 'Include', act.tableActionCommitInclude_Bg, act.enablerGitCommitInclude, checker=act.checkerActionCommitInclude )
 
 
 class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):

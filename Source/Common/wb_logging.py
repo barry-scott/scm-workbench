@@ -124,18 +124,28 @@ class ThreadSafeLogFacade:
         tb_list = traceback.format_exception( *sys.exc_info() )
 
         if self.__app.isForegroundThread():
-            self.__printErrorList( msg, tb_list )
+            self.__printStackList( self.error, msg, tb_list )
 
         else:
             self.__dispatch( self.__printErrorList, (msg, tb_list) )
 
-    def __printErrorList( self, msg, tb_list ):
-        self.error( msg )
+    def stack( self, msg ):
+        # take the stack and lose the 2 calls in our logging code
+        tb_list = traceback.format_stack()[:-1]
+
+        if self.__app.isForegroundThread():
+            self.__printStackList( self.info, msg, tb_list )
+
+        else:
+            self.__dispatch( self.__printErrorList, (msg, tb_list) )
+
+    def __printStackList( self, log_fn, msg, tb_list ):
+        log_fn( msg )
         for compound_line in tb_list:
             if compound_line.endswith( '\n' ):
                 compound_line = compound_line[:-1]
             for line in compound_line.split('\n'):
-                self.error( line )
+                log_fn( line )
 
     def __dispatch( self, func, args ):
         if self.__app.isForegroundThread():

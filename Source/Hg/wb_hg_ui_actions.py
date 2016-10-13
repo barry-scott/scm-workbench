@@ -338,14 +338,17 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         commit_status_view.show()
 
     # ------------------------------------------------------------
-    def tableActionHgAdd( self ):
-        self.__tableActionChangeRepo( self.__actionHgAdd )
+    @thread_switcher
+    def tableActionHgAdd_Bg( self ):
+        yield from self.__tableActionChangeRepo_Bg( self.__actionHgAdd )
 
-    def tableActionHgRevert( self ):
-        self.__tableActionChangeRepo( self.__actionHgRevert, self.__areYouSureRevert )
+    @thread_switcher
+    def tableActionHgRevert_Bg( self ):
+        yield from self.__tableActionChangeRepo_Bg( self.__actionHgRevert, self.__areYouSureRevert )
 
-    def tableActionHgDelete( self ):
-        self.__tableActionChangeRepo( self.__actionHgDelete, self.__areYouSureDelete )
+    @thread_switcher
+    def tableActionHgDelete_Bg( self ):
+        yield from self.__tableActionChangeRepo_Bg( self.__actionHgDelete, self.__areYouSureDelete )
 
     def tableActionHgDiffSmart( self ):
         self._debug( 'tableActionHgDiffSmart()' )
@@ -388,12 +391,14 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def __areYouSureDelete( self, all_filenames ):
         return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
-    def __tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
+    @thread_switcher
+    def __tableActionChangeRepo_Bg( self, execute_function, are_you_sure_function=None ):
+        @thread_switcher
         def finalise( hg_project ):
             # take account of the change
-            self.top_window.updateTableView()
+            yield from self.top_window.updateTableView_Bg()
 
-        self.table_view.tableActionViewRepo( execute_function, are_you_sure_function, finalise )
+        yield from self.table_view.tableActionViewRepo_Bg( execute_function, are_you_sure_function, finalise )
 
     # ------------------------------------------------------------
     def selectedHgProjectTreeNode( self ):
@@ -430,8 +435,8 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         hg_project = self.selectedHgProject()
 
         commit_dialog = wb_hg_commit_dialog.WbHgCommitDialog( self.app, hg_project )
-        commit_dialog.commitAccepted.connect( self.__commitAccepted )
-        commit_dialog.commitClosed.connect( self.__commitClosed )
+        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg ) )
 
         # show to the user
         commit_dialog.show()
@@ -441,7 +446,8 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    def __commitAccepted( self ):
+    @thread_switcher
+    def __commitAccepted_Bg( self ):
         commit_dialog = self.app.getSingleton( self.commit_key )
 
         hg_project = self.selectedHgProject()
@@ -451,16 +457,17 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         headline = message.split('\n')[0]
         self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
-        self.__commitClosed()
+        yield from self.__commitClosed_Bg()
 
-    def __commitClosed( self ):
+    @thread_switcher
+    def __commitClosed_Bg( self ):
         # on top window close the commit_key may already have been pop'ed
         if self.app.hasSingleton( self.commit_key ):
             commit_dialog = self.app.popSingleton( self.commit_key )
             commit_dialog.close()
 
         # take account of any changes
-        self.main_window.updateTableView()
+        yield from self.main_window.updateTableView_Bg()
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()

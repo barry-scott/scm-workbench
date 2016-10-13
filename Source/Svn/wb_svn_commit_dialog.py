@@ -35,18 +35,18 @@ class SvnCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         # ----------------------------------------
         t = addToolBar( T_('svn info') )
         addTool( t, T_('Diff'), act.tableActionSvnDiffBaseVsWorking, act.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
-        addTool( t, T_('Info'), act.tableActionSvnInfo, act.enablerTableSvnInfo, 'toolbar_images/info.png' )
-        addTool( t, T_('Properties'), act.tableActionSvnProperties, act.enablerTableSvnProperties, 'toolbar_images/property.png' )
+        addTool( t, T_('Info'), act.tableActionSvnInfo_Bg, act.enablerTableSvnInfo, 'toolbar_images/info.png' )
+        addTool( t, T_('Properties'), act.tableActionSvnProperties_Bg, act.enablerTableSvnProperties, 'toolbar_images/property.png' )
         addTool( t, T_('Commit History'), act.tableActionSvnLogHistory_Bg, act.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), act.tableActionSvnAddAndInclude, act.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), act.tableActionSvnRevertAndExclude, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), act.tableActionSvnAddAndInclude_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), act.tableActionSvnRevertAndExclude_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
 
-        addTool( t, 'Include', act.tableActionCommitInclude, act.enablerSvnCommitInclude, checker=act.checkerActionCommitInclude )
+        addTool( t, 'Include', act.tableActionCommitInclude_Bg, act.enablerSvnCommitInclude, checker=act.checkerActionCommitInclude )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )
@@ -58,8 +58,8 @@ class SvnCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionSvnDiffHeadVsWorking, act.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Info' ) )
-        addMenu( m, T_('Information'), act.tableActionSvnInfo, act.enablerTableSvnInfo, 'toolbar_images/info.png' )
-        addMenu( m, T_('Properties'), act.tableActionSvnProperties, act.enablerTableSvnProperties, 'toolbar_images/property.png' )
+        addMenu( m, T_('Information'), act.tableActionSvnInfo_Bg, act.enablerTableSvnInfo, 'toolbar_images/info.png' )
+        addMenu( m, T_('Properties'), act.tableActionSvnProperties_Bg, act.enablerTableSvnProperties, 'toolbar_images/property.png' )
         addMenu( m, T_('Commit History'), act.tableActionSvnLogHistory_Bg, act.enablerTableSvnLogHistory, 'toolbar_images/history.png' )
 
 class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):

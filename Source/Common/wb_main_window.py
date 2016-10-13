@@ -41,8 +41,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def __completeInit( self ):
         self.__timer_init = None
 
-        fn = self.app.wrapWithThreadSwitcher( self.completeInit )
-        fn()
+        self.app.wrapWithThreadSwitcher( self.completeInit, 'main_window.completeInit' )()
 
     def completeInit( self ):
         pass
@@ -81,7 +80,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
         action = menu.addAction( icon, name )
 
         if handler is not None:
-            handler = self.app.wrapWithThreadSwitcher( handler )
+            handler = self.app.wrapWithThreadSwitcher( handler, 'menu: %s' % (name,) )
 
             if checker is not None:
                 action.toggled.connect( handler )
@@ -118,7 +117,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
             action = bar.addAction( icon, name )
 
         if handler is not None:
-            handler = self.app.wrapWithThreadSwitcher( handler )
+            handler = self.app.wrapWithThreadSwitcher( handler, 'toolbar: %s' % (name,) )
 
             if checker is not None:
                 action.toggled.connect( handler )

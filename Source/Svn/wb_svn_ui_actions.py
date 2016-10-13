@@ -70,11 +70,13 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def treeTableActionSvnDiffHeadVsWorking( self ):
         self.main_window.callTreeOrTableFunction( self.treeActionSvnDiffHeadVsWorking, self.tableActionSvnDiffHeadVsWorking )
 
-    def treeTableActionSvnInfo( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionSvnInfo, self.tableActionSvnInfo )
+    @thread_switcher
+    def treeTableActionSvnInfo_Bg( self, checked=None ):
+        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnInfo, self.tableActionSvnInfo_Bg )
 
-    def treeTableActionSvnProperties( self ):
-        self.main_window.callTreeOrTableFunction( self.treeActionSvnProperties, self.tableActionSvnProperties )
+    @thread_switcher
+    def treeTableActionSvnProperties_Bg( self, checked=None ):
+        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnProperties, self.tableActionSvnProperties_Bg )
 
     #------------------------------------------------------------
     def enablerTreeTableSvnLogHistory( self ):
@@ -91,11 +93,11 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnLogHistory_Bg )
 
     @thread_switcher
-    def treeTableActionSvnLogHistory_Bg( self, checked ):
+    def treeTableActionSvnLogHistory_Bg( self, checked=None ):
         yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnLogHistory_Bg, self.tableActionSvnLogHistory_Bg )
 
     @thread_switcher
-    def treeActionSvnLogHistory_Bg( self ):
+    def treeActionSvnLogHistory_Bg( self, checked=None ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -230,7 +232,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         except wb_svn_project.ClientError as e:
             tree_node.project.logClientError( e )
 
-    def treeActionSvnAdd( self ):
+    @thread_switcher
+    def treeActionSvnAdd_Bg( self, checked=None ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -243,9 +246,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             except wb_svn_project.ClientError as e:
                 tree_node.project.logClientError( e )
 
-            self.main_window.updateTableView()
+            yield from self.main_window.updateTableView_Bg()
 
-    def treeActionSvnRevert( self ):
+    @thread_switcher
+    def treeActionSvnRevert_Bg( self, checked=None ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -258,9 +262,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             except wb_svn_project.ClientError as e:
                 tree_node.project.logClientError( e )
 
-            self.main_window.updateTableView()
+            yield from self.main_window.updateTableView_Bg()
 
-    def treeActionSvnMkdir( self ):
+    @thread_switcher
+    def treeActionSvnMkdir_Bg( self ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -273,7 +278,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             except wb_svn_project.ClientError as e:
                 tree_node.project.logClientError( e )
 
-            self.main_window.updateTableView()
+            yield from self.main_window.updateTableView_Bg()
 
     def treeActionSvnInfo( self ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -290,7 +295,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, tree_node.relativePath(), tree_node.absolutePath(), info )
         dialog.exec_()
 
-    def treeActionSvnProperties( self ):
+    @thread_switcher
+    def treeActionSvnProperties_Bg( self, checked=None ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -314,9 +320,9 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 except wb_svn_project.ClientError as e:
                     svn_project.logClientError( e )
 
-        self.main_window.updateTableView()
+        yield from self.main_window.updateTableView_Bg()
 
-    def treeActionSvnCleanup( self, checked ):
+    def treeActionSvnCleanup( self, checked=None ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -333,7 +339,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.top_window.setStatusAction()
 
     @thread_switcher
-    def treeActionSvnUpdate_Bg( self, checked ):
+    def treeActionSvnUpdate_Bg( self, checked=None ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
@@ -374,7 +380,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.progress.end()
         self.setStatusAction()
 
-        self.main_window.updateTableView()
+        yield from self.main_window.updateTableView_Bg()
 
     def __updateToRevisionProcessResults( self, tree_node, rev_list ):
         svn_project = tree_node.project
@@ -518,7 +524,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                     T_('Working %s') % (file_state.relativePath(),)
                     )
 
-    def tableActionSvnInfo( self ):
+    @thread_switcher
+    def tableActionSvnInfo_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             try:
                 info = svn_project.cmdInfo( filename )
@@ -530,9 +537,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, filename, svn_project.pathForSvn( filename ), info )
             dialog.exec_()
 
-        self._tableActionSvnCmd( execute_function )
+        self._tableActionSvnCmd_Bg( execute_function )
 
-    def tableActionSvnProperties( self ):
+    @thread_switcher
+    def tableActionSvnProperties_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             try:
                 prop_dict = svn_project.cmdPropList( filename )
@@ -556,17 +564,17 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                         svn_project.logClientError( e )
                         return
 
-            self.main_window.updateTableView()
+        yield from self._tableActionSvnCmd_Bg( execute_function )
 
-        self._tableActionSvnCmd( execute_function )
-
-    def tableActionSvnAdd( self ):
+    @thread_switcher
+    def tableActionSvnAdd_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             svn_project.cmdAdd( filename )
 
-        self._tableActionSvnCmd( execute_function )
+        yield from self._tableActionSvnCmd_Bg( execute_function )
 
-    def tableActionSvnRevert( self ):
+    @thread_switcher
+    def tableActionSvnRevert_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             try:
                 svn_project.cmdRevert( filename )
@@ -578,9 +586,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
 
-        self._tableActionSvnCmd( execute_function, are_you_sure )
+        yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
 
-    def tableActionSvnDelete( self ):
+    @thread_switcher
+    def tableActionSvnDelete_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             try:
                 svn_project.cmdDelete( filename )
@@ -592,9 +601,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
-        self._tableActionSvnCmd( execute_function, are_you_sure )
+        yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
 
-    def tableActionSvnRename( self ):
+    @thread_switcher
+    def tableActionSvnRename_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
             rename.setName( filename.name )
@@ -607,24 +617,26 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 except wb_svn_project.ClientError as e:
                     svn_project.logClientError( e )
 
-        self._tableActionSvnCmd( execute_function )
+        yield from self._tableActionSvnCmd_Bg( execute_function )
 
-    def _tableActionSvnCmd( self, execute_function, are_you_sure_function=None ):
+    @thread_switcher
+    def _tableActionSvnCmd_Bg( self, execute_function, are_you_sure_function=None ):
         svn_project = self.selectedSvnProject()
         if svn_project is None:
             return
 
         try:
-            def finalise( svn_project ):
+            @thread_switcher
+            def finalise_Bg( svn_project ):
                 # take account of the change
-                self.top_window.updateTableView()
+                yield from self.top_window.updateTableView()
 
-            self.table_view.tableActionViewRepo( execute_function, are_you_sure_function, finalise )
+            self.table_view.tableActionViewRepo( execute_function, are_you_sure_function, finalise_Bg )
 
         except wb_svn_project.ClientError as e:
             svn_project.logClientError( e )
 
-        self.main_window.updateTableView()
+        yield from self.main_window.updateTableView_Bg()
 
     # ------------------------------------------------------------
     def selectedSvnProjectTreeNode( self ):
@@ -646,7 +658,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         return True
 
     @thread_switcher
-    def tableActionSvnAnnotate_Bg( self, checked ):
+    def tableActionSvnAnnotate_Bg( self, checked=None ):
         yield from self.table_view.tableActionViewRepo_Bg( self.__actionSvnAnnotate_Bg )
 
     @thread_switcher
@@ -707,8 +719,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         svn_project = self.selectedSvnProject()
 
         commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
-        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
-        commit_dialog.commitClosed.connect( self.__commitClosed )
+        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg, 'commit accept' ) )
+        commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg, 'commit closed' ) )
 
         # show to the user
         commit_dialog.show()
@@ -756,16 +768,17 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.setStatusAction( T_('Ready') )
         self.progress.end()
 
-        self.__commitClosed()
+        yield from self.__commitClosed_Bg()
 
-    def __commitClosed( self ):
+    @thread_switcher
+    def __commitClosed_Bg( self ):
         # on top window close the commit_key may already have been pop'ed
         if self.app.hasSingleton( self.commit_key ):
             commit_dialog = self.app.popSingleton( self.commit_key )
             commit_dialog.close()
 
         # take account of any changes
-        self.main_window.updateTableView()
+        yield from self.main_window.updateTableView_Bg()
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
@@ -775,14 +788,16 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # actions for commit dialog
     #
     #============================================================
-    def tableActionSvnAddAndInclude( self ):
+    @thread_switcher
+    def tableActionSvnAddAndInclude_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             svn_project.cmdAdd( filename )
             self.main_window.addCommitIncludedFile( filename )
 
-        self._tableActionSvnCmd( execute_function )
+        yield from self._tableActionSvnCmd_Bg( execute_function )
 
-    def tableActionSvnRevertAndExclude( self ):
+    @thread_switcher
+    def tableActionSvnRevertAndExclude_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             try:
                 svn_project.cmdRevert( filename )
@@ -795,9 +810,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureRevert( self.main_window, all_filenames )
 
-        self._tableActionSvnCmd( execute_function, are_you_sure )
+        yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
 
-    def tableActionCommitInclude( self, checked ):
+    @thread_switcher
+    def tableActionCommitInclude_Bg( self, checked=None ):
         all_file_states = self.tableSelectedAllFileStates()
         if len(all_file_states) == 0:
             return
@@ -811,7 +827,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 self.main_window.removeCommitIncludedFile( entry.relativePath() )
 
         # take account of the changes
-        self.top_window.updateTableView()
+        yield from self.top_window.updateTableView_Bg()
 
     def checkerActionCommitInclude( self ):
         all_file_states = self.tableSelectedAllFileStates()
