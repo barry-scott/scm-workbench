@@ -206,6 +206,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         file_state = tree_node.project.getFileState( tree_node.relativePath() )
         return file_state.isControlled()
 
+
     # ------------------------------------------------------------
     def treeActionSvnDiffBaseVsWorking( self ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -426,6 +427,19 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # table actions
     #
     #------------------------------------------------------------
+    def enablerTableSvnResolveConflict( self ):
+        tree_node = self.selectedSvnProjectTreeNode()
+        if tree_node is None:
+            return False
+
+        tree_node.relativePath()
+
+        if not tree_node.project.hasFileState( tree_node.relativePath() ):
+            return False
+
+        file_state = tree_node.project.getFileState( tree_node.relativePath() )
+        return file_state.isConflicted()
+
     def enablerTableSvnDiffBaseVsWorking( self ):
         if not self.main_window.isScmTypeActive( 'svn' ):
             return False
@@ -452,11 +466,11 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def enablerTableSvnProperties( self ):
         return self._enablerTableSvnIsControlled()
 
-    def enablerSvnAdd( self ):
+    def enablerTableSvnAdd( self ):
         # can only add uncontrolled files
         return self.__enablerTableSvnIsUncontrolled()
 
-    def enablerSvnRevert( self ):
+    def enablerTableSvnRevert( self ):
         # can only revert uncontrolled files
         return self._enablerTableSvnIsControlled()
 
@@ -491,17 +505,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return False
 
         return tree_node.project.numUncommittedFiles() > 0
-
-    def __enablerSvnFilesModified( self ):
-        all_file_state = self.tableSelectedAllFileStates()
-        if len(all_file_state) == 0:
-            return False
-
-        for file_state in all_file_state:
-            if not (file_state.isAdded() or file_state.isModified() or file_state.isDeleted()):
-                return False
-
-        return True
 
     # ------------------------------------------------------------
     def tableActionSvnDiffBaseVsWorking( self ):
@@ -589,6 +592,21 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
 
     @thread_switcher
+    def tableActionSvnResolveConflict_Bg( self, checked=None ):
+        def execute_function( svn_project, filename ):
+            try:
+                svn_project.cmdResolved( filename )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+                return
+
+        def are_you_sure( all_filenames ):
+            return wb_common_dialogs.WbAreYouSureResolveConflict( self.main_window, all_filenames )
+
+        yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
+
+    @thread_switcher
     def tableActionSvnDelete_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             try:
@@ -652,10 +670,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         return tree_node
 
     def enablerTableSvnAnnotate( self ):
-        if not self.main_window.isScmTypeActive( 'svn' ):
-            return False
-
-        return True
+        return self._enablerTableSvnIsControlled()
 
     @thread_switcher
     def tableActionSvnAnnotate_Bg( self, checked=None ):

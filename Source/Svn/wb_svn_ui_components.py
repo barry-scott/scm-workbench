@@ -103,12 +103,13 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Svn Actions') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerTableSvnAdd, 'toolbar_images/add.png' )
         addMenu( m, T_('Rename…'), act.tableActionSvnRename_Bg, act.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Revert…'), act.tableActionSvnRevert_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Revert…'), act.tableActionSvnRevert_Bg, act.enablerTableSvnRevert, 'toolbar_images/revert.png' )
         addMenu( m, T_('Delete…'), act.tableActionSvnDelete_Bg, act.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
+        addMenu( m, T_('Resolve Conflict…'), act.tableActionSvnResolveConflict_Bg, act.enablerTableSvnResolveConflict )
 
         m.addSeparator()
         addMenu( m, T_('Checkin…'), act.treeActionSvnCheckin, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
@@ -141,8 +142,8 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), act.tableActionSvnRevert_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerTableSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), act.tableActionSvnRevert_Bg, act.enablerTableSvnRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
         addTool( t, T_('Checkin'), act.treeActionSvnCheckin, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
         t.addSeparator()
@@ -165,12 +166,13 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Log History'), act.treeTableActionSvnLogHistory_Bg, act.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
         m.addSection( T_('Actions') )
-        addMenu( m, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerTableSvnAdd, 'toolbar_images/add.png' )
         addMenu( m, T_('Rename…'), act.tableActionSvnRename_Bg, self.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Revert'), act.tableActionSvnRevert_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Revert'), act.tableActionSvnRevert_Bg, act.enablerTableSvnRevert, 'toolbar_images/revert.png' )
         addMenu( m, T_('Delete…'), act.tableActionSvnDelete_Bg, self.main_window.table_view.enablerTableFilesExists, 'toolbar_images/delete.png' )
+        addMenu( m, T_('Resolve Conflict…'), act.tableActionSvnResolveConflict_Bg, act.enablerTableSvnResolveConflict )
 
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )
