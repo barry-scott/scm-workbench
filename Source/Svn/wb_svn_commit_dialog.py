@@ -22,6 +22,8 @@ import wb_scm_table_view
 
 import wb_ui_components
 
+from wb_background_thread import thread_switcher
+
 #
 #   add tool bars and menu for use in the commit window
 #
@@ -244,6 +246,10 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         return self.message.toPlainText().strip()
 
     def updateSingleton( self ):
+        self.updateTableView()
+
+    @thread_switcher
+    def updateTableView_Bg( self ):
         self.updateTableView()
 
     def updateTableView( self ):
