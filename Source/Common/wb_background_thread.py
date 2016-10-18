@@ -26,6 +26,7 @@ def thread_switcher( fn ):
 
 # predicate to detect function that requires a ThreadSwitchScheduler
 def requiresThreadSwitcher( fn ):
+    #print( 'qqq requiresThreadSwitcher( %r ) -> %r' % (fn, getattr( fn, _requires_thread_switcher_attr, False )) )
     return getattr( fn, _requires_thread_switcher_attr, False )
 
 #------------------------------------------------------------
@@ -118,9 +119,9 @@ class BackgroundWorkMixin:
         # cannot call logging from here as this will cause the log call to be marshelled
         self.foregroundProcessSignal.emit( MarshalledCall( function, args ) )
 
-    def wrapWithThreadSwitcher( self, function ):
+    def wrapWithThreadSwitcher( self, function, reason='' ):
         if requiresThreadSwitcher( function ):
-            return ThreadSwitchScheduler( self, function )
+            return ThreadSwitchScheduler( self, function, reason )
 
         else:
             return function
@@ -147,13 +148,17 @@ class DeferRunInForeground:
         self.app.runInForeground( self.function, args )
 
 class ThreadSwitchScheduler:
-    def __init__( self, app, function ):
+    next_instance_id = 0
+    def __init__( self, app, function, reason ):
         self.app = app
         self.function = function
+        self.reason = reason
         self._debugThreading = self.app._debug_options._debugThreading
+        ThreadSwitchScheduler.next_instance_id += 1
+        self.instance_id = self.next_instance_id
 
     def __call__( self, *args, **kwds ):
-        self._debugThreading( 'ThreadSwitchScheduler: __call__( %r, %r )' % (args, kwds) )
+        self._debugThreading( 'ThreadSwitchScheduler(%d:%s): start %r( %r, %r )' % (self.instance_id, self.reason, self.function, args, kwds) )
 
         try:
             # call the function
@@ -161,6 +166,7 @@ class ThreadSwitchScheduler:
 
             # did the function run or make a generator?
             if type(result) != types.GeneratorType:
+                self._debugThreading( 'ThreadSwitchScheduler(%d:%s): done (not GeneratorType)' % (self.instance_id, self.reason) )
                 # it ran - we are all done
                 return
 
@@ -168,21 +174,21 @@ class ThreadSwitchScheduler:
             self.queueNextSwitch( result )
 
         except:
-            self.app.log.exception( 'ThreadSwitchScheduler' )
+            self.app.log.exception( 'ThreadSwitchScheduler(%d:%s)' % (self.instance_id, self.reason) )
 
     def queueNextSwitch( self, generator ):
-        self._debugThreading( 'queueNextSwitch<%r>()' % (generator,) )
-
+        self._debugThreading( 'ThreadSwitchScheduler(%d:%s): generator %r' % (self.instance_id, self.reason, generator) )
         # result tells where to schedule the generator to next
         try:
             where_to_go_next = next( generator )
-            self._debugThreading( 'queueNextSwitch<%r>() next=>%r' % (generator, where_to_go_next) )
 
         except StopIteration:
             # no problem all done
+            self._debugThreading( 'ThreadSwitchScheduler(%d:%s): done (StopIteration)' % (self.instance_id, self.reason) )
             return
 
         # will be one of app.runInForeground or app.runInForeground
+        self._debugThreading( 'ThreadSwitchScheduler(%d:%s): next %r' % (self.instance_id, self.reason, where_to_go_next) )
         where_to_go_next( self.queueNextSwitch, (generator,) )
 
 #------------------------------------------------------------

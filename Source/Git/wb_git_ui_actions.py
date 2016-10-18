@@ -200,7 +200,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.main_window.callTreeOrTableFunction( self.treeActionGitDiffHeadVsWorking, self.tableActionGitDiffHeadVsWorking )
 
     @thread_switcher
-    def treeTableActionGitLogHistory_Bg( self, checked ):
+    def treeTableActionGitLogHistory_Bg( self, checked=None ):
         yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionGitLogHistory_Bg, self.tableActionGitLogHistory_Bg )
 
     #------------------------------------------------------------
@@ -261,7 +261,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     # ------------------------------------------------------------
     @thread_switcher
-    def treeActionGitPush_Bg( self, checked ):
+    def treeActionGitPush_Bg( self, checked=None ):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Push %s') % (git_project.projectName(),) )
 
@@ -306,7 +306,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     # ------------------------------------------------------------
     @thread_switcher
-    def treeActionGitPull_Bg( self, checked ):
+    def treeActionGitPull_Bg( self, checked=None ):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
 
@@ -380,20 +380,27 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         commit_status_view.show()
 
     # ------------------------------------------------------------
-    def tableActionGitStage( self ):
-        self._tableActionChangeRepo( self._actionGitStage )
+    @thread_switcher
+    def tableActionGitStage_Bg( self, checked=None ):
+        self._debug( 'tableActionGitStage_Bg start' )
+        yield from self._tableActionChangeRepo_Bg( self._actionGitStage )
+        self._debug( 'tableActionGitStage_Bg done' )
 
-    def tableActionGitUnstage( self ):
-        self._tableActionChangeRepo( self._actionGitUnstage )
+    @thread_switcher
+    def tableActionGitUnstage_Bg( self, checked=None ):
+        yield from self._tableActionChangeRepo_Bg( self._actionGitUnstage )
 
-    def tableActionGitRevert( self ):
-        self._tableActionChangeRepo( self._actionGitRevert, self._areYouSureRevert )
+    @thread_switcher
+    def tableActionGitRevert_Bg( self, checked=None ):
+        yield from self._tableActionChangeRepo_Bg( self._actionGitRevert, self._areYouSureRevert )
 
-    def tableActionGitDelete( self ):
-        self._tableActionChangeRepo( self._actionGitDelete, self._areYouSureDelete )
+    @thread_switcher
+    def tableActionGitDelete_Bg( self, checked=None ):
+        yield from self._tableActionChangeRepo_Bg( self._actionGitDelete, self._areYouSureDelete )
 
-    def tableActionGitRename( self ):
-        self._tableActionChangeRepo( self._actionGitRename )
+    @thread_switcher
+    def tableActionGitRename_Bg( self, checked=None ):
+        yield from self._tableActionChangeRepo_Bg( self._actionGitRename )
 
     def tableActionGitDiffSmart( self ):
         self._debug( 'tableActionGitDiffSmart()' )
@@ -428,9 +435,11 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from commit_log_view.showCommitLogForFile_Bg( git_project, filename, options )
 
     def _actionGitStage( self, git_project, filename ):
+        self._debug( '_actionGitStage( %r, %s )' )
         git_project.cmdStage( filename )
 
     def _actionGitUnstage( self, git_project, filename ):
+        self._debug( '_actionGitUnstage( %r, %s )' )
         git_project.cmdUnstage( 'HEAD', filename )
 
     def _actionGitRevert( self, git_project, filename ):
@@ -510,14 +519,20 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def _areYouSureDelete( self, all_filenames ):
         return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
 
-    def _tableActionChangeRepo( self, execute_function, are_you_sure_function=None ):
-        def finalise( git_project ):
-            git_project.saveChanges()
+    @thread_switcher
+    def _tableActionChangeRepo_Bg( self, execute_function, are_you_sure_function=None ):
+        self._debug( '_tableActionChangeRepo_Bg start' )
 
-            # take account of the change
-            self.top_window.updateTableView()
+        yield from self.table_view.tableActionViewRepo_Bg( execute_function, are_you_sure_function, self._tableActionChangeRepo_finalise_Bg )
+        self._debug( '_tableActionChangeRepo_Bg done' )
 
-        self.table_view.tableActionViewRepo( execute_function, are_you_sure_function, finalise )
+    @thread_switcher
+    def _tableActionChangeRepo_finalise_Bg( self, git_project ):
+        self._debug( '_tableActionChangeRepo_finalise_Bg' )
+        git_project.saveChanges()
+
+        # take account of the change
+        yield from self.top_window.updateTableView_Bg()
 
     # ------------------------------------------------------------
     def selectedGitProjectTreeNode( self ):
@@ -532,7 +547,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     # ------------------------------------------------------------
     @thread_switcher
-    def treeActionGitLogHistory_Bg( self ):
+    def treeActionGitLogHistory_Bg( self, checked=None ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
         if not options.exec_():
@@ -553,7 +568,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         return True
 
     @thread_switcher
-    def tableActionGitAnnotate_Bg( self, checked ):
+    def tableActionGitAnnotate_Bg( self, checked=None ):
         yield from self.table_view.tableActionViewRepo_Bg( self.__actionGitAnnotate_Bg )
 
     @thread_switcher
@@ -601,8 +616,8 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject()
 
         commit_dialog = wb_git_commit_dialog.WbGitCommitDialog( self.app, git_project )
-        commit_dialog.commitAccepted.connect( self.__commitAccepted )
-        commit_dialog.commitClosed.connect( self.__commitClosed )
+        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg ) )
 
         # show to the user
         commit_dialog.show()
@@ -612,7 +627,8 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    def __commitAccepted( self ):
+    @thread_switcher
+    def __commitAccepted_Bg( self ):
         commit_dialog = self.app.getSingleton( self.commit_key )
 
         git_project = commit_dialog.getGitProject()
@@ -624,16 +640,17 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         headline = message.split('\n')[0]
         self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
-        self.__commitClosed()
+        yield from self.__commitClosed_Bg()
 
-    def __commitClosed( self ):
+    @thread_switcher
+    def __commitClosed_Bg( self ):
         # on top window close the commit_key may already have been pop'ed
         if self.app.hasSingleton( self.commit_key ):
             commit_dialog = self.app.popSingleton( self.commit_key )
             commit_dialog.close()
 
         # take account of any changes
-        self.main_window.updateTableView()
+        yield from self.main_window.updateTableView_Bg()
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
@@ -643,22 +660,25 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # actions for commit dialog
     #
     #============================================================
-    def tableActionGitStageAndInclude( self ):
-        self._tableActionChangeRepo( self._actionGitStageAndInclude )
+    @thread_switcher
+    def tableActionGitStageAndInclude_Bg( self, checked=None ):
+        yield from self._tableActionChangeRepo_Bg( self._actionGitStageAndInclude )
 
     def _actionGitStageAndInclude( self, git_project, filename ):
         self._actionGitStage( git_project, filename )
         self.main_window.all_included_files.add( filename )
 
-    def tableActionGitUnstageAndExclude( self ):
-        self._tableActionChangeRepo( self._actionGitUnstageAndExclude )
+    @thread_switcher
+    def tableActionGitUnstageAndExclude_Bg( self, checked=None ):
+        yield from self._tableActionChangeRepo_Bg( self._actionGitUnstageAndExclude )
 
     def _actionGitUnstageAndExclude( self, git_project, filename ):
         self._actionGitUnstage( git_project, filename )
         self.main_window.all_included_files.discard( filename )
 
-    def tableActionGitRevertAndExclude( self ):
-        self._tableActionChangeRepo( self._actionGitRevertAndExclude, self._areYouSureRevert )
+    @thread_switcher
+    def tableActionGitRevertAndExclude_Bg( self, checked=None ):
+        yield from self._tableActionChangeRepo_Bg( self._actionGitRevertAndExclude, self._areYouSureRevert )
 
     def _actionGitRevertAndExclude( self, git_project, filename ):
         self._actionGitRevert( git_project, filename )
@@ -666,7 +686,8 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if not git_project.getFileState( filename ).canCommit():
             self.main_window.all_included_files.discard( filename )
 
-    def tableActionCommitInclude( self, checked ):
+    @thread_switcher
+    def tableActionCommitInclude_Bg( self, checked ):
         all_file_states = self.tableSelectedAllFileStates()
         if len(all_file_states) == 0:
             return
@@ -676,11 +697,10 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 self.main_window.all_included_files.add( entry.relativePath() )
 
             else:
-
                 self.main_window.all_included_files.discard( entry.relativePath() )
 
         # take account of the changes
-        self.top_window.updateTableView()
+        self.top_window.updateTableView_Bg()
 
     def checkerActionCommitInclude( self ):
         all_file_states = self.tableSelectedAllFileStates()

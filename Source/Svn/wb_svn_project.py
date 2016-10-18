@@ -263,6 +263,12 @@ class SvnProject:
         self.client().revert( self.pathForSvn( filename ), depth=depth )
         self.__stale_status = True
 
+    def cmdResolved( self, filename ):
+        self._debug( 'cmdResolved( %r )' % (filename,) )
+
+        self.client().resolved( self.pathForSvn( filename ) )
+        self.__stale_status = True
+
     def cmdDelete( self, filename ):
         self._debug( 'cmdDelete( %r )' % (filename,) )
         self.client().remove( self.pathForSvn( filename ) )
@@ -610,6 +616,9 @@ class WbSvnFileState:
 
     def isDeleted( self ):
         return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.deleted
+
+    def isConflicted( self ):
+        return self.__state is not None and self.__state.node_status == pysvn.wc_status_kind.conflicted
 
     # ------------------------------------------------------------
     def canDiffHeadVsWorking( self ):

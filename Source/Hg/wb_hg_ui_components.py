@@ -118,11 +118,11 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Hg Actions') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Add'), act.tableActionHgAdd, act.enablerHgFilesAdd, 'toolbar_images/add.png' )
+        addMenu( m, T_('Add'), act.tableActionHgAdd_Bg, act.enablerHgFilesAdd, 'toolbar_images/add.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
-        addMenu( m, T_('Delete…'), act.tableActionHgDelete, act.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Revert'), act.tableActionHgRevert_Bg, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Delete…'), act.tableActionHgDelete_Bg, act.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
         addMenu( m, T_('Commit…'), act.treeActionHgCommit, act.enablerHgCommit, 'toolbar_images/commit.png' )
@@ -156,9 +156,9 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('hg state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), act.tableActionHgAdd, act.enablerHgFilesAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Add'), act.tableActionHgAdd_Bg, act.enablerHgFilesAdd, 'toolbar_images/add.png' )
         t.addSeparator()
-        addTool( t, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Revert'), act.tableActionHgRevert_Bg, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
         addTool( t, T_('Commit'), act.treeActionHgCommit, act.enablerHgCommit, 'toolbar_images/commit.png' )
         t.addSeparator()
         addTool( t, T_('Push'), act.treeActionHgPush_Bg, act.enablerHgPush, 'toolbar_images/push.png' )
@@ -173,9 +173,9 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSection( T_('Hg Actions') )
-        addMenu( m, T_('Revert'), act.tableActionHgRevert, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
+        addMenu( m, T_('Revert'), act.tableActionHgRevert_Bg, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )
         m.addSeparator()
-        addMenu( m, T_('Delete…'), act.tableActionHgDelete, act.main_window.table_view.enablerTableFilesExists )
+        addMenu( m, T_('Delete…'), act.tableActionHgDelete_Bg, act.main_window.table_view.enablerTableFilesExists )
 
     def setupTreeContextMenu( self, m, addMenu ):
         super().setupTreeContextMenu( m, addMenu )

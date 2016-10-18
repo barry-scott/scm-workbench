@@ -22,6 +22,7 @@ import sip
 
 import wb_platform_specific
 import wb_shell_commands
+import wb_background_thread
 
 ellipsis = '…'
 
@@ -46,10 +47,14 @@ import wb_tracked_qwidget
 from wb_background_thread import thread_switcher
 
 class WbScmMainWindow(wb_main_window.WbMainWindow):
+    INIT_STATE_INCONSISTENT = 0 # cannot trust self variables to exist yet
+    INIT_STATE_CONSISTENT = 1   # all self variables exist but bg thread reading project state
+    INIT_STATE_COMPLETE = 2     # everything is setup
+
     def __init__( self, app, all_scm_types ):
         self.table_view = None
 
-        self.__init_done = False
+        self.__init_state = self.INIT_STATE_INCONSISTENT
 
         super().__init__( app, app._debug_options._debugMainWindow )
 
@@ -64,7 +69,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # models and views
         self.__ui_active_scm_type = None
 
-        # on Qt on macOS table will trigger selectionChanged that needs tree_model
+        # this will trigger selectionChanged that needs tree_model
+        # that will call treeSelectionChanged_Bg before the world is set up
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
         self.__setupTreeViewAndModel()
 
@@ -154,14 +160,15 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.v_split.addWidget( self.h_split )
         self.v_split.addWidget( self.app.logWidget() )
 
-        # everything is setup now - events can be processed
-        self.__init_done = True
-
         # timer used to wait for focus to be set after app is activated
         self.timer_update_enable_states = QtCore.QTimer()
         self.timer_update_enable_states.timeout.connect( self.updateActionEnabledStates )
         self.timer_update_enable_states.setSingleShot( True )
 
+        # all variables exist
+        self.__init_state = self.INIT_STATE_CONSISTENT
+
+    @thread_switcher
     def completeInit( self ):
         self._debug( 'completeInit()' )
 
@@ -174,7 +181,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         table_width = width - tree_width
         self.h_split.setSizes( [tree_width, table_width] )
 
-        self.loadProjects()
+        yield from self.loadProjects_Bg()
 
         self.updateActionEnabledStates()
 
@@ -182,9 +189,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             # force the UI into shape - like setup of columns in table view
             self.all_ui_components[ self.__ui_active_scm_type ].showUiComponents()
 
+        # fully initialised and ready to use
+        self.__init_state = self.INIT_STATE_COMPLETE
+
         self.log.debug( 'Debug messages are enabled' )
 
-    def loadProjects( self ):
+    @thread_switcher
+    def loadProjects_Bg( self ):
         # load up all the projects
         self.tree_view.setSortingEnabled( False )
         for project in self.app.prefs.getAllProjects():
@@ -208,16 +219,16 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.tree_view.setCurrentIndex( index )
 
             # load in the project
-            self.updateTableView()
+            yield from self.updateTableView_Bg()
 
             if bookmark is not None:
                 # move to bookmarked folder
-                index = self.tree_model.indexFromBookmark( bookmark )
-                index = self.tree_sortfilter.mapFromSource( index )
-                self.tree_view.setCurrentIndex( index )
+                bm_index = self.tree_model.indexFromBookmark( bookmark )
+                if bm_index is not None:
+                    index = self.tree_sortfilter.mapFromSource( bm_index )
+                    self.tree_view.setCurrentIndex( index )
 
             self.tree_view.scrollTo( index )
-
 
     def createProject( self, project ):
         if not project.path.exists():
@@ -251,12 +262,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.customContextMenuRequested.connect( self.treeContextMenu )
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
-    def updateTableView( self ):
+    @thread_switcher
+    def updateTableView_Bg( self ):
+        self._debug( 'updateTableView_Bg start' )
         # need to turn sort on and off to have the view sorted on an update
         self.tree_view.setSortingEnabled( False )
 
         # load in the latest status
-        self.tree_model.refreshTree()
+        yield from self.tree_model.refreshTree_Bg()
 
         # sort filter is now invalid
         self.table_view.table_sortfilter.invalidate()
@@ -269,6 +282,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # enabled states will have changed
         self.timer_update_enable_states.start( 0 )
+        self._debug( 'updateTableView_Bg done' )
 
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
@@ -438,7 +452,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def appActiveHandler( self ):
         self._debug( 'appActiveHandler()' )
 
-        self.updateTableView()
+        # avoid double init
+        if self.__init_state != self.INIT_STATE_COMPLETE:
+            return
+
+        self.app.wrapWithThreadSwitcher( self.updateTableView_Bg, 'appActiveHandler' )()
 
     #------------------------------------------------------------
     #
@@ -569,7 +587,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 index = self.tree_sortfilter.mapFromSource( index )
                 self.tree_view.setCurrentIndex( index )
                 # load in the project
-                self.updateTableView()
+                yield from self.updateTableView_Bg()
                 self.tree_view.setSortingEnabled( True )
 
     def projectActionDelete( self ):
@@ -658,12 +676,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if self.__ui_active_scm_type is not None:
             self.all_ui_components[ self.__ui_active_scm_type ].getTreeContextMenu().exec_( global_pos )
 
-    def treeSelectionChanged( self, selected, deselected ):
-        if not self.__init_done:
+    @thread_switcher
+    def treeSelectionChanged_Bg( self, selected, deselected ):
+        if self.__init_state < self.INIT_STATE_CONSISTENT:
             return
 
         # set the table view to the selected item in the tree
-        self.tree_model.selectionChanged( selected, deselected )
+        yield from self.tree_model.selectionChanged_Bg( selected, deselected )
 
         self.filter_text.clear()
 
@@ -745,10 +764,18 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     @thread_switcher
     def callTreeOrTableFunction_Bg( self, fn_tree, fn_table ):
         if self.focusIsIn() == 'tree':
-            yield from fn_tree()
+            if wb_background_thread.requiresThreadSwitcher( fn_tree ):
+                yield from fn_tree()
+
+            else:
+                return fn_tree()
 
         elif self.focusIsIn() == 'table':
-            yield from fn_table()
+            if wb_background_thread.requiresThreadSwitcher( fn_table ):
+                yield from fn_table()
+
+            else:
+                return fn_table()
 
         else:
             assert False, 'must be tree or table but is %r' % (self.focusIsIn(),)

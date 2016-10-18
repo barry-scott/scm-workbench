@@ -18,6 +18,8 @@ import wb_scm_table_model
 import wb_shell_commands
 import wb_table_view
 
+import wb_background_thread
+
 from wb_background_thread import thread_switcher
 
 class WbScmTableView(wb_table_view.WbTableView):
@@ -191,16 +193,31 @@ class WbScmTableView(wb_table_view.WbTableView):
     # like tableActionViewRepo but uses yield for use with a thread switcher
     @thread_switcher
     def tableActionViewRepo_Bg( self, execute_function, are_you_sure_function=None, finalise_function=None ):
+        self._debug( 'tableActionViewRepo_Bg start' )
         all_filenames = self.__tableActionViewRepoPrep( are_you_sure_function )
 
         if len(all_filenames) > 0:
             scm_project = self.selectedScmProject()
 
             for filename in all_filenames:
-                yield from execute_function( scm_project, filename )
+                if wb_background_thread.requiresThreadSwitcher( execute_function ):
+                    self._debug( 'tableActionViewRepo_Bg exec yield from  %r' % (execute_function,) )
+                    yield from execute_function( scm_project, filename )
+
+                else:
+                    self._debug( 'tableActionViewRepo_Bg exec call %r' % (execute_function,) )
+                    execute_function( scm_project, filename )
 
             if finalise_function is not None:
-                yield from finalise_function( scm_project )
+                if wb_background_thread.requiresThreadSwitcher( finalise_function ):
+                    self._debug( 'tableActionViewRepo_Bg fin yield from %r' % (finalise_function,) )
+                    yield from finalise_function( scm_project )
+
+                else:
+                    self._debug( 'tableActionViewRepo_Bg fin call %r' % (finalise_function,) )
+                    finalise_function( scm_project )
+
+        self._debug( 'tableActionViewRepo_Bg done' )
 
     def __tableActionViewRepoPrep( self, are_you_sure_function ):
         folder_path = self.selectedAbsoluteFolder()
