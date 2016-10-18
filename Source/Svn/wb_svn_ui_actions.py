@@ -773,7 +773,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             svn_project.logClientError( e, 'Cannot Check in %s' % (svn_project.projectName(),) )
 
             yield self.switchToForeground
-            self.__commitClosed()
+            yield from self.__commitClosed_Bg()
             return
 
         headline = message.split('\n')[0]
