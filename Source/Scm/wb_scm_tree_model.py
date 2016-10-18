@@ -43,6 +43,7 @@ class WbScmTreeSortFilter(QtCore.QSortFilterProxyModel):
 
 class WbScmTreeModel(QtGui.QStandardItemModel):
     def __init__( self, app, table_model ):
+        assert table_model is not None
         self.app = app
         self._debug = self.app._debug_options._debugTreeModel
         self.table_model = table_model
