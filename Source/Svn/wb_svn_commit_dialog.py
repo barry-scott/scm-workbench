@@ -43,8 +43,8 @@ class SvnCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), act.tableActionSvnAddAndInclude_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), act.tableActionSvnRevertAndExclude_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), act.tableActionSvnAddAndInclude_Bg, act.enablerTableSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), act.tableActionSvnRevertAndExclude_Bg, act.enablerTableSvnRevert, 'toolbar_images/revert.png' )
 
         addTool( t, 'Include', act.tableActionCommitInclude_Bg, act.enablerSvnCommitInclude, checker=act.checkerActionCommitInclude )
 
