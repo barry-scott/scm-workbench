@@ -76,7 +76,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     @thread_switcher
     def treeTableActionSvnProperties_Bg( self, checked=None ):
-        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnProperties, self.tableActionSvnProperties_Bg )
+        yield from self.main_window.callTreeOrTableFunction_Bg( self.treeActionSvnProperties_Bg, self.tableActionSvnProperties_Bg )
 
     #------------------------------------------------------------
     def enablerTreeTableSvnLogHistory( self ):
@@ -266,7 +266,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             yield from self.main_window.updateTableView_Bg()
 
     @thread_switcher
-    def treeActionSvnMkdir_Bg( self ):
+    def treeActionSvnMkdir_Bg( self, checked=None ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
