@@ -22,6 +22,7 @@ import sip
 
 import wb_platform_specific
 import wb_shell_commands
+import wb_background_thread
 
 ellipsis = '…'
 
