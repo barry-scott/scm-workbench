@@ -455,7 +455,18 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             git_project.cmdRevert( 'HEAD', filename )
 
     def _actionGitDelete( self, git_project, filename ):
-        git_project.cmdDelete( filename )
+        file_state = git_project.getFileState( filename )
+        if file_state.isControlled():
+            git_project.cmdDelete( filename )
+
+        else:
+            try:
+                file_state.absolutePath().unlink()
+
+            except IOError as e:
+                self.log.error( 'Error deleting %s' % (filename,) )
+                self.log.error( str(e) )
+
 
     def _actionGitRename( self, git_project, filename ):
         filestate = git_project.getFileState( filename )

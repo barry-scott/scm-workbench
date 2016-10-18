@@ -57,8 +57,8 @@ class GitProject:
 
         self.all_file_state = {}
 
-        self.__dirty_index = False
         self.__stale_index = False
+
         self.__num_staged_files = 0
         self.__num_modified_files = 0
 
@@ -112,20 +112,14 @@ class GitProject:
         return self.__num_modified_files
 
     def saveChanges( self ):
-        self._debug( 'saveChanges() __dirty_index %r __stale_index %r' % (self.__dirty_index, self.__stale_index) )
-        assert self.__dirty_index or self.__stale_index, 'Only call saveChanges if something was changed'
+        self._debug( 'saveChanges() __stale_index %r' % (self.__stale_index,) )
 
-        if self.__dirty_index:
-            self.repo.index.write()
-            self.__dirty_index = False
-
-        self.__stale_index = False
-
-        self.updateState()
+        if self.__stale_index:
+            self.updateState()
+            self.__stale_index = False
 
     def updateState( self ):
         self._debug( 'updateState() repo=%s' % (self.projectPath(),) )
-        assert not self.__dirty_index, 'repo is dirty, forgot to call saveChanges?'
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )

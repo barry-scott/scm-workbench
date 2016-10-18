@@ -609,12 +609,23 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     @thread_switcher
     def tableActionSvnDelete_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
-            try:
-                svn_project.cmdDelete( filename )
+            file_state = svn_project.getFileState( filename )
 
-            except wb_svn_project.ClientError as e:
-                svn_project.logClientError( e )
-                return
+            if file_state.isControlled():
+                try:
+                    svn_project.cmdDelete( filename )
+
+                except wb_svn_project.ClientError as e:
+                    svn_project.logClientError( e )
+                    return
+            else:
+                try:
+                    file_state.absolutePath().unlink()
+
+                except IOError as e:
+                    self.log.error( 'Error deleting %s' % (filename,) )
+                    self.log.error( str(e) )
+
 
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )
