@@ -126,7 +126,8 @@ tell application "iTerm"
     tell current window
         tell current session
             set name to "%(title)s"
-            write text "%(commands)s"
+            -- start with space to prevent the shell remebering the command
+            write text " %(commands)s"
         end tell
     end tell
 end tell
