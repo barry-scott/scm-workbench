@@ -745,8 +745,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         svn_project = self.selectedSvnProject()
 
         commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
-        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg, 'commit accept' ) )
-        commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg, 'commit closed' ) )
+        commit_dialog.commitAccepted.connect( self.__commitAccepted )
+        commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user
         commit_dialog.show()
@@ -756,8 +756,12 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
+    def __commitAccepted( self ):
+        self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg )()
+
     @thread_switcher
     def __commitAccepted_Bg( self ):
+        print( 'qqq svn __commitAccepted_Bg' )
         svn_project = self.selectedSvnProject()
 
         commit_dialog = self.app.getSingleton( self.commit_key )
@@ -778,36 +782,37 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         try:
             commit_id = svn_project.cmdCommit( message, all_commit_files )
 
-            yield self.switchToForeground
+            headline = message.split('\n')[0]
+            self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') %
+                    {'headline': headline, 'commit_id': commit_id} )
 
         except wb_svn_project.ClientError as e:
             svn_project.logClientError( e, 'Cannot Check in %s' % (svn_project.projectName(),) )
 
-            yield self.switchToForeground
-            yield from self.__commitClosed_Bg()
-            return
-
-        headline = message.split('\n')[0]
-        self.log.info( T_('Committed "%(headline)s" as %(commit_id)s') %
-                {'headline': headline, 'commit_id': commit_id} )
+        yield self.switchToForeground
 
         self.setStatusAction( T_('Ready') )
         self.progress.end()
 
-        yield from self.__commitClosed_Bg()
+        # close with cause the commitClosed signal to be emitted
+        commit_dialog.close()
+
+    def __commitClosed( self ):
+        print( 'qqq svn __commitClosed' )
+        self.app.wrapWithThreadSwitcher( self.__svn_commitClosed_Bg )()
 
     @thread_switcher
-    def __commitClosed_Bg( self ):
-        # on top window close the commit_key may already have been pop'ed
-        if self.app.hasSingleton( self.commit_key ):
-            commit_dialog = self.app.popSingleton( self.commit_key )
-            commit_dialog.close()
+    def __svn_commitClosed_Bg( self ):
+        print( 'qqq svn __svn_commitClosed_Bg' )
+        commit_dialog = self.app.popSingleton( self.commit_key )
 
         # take account of any changes
         yield from self.main_window.updateTableView_Bg()
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
+
+        del commit_dialog
 
     #============================================================
     #

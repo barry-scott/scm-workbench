@@ -627,7 +627,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject()
 
         commit_dialog = wb_git_commit_dialog.WbGitCommitDialog( self.app, git_project )
-        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitAccepted.connect( self.__commitAccepted )
         commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg ) )
 
         # show to the user
@@ -638,8 +638,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    @thread_switcher
-    def __commitAccepted_Bg( self ):
+    def __commitAccepted( self ):
         commit_dialog = self.app.getSingleton( self.commit_key )
 
         git_project = commit_dialog.getGitProject()
@@ -651,14 +650,12 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         headline = message.split('\n')[0]
         self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
-        yield from self.__commitClosed_Bg()
+        # close with cause the commitClosed signal to be emitted
+        commit_dialog.close()
 
     @thread_switcher
     def __commitClosed_Bg( self ):
-        # on top window close the commit_key may already have been pop'ed
-        if self.app.hasSingleton( self.commit_key ):
-            commit_dialog = self.app.popSingleton( self.commit_key )
-            commit_dialog.close()
+        self.app.popSingleton( self.commit_key )
 
         # take account of any changes
         yield from self.main_window.updateTableView_Bg()

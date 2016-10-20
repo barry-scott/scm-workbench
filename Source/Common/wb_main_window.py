@@ -46,6 +46,9 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def completeInit( self ):
         pass
 
+    def close( self ):
+        super().close()
+
     #------------------------------------------------------------
     def setFocusIsIn( self, widget_type ):
         assert widget_type in self.focus_is_in_names

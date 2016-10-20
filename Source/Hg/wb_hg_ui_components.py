@@ -112,7 +112,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff HEAD vs. Working'), act.treeTableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Status'), act.treeActionHgStatus )
+        addMenu( m, T_('Status'), act.treeActionHgStatus_Bg )
 
         # ----------------------------------------
         m = mb.addMenu( T_('&Hg Actions') )

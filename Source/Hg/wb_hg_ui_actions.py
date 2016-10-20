@@ -239,7 +239,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     # ------------------------------------------------------------
     @thread_switcher
-    def treeActionHgPush_Bg( self, checked ):
+    def treeActionHgPush_Bg( self, checked=None ):
         hg_project = self.selectedHgProject().newInstance()
         msg = T_('Push %s') % (hg_project.projectName(),)
         self.log.infoheader( msg )
@@ -267,7 +267,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     # ------------------------------------------------------------
     @thread_switcher
-    def treeActionHgPull_Bg( self, checked ):
+    def treeActionHgPull_Bg( self, checked=None ):
         hg_project = self.selectedHgProject().newInstance()
         msg = T_('Pull %s') % (hg_project.projectName(),)
         self.log.infoheader( msg )
@@ -302,8 +302,6 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     hg_username_prompt = 'user:'
     hg_password_prompt = 'password:'
     def hgCredentialsPrompt( self, url, realm, prompt ):
-        print( 'qqq hgCredentialsPrompt( %r, %r, %r )' % (url, realm, prompt) )
-
         if prompt not in (self.hg_username_prompt, self.hg_password_prompt):
             self.log.error( 'Unknown prompt "%s"' % (prompt,) )
             return ''
@@ -325,29 +323,47 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.__hg_credential_cache.removeCredentials( url )
 
     #------------------------------------------------------------
-    def treeActionHgStatus( self ):
+    @thread_switcher
+    def treeActionHgStatus_Bg( self, checked=None ):
         hg_project = self.selectedHgProject()
+
+        yield self.app.switchToBackground
+
+        all_outgoing_commits = hg_project.cmdOutgoingCommits(
+                                    None,   # self.deferRunInForeground( self.pullOutputHandler ),
+                                    self.deferRunInForeground( self.pullErrorHandler ),
+                                    self.hgCredentialsPrompt,
+                                    self.hgAuthFailed )
+        all_incoming_commits = hg_project.cmdIncomingCommits(
+                                    None,   # self.deferRunInForeground( self.pullOutputHandler ),
+                                    self.deferRunInForeground( self.pullErrorHandler ),
+                                    self.hgCredentialsPrompt,
+                                    self.hgAuthFailed )
+
+        yield self.app.switchToForeground
 
         commit_status_view = wb_hg_status_view.WbHgStatusView(
                 self.app,
                 T_('Status for %s') % (hg_project.projectName(),) )
+
         commit_status_view.setStatus(
-                    hg_project.getUnpushedCommits(),
+                    all_outgoing_commits,
+                    all_incoming_commits,
                     hg_project.getReportModifiedFiles(),
                     hg_project.getReportUntrackedFiles() )
         commit_status_view.show()
 
     # ------------------------------------------------------------
     @thread_switcher
-    def tableActionHgAdd_Bg( self ):
+    def tableActionHgAdd_Bg( self, checked=None ):
         yield from self.__tableActionChangeRepo_Bg( self.__actionHgAdd )
 
     @thread_switcher
-    def tableActionHgRevert_Bg( self ):
+    def tableActionHgRevert_Bg( self, checked=None ):
         yield from self.__tableActionChangeRepo_Bg( self.__actionHgRevert, self.__areYouSureRevert )
 
     @thread_switcher
-    def tableActionHgDelete_Bg( self ):
+    def tableActionHgDelete_Bg( self, checked=None ):
         yield from self.__tableActionChangeRepo_Bg( self.__actionHgDelete, self.__areYouSureDelete )
 
     def tableActionHgDiffSmart( self ):
@@ -362,10 +378,20 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         hg_project.cmdAdd( filename )
 
     def __actionHgRevert( self, hg_project, filename ):
-        hg_project.cmdRevert( 'HEAD', filename )
+        hg_project.cmdRevert( filename )
 
     def __actionHgDelete( self, hg_project, filename ):
-        hg_project.cmdDelete( filename )
+        file_state = hg_project.getFileState( filename )
+        if file_state.isControlled():
+            hg_project.cmdDelete( filename )
+
+        else:
+            try:
+                file_state.absolutePath().unlink()
+
+            except IOError as e:
+                self.log.error( 'Error deleting %s' % (filename,) )
+                self.log.error( str(e) )
 
     def __actionHgDiffSmart( self, hg_project, filename ):
         file_state = hg_project.getFileState( filename )
@@ -411,7 +437,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     # ------------------------------------------------------------
     @thread_switcher
-    def treeActionHgLogHistory_Bg( self ):
+    def treeActionHgLogHistory_Bg( self, checked=None ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
         if not options.exec_():
@@ -435,7 +461,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         hg_project = self.selectedHgProject()
 
         commit_dialog = wb_hg_commit_dialog.WbHgCommitDialog( self.app, hg_project )
-        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitAccepted.connect( self.__commitAccepted )
         commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg ) )
 
         # show to the user
@@ -446,8 +472,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    @thread_switcher
-    def __commitAccepted_Bg( self ):
+    def __commitAccepted( self ):
         commit_dialog = self.app.getSingleton( self.commit_key )
 
         hg_project = self.selectedHgProject()
@@ -457,14 +482,11 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         headline = message.split('\n')[0]
         self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
-        yield from self.__commitClosed_Bg()
+        # close will emit the commitCLose signal
+        commit_dialog.close()
 
-    @thread_switcher
     def __commitClosed_Bg( self ):
-        # on top window close the commit_key may already have been pop'ed
-        if self.app.hasSingleton( self.commit_key ):
-            commit_dialog = self.app.popSingleton( self.commit_key )
-            commit_dialog.close()
+        commit_dialog = self.app.popSingleton( self.commit_key )
 
         # take account of any changes
         yield from self.main_window.updateTableView_Bg()

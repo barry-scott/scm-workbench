@@ -88,18 +88,28 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         self.removeRow( row, QtCore.QModelIndex() )
 
+    event_counter = 0
+
     @thread_switcher
     def refreshTree_Bg( self ):
-        self._debug( 'WbScmTreeModel.refreshTree_Bg()' )
+        WbScmTreeModel.event_counter += 1
+        event = WbScmTreeModel.event_counter
+
+        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() ----- self.selected_node %r' % (event, self.selected_node) )
         if self.selected_node is None:
             return
 
         scm_project = self.selected_node.scm_project_tree_node.project
         self.app.top_window.setStatusAction( T_('Update status of %s') % (scm_project.projectName(),) )
         yield self.app.switchToBackground
+        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() in Bg self.selected_node %r' % (event, self.selected_node) )
+
         # update the project data
         scm_project.updateState()
+
         yield self.app.switchToForeground
+        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() in Fg self.selected_node %r' % (event, self.selected_node) )
+
         self.app.top_window.setStatusAction()
 
         # add new nodes
@@ -109,6 +119,8 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         tree_node.update( scm_project.tree )
 
         self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
+
+        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() done' % (event,) )
 
     def getFirstProjectIndex( self ):
         if self.invisibleRootItem().rowCount() == 0:
@@ -172,15 +184,17 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         return super().flags( index ) & ~QtCore.Qt.ItemIsEditable
 
     def selectionChanged( self, selected, deselected ):
+        self._debug( 'selectionChanged:   selected %r' % ([(index.row(), index.column()) for index in selected.indexes()],) )
+        self._debug( 'selectionChanged: deselected %r' % ([(index.row(), index.column()) for index in deselected.indexes()],) )
         super().selectionChanged( selected, deselected )
-
+        self._debug( 'selectionChanged calling selectionChanged_Bg' )
         self.app.wrapWithThreadSwitcher( self.selectionChanged_Bg, 'treeModel selectionChanged' )( selected, deselected )
 
     @thread_switcher
     def selectionChanged_Bg( self, selected, deselected ):
         self._debug( 'selectionChanged_Bg()' )
         all_selected = selected.indexes()
-        self._debug( 'selectionChanged_Bg() all_selected %r' % (all_selected,) )
+        self._debug( 'selectionChanged_Bg() all_selected %r' % ([(index.row(), index.column()) for index in all_selected],) )
         if len( all_selected ) == 0:
             self.selected_node = None
             self._debug( 'selectionChanged_Bg() nothing selected' )
@@ -206,6 +220,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         self.selected_node = selected_node
 
         if need_to_refresh:
+            self._debug( 'selectionChanged() calling refreshTree_Bg' )
             yield from self.refreshTree_Bg()
 
             self.app.top_window.setStatusAction()
@@ -230,6 +245,9 @@ class ProjectTreeNode(QtGui.QStandardItem):
 
         for tree in sorted( self.scm_project_tree_node.getAllFolderNodes() ):
             self.appendRow( ProjectTreeNode( self.model, tree ) )
+
+    def __repr__( self ):
+        return '<ProjectTreeNode: %s>' % (self.text(),)
 
     def update( self, scm_project_tree_node, indent=0 ):
         # replace the old scm_project_tree_node with the new one from updateStatus()
@@ -260,6 +278,7 @@ class ProjectTreeNode(QtGui.QStandardItem):
         all_new_row_names = set( scm_project_tree_node.getAllFolderNames() )
 
         all_to_add = all_new_row_names - all_row_names
-        for name in all_to_add:
+        # sort to make sure order is not swapped
+        for name in sorted( all_to_add ):
             self._debug( '%*sProjectTreeNode.update add name %s' % (indent, '', name,) )
             self.appendRow( ProjectTreeNode( self.model, self.scm_project_tree_node.getFolder( name ) ) )

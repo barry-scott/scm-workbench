@@ -10,7 +10,8 @@ SCMPYTHONPATH=${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUIL
 
 # for override libraries
 OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython
-OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib
+OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-prompt-patch
+OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-setprotocol-patch
 
 for PART in "${SCMPYTHONPATH}" "${OVERRIDE_PYTHONPATH_1}" "${OVERRIDE_PYTHONPATH_2}"
 do

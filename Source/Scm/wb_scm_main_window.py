@@ -196,6 +196,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     @thread_switcher
     def loadProjects_Bg( self ):
+        self.log.info( 'Loading projects' )
         # load up all the projects
         self.tree_view.setSortingEnabled( False )
         for project in self.app.prefs.getAllProjects():
@@ -219,9 +220,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.tree_view.setCurrentIndex( index )
 
             # load in the project
+            self.log.info( 'Loading selected project' )
             yield from self.updateTableView_Bg()
 
             if bookmark is not None:
+                self.log.info( 'Restoring bookmark' )
                 # move to bookmarked folder
                 bm_index = self.tree_model.indexFromBookmark( bookmark )
                 if bm_index is not None:
@@ -262,13 +265,21 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.customContextMenuRequested.connect( self.treeContextMenu )
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
+    singleton_update_table_running = False
+
     @thread_switcher
     def updateTableView_Bg( self ):
+        if WbScmMainWindow.singleton_update_table_running:
+            return
+
+        WbScmMainWindow.singleton_update_table_running = True
+
         self._debug( 'updateTableView_Bg start' )
         # need to turn sort on and off to have the view sorted on an update
         self.tree_view.setSortingEnabled( False )
 
         # load in the latest status
+        self._debug( 'updateTableView_Bg calling refreshTree_Bg' )
         yield from self.tree_model.refreshTree_Bg()
 
         # sort filter is now invalid
@@ -283,6 +294,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # enabled states will have changed
         self.timer_update_enable_states.start( 0 )
         self._debug( 'updateTableView_Bg done' )
+
+        WbScmMainWindow.singleton_update_table_running = False
 
     def updateActionEnabledStates( self ):
         # can be called during __init__ on macOS version
@@ -682,6 +695,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             return
 
         # set the table view to the selected item in the tree
+        self._debug( 'treeSelectionChanged_Bg calling selectionChanged_Bg' )
         yield from self.tree_model.selectionChanged_Bg( selected, deselected )
 
         self.filter_text.clear()
