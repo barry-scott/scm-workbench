@@ -67,10 +67,8 @@ class WbDebug:
         self._debugDiff = self.addDebugOption( 'DIFF' )
 
     def setDebug( self, str_options ):
-        print( 'qqq setDebug str_options %r' % (str_options,) )
         for option in [s.strip().lower() for s in str_options.split(',')]:
             name = '_debug%s' % (''.join( s.capitalize() for s in option.lower().split('-') ),)
-            print( 'qqq setDebug name %r' % (name,) )
             if hasattr( self, name ):
                 getattr( self, name ).enable( True )
 
