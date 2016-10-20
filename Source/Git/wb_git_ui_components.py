@@ -69,7 +69,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
                                     {'project': name} )
 
     def addProjectCloneWizardHandler( self, name, url, wc_path ):
-        return wb_git_project.gitCloneFrom( self.app, self.pullProgressHandler, url, wc_path )
+        return wb_git_project.gitCloneFrom( self.app, self.ui_actions.pullProgressHandler, url, wc_path )
 
     def addProjectPostCloneWizardHandler( self ):
         self.progress.end()
