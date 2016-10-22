@@ -121,15 +121,6 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self._debug = self.main_window.app._debug_options._debugHgUi
 
     def setupMenuBar( self, mb, addMenu ):
-        pass
-
-    def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: #000099' )
-        self.all_toolbars.append( t )
-
-        addTool( t, 'Hg', self.main_window.projectActionSettings )
-
-    def setupMenuBar( self, mb, addMenu ):
         act = self.ui_actions
 
         # ----------------------------------------

@@ -728,15 +728,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # actions for log history view
     #
     #============================================================
-    def enablerTableGitDiffLogHistory( self ):
-        return self.main_window.enablerTableGitDiffLogHistory()
-
-    def tableActionGitDiffLogHistory( self ):
-        return self.main_window.tableActionGitDiffLogHistory()
-
-    def enablerTableGitAnnotateLogHistory( self ):
-        return self.main_window.enablerTableGitAnnotateLogHistory()
-
     def tableActionGitAnnotateLogHistory( self ):
         self.main_window.annotateLogHistory()
 
