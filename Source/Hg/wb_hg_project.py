@@ -49,24 +49,28 @@ class HgProject:
 
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
-            self.repo = hglib.open( str( prefs_project.path ) )
-        else:
-            self.repo = hglib.client.hgclient( None, None, None )
+            self.repo = hglib.open( str( prefs_project.path ), 'utf-8' )
+            self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+            self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
-        self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
-        self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+        else:
+            self.repo = hglib.open( None, 'utf-8' )
+            self.tree = None
+            self.flat_tree = None
 
         self.all_file_state = {}
 
         self.__num_modified_files = 0
 
-    def cmdClone( url, wc_path ):
+    def cmdClone( self, url, wc_path, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         assert self.prefs_project is None
-        self.repo.cloneremote( str(url).encode('utf-8'), self.pathForHg( wc_path ) )
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+            self.repo.clone( str(url).encode('utf-8'), self.pathForHg( wc_path ) )
 
-    def cmdInit( wc_path ):
+    def cmdInit( self, wc_path, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         assert self.prefs_project is None
-        self.repo.init( self.pathForHg( wc_path ) )
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+            self.repo.init( self.pathForHg( wc_path ) )
 
     def scmType( self ):
         return 'hg'
@@ -245,7 +249,10 @@ class HgProject:
     def pathForHg( self, path ):
         assert isinstance( path, pathlib.Path ), 'path %r' % (path,)
         # return abs path
-        return str( self.projectPath() / path ).encode( sys.getfilesystemencoding() )
+        if path.is_absolute():
+            return str( path ).encode( sys.getfilesystemencoding() )
+        else:
+            return str( self.projectPath() / path ).encode( sys.getfilesystemencoding() )
 
     def pathForWb( self, bytes_path ):
         assert type( bytes_path ) == bytes

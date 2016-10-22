@@ -249,8 +249,8 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         try:
             hg_project.cmdPush(
-                self.deferRunInForeground( self.pullOutputHandler ),
-                self.deferRunInForeground( self.pullErrorHandler ),
+                self.deferRunInForeground( self.hgOutputHandler ),
+                self.deferRunInForeground( self.hgErrorHandler ),
                 self.hgCredentialsPrompt,
                 self.hgAuthFailed )
 
@@ -277,8 +277,8 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         try:
             hg_project.cmdPull(
-                self.deferRunInForeground( self.pullOutputHandler ),
-                self.deferRunInForeground( self.pullErrorHandler ),
+                self.deferRunInForeground( self.hgOutputHandler ),
+                self.deferRunInForeground( self.hgErrorHandler ),
                 self.hgCredentialsPrompt,
                 self.hgAuthFailed )
 
@@ -293,10 +293,10 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.main_window.updateActionEnabledStates()
 
     #------------------------------------------------------------
-    def pullOutputHandler( self, line ):
+    def hgOutputHandler( self, line ):
         self.log.info( line )
 
-    def pullErrorHandler( self, line ):
+    def hgErrorHandler( self, line ):
         self.log.error( line )
 
     hg_username_prompt = 'user:'
@@ -330,13 +330,13 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield self.app.switchToBackground
 
         all_outgoing_commits = hg_project.cmdOutgoingCommits(
-                                    None,   # self.deferRunInForeground( self.pullOutputHandler ),
-                                    self.deferRunInForeground( self.pullErrorHandler ),
+                                    None,   # self.deferRunInForeground( self.hgOutputHandler ),
+                                    self.deferRunInForeground( self.hgErrorHandler ),
                                     self.hgCredentialsPrompt,
                                     self.hgAuthFailed )
         all_incoming_commits = hg_project.cmdIncomingCommits(
-                                    None,   # self.deferRunInForeground( self.pullOutputHandler ),
-                                    self.deferRunInForeground( self.pullErrorHandler ),
+                                    None,   # self.deferRunInForeground( self.hgOutputHandler ),
+                                    self.deferRunInForeground( self.hgErrorHandler ),
                                     self.hgCredentialsPrompt,
                                     self.hgAuthFailed )
 

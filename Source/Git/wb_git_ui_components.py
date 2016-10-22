@@ -58,23 +58,36 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             self.log.error( 'Git error: %s' % (e,) )
             return None
 
-    def addProjectInitWizardHandler( self, wc_path ):
-        self.log.info( 'Initialise Git repository in %s' % (wc_path,) )
-
-        return wb_git_project.gitInit( self.app, wc_path )
-
-    def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
-        self.log.info( 'Cloning Git repository %s into %s' % (url, wc_path) )
+    #------------------------------------------------------------
+    def addProjectPreInitWizardHandler( self, name, url, wc_path ):
+        self.log.infoheader( 'Initialise Git repository in %s' % (wc_path,) )
         self.setStatusAction( T_('Clone %(project)s') %
                                     {'project': name} )
 
-    def addProjectCloneWizardHandler( self, name, url, wc_path ):
+    # runs on the background thread
+    def addProjectInitWizardHandler_Bg( self, wc_path ):
+        return wb_git_project.gitInit( self.app, wc_path )
+
+    def addProjectPostInitWizardHandler( self ):
+        self.progress.end()
+        self.setStatusAction()
+
+    #------------------------------------------------------------
+    def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
+        self.log.infoheader( T_('Cloning Git repository %(url)s into %(path)s') %
+                                    {'url': url, 'path': wc_path} )
+        self.setStatusAction( T_('Clone %(project)s') %
+                                    {'project': name} )
+
+    # runs on the background thread
+    def addProjectCloneWizardHandler_Bg( self, name, url, wc_path ):
         return wb_git_project.gitCloneFrom( self.app, self.ui_actions.pullProgressHandler, url, wc_path )
 
     def addProjectPostCloneWizardHandler( self ):
         self.progress.end()
         self.setStatusAction()
 
+    #------------------------------------------------------------
     def setTopWindow( self, top_window ):
         super().setTopWindow( top_window )
 

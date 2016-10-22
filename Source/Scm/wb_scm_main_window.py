@@ -568,9 +568,15 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             ui_components = self.all_ui_components[ w.getScmType() ]
 
             if w.getAction() == w.action_init:
+                # pre is a good place to setup progress and status
+                ui_components.addProjectPreInitWizardHandler( w.name, w.getScmUrl(), w.getWcPath() )
+
                 yield self.app.switchToBackground
-                add_project = ui_components.addProjectInitWizardHandler( w.getWcPath() )
+                add_project = ui_components.addProjectInitWizardHandler_Bg( w.getWcPath() )
                 yield self.app.switchToForeground
+
+                # post is a good place to finalise progress and status
+                ui_components.addProjectPostInitWizardHandler()
 
             elif w.getAction() == w.action_clone:
                 # pre is a good place to setup progress and status
@@ -578,7 +584,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
                 yield self.app.switchToBackground
                 # do the actual clone in the background
-                add_project = ui_components.addProjectCloneWizardHandler( w.name, w.getScmUrl(), w.getWcPath() )
+                add_project = ui_components.addProjectCloneWizardHandler_Bg( w.name, w.getScmUrl(), w.getWcPath() )
 
                 yield self.app.switchToForeground
                 # post is a good place to finalise progress and status
