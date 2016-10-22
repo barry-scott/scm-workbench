@@ -40,6 +40,7 @@ class AppLoggingMixin:
         self.all_extra_log = []
 
     def setupLogging( self ):
+        logging.addLevelName( INFOHEADER, 'INFOHEADER' )
         name = ''.join( self.app_name_parts )
         self.log = ThreadSafeLogFacade( self, logging.getLogger( name ) )
         self.trace = ThreadSafeLogFacade( self, logging.getLogger( '%s.Trace' % (name,) ) )
