@@ -761,7 +761,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     @thread_switcher
     def __commitAccepted_Bg( self ):
-        print( 'qqq svn __commitAccepted_Bg' )
         svn_project = self.selectedSvnProject()
 
         commit_dialog = self.app.getSingleton( self.commit_key )
@@ -798,12 +797,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         commit_dialog.close()
 
     def __commitClosed( self ):
-        print( 'qqq svn __commitClosed' )
         self.app.wrapWithThreadSwitcher( self.__svn_commitClosed_Bg )()
 
     @thread_switcher
     def __svn_commitClosed_Bg( self ):
-        print( 'qqq svn __svn_commitClosed_Bg' )
         commit_dialog = self.app.popSingleton( self.commit_key )
 
         # take account of any changes

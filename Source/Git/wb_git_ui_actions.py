@@ -330,7 +330,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                                 ,'branch': git_project.getTrackingBranchName()} )
 
         commit_id = git_project.getHeadCommit().hexsha
-        print( 'qqq pull commit_id %r' % (commit_id,) )
 
         yield self.switchToBackground
 

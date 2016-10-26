@@ -412,7 +412,6 @@ class GitProject:
         all_commit_logs = []
 
         for commit in self.repo.iter_commits( None ):
-            print( 'qqq cmdCommitLogAfterCommitId commit.hexsha %r' % (commit.hexsha,) )
             if commit.hexsha == commit_id:
                 break
 
