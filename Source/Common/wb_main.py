@@ -13,14 +13,6 @@
 '''
 import sys
 import os
-import locale
-
-# must setup U_ very early on to allow module level strings to be
-# marked as needing translation.
-
-import builtins
-# U_( 'static string' )
-builtins.__dict__['U_'] = lambda s: s
 
 import wb_platform_specific
 

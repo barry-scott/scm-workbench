@@ -34,6 +34,9 @@ for name in dir(QtCore.QEvent):
     if isinstance( value, int ):
         qt_event_type_names[ int(value) ] = name
 
+def U_( s: str ) -> str:
+    return s
+
 class WbApp(QtWidgets.QApplication,
              wb_logging.AppLoggingMixin,
              wb_background_thread.BackgroundWorkMixin):
@@ -145,7 +148,8 @@ class WbApp(QtWidgets.QApplication,
         # S_( 'singular', 'plural', n )
         builtins.__dict__['S_'] = self.translation.ngettext
         # U_( 'static string' )
-        # already setup in wb_main
+        # define here to keep mypy happy - humm  does not work...
+        builtins.__dict__['U_'] = U_
 
         # Debug settings
         self.__last_client_error = []

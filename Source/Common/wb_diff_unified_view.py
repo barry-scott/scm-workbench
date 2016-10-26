@@ -20,9 +20,6 @@ from PyQt5 import QtCore
 
 import wb_tracked_qwidget
 
-def U_(s):
-    return s
-
 class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
     style_header = 0
     style_normal = 1

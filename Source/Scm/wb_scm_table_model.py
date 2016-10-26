@@ -15,6 +15,9 @@ import os
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
+def U_( s: str ) -> str:
+    return s
+
 class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
     def __init__( self, app, parent=None ):
         self.app = app

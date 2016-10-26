@@ -21,6 +21,8 @@ import wb_table_view
 
 import wb_svn_project
 
+def U_( s: str ) -> str:
+    return s
 
 #------------------------------------------------------------
 #
