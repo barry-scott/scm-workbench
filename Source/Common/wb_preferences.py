@@ -11,6 +11,8 @@
     wb_preferences.py
 
 '''
+from typing import Sequence, Union, Any, Iterable
+
 import pathlib
 import sys
 
@@ -63,82 +65,82 @@ def Bool( text ):
         raise ValueError( 'Bool expects the string true or false' )
 
 class Preferences(PreferencesNode):
-    xml_attribute_info = tuple()
+    xml_attribute_info = tuple()    # type: Sequence[Union[str,Any]]
 
     def __init__( self ):
         super().__init__()
 
-        self.font_ui = None
-        self.font_code = None
-        self.main_window = None
-        self.diff_window = None
-        self.last_position_bookmark = None
-        self.all_bookmarks = None
-        self.all_projects = None
+        self.font_ui = None                     # type: Font
+        self.font_code = None                   # type: Font
+        self.main_window = None                 # type: MainWindow
+        self.diff_window = None                 # type: MainWindow
+        self.last_position_bookmark = None      # type: Bookmark
+        self.all_bookmarks = None               # type: Dict[str, Bookmark]
+        self.all_projects = None                # type: Dict[str, Project]
 
-    def getProject( self, name ):
+    def getProject( self, name:str ) -> 'Project':
         return self.all_projects[ name ]
 
-    def getAllProjects( self ):
+    def getAllProjects( self ) -> Iterable['Project']:
         return self.all_projects.values()
 
-    def addProject( self, project ):
+    def addProject( self, project:'Project' ) -> None:
         assert isinstance( project, Project )
         assert project.name not in self.all_projects
 
         self.all_projects[ project.name ] = project
 
-    def delProject( self, project_name ):
+    def delProject( self, project_name:str ) -> None:
         del self.all_projects[ project_name ]
 
-    def getAllBookmarks( self ):
+    def getAllBookmarks( self ) -> Iterable['Bookmark']:
         return self.all_bookmarks.values()
 
-    def addBookmark( self, bookmark ):
-        assert isinstance( project, Bookmark )
+    def addBookmark( self, bookmark:'Bookmark' ) -> None:
+        assert isinstance( bookmark, Bookmark )
         self.all_bookmarks[ bookmark.name ] = bookmark
 
 class MainWindow(PreferencesNode):
     xml_attribute_info = ('geometry',)
 
-    def __init__( self ):
+    def __init__( self ) -> None:
         super().__init__()
 
-        self.geometry = None
-        self.all_colours = {}
+        self.geometry = None    # type: str
+        self.all_colours = {}   # type: Dict[str, Colour]
 
-    def getFrameGeometry( self ):
+    def getFrameGeometry( self ) -> str:
         return self.geometry
 
-    def setFrameGeometry( self, geometry ):
+    def setFrameGeometry( self, geometry:bytes ) -> None:
         self.geometry = geometry.decode('utf-8')
 
 class Font(PreferencesNode):
     xml_attribute_info = ('face', ('point_size', int))
 
-    def __init__( self ):
+    def __init__( self ) -> None:
         super().__init__()
 
-        self.face = None
-        self.point_size = None
+        self.face = None        # type: str
+        self.point_size = None  # type: int
 
 class NamedColour(PreferencesNode):
     xml_attribute_info = (('fg', RGB), ('bg', RGB))
 
-    def __init__( self, name, fg=None, bg=None ):
+    def __init__( self, name:str, fg:RGB=None, bg:RGB=None ) -> None:
         super().__init__()
 
         self.name = name
         self.fg = fg
         self.bg = bg
 
-    def __lt__( self, other ):
+    def __lt__( self, other:'NamedColour' ):
         return self.name < other.name
 
 class Colour(PreferencesNode):
     xml_attribute_info = (('fg', RGB), ('bg', RGB))
 
-    def __init__( self, fg=None, bg=None ):
+    def __init__( self, fg:RGB=None, bg:RGB=None ) -> None:
         super().__init__()
 
         self.fg = fg
@@ -147,7 +149,7 @@ class Colour(PreferencesNode):
 class Editor(PreferencesNode):
     xml_attribute_info = ('program', 'options')
 
-    def __init__( self ):
+    def __init__( self ) -> None:
         super().__init__()
 
         self.program = ''
@@ -156,7 +158,7 @@ class Editor(PreferencesNode):
 class Shell(PreferencesNode):
     xml_attribute_info = ('terminal_program', 'terminal_init', 'file_browser')
 
-    def __init__( self ):
+    def __init__( self ) -> None:
         super().__init__()
 
         self.terminal_program = ''
@@ -166,7 +168,7 @@ class Shell(PreferencesNode):
 class Bookmark(PreferencesNode):
     xml_attribute_info = ('project_name', ('path', pathlib.Path))
 
-    def __init__( self, name=None, project_name=None, path=None ):
+    def __init__( self, name:str=None, project_name:str=None, path:pathlib.Path=None ) -> None:
         super().__init__()
 
         assert project_name is None or isinstance( project_name, str )
@@ -177,13 +179,13 @@ class Bookmark(PreferencesNode):
         self.path = path
 
 class BookmarkCollection(PreferencesMapNode):
-    def __init__( self ):
+    def __init__( self ) -> None:
         super().__init__()
 
 class Project(PreferencesNode):
     xml_attribute_info = ('scm_type', ('path', pathlib.Path), 'tags_url')
 
-    def __init__( self, name, scm_type=None, path=None, tags_url=None ):
+    def __init__( self, name:str, scm_type:str=None, path:pathlib.Path=None, tags_url:str=None ) -> None:
         super().__init__()
 
         assert path is None or isinstance( path, pathlib.Path )
@@ -194,20 +196,20 @@ class Project(PreferencesNode):
         self.path = path
         self.tags_url = tags_url
 
-    def __lt__( self, other ):
+    def __lt__( self, other:'Project' ) -> bool:
         return self.name.lower() < other.name.lower()
 
-    def __repr__( self ):
+    def __repr__( self ) -> str:
         return '<Project: name=%r scm=%r path=%r>' % (self.name, self.scm_type, self.path)
 
 class ProjectCollection(PreferencesMapNode):
-    def __init__( self ):
+    def __init__( self ) -> None:
         super().__init__()
 
 class View(PreferencesNode):
     xml_attribute_info = (('show_controlled', Bool), ('show_uncontrolled', Bool), ('show_ignored', Bool), ('show_only_changed', Bool))
 
-    def __init__( self ):
+    def __init__( self ) -> None:
         super().__init__()
 
         self.show_controlled = True
@@ -217,20 +219,20 @@ class View(PreferencesNode):
 
         self.diff_style = 'side-by-side'
 
-    def __repr__( self ):
+    def __repr__( self ) -> str:
         return ('<View: ctl=%r unctl=%r ig=%r only=%r diff=%r>' %
                 (self.show_controlled, self.show_uncontrolled, self.show_ignored, self.show_only_changed, self.diff_style))
 
-    def setDiffUnified( self ):
+    def setDiffUnified( self ) -> bool:
         self.diff_style = 'unified'
 
-    def isDiffUnified( self ):
+    def isDiffUnified( self ) -> bool:
         return self.diff_style == 'unified'
 
-    def setDiffSideBySide( self ):
+    def setDiffSideBySide( self ) -> bool:
         self.diff_style = 'side-by-side'
 
-    def isDiffSideBySide( self ):
+    def isDiffSideBySide( self ) -> bool:
         return self.diff_style == 'side-by-side'
 
 scheme_nodes = (

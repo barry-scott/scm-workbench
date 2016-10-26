@@ -15,8 +15,9 @@ import wb_hg_ui_actions
 import wb_hg_log_history_view
 
 import wb_scm_project_dialogs
+import wb_scm_factory_abc
 
-class WbHgFactory:
+class WbHgFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def __init__( self ):
         pass
 

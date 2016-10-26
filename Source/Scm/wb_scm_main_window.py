@@ -732,7 +732,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         else:
             try:
                 # try to convert to ~ form
-                if wb_platform_specific.isWindows():
+                if sys.platform == 'win32':
                     folder = folder.relative_to( wb_platform_specific.getHomeFolder() )
                     folder = '~\\%s' % (folder,)
 

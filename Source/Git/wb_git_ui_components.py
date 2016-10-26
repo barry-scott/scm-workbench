@@ -11,6 +11,7 @@
 
 '''
 import os
+import sys
 import time
 import shutil
 import urllib.parse
@@ -108,7 +109,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         devel_fallback = False
         self.askpass_server.start()
-        if wb_platform_specific.isWindows():
+        if sys.platform == 'win32':
             askpass  = wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe'
             if not askpass.exists():
                 self.log.info( 'Cannot find %s' % (askpass,) )

@@ -10,6 +10,7 @@
     wb_hg_project.py
 
 '''
+from typing import List
 import pathlib
 import sys
 
@@ -408,7 +409,7 @@ class WbHgOutBuffer:
 
         self.__auth_failed = False
 
-    def handleOutput( self, data ):
+    def handleOutput( self, data : bytes ):
         text = data.decode( sys.getdefaultencoding() )
         self.__buffer = self.__buffer + text
 
@@ -429,18 +430,18 @@ class WbHgOutBuffer:
             if self.__cb is not None:
                 self.__cb( line )
 
-    def getPrompt( self ):
+    def getPrompt( self ) -> str:
         prompt = self.__buffer
         self.__buffer = ''
         return prompt
 
-    def getUrl( self ):
+    def getUrl( self ) -> str:
         return self.__url
 
-    def getRealm( self ):
+    def getRealm( self ) -> str:
         return self.__realm
 
-    def getAuthFailed( self ):
+    def getAuthFailed( self ) -> bool:
         auth_failed = self.__auth_failed
         self.__auth_failed = False
         return auth_failed
@@ -532,93 +533,90 @@ class WbHgLogFull(WbHgLogBasic):
         self.all_changed_files = [(state.decode('utf-8'), path.decode('utf-8')) for state, path in repo.status( rev=rev )]
 
 class WbHgFileState:
-    def __init__( self, project, filepath ):
+    def __init__( self, project : HgProject, filepath : 'pathlib.Path' ) -> None:
         self.__project = project
         self.__filepath = filepath
 
         self.__is_dir = False
 
-        self.__state = ''
+        self.__state = ''           # type: str
 
-        self.__nodeid = None
-        self.__permission = None
-        self.__executable = None
-        self.__symlink = None
+        self.__nodeid = None        # type: str
+        self.__permission = None    # type: int
+        self.__executable = None    # type: bool
+        self.__symlink = None       # type: bool
 
-    def setState( self, state ):
-        self.__state = state.decode('utf-8')
-
-    def __repr__( self ):
+    def __repr__( self ) -> str:
         return ('<WbHgFileState: %s %s %s>' %
                 (self.__filepath, self.__state, self.__nodeid))
 
-    def setIsDir( self ):
+    def setIsDir( self ) -> None:
         self.__is_dir = True
 
-    def isDir( self ):
+    def isDir( self ) -> bool:
         return self.__is_dir
 
-    def setManifest( self, nodeid, permission, executable, symlink ):
+    def setManifest( self, nodeid : bytes, permission, executable, symlink ) -> None:
         self.__nodeid = nodeid.decode('utf-8')
         self.__permission = permission
         self.__executable = executable
         self.__symlink = symlink
 
-    def setState( self, state ):
+    def setState( self, state : str ):
         self.__state = state
 
-    def getAbbreviatedStatus( self ):
+    def getAbbreviatedStatus( self ) -> str:
         if self.__state in ('C', '?'):
             return ''
         else:
             return self.__state
 
-    def getStagedAbbreviatedStatus( self ):
+    def getStagedAbbreviatedStatus( self ) -> str:
         # QQQ here for Git compat - bad OO design here
         return ''
 
-    def getUnstagedAbbreviatedStatus( self ):
+    def getUnstagedAbbreviatedStatus( self ) -> str:
         # QQQ here for Git compat - bad OO design here
         return self.getAbbreviatedStatus()
 
-    def absolutePath( self ):
+    def absolutePath( self ) -> pathlib.Path:
         return self.__project.projectPath() / self.__filepath
 
     # ------------------------------------------------------------
-    def isControlled( self ):
+    def isControlled( self ) -> bool:
         return self.__nodeid is not None
 
-    def isUncontrolled( self ):
+    def isUncontrolled( self ) -> bool:
         return self.__state == '?'
 
-    def isIgnored( self ):
+    def isIgnored( self ) -> bool:
         return self.__state == 'I'
 
     # ------------------------------------------------------------
-    def isAdded( self ):
+    def isAdded( self ) -> bool:
         return self.__state == 'A'
 
-    def isModified( self ):
+    def isModified( self ) -> bool:
         return self.__state == 'M'
 
-    def isDeleted( self ):
+    def isDeleted( self ) -> bool:
         return self.__state == 'R'
 
     # ------------------------------------------------------------
-    def canCommit( self ):
+    def canCommit( self ) -> bool:
         return  self.isAdded() or self.isModified() or self.isDeleted()
 
-    def canAdd( self ):
-        return self.isUncontrolled()
+    def canAdd( self ) -> bool:
+        return self.isControlled()
 
-    def canRevert( self ):
+    def canRevert( self ) -> bool:
         return self.isAdded() or self.isModified() or self.isDeleted()
 
     # ------------------------------------------------------------
-    def canDiffHeadVsWorking( self ):
+    def canDiffHeadVsWorking( self ) -> bool:
         return self.isModified()
 
-    def getTextLinesWorking( self ):
+    def getTextLinesWorking( self ) -> List[str]:
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
@@ -627,7 +625,7 @@ class WbHgFileState:
             else:
                 return all_lines
 
-    def getTextLinesHead( self ):
+    def getTextLinesHead( self ) -> List[str]:
         return self.getTextLinesForRevision( 'tip' )
         text = self.__project.cmdCat( self.__filepath )
         all_lines = text.split('\n')
@@ -636,7 +634,7 @@ class WbHgFileState:
         else:
             return all_lines
 
-    def getTextLinesForRevision( self, rev ):
+    def getTextLinesForRevision( self, rev ) -> List[str]:
         if type( rev ) == int:
             rev = '%d' % (rev,)
         # else its a string like 'tip'

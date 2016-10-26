@@ -15,6 +15,7 @@ import wb_svn_ui_components
 import wb_svn_ui_actions
 
 import wb_scm_project_dialogs
+import wb_scm_factory_abc
 
 import pathlib
 
@@ -22,7 +23,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-class WbSvnFactory:
+class WbSvnFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def __init__( self ):
         pass
 

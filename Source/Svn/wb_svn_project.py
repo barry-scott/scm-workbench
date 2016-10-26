@@ -560,9 +560,6 @@ class WbSvnFileState:
 
         self.__state = None
 
-    def setState( self, state ):
-        self.__state = state.decode('utf-8')
-
     def __repr__( self ):
         return ('<WbSvnFileState: %s %s>' %
                 (self.__filepath, self.__state))
