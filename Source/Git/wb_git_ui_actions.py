@@ -179,6 +179,10 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject()
         return git_project is not None and git_project.canPush()
 
+    def enablerGitPull( self ):
+        git_project = self.selectedGitProject()
+        return git_project is not None and git_project.canPull()
+
     def enablerGitLogHistory( self ):
         return True
 
@@ -252,7 +256,11 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.log.error( "'%s' returned with exit code %i" %
                         (' '.join(str(i) for i in e.command), e.status) )
         if e.stderr:
-            all_lines = e.stderr.decode( sys.getdefaultencoding() ).split('\n')
+            if type( e.stderr ) == bytes:
+                all_lines = e.stderr.decode( sys.getdefaultencoding() ).split('\n')
+            else:
+                all_lines = e.stderr.split('\n')
+
             if all_lines[-1] == '':
                 del all_lines[-1]
 
@@ -265,9 +273,16 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Push %s') % (git_project.projectName(),) )
 
+        self.app.log.infoheader( T_('Push %(project_name)s %(branch)s') %
+                                {'project_name': git_project.projectName()
+                                ,'branch': git_project.getTrackingBranchName()} )
+
         yield self.switchToBackground
 
         try:
+            for commit in git_project.getUnpushedCommits():
+                self.log.info( 'pushing "%s" id %s' % (commit.message.split('\n')[0], commit.hexsha) )
+
             git_project.cmdPush(
                 self.deferRunInForeground( self.pushProgressHandler ),
                 self.deferRunInForeground( self.pushInfoHandler ) )
@@ -310,12 +325,22 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
 
+        self.app.log.infoheader( T_('Pull %(project_name)s %(branch)s') %
+                                {'project_name': git_project.projectName()
+                                ,'branch': git_project.getTrackingBranchName()} )
+
+        commit_id = git_project.getHeadCommit().hexsha
+        print( 'qqq pull commit_id %r' % (commit_id,) )
+
         yield self.switchToBackground
 
         try:
             git_project.cmdPull(
                 self.deferRunInForeground( self.pullProgressHandler ),
                 self.deferRunInForeground( self.pullInfoHandler ) )
+
+            for commit in git_project.cmdCommitLogAfterCommitId( commit_id ):
+                self.log.info( 'pulled "%s" id %s' % (commit.commitMessage().split('\n')[0], commit.commitIdString()) )
 
         except wb_git_project.GitCommandError as e:
             self.__logGitCommandError( e )
