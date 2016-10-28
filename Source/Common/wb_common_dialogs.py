@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication( ['foo'] )
 
-    rename = WbRenameFilename( None, None )
+    rename = WbRenameFilenameDialog( None, None )
     rename.setName( 'fred.txt' )
     if rename.exec_():
         print( rename.getName() )

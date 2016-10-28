@@ -10,6 +10,9 @@
     wb_scm_app.py
 
 '''
+import typing
+from typing import List, Union, Any
+
 import sys
 
 import wb_app
@@ -30,11 +33,14 @@ import wb_git_preferences
 
 from PyQt5 import QtGui
 
+if getattr( typing, 'TYPE_CHECKING', False ):
+    import datetime
+
 class WbScmApp(wb_app.WbApp):
-    def __init__( self, args ):
+    def __init__( self, args:List[str] ) -> None:
         self.__git_debug = False
-        self.__all_singletons = {}
-        self.__code_font = None
+        self.__all_singletons = {}  # type: Dict[str, None]
+        self.__code_font = None     # type: QtGui.QFont
 
         self.all_factories = dict( [(f.scmName(), f)
                                     for f in [wb_git_factory.WbGitFactory()
@@ -43,7 +49,7 @@ class WbScmApp(wb_app.WbApp):
 
         super().__init__( ('Scm', 'Workbench'), args, debug_class=wb_scm_debug.WbScmDebug, extra_loggers=['git.cmd'],  )
 
-    def formatDatetime( self, datetime_or_timestamp ):
+    def formatDatetime( self, datetime_or_timestamp:Union[float, 'datetime.datetime'] ) -> str:
         dt = wb_date.localDatetime( datetime_or_timestamp )
 
         return dt.strftime( '%Y-%m-%d %H:%M:%S' )
@@ -51,31 +57,31 @@ class WbScmApp(wb_app.WbApp):
     def getAppQIcon( self ):
         return self.getQIcon( 'wb.png' )
 
-    def getQIcon( self, icon_name ):
+    def getQIcon( self, icon_name:str ):
         return wb_scm_images.getQIcon( icon_name )
 
-    def getScmFactory( self, scm_type ):
+    def getScmFactory( self, scm_type:str ):
         return self.all_factories[ scm_type ]
 
-    def addSingleton( self, name, value ):
+    def addSingleton( self, name:str, value:Any ):
         assert name not in self.__all_singletons
         self.__all_singletons[ name ] = value
 
-    def hasSingleton( self, name ):
+    def hasSingleton( self, name:str ) -> bool:
         return name in self.__all_singletons
 
-    def getSingleton( self, name ):
+    def getSingleton( self, name:str ) -> Any:
         return self.__all_singletons[ name ]
 
-    def popSingleton( self, name ):
+    def popSingleton( self, name:str ) -> Any:
         value = self.__all_singletons[ name ]
         del self.__all_singletons[ name ]
         return value
 
-    def getAllSingletons( self ):
+    def getAllSingletons( self ) -> List[Any]:
         return list( self.__all_singletons.values() )
 
-    def optionParse( self, args ):
+    def optionParse( self, args:List[str] ):
         if args[1] == '--git-debug':
             self.__git_debug = True
             del args[ 1 ]
@@ -83,11 +89,11 @@ class WbScmApp(wb_app.WbApp):
 
         return False
 
-    def extraDebugEnabled( self ):
+    def extraDebugEnabled( self ) -> bool:
         # tells wb_logging to turn on debug for git.cmd
         return self.__git_debug
 
-    def setupScmDebug( self ):
+    def setupScmDebug( self ) -> None:
         # turn on ScmPython debug is required
         import git
         import logging
@@ -111,7 +117,7 @@ class WbScmApp(wb_app.WbApp):
                     ,wb_git_preferences.getAllPreferenceTabs)
                     )
 
-    def writePreferences( self ):
+    def writePreferences( self ) -> None:
         super().writePreferences()
 
         self.setAppStyles()
@@ -123,11 +129,10 @@ class WbScmApp(wb_app.WbApp):
         else:
             self.__code_font = QtGui.QFont( p.face, p.point_size )
 
-
     # place fix style changes in this list
-    app_style_sheet = [
-        ]
-    def setAppStyles( self ):
+    app_style_sheet = [] # type: List[str]
+
+    def setAppStyles( self ) -> None:
         style_sheet_pieces = self.app_style_sheet[:]
         if self.prefs.font_ui.face is not None:
             style_sheet_pieces.append( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
@@ -150,5 +155,5 @@ class WbScmApp(wb_app.WbApp):
 
         return self.top_window
 
-    def getCodeFont( self ):
+    def getCodeFont( self ) -> 'QtGui.QFont':
         return self.__code_font

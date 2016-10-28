@@ -20,6 +20,9 @@ import shutil
 
 import wb_platform_win32_specific
 
+def U_( s: str ) -> str:
+    return s
+
 def setupCommands():
     pass
 

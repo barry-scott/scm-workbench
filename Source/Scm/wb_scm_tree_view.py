@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_scm_table_model.py
+    wb_scm_tree_view.py
 
 '''
 from PyQt5 import QtWidgets

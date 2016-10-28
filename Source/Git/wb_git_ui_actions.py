@@ -179,6 +179,10 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject()
         return git_project is not None and git_project.canPush()
 
+    def enablerGitPull( self ):
+        git_project = self.selectedGitProject()
+        return git_project is not None and git_project.canPull()
+
     def enablerGitLogHistory( self ):
         return True
 
@@ -252,7 +256,11 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.log.error( "'%s' returned with exit code %i" %
                         (' '.join(str(i) for i in e.command), e.status) )
         if e.stderr:
-            all_lines = e.stderr.decode( sys.getdefaultencoding() ).split('\n')
+            if type( e.stderr ) == bytes:
+                all_lines = e.stderr.decode( sys.getdefaultencoding() ).split('\n')
+            else:
+                all_lines = e.stderr.split('\n')
+
             if all_lines[-1] == '':
                 del all_lines[-1]
 
@@ -265,9 +273,16 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Push %s') % (git_project.projectName(),) )
 
+        self.app.log.infoheader( T_('Push %(project_name)s %(branch)s') %
+                                {'project_name': git_project.projectName()
+                                ,'branch': git_project.getTrackingBranchName()} )
+
         yield self.switchToBackground
 
         try:
+            for commit in git_project.getUnpushedCommits():
+                self.log.info( 'pushing "%s" id %s' % (commit.message.split('\n')[0], commit.hexsha) )
+
             git_project.cmdPush(
                 self.deferRunInForeground( self.pushProgressHandler ),
                 self.deferRunInForeground( self.pushInfoHandler ) )
@@ -310,12 +325,21 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject().newInstance()
         self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
 
+        self.app.log.infoheader( T_('Pull %(project_name)s %(branch)s') %
+                                {'project_name': git_project.projectName()
+                                ,'branch': git_project.getTrackingBranchName()} )
+
+        commit_id = git_project.getHeadCommit().hexsha
+
         yield self.switchToBackground
 
         try:
             git_project.cmdPull(
                 self.deferRunInForeground( self.pullProgressHandler ),
                 self.deferRunInForeground( self.pullInfoHandler ) )
+
+            for commit in git_project.cmdCommitLogAfterCommitId( commit_id ):
+                self.log.info( 'pulled "%s" id %s' % (commit.commitMessage().split('\n')[0], commit.commitIdString()) )
 
         except wb_git_project.GitCommandError as e:
             self.__logGitCommandError( e )
@@ -455,7 +479,18 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             git_project.cmdRevert( 'HEAD', filename )
 
     def _actionGitDelete( self, git_project, filename ):
-        git_project.cmdDelete( filename )
+        file_state = git_project.getFileState( filename )
+        if file_state.isControlled():
+            git_project.cmdDelete( filename )
+
+        else:
+            try:
+                file_state.absolutePath().unlink()
+
+            except IOError as e:
+                self.log.error( 'Error deleting %s' % (filename,) )
+                self.log.error( str(e) )
+
 
     def _actionGitRename( self, git_project, filename ):
         filestate = git_project.getFileState( filename )
@@ -616,7 +651,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         git_project = self.selectedGitProject()
 
         commit_dialog = wb_git_commit_dialog.WbGitCommitDialog( self.app, git_project )
-        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitAccepted.connect( self.__commitAccepted )
         commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg ) )
 
         # show to the user
@@ -627,8 +662,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    @thread_switcher
-    def __commitAccepted_Bg( self ):
+    def __commitAccepted( self ):
         commit_dialog = self.app.getSingleton( self.commit_key )
 
         git_project = commit_dialog.getGitProject()
@@ -640,14 +674,12 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         headline = message.split('\n')[0]
         self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
-        yield from self.__commitClosed_Bg()
+        # close with cause the commitClosed signal to be emitted
+        commit_dialog.close()
 
     @thread_switcher
     def __commitClosed_Bg( self ):
-        # on top window close the commit_key may already have been pop'ed
-        if self.app.hasSingleton( self.commit_key ):
-            commit_dialog = self.app.popSingleton( self.commit_key )
-            commit_dialog.close()
+        self.app.popSingleton( self.commit_key )
 
         # take account of any changes
         yield from self.main_window.updateTableView_Bg()
@@ -720,15 +752,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # actions for log history view
     #
     #============================================================
-    def enablerTableGitDiffLogHistory( self ):
-        return self.main_window.enablerTableGitDiffLogHistory()
-
-    def tableActionGitDiffLogHistory( self ):
-        return self.main_window.tableActionGitDiffLogHistory()
-
-    def enablerTableGitAnnotateLogHistory( self ):
-        return self.main_window.enablerTableGitAnnotateLogHistory()
-
     def tableActionGitAnnotateLogHistory( self ):
         self.main_window.annotateLogHistory()
 

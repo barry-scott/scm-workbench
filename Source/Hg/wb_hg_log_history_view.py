@@ -24,6 +24,9 @@ import wb_table_view
 
 from wb_background_thread import thread_switcher
 
+def U_( s: str ) -> str:
+    return s
+
 #------------------------------------------------------------
 #
 #   WbHgLogHistoryView - show the commits from the log model

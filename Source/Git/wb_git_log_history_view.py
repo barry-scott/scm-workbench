@@ -23,6 +23,9 @@ import wb_table_view
 
 import wb_ui_components
 
+def U_( s: str ) -> str:
+    return s
+
 #------------------------------------------------------------
 #
 #   WbGitLogHistoryView - show the commits from the log model

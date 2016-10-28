@@ -79,6 +79,8 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     commitClosed = QtCore.pyqtSignal()
 
     def __init__( self, app, git_project ):
+        self.__pyqt_bug_already_closed_why_call_close_event_again = False
+
         self.app = app
         self.git_project = git_project
         self.table_view = None
@@ -234,6 +236,11 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
     def closeEvent( self, event ):
         super().closeEvent( event )
+
+        if self.__pyqt_bug_already_closed_why_call_close_event_again:
+            return
+
+        self.__pyqt_bug_already_closed_why_call_close_event_again = True
 
         self.commitClosed.emit()
 

@@ -57,8 +57,8 @@ class GitProject:
 
         self.all_file_state = {}
 
-        self.__dirty_index = False
         self.__stale_index = False
+
         self.__num_staged_files = 0
         self.__num_modified_files = 0
 
@@ -102,8 +102,15 @@ class GitProject:
     def projectPath( self ):
         return pathlib.Path( self.prefs_project.path )
 
+    def getHeadCommit( self ):
+        return self.repo.head.ref.commit
+
     def getBranchName( self ):
         return self.repo.head.ref.name
+
+    def getTrackingBranchName( self ):
+        tracking_branch = self.repo.head.ref.tracking_branch()
+        return tracking_branch.name if tracking_branch is not None else None
 
     def numStagedFiles( self ):
         return self.__num_staged_files
@@ -112,20 +119,14 @@ class GitProject:
         return self.__num_modified_files
 
     def saveChanges( self ):
-        self._debug( 'saveChanges() __dirty_index %r __stale_index %r' % (self.__dirty_index, self.__stale_index) )
-        assert self.__dirty_index or self.__stale_index, 'Only call saveChanges if something was changed'
+        self._debug( 'saveChanges() __stale_index %r' % (self.__stale_index,) )
 
-        if self.__dirty_index:
-            self.repo.index.write()
-            self.__dirty_index = False
-
-        self.__stale_index = False
-
-        self.updateState()
+        if self.__stale_index:
+            self.updateState()
+            self.__stale_index = False
 
     def updateState( self ):
         self._debug( 'updateState() repo=%s' % (self.projectPath(),) )
-        assert not self.__dirty_index, 'repo is dirty, forgot to call saveChanges?'
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -299,6 +300,9 @@ class GitProject:
         remote_commit = tracking_branch.commit
         return head_commit != remote_commit
 
+    def canPull( self ):
+        return self.repo.head.ref.tracking_branch() is not None
+
     def getUnpushedCommits( self ):
         tracking_branch = self.repo.head.ref.tracking_branch()
         if tracking_branch is None:
@@ -400,6 +404,20 @@ class GitProject:
     def cmdCommit( self, message ):
         self.__stale_index = True
         return self.index.commit( message )
+
+    def cmdCommitLogAfterCommitId( self, commit_id ):
+        if not self.hasCommits():
+            return []
+
+        all_commit_logs = []
+
+        for commit in self.repo.iter_commits( None ):
+            if commit.hexsha == commit_id:
+                break
+
+            all_commit_logs.append( GitCommitLogNode( commit ) )
+
+        return all_commit_logs
 
     def cmdCommitLogForRepository( self, progress_callback, limit=None, since=None, until=None ):
         if not self.hasCommits():
@@ -544,16 +562,8 @@ class GitProject:
 
     def cmdPull( self, progress_callback, info_callback ):
         tracking_branch = self.repo.head.ref.tracking_branch()
-        if tracking_branch is None:
-            self.app.log.infoheader( 'Cannot pull %(project_name)s as it has no remotes configured' %
-                {'project_name': self.projectName()} )
-            return
-
         remote = self.repo.remote( tracking_branch.remote_name )
 
-        self.app.log.infoheader( T_('Pull %(project_name)s %(branch)s') %
-                                {'project_name': self.projectName()
-                                ,'branch': tracking_branch.name} )
         progress = Progress( progress_callback )
 
         try:
@@ -570,13 +580,10 @@ class GitProject:
             raise
 
     def cmdPush( self, progress_callback, info_callback ):
+        progress = Progress( progress_callback )
+
         tracking_branch = self.repo.head.ref.tracking_branch()
         remote = self.repo.remote( tracking_branch.remote_name )
-
-        self.app.log.infoheader( T_('Push %(project_name)s %(branch)s') %
-                                {'project_name': self.projectName()
-                                ,'branch': tracking_branch.name} )
-        progress = Progress( progress_callback )
 
         try:
             for info in remote.push( progress=progress ):

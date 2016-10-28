@@ -24,9 +24,13 @@ class WbHgStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.setWindowTitle( title )
         self.setWindowIcon( self.app.getAppQIcon() )
 
-        self.label_unpushed = QtWidgets.QLabel( T_('Unpushed commits') )
-        self.unpushed = QtWidgets.QPlainTextEdit( '' )
-        self.unpushed.setReadOnly( True )
+        self.label_outgoing = QtWidgets.QLabel( T_('Outgoing commits') )
+        self.outgoing = QtWidgets.QPlainTextEdit( '' )
+        self.outgoing.setReadOnly( True )
+
+        self.label_incoming = QtWidgets.QLabel( T_('Incoming commits') )
+        self.incoming = QtWidgets.QPlainTextEdit( '' )
+        self.incoming.setReadOnly( True )
 
         self.label_modified = QtWidgets.QLabel( T_('Modified Files') )
         self.modified = QtWidgets.QPlainTextEdit( '' )
@@ -37,8 +41,10 @@ class WbHgStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.untracked.setReadOnly( True )
 
         self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget( self.label_unpushed )
-        self.layout.addWidget( self.unpushed )
+        self.layout.addWidget( self.label_outgoing )
+        self.layout.addWidget( self.outgoing )
+        self.layout.addWidget( self.label_incoming )
+        self.layout.addWidget( self.incoming )
         self.layout.addWidget( self.label_modified )
         self.layout.addWidget( self.modified )
         self.layout.addWidget( self.label_untracked )
@@ -50,11 +56,17 @@ class WbHgStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         ex = self.app.fontMetrics().lineSpacing()
         self.resize( 100*em, 50*ex )
 
-    def setStatus( self, all_unpushed_commits, all_modified_files, all_untracked_files ):
-        unpushed_text = '\n'.join( ['"%s" id %s' % (commit.message.split('\n')[0], commit.hexsha) for commit in all_unpushed_commits] )
+    def setStatus( self, all_outgoing_commits, all_incoming_commits, all_modified_files, all_untracked_files ):
+        # new to old
+        all_incoming_commits.reverse()
+        all_outgoing_commits.reverse()
+
+        outgoing_text = '\n'.join( ['"%s": r%d' % (log.messageFirstLine(), log.rev) for log in all_outgoing_commits] )
+        incoming_text = '\n'.join( ['"%s": r%d' % (log.messageFirstLine(), log.rev) for log in all_incoming_commits] )
         modified_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_modified_files )] )
         untracked_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_untracked_files )] )
 
-        self.unpushed.setPlainText( unpushed_text )
+        self.outgoing.setPlainText( outgoing_text )
+        self.incoming.setPlainText( incoming_text )
         self.modified.setPlainText( modified_text )
         self.untracked.setPlainText( untracked_text )

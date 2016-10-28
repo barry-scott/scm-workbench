@@ -40,6 +40,7 @@ class AppLoggingMixin:
         self.all_extra_log = []
 
     def setupLogging( self ):
+        logging.addLevelName( INFOHEADER, 'INFOHEADER' )
         name = ''.join( self.app_name_parts )
         self.log = ThreadSafeLogFacade( self, logging.getLogger( name ) )
         self.trace = ThreadSafeLogFacade( self, logging.getLogger( '%s.Trace' % (name,) ) )
@@ -127,7 +128,7 @@ class ThreadSafeLogFacade:
             self.__printStackList( self.error, msg, tb_list )
 
         else:
-            self.__dispatch( self.__printErrorList, (msg, tb_list) )
+            self.__dispatch( self.__printStackList, (self.error, msg, tb_list) )
 
     def stack( self, msg ):
         # take the stack and lose the 2 calls in our logging code
@@ -137,7 +138,7 @@ class ThreadSafeLogFacade:
             self.__printStackList( self.info, msg, tb_list )
 
         else:
-            self.__dispatch( self.__printErrorList, (msg, tb_list) )
+            self.__dispatch( self.__printStackList, (self.info, msg, tb_list) )
 
     def __printStackList( self, log_fn, msg, tb_list ):
         log_fn( msg )

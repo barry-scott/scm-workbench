@@ -22,6 +22,8 @@ import wb_scm_table_view
 
 import wb_ui_components
 
+from wb_background_thread import thread_switcher
+
 #
 #   add tool bars and menu for use in the commit window
 #
@@ -43,8 +45,8 @@ class SvnCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('svn state') )
         self.all_toolbars.append( t )
 
-        addTool( t, T_('Add'), act.tableActionSvnAddAndInclude_Bg, act.enablerSvnAdd, 'toolbar_images/add.png' )
-        addTool( t, T_('Revert'), act.tableActionSvnRevertAndExclude_Bg, act.enablerSvnRevert, 'toolbar_images/revert.png' )
+        addTool( t, T_('Add'), act.tableActionSvnAddAndInclude_Bg, act.enablerTableSvnAdd, 'toolbar_images/add.png' )
+        addTool( t, T_('Revert'), act.tableActionSvnRevertAndExclude_Bg, act.enablerTableSvnRevert, 'toolbar_images/revert.png' )
 
         addTool( t, 'Include', act.tableActionCommitInclude_Bg, act.enablerSvnCommitInclude, checker=act.checkerActionCommitInclude )
 
@@ -67,6 +69,8 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     commitClosed = QtCore.pyqtSignal()
 
     def __init__( self, app, svn_project ):
+        self.__pyqt_bug_already_closed_why_call_close_event_again = False
+
         self.app = app
         self.svn_project = svn_project
         self.table_view = None
@@ -219,6 +223,11 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def closeEvent( self, event ):
         super().closeEvent( event )
 
+        if self.__pyqt_bug_already_closed_why_call_close_event_again:
+            return
+
+        self.__pyqt_bug_already_closed_why_call_close_event_again = True
+
         self.commitClosed.emit()
 
     def handleAccepted( self ):
@@ -244,6 +253,10 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         return self.message.toPlainText().strip()
 
     def updateSingleton( self ):
+        self.updateTableView()
+
+    @thread_switcher
+    def updateTableView_Bg( self ):
         self.updateTableView()
 
     def updateTableView( self ):

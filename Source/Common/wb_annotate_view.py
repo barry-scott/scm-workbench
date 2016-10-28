@@ -18,6 +18,9 @@ import wb_tracked_qwidget
 import wb_main_window
 import wb_table_view
 
+def U_( s: str ) -> str:
+    return s
+
 #------------------------------------------------------------
 #
 #   WbAnnotateView - show that annotation of a file

@@ -10,9 +10,10 @@
     wb_git_askpass_server.py
 
 '''
+import sys
 import wb_platform_specific
 
-if wb_platform_specific.isWindows():
+if sys.platform == 'win32':
     from wb_git_askpass_server_win32 import *
 
 else:

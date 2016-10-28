@@ -48,10 +48,10 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             svn_project.logClientError( e, 'Failed to add SVN repo %r' % (project.path,) )
             return None
 
-    def addProjectInitWizardHandler( self, wc_path ):
-        raise RuntimeError( 'SVN does not support project init' )
-
+    #------------------------------------------------------------
     def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
+        self.log.infoheader( T_('Checking out SVN repository %(url)s into %(path)s') %
+                                    {'url': url, 'path': wc_path} )
         self.setStatusAction( T_('Checkout %(project)s') %
                                     {'project': name} )
         self.progress.start( T_('Checkout %(count)d') )

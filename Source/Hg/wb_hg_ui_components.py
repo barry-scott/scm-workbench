@@ -52,9 +52,22 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             self.app.log.error( T_('hg error: %s') % (e,) )
             return None
 
-    def addProjectInitWizardHandler( self, wc_path ):
+    #------------------------------------------------------------
+    def addProjectPreInitWizardHandler( self, name, url, wc_path ):
+        self.log.infoheader( T_('Initialise Hg repository in %s') % (url, wc_path) )
+        self.setStatusAction( T_('Init %(project)s') %
+                                    {'project': name} )
+        self.progress.start( T_('No progress available for hg') )
+
+    # runs on the background thread
+    def addProjectInitWizardHandler_Bg( self, wc_path ):
         try:
-            wb_hg_project.hgInit( wc_path )
+            hg_project = wb_hg_project.HgProject( self.app, None, self )
+            hg_project.cmdInit( wc_path,
+                self.deferRunInForeground( self.ui_actions.hgOutputHandler ),
+                self.deferRunInForeground( self.ui_actions.hgErrorHandler ),
+                self.ui_actions.hgCredentialsPrompt,
+                self.ui_actions.hgAuthFailed )
             return True
 
         except hglib.error.ServerError as e:
@@ -62,14 +75,27 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             self.app.log.error( T_('hg error: %s') % (e,) )
             return False
 
+    def addProjectPostInitWizardHandler( self ):
+        self.progress.end()
+        self.setStatusAction()
+
+    #------------------------------------------------------------
     def addProjectPreCloneWizardHandler( self, name, url, wc_path ):
+        self.log.infoheader( T_('Cloning Hg repository %(url)s into %(path)s') %
+                                    {'url': url, 'path': wc_path} )
         self.setStatusAction( T_('Clone %(project)s') %
                                     {'project': name} )
         self.progress.start( T_('No progress available for hg') )
 
-    def addProjectCloneWizardHandler( self, name, url, wc_path ):
+    # runs on the background thread
+    def addProjectCloneWizardHandler_Bg( self, name, url, wc_path ):
         try:
-            wb_hg_project.hgClone( url, wc_path )
+            hg_project = wb_hg_project.HgProject( self.app, None, self )
+            hg_project.cmdClone( url, wc_path,
+                self.deferRunInForeground( self.ui_actions.hgOutputHandler ),
+                self.deferRunInForeground( self.ui_actions.hgErrorHandler ),
+                self.ui_actions.hgCredentialsPrompt,
+                self.ui_actions.hgAuthFailed )
             return True
 
         except hglib.error.ServerError as e:
@@ -83,6 +109,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.progress.end()
         self.setStatusAction()
 
+    #------------------------------------------------------------
     def about( self ):
         if shutil.which( hglib.HGPATH ) is None:
             return ['Murcurial "hg" command line tool not found']
@@ -94,15 +121,6 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self._debug = self.main_window.app._debug_options._debugHgUi
 
     def setupMenuBar( self, mb, addMenu ):
-        pass
-
-    def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: #000099' )
-        self.all_toolbars.append( t )
-
-        addTool( t, 'Hg', self.main_window.projectActionSettings )
-
-    def setupMenuBar( self, mb, addMenu ):
         act = self.ui_actions
 
         # ----------------------------------------
@@ -112,7 +130,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff HEAD vs. Working'), act.treeTableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Status'), act.treeActionHgStatus )
+        addMenu( m, T_('Status'), act.treeActionHgStatus_Bg )
 
         # ----------------------------------------
         m = mb.addMenu( T_('&Hg Actions') )

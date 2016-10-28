@@ -10,6 +10,7 @@
     wb_hg_project.py
 
 '''
+from typing import List
 import pathlib
 import sys
 
@@ -46,29 +47,31 @@ class HgProject:
 
         self._debug = self.app._debug_options._debugHgProject
         self._debugTree = self.app._debug_options._debugHgUpdateTree
-        self._traceProtocol = self.app._debug_options._debugHgProtocolTrace
 
         self.prefs_project = prefs_project
-        self.repo = hglib.open( str( prefs_project.path ) )
+        if self.prefs_project is not None:
+            self.repo = hglib.open( str( prefs_project.path ), 'utf-8' )
+            self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+            self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
-        self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
-        self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+        else:
+            self.repo = hglib.open( None, 'utf-8' )
+            self.tree = None
+            self.flat_tree = None
 
         self.all_file_state = {}
 
         self.__num_modified_files = 0
 
-    def enableProtocolTrace( self, state ):
-        if self._traceProtocol.isEnabled():
-            # setprotocoltrace is not in older version of hglib
-            if hasattr( self.repo, 'setprotocoltrace' ):
-                if state:
-                    self.repo.setprotocoltrace( self.traceHgProtocol )
-                else:
-                    self.repo.setprotocoltrace( None )
+    def cmdClone( self, url, wc_path, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+        assert self.prefs_project is None
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+            self.repo.clone( str(url).encode('utf-8'), self.pathForHg( wc_path ) )
 
-    def traceHgProtocol( self, channel, data ):
-        self._traceProtocol( 'ch: %r, data: %r' % (channel, data) )
+    def cmdInit( self, wc_path, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+        assert self.prefs_project is None
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+            self.repo.init( self.pathForHg( wc_path ) )
 
     def scmType( self ):
         return 'hg'
@@ -225,39 +228,19 @@ class HgProject:
         return all_untracked_files
 
     def canPush( self ):
-        print( 'qqq need canPush' )
         return True
 
-        for commit in self.repo.iter_commits( None, max_count=1 ):
-            commit_id = commit.hexsha
+    def cmdIncomingCommits( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+            all_logs = [WbHgLogBasic( data, self.repo ) for data in self.repo.incoming()]
 
-            for remote in self.repo.remotes:
-                for ref in remote.refs:
-                    remote_id = ref.commit.hexsha
+        return all_logs
 
-                    return commit_id != remote_id
+    def cmdOutgoingCommits( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
+            all_logs = [WbHgLogBasic( data, self.repo ) for data in self.repo.outgoing()]
 
-        return False
-
-    def getUnpushedCommits( self ):
-        print( 'qqq need getUnpushedCommits' )
-        return []
-
-        last_pushed_commit_id = ''
-        for remote in self.repo.remotes:
-            for ref in remote.refs:
-                last_pushed_commit_id = ref.commit.hexsha
-
-        all_unpushed_commits = []
-        for commit in self.repo.iter_commits( None ):
-            commit_id = commit.hexsha
-
-            if last_pushed_commit_id == commit_id:
-                break
-
-            all_unpushed_commits.append( commit )
-
-        return all_unpushed_commits
+        return all_logs
 
     #------------------------------------------------------------
     #
@@ -267,7 +250,10 @@ class HgProject:
     def pathForHg( self, path ):
         assert isinstance( path, pathlib.Path ), 'path %r' % (path,)
         # return abs path
-        return str( self.projectPath() / path ).encode( sys.getfilesystemencoding() )
+        if path.is_absolute():
+            return str( path ).encode( sys.getfilesystemencoding() )
+        else:
+            return str( self.projectPath() / path ).encode( sys.getfilesystemencoding() )
 
     def pathForWb( self, bytes_path ):
         assert type( bytes_path ) == bytes
@@ -326,7 +312,7 @@ class HgProject:
         else:
             date = None
 
-        all_logs = [WbHgLog( data, self.repo ) for data in self.repo.log( limit=limit, date=date )]
+        all_logs = [WbHgLogFull( data, self.repo ) for data in self.repo.log( limit=limit, date=date )]
 
         return all_logs
 
@@ -343,7 +329,7 @@ class HgProject:
         else:
             date = None
 
-        all_logs = [WbHgLog( data, self.repo )
+        all_logs = [WbHgLogFull( data, self.repo )
                     for data in self.repo.log( files=[self.pathForHg( filename )], limit=limit, date=date )]
 
         return all_logs
@@ -404,35 +390,14 @@ class HgProject:
 
     def cmdPull( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         self._debug( 'cmdPull()' )
-
-        # does hglib have the IO changes?
-        if not hasattr( self.repo, 'setprotocoltrace' ):
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
             self.repo.pull( update=True )
-            return
-
-        self.enableProtocolTrace( True )
-        try:
-            io = WbHgIoHandler( self.app, self._debug, out_handler, err_handler, prompt_handler, auth_failed_handler )
-            self.repo.pull( update=True, cbprompt=io.hgPromptHandler, cbout=io.hgOutputHandler, cberr=io.hgErrorHandler )
-
-        finally:
-            self.enableProtocolTrace( False )
 
     def cmdPush( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         self._debug( 'cmdPush()' )
 
-        # does hglib have the IO changes?
-        if not hasattr( self.repo, 'setprotocoltrace' ):
+        with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
             self.repo.push()
-            return
-
-        self.enableProtocolTrace( True )
-        try:
-            io = WbHgIoHandler( self.app, self._debug, out_handler, err_handler, prompt_handler, auth_failed_handler )
-            self.repo.push( cbprompt=io.hgPromptHandler, cbout=io.hgOutputHandler, cberr=io.hgErrorHandler )
-
-        finally:
-            self.enableProtocolTrace( False )
 
 class WbHgOutBuffer:
     def __init__( self, cb ):
@@ -444,7 +409,7 @@ class WbHgOutBuffer:
 
         self.__auth_failed = False
 
-    def handleOutput( self, data ):
+    def handleOutput( self, data : bytes ):
         text = data.decode( sys.getdefaultencoding() )
         self.__buffer = self.__buffer + text
 
@@ -462,44 +427,77 @@ class WbHgOutBuffer:
             elif line =='abort: authorization failed':
                 self.__auth_failed = True
 
-            self.__cb( line )
+            if self.__cb is not None:
+                self.__cb( line )
 
-    def getPrompt( self ):
+    def getPrompt( self ) -> str:
         prompt = self.__buffer
         self.__buffer = ''
         return prompt
 
-    def getUrl( self ):
+    def getUrl( self ) -> str:
         return self.__url
 
-    def getRealm( self ):
+    def getRealm( self ) -> str:
         return self.__realm
 
-    def getAuthFailed( self ):
+    def getAuthFailed( self ) -> bool:
         auth_failed = self.__auth_failed
         self.__auth_failed = False
         return auth_failed
 
 class WbHgIoHandler:
-    def __init__( self, app, debug, cb_output, cb_error, cb_prompt, cb_auth_failed ):
-        self.__app = app
-        self._debug = debug
+    def __init__( self, project, cb_output, cb_error, cb_prompt, cb_auth_failed ):
+        self.__repo = project.repo
+        self.__app = project.app
+        self.__debug = project._debug
+
         self.__cb_prompt = cb_prompt
         self.__cb_auth_failed = cb_auth_failed
         self.__output_buffer = WbHgOutBuffer( cb_output )
         self.__error_buffer = WbHgOutBuffer( cb_error )
 
+        self.__traceProtocol = self.__app._debug_options._debugHgProtocolTrace
+
+    def __enter__( self ):
+        if self.__traceProtocol.isEnabled():
+            # setprotocoltrace is not in older version of hglib
+            if hasattr( self.__repo, 'setprotocoltrace' ):
+                self.__repo.setprotocoltrace( self.traceHgProtocol )
+
+        if hasattr( self.__repo, 'setcbprompt' ):
+            self.__repo.setcbprompt( self.hgPromptHandler )
+            self.__repo.setcbout( self.hgOutputHandler )
+            self.__repo.setcberr( self.hgErrorHandler )
+
+    def __exit__( self, exc_type, exc_value, traceback ):
+        # setprotocoltrace is not in older version of hglib
+        if hasattr( self.__repo, 'setprotocoltrace' ):
+            self.__repo.setprotocoltrace( None )
+
+        if hasattr( self.__repo, 'setcbprompt' ):
+            self.__repo.setcbprompt( None )
+            self.__repo.setcbout( None )
+            self.__repo.setcberr( None )
+
+    def traceHgProtocol( self, direction, channel, data ):
+        if type(data) == bytes and len(data) > 80:
+            self.__traceProtocol( 'dir: %r ch: %r, data: %r...' % (direction, channel, data[:80]) )
+
+        else:
+            self.__traceProtocol( 'dir: %r ch: %r, data: %r' % (direction, channel, data) )
+
     def hgPromptHandler( self, max_response_size, output ):
-        self._debug( 'promptHandler( %r, %r )' % (max_response_size, output) )
+        self.__debug( 'promptHandler( %r, %r )' % (max_response_size, output) )
         prompt = self.__error_buffer.getPrompt().strip()
         if prompt == '':
             prompt = self.__output_buffer.getPrompt().strip()
 
-        self._debug( 'promptHandler prompt: %r' % (prompt,) )
+        self.__debug( 'promptHandler prompt: %r' % (prompt,) )
         get_result_fn = wb_background_thread.GetReturnFromCallingFunctionOnMainThread( self.__app, self.__cb_prompt )
         result = get_result_fn( self.__output_buffer.getUrl(), self.__output_buffer.getRealm(), prompt )
 
-        self._debug( 'promptHandler result: %r' % (result,) )
+        self.__debug( 'promptHandler result: %r' % (result,) )
         return ('%s\n' % (result,)).encode( sys.getdefaultencoding() )
 
     def hgOutputHandler( self, data ):
@@ -510,7 +508,7 @@ class WbHgIoHandler:
         if self.__error_buffer.getAuthFailed():
             self.__cb_auth_failed( self.__output_buffer.getUrl() )
 
-class WbHgLog:
+class WbHgLogBasic:
     def __init__( self, data, repo ):
         self.rev =      int(data.rev.decode('utf-8'))
         self.node =     data.node.decode('utf-8')
@@ -520,6 +518,13 @@ class WbHgLog:
         self.message =  data.desc.decode('utf-8')
         self.date =     data.date
 
+    def messageFirstLine( self ):
+        return self.message.split('\n')[0]
+
+class WbHgLogFull(WbHgLogBasic):
+    def __init__( self, data, repo ):
+        super().__init__( data, repo )
+
         if self.rev == 0:
             rev= '0'
         else:
@@ -528,90 +533,90 @@ class WbHgLog:
         self.all_changed_files = [(state.decode('utf-8'), path.decode('utf-8')) for state, path in repo.status( rev=rev )]
 
 class WbHgFileState:
-    def __init__( self, project, filepath ):
+    def __init__( self, project : HgProject, filepath : 'pathlib.Path' ) -> None:
         self.__project = project
         self.__filepath = filepath
 
         self.__is_dir = False
 
-        self.__state = ''
+        self.__state = ''           # type: str
 
-        self.__nodeid = None
-        self.__permission = None
-        self.__executable = None
-        self.__symlink = None
+        self.__nodeid = None        # type: str
+        self.__permission = None    # type: int
+        self.__executable = None    # type: bool
+        self.__symlink = None       # type: bool
 
-    def setState( self, state ):
-        self.__state = state.decode('utf-8')
-
-    def __repr__( self ):
+    def __repr__( self ) -> str:
         return ('<WbHgFileState: %s %s %s>' %
                 (self.__filepath, self.__state, self.__nodeid))
 
-    def setIsDir( self ):
+    def setIsDir( self ) -> None:
         self.__is_dir = True
 
-    def isDir( self ):
+    def isDir( self ) -> bool:
         return self.__is_dir
 
-    def setManifest( self, nodeid, permission, executable, symlink ):
+    def setManifest( self, nodeid : bytes, permission, executable, symlink ) -> None:
         self.__nodeid = nodeid.decode('utf-8')
         self.__permission = permission
         self.__executable = executable
         self.__symlink = symlink
 
-    def setState( self, state ):
+    def setState( self, state : str ):
         self.__state = state
 
-    def getAbbreviatedStatus( self ):
+    def getAbbreviatedStatus( self ) -> str:
         if self.__state in ('C', '?'):
             return ''
         else:
             return self.__state
 
-    def getStagedAbbreviatedStatus( self ):
+    def getStagedAbbreviatedStatus( self ) -> str:
         # QQQ here for Git compat - bad OO design here
         return ''
 
-    def getUnstagedAbbreviatedStatus( self ):
+    def getUnstagedAbbreviatedStatus( self ) -> str:
         # QQQ here for Git compat - bad OO design here
         return self.getAbbreviatedStatus()
 
+    def absolutePath( self ) -> pathlib.Path:
+        return self.__project.projectPath() / self.__filepath
+
     # ------------------------------------------------------------
-    def isControlled( self ):
+    def isControlled( self ) -> bool:
         return self.__nodeid is not None
 
-    def isUncontrolled( self ):
+    def isUncontrolled( self ) -> bool:
         return self.__state == '?'
 
-    def isIgnored( self ):
+    def isIgnored( self ) -> bool:
         return self.__state == 'I'
 
     # ------------------------------------------------------------
-    def isAdded( self ):
+    def isAdded( self ) -> bool:
         return self.__state == 'A'
 
-    def isModified( self ):
+    def isModified( self ) -> bool:
         return self.__state == 'M'
 
-    def isDeleted( self ):
+    def isDeleted( self ) -> bool:
         return self.__state == 'R'
 
     # ------------------------------------------------------------
-    def canCommit( self ):
+    def canCommit( self ) -> bool:
         return  self.isAdded() or self.isModified() or self.isDeleted()
 
-    def canAdd( self ):
-        return self.isUncontrolled()
+    def canAdd( self ) -> bool:
+        return self.isControlled()
 
-    def canRevert( self ):
+    def canRevert( self ) -> bool:
         return self.isAdded() or self.isModified() or self.isDeleted()
 
     # ------------------------------------------------------------
-    def canDiffHeadVsWorking( self ):
+    def canDiffHeadVsWorking( self ) -> bool:
         return self.isModified()
 
-    def getTextLinesWorking( self ):
+    def getTextLinesWorking( self ) -> List[str]:
         path = pathlib.Path( self.__project.projectPath() ) / self.__filepath
         with path.open( encoding='utf-8' ) as f:
             all_lines = f.read().split( '\n' )
@@ -620,7 +625,7 @@ class WbHgFileState:
             else:
                 return all_lines
 
-    def getTextLinesHead( self ):
+    def getTextLinesHead( self ) -> List[str]:
         return self.getTextLinesForRevision( 'tip' )
         text = self.__project.cmdCat( self.__filepath )
         all_lines = text.split('\n')
@@ -629,7 +634,7 @@ class WbHgFileState:
         else:
             return all_lines
 
-    def getTextLinesForRevision( self, rev ):
+    def getTextLinesForRevision( self, rev ) -> List[str]:
         if type( rev ) == int:
             rev = '%d' % (rev,)
         # else its a string like 'tip'

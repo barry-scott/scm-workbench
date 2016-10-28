@@ -15,8 +15,9 @@ import wb_git_ui_components
 import wb_git_ui_actions
 
 import wb_scm_project_dialogs
+import wb_scm_factory_abc
 
-class WbGitFactory:
+class WbGitFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def __init__( self ):
         pass
 
