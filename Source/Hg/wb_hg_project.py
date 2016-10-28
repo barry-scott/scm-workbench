@@ -79,6 +79,13 @@ class HgProject:
     def getBranchName( self ):
         return '-- TBD --' # QQQ missing code
 
+    def getRemoteUrl( self ):
+        for section, name, value in self.repo.config( b'paths' ):
+            if name == b'default':
+                return value.decode( 'utf-8' )
+
+        return None
+
     # return a new HgProject that can be used in another thread
     def newInstance( self ):
         return HgProject( self.app, self.prefs_project, self.ui_components )
