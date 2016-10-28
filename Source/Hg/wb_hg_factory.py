@@ -37,7 +37,7 @@ class WbHgFactory(wb_scm_factory_abc.WbScmFactoryABC):
         return wb_hg_ui_actions.HgMainWindowActions( self )
 
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
-        return wb_scm_project_dialogs.ProjectSettingsDialog( app, main_window, prefs_project, scm_project )
+        return HgProjectSettingsDialog( app, main_window, prefs_project, scm_project )
 
     def projectDialogClonePages( self, wizard ):
         return [PageAddProjectHgClone( wizard )]
@@ -50,6 +50,17 @@ class WbHgFactory(wb_scm_factory_abc.WbScmFactoryABC):
 
     def logHistoryView( self, app, title ):
         return wb_hg_log_history_view.WbHgLogHistoryView( app, title )
+
+class HgProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
+    def __init__( self, app, parent, prefs_project, scm_project ):
+        super().__init__( app, parent, prefs_project, scm_project )
+
+    def scmSpecificAddRows( self ):
+        url = self.scm_project.getRemoteUrl()
+        if url is None:
+            url = ''
+
+        self.addRow( T_('URL:'), url )
 
 class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('ssh', 'https', 'http')
