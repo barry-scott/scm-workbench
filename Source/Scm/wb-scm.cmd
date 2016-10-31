@@ -1,5 +1,5 @@
 @echo off
-setlocal 
+setlocal
 if "%BUILDER_TOP_DIR%" == "" (
     echo Error: BUILDER_TOP_DIR is not set
     goto :eof
