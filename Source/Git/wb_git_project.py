@@ -21,8 +21,10 @@ import git.index
 GitCommandError = git.exc.GitCommandError
 
 def gitCloneFrom( app, progress_handler, url, wc_path ):
+    progress = Progress( progress_handler )
+
     try:
-        git.repo.Repo.clone_from( url, str(wc_path), Progress( progress_handler ) )
+        git.repo.Repo.clone_from( url, str(wc_path), progress )
         return True
 
     except GitCommandError:
@@ -31,6 +33,8 @@ def gitCloneFrom( app, progress_handler, url, wc_path ):
         return False
 
 def gitInit( app, wc_path ):
+    progress = Progress( progress_handler )
+
     try:
         git.repo.Repo.init( str(wc_path) )
         return True
@@ -998,7 +1002,7 @@ class Progress(git.RemoteProgress):
         self.__all_dropped_lines.append( line )
 
     def allErrorLines( self ):
-        return self.error_lines() + self.__all_dropped_lines
+        return self.error_lines + self.__all_dropped_lines
 
     def allDroppedLines( self ):
         return self.__all_dropped_lines
