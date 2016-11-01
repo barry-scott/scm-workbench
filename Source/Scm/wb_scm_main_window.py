@@ -14,6 +14,7 @@
 '''
 import sys
 import os
+import time
 import pathlib
 import difflib
 
@@ -197,6 +198,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     @thread_switcher
     def loadProjects_Bg( self ):
         self.log.info( 'Loading projects' )
+        # let Qt update the UI
+        yield self.app.switchToBackground
+        time.sleep( 0.1 )
+        yield self.app.switchToForeground
+
         # load up all the projects
         self.tree_view.setSortingEnabled( False )
         for project in self.app.prefs.getAllProjects():
@@ -221,6 +227,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             # load in the project
             self.log.info( 'Loading selected project' )
+
+            # let Qt update the UI
+            yield self.app.switchToBackground
+            time.sleep( 0.1 )
+            yield self.app.switchToForeground
+
             yield from self.updateTableView_Bg()
 
             if bookmark is not None:
@@ -699,6 +711,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def treeSelectionChanged_Bg( self, selected, deselected ):
         if self.__init_state < self.INIT_STATE_CONSISTENT:
             return
+
+        # force the UI controls off while the data is changing
+        self.updateEnableStates( force_disabled=True )
 
         # set the table view to the selected item in the tree
         self._debug( 'treeSelectionChanged_Bg calling selectionChanged_Bg' )
