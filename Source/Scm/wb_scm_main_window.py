@@ -14,6 +14,7 @@
 '''
 import sys
 import os
+import time
 import pathlib
 import difflib
 
@@ -197,6 +198,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     @thread_switcher
     def loadProjects_Bg( self ):
         self.log.info( 'Loading projects' )
+        # let Qt update the UI
+        yield self.app.switchToBackground
+        time.sleep( 0.1 )
+        yield self.app.switchToForeground
+
         # load up all the projects
         self.tree_view.setSortingEnabled( False )
         for project in self.app.prefs.getAllProjects():
@@ -223,14 +229,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.log.info( 'Loading selected project' )
 
             # let Qt update the UI
+            yield self.app.switchToBackground
+            time.sleep( 0.1 )
             yield self.app.switchToForeground
 
             yield from self.updateTableView_Bg()
 
             if bookmark is not None:
-                # let Qt update the UI
-                yield self.app.switchToForeground
-
                 self.log.info( 'Restoring bookmark' )
                 # move to bookmarked folder
                 bm_index = self.tree_model.indexFromBookmark( bookmark )
