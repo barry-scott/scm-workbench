@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_window_chrome_setup.py
+    wb_window_main.py
 
 '''
 from PyQt5 import QtWidgets
