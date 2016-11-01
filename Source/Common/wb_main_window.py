@@ -63,8 +63,8 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def appActiveHandler( self ):
         pass
 
-    def updateEnableStates( self ):
-        self.__action_state_manager.update()
+    def updateEnableStates( self, force_disabled=False ):
+        self.__action_state_manager.update( force_disabled )
 
     def setupMenuBar( self, menu_bar ):
         pass
@@ -150,7 +150,7 @@ class WbActionStateManager:
     def addChecker( self, action, checker_handler ):
         self.__all_action_checkers.append( WbActionCheckedState( action, checker_handler ) )
 
-    def update( self ):
+    def update( self, force_disabled ):
         if self.__update_running:
             return
 
@@ -160,10 +160,10 @@ class WbActionStateManager:
         # use a cache to avoid calling state queries more then once on any one update
         cache = {}
         for enabler in self.__all_action_enablers:
-            enabler.setState( cache )
+            enabler.setState( cache, force_disabled=force_disabled )
 
         for checker in self.__all_action_checkers:
-            checker.setState( cache )
+            checker.setState( cache, force_disabled=False )
 
         self._debug( 'WbActionState.update done' )
         self.__update_running = False
@@ -177,8 +177,8 @@ class WbActionSetStateBase:
     def __repr__( self ):
         return '<WbActionEnabledState: %r>' % (self.enabler_handler,)
 
-    def setState( self, cache ):
-        state = self.__callHandler( cache )
+    def setState( self, cache, force_disabled ):
+        state = False if force_disabled else self.__callHandler( cache )
         assert state in (True, False), 'setState "%r" return %r not bool' % (self.handler, state)
 
         self.setActionState( state )

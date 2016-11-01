@@ -712,6 +712,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if self.__init_state < self.INIT_STATE_CONSISTENT:
             return
 
+        # force the UI controls off while the data is changing
+        self.updateEnableStates( force_disabled=True )
+
         # set the table view to the selected item in the tree
         self._debug( 'treeSelectionChanged_Bg calling selectionChanged_Bg' )
         yield from self.tree_model.selectionChanged_Bg( selected, deselected )
