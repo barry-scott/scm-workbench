@@ -681,12 +681,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def __commitClosed_Bg( self ):
         self.app.popSingleton( self.commit_key )
 
-        # take account of any changes
-        yield from self.main_window.updateTableView_Bg()
-
-        # enabled states may have changed
-        self.main_window.updateActionEnabledStates()
-
     #============================================================
     #
     # actions for commit dialog
