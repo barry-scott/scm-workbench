@@ -255,11 +255,9 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def updateSingleton( self ):
         self.updateTableView()
 
-    @thread_switcher
-    def updateTableView_Bg( self ):
-        self.updateTableView()
-
     def updateTableView( self ):
+
+
         # caller will have updated the svn project state already
         self.table_view.setScmProjectTreeNode( self.svn_project.flat_tree )
 
