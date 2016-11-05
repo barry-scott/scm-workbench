@@ -56,7 +56,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
                                     {'project': name} )
         self.progress.start( T_('Checkout %(count)d') )
 
-    def addProjectCloneWizardHandler( self, name, url, wc_path ):
+    def addProjectCloneWizardHandler_Bg( self, name, url, wc_path ):
         svn_project = wb_svn_project.SvnProject( self.app, None, self )
 
         try:
