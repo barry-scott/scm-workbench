@@ -63,7 +63,6 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
 
         super().__init__( app, parent, prefs_project, scm_project )
 
-
     def scmSpecificAddRows( self ):
         info = self.scm_project.cmdInfo( pathlib.Path('.') )
 
@@ -71,6 +70,8 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
         self.addRow( T_('Repos root:'), info[ 'repos_root_URL' ] )
 
         tags_url = self.prefs_project.tags_url
+        tags_url_present = tags_url is not None
+
         if tags_url is None:
             url_parts = info['URL'].split( '/' )
             index = url_parts.index( 'trunk' )
@@ -82,17 +83,29 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
                 tags_url = '%s/tags' % (info[ 'repos_root_URL' ],)
 
         self.tags_url.setText( tags_url )
+        self.tags_url.setEnabled( tags_url_present )
 
-        self.addRow( T_('Tag URL:'), self.tags_url )
+        self.check_tag_url = QtWidgets.QCheckBox( T_('Tag URL:') )
+        self.check_tag_url.setCheckState( QtCore.Qt.Checked if tags_url_present else QtCore.Qt.Unchecked )
+        self.check_tag_url.stateChanged.connect( self.tags_url.setEnabled )
+        self.check_tag_url.stateChanged.connect( self.enableOkButton )
+
+        self.addRow( self.check_tag_url, self.tags_url )
 
         self.tags_url.textChanged.connect( self.enableOkButton )
         self.enableOkButton()
 
     def scmSpecificUpdateProject( self ):
-        self.prefs_project.tags_url = self.tags_url.text()
+        self.prefs_project.tags_url = self.getTagsUrl()
+
+    def getTagsUrl( self ):
+        if self.check_tag_url.isChecked():
+            return self.tags_url.text()
+        else:
+            return None
 
     def scmSpecificEnableOkButton( self ):
-        return self.prefs_project.tags_url != self.tags_url.text()
+        return self.prefs_project.tags_url != self.getTagsUrl()
 
 class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('https', 'http')
