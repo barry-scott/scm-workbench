@@ -23,6 +23,7 @@ import wb_svn_info_dialog
 import wb_svn_properties_dialog
 import wb_svn_dialogs
 import wb_svn_commit_dialog
+import wb_svn_annotate
 
 import pysvn
 import pathlib

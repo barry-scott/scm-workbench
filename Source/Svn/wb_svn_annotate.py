@@ -25,7 +25,7 @@ import wb_ui_components
 #
 class SvnAnnotateWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
-        super().__init__( factory )
+        super().__init__( 'svn', factory )
 
 class WbSvnAnnotateView(wb_annotate_view.WbAnnotateView):
     def __init__( self, app, title ):
