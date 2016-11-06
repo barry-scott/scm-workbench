@@ -132,7 +132,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             yield self.switchToBackground
             try:
                 all_tag_nodes = svn_project.cmdTagsForFile( filename, all_commit_nodes[-1]['revision'].number )
-
                 all_commit_nodes.extend( all_tag_nodes )
 
             except wb_svn_project.ClientError as e:
@@ -206,7 +205,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         file_state = tree_node.project.getFileState( tree_node.relativePath() )
         return file_state.isControlled()
 
-
     # ------------------------------------------------------------
     def treeActionSvnDiffBaseVsWorking( self ):
         tree_node = self.selectedSvnProjectTreeNode()
@@ -219,7 +217,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         except wb_svn_project.ClientError as e:
             tree_node.project.logClientError( e )
-
 
     def treeActionSvnDiffHeadVsWorking( self ):
         tree_node = self.selectedSvnProjectTreeNode()
