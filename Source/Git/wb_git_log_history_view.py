@@ -101,6 +101,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         em = self.log_table.fontMetrics().width( 'm' )
         self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
         self.log_table.setColumnWidth( self.log_model.col_date, em*20 )
+        self.log_table.setColumnWidth( self.log_model.col_tag, em*5 )
         self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
         self.log_table.setColumnWidth( self.log_model.col_commit_id, em*30 )
 
@@ -277,10 +278,11 @@ class WbLogTableView(wb_table_view.WbTableView):
 class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
     col_date = 1
-    col_message = 2
-    col_commit_id = 3
+    col_tag = 2
+    col_message = 3
+    col_commit_id = 4
 
-    column_titles = (U_('Author'), U_('Date'), U_('Message'), U_('Commit ID'))
+    column_titles = (U_('Author'), U_('Date'), U_('Tag'), U_('Message'), U_('Commit ID'))
 
     def __init__( self, app ):
         self.app = app
@@ -290,15 +292,20 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
         super().__init__()
 
         self.all_commit_nodes  = []
+        self.all_tags_by_id = {}
+
+        self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
 
     def loadCommitLogForRepository( self, progress_callback, git_project, limit, since, until ):
         self.beginResetModel()
         self.all_commit_nodes = git_project.cmdCommitLogForRepository( progress_callback, limit, since, until )
+        self.all_tags_by_id = git_project.cmdTagsForRepository()
         self.endResetModel()
 
     def loadCommitLogForFile( self, progress_callback, git_project, filename, limit, since, until ):
         self.beginResetModel()
         self.all_commit_nodes = git_project.cmdCommitLogForFile( progress_callback, filename, limit, since, until )
+        self.all_tags_by_id = git_project.cmdTagsForRepository()
         self.endResetModel()
 
     def commitForRow( self, row ):
@@ -346,6 +353,9 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
             elif col == self.col_date:
                 return self.app.formatDatetime( node.commitDate() )
 
+            elif col == self.col_tag:
+                return self.all_tags_by_id.get ( node.commitIdString(), '' )
+
             elif col == self.col_message:
                 return node.commitMessage().split('\n')[0]
 
@@ -353,6 +363,11 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
                 return node.commitIdString()
 
             assert False
+
+        elif role == QtCore.Qt.ForegroundRole:
+            node = self.all_commit_nodes[ index.row() ]
+            if node.commitIdString() in self.all_tags_by_id:
+                return self.__brush_is_tag
 
         return None
 

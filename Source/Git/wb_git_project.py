@@ -474,6 +474,13 @@ class GitProject:
 
         return all_commit_logs
 
+    def cmdTagsForRepository( self ):
+        tag_name_by_id = {}
+        for tag in self.repo.tags:
+            tag_name_by_id[ tag.commit.hexsha ] = tag.name
+
+        return tag_name_by_id
+
     def __addCommitChangeInformation( self, progress_callback, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
         total = len(all_commit_logs)
