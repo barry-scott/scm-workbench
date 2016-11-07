@@ -191,7 +191,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         act = self.ui_actions
 
         m.addSection( T_('Diff') )
-        addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff TIP vs. Working'), act.tableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
         m.addSeparator()
         addMenu( m, T_('Annotate'), act.tableActionHgAnnotate_Bg, act.enablerTableHgAnnotate )
 

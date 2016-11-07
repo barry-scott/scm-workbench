@@ -154,9 +154,11 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         act = self.ui_actions
 
-        m.addSection( T_('Diff') )
+        m.addSection( T_('Status') )
         addMenu( m, T_('Diff Base vs. Working'), act.tableActionSvnDiffBaseVsWorking, act.enablerTableSvnDiffBaseVsWorking, 'toolbar_images/diff.png' )
         addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionSvnDiffHeadVsWorking, act.enablerTableSvnDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        m.addSeparator()
+        addMenu( m, T_('Annotate'), act.tableActionSvnAnnotate_Bg, act.enablerTableSvnAnnotate )
 
         m.addSection( T_('Info' ) )
         addMenu( m, T_('Information'), act.treeTableActionSvnInfo_Bg, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
