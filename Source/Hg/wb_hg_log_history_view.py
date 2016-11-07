@@ -307,7 +307,7 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
 
     def dateStringForRow( self, row ):
         node = self.all_commit_nodes[ row ]
-        return self.app.formatDatetime( node.date.replace( tzinfo=pytz.utc ) )
+        return self.app.formatDatetime( node.date )
 
     def rowCount( self, parent ):
         return len( self.all_commit_nodes )
@@ -344,8 +344,7 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
                 return node.author
 
             elif col == self.col_date:
-                dt = node.date.replace( tzinfo=pytz.utc )
-                return self.app.formatDatetime( dt )
+                return self.app.formatDatetime( node.date )
 
             elif col == self.col_message:
                 return node.message.split('\n')[0]

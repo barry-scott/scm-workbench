@@ -127,10 +127,13 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m = mb.addMenu( T_('&Hg Information') )
         self.all_menus.append( m )
 
-        addMenu( m, T_('Diff HEAD vs. Working'), act.treeTableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Diff TIP vs. Working'), act.treeTableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
 
         m.addSeparator()
+        addMenu( m, T_('Annotate'), act.tableActionHgAnnotate_Bg, act.enablerTableHgAnnotate )
+        m.addSeparator()
         addMenu( m, T_('Status'), act.treeActionHgStatus_Bg )
+
 
         # ----------------------------------------
         m = mb.addMenu( T_('&Hg Actions') )
@@ -189,6 +192,8 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         m.addSection( T_('Diff') )
         addMenu( m, T_('Diff HEAD vs. Working'), act.tableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
+        m.addSeparator()
+        addMenu( m, T_('Annotate'), act.tableActionHgAnnotate_Bg, act.enablerTableHgAnnotate )
 
         m.addSection( T_('Hg Actions') )
         addMenu( m, T_('Revert'), act.tableActionHgRevert_Bg, act.enablerHgFilesRevert, 'toolbar_images/revert.png' )

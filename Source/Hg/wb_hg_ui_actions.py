@@ -25,6 +25,7 @@ import wb_hg_commit_dialog
 import wb_hg_project
 import wb_hg_status_view
 import wb_hg_credential_dialogs 
+import wb_hg_annotate
 
 from wb_background_thread import thread_switcher
 
@@ -450,6 +451,51 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 T_('Commit Log for %s') % (hg_project.projectName(),) )
 
         yield from commit_log_view.showCommitLogForRepository_Bg( hg_project, options )
+
+    def enablerTableHgAnnotate( self ):
+        if not self.main_window.isScmTypeActive( 'hg' ):
+            return False
+
+        return True
+
+    @thread_switcher
+    def tableActionHgAnnotate_Bg( self, checked=None ):
+        yield from self.table_view.tableActionViewRepo_Bg( self.__actionHgAnnotate_Bg )
+
+    @thread_switcher
+    def __actionHgAnnotate_Bg( self, hg_project, filename ):
+        self.setStatusAction( T_('Annotate %s') % (filename,) )
+        self.progress.start( T_('Annotate %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        # when we know that exception can be raised catch it...
+        all_annotation_nodes = hg_project.cmdAnnotationForFile( filename )
+
+        all_annotate_revs = set()
+        for node in all_annotation_nodes:
+            all_annotate_revs.add( node.log_id )
+
+        yield self.switchToForeground
+
+        self.progress.end()
+        self.progress.start( T_('Annotate Commit Logs %(count)d'), 0 )
+
+        yield self.switchToBackground
+
+        # when we know that exception can be raised catch it...
+        all_commit_logs = hg_project.cmdCommitLogForAnnotateFile( filename, all_annotate_revs )
+
+        yield self.switchToForeground
+
+        self.setStatusAction()
+        self.progress.end()
+
+        annotate_view = wb_hg_annotate.WbHgAnnotateView(
+                            self.app,
+                            T_('Annotation of %s') % (filename,) )
+        annotate_view.showAnnotationForFile( all_annotation_nodes, all_commit_logs )
+        annotate_view.show()
 
     commit_key = 'hg-commit-dialog'
     def treeActionHgCommit( self ):

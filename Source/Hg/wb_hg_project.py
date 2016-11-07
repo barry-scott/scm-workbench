@@ -13,8 +13,10 @@
 from typing import List
 import pathlib
 import sys
+import pytz
 
 import wb_background_thread
+import wb_annotate_node
 
 import hglib
 import hglib.util
@@ -306,6 +308,29 @@ class HgProject:
     def cmdCommit( self, message ):
         return self.repo.commit( message )
 
+    def cmdAnnotationForFile( self, filename, rev=None ):
+        if rev is None:
+            rev = 'tip'
+
+        all_annotate_nodes = []
+
+        line_num = 0
+        for rev, line_text in self.repo.annotate( self.pathForHg( filename ) ):
+            line_num += 1
+            all_annotate_nodes.append(
+                wb_annotate_node.AnnotateNode( line_num, line_text.decode('utf-8'), rev ) )
+
+        return all_annotate_nodes
+
+    def cmdCommitLogForAnnotateFile( self, filename, all_revs ):
+        all_commit_logs = {}
+
+        for rev in all_revs:
+            data = self.repo.log( rev )[0]
+            all_commit_logs[ rev ] = WbHgLogBasic( data, self.repo )
+
+        return all_commit_logs
+
     def cmdCommitLogForRepository( self, limit=None, since=None, until=None ):
         if since is not None and until is not None:
             date = '%s to %s' % (since, until)
@@ -523,10 +548,22 @@ class WbHgLogBasic:
         self.branch =   data.branch.decode('utf-8')
         self.author =   data.author.decode('utf-8')
         self.message =  data.desc.decode('utf-8')
-        self.date =     data.date
+        self.date =     data.date.replace( tzinfo=pytz.utc )
+
+    def commitMessage( self ):
+        return self.message
 
     def messageFirstLine( self ):
         return self.message.split('\n')[0]
+
+    def commitDate( self ):
+        return self.date
+
+    def commitAuthor( self ):
+        return self.author
+
+    def commitIdString( self ):
+        return '%d' % (self.rev,)
 
 class WbHgLogFull(WbHgLogBasic):
     def __init__( self, data, repo ):
