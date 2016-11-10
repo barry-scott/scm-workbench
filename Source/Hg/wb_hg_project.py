@@ -78,8 +78,14 @@ class HgProject:
     def scmType( self ):
         return 'hg'
 
+    def switchToBranch( self, branch ):
+        pass
+
     def getBranchName( self ):
-        return '-- TBD --' # QQQ missing code
+        return '-TBD-'
+
+    def getAllBranchNames( self ):
+        return [self.getBranchName()]
 
     def getRemoteUrl( self ):
         for section, name, value in self.repo.config( b'paths' ):

@@ -29,7 +29,10 @@ class ScmProjectPlaceholder:
         return self.projectName() != other.projectName()
 
     def getBranchName( self ):
-        return ''
+        return T_('-unknown-')
+
+    def getAllBranchNames( self ):
+        return [self.getBranchName()]
 
     def projectName( self ):
         return self.prefs_project.name

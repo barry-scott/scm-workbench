@@ -109,8 +109,14 @@ class GitProject:
     def getHeadCommit( self ):
         return self.repo.head.ref.commit
 
+    def switchToBranch( self, branch ):
+        self.cmdCheckout( branch )
+
     def getBranchName( self ):
         return self.repo.head.ref.name
+
+    def getAllBranchNames( self ):
+        return sorted( [b.name for b in self.repo.branches] )
 
     def getTrackingBranchName( self ):
         tracking_branch = self.repo.head.ref.tracking_branch()
@@ -330,6 +336,14 @@ class GitProject:
     # all functions starting with "cmd" are like the git <cmd> in behavior
     #
     #------------------------------------------------------------
+    def cmdCheckout( self, branch_name ):
+        try:
+            branch = self.repo.branches[ branch_name ]
+            branch.checkout()
+
+        except GitCommandError as e:
+            self.app.log.error( str(e) )
+
     def cmdStage( self, filename ):
         self._debug( 'cmdStage( %r )' % (filename,) )
 

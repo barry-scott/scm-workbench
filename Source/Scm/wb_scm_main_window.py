@@ -111,8 +111,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.filter_text.textChanged.connect( self.table_view.setFilterText )
 
-        self.branch_text = QtWidgets.QLineEdit()
-        self.branch_text.setReadOnly( True )
+        self.branches_ctrl = QtWidgets.QComboBox()
+        self.branches_ctrl.currentIndexChanged.connect( self.branchChanged )
 
         self.folder_text = QtWidgets.QLineEdit()
         self.folder_text.setReadOnly( True )
@@ -138,7 +138,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         row += 1
         self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Branch:') ), row, 0 )
-        self.h_filter_layout.addWidget( self.branch_text, row, 1 )
+        self.h_filter_layout.addWidget( self.branches_ctrl, row, 1 )
 
         self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Path:') ), row, 2 )
         self.h_filter_layout.addWidget( self.folder_text, row, 3 )
@@ -277,6 +277,36 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.customContextMenuRequested.connect( self.treeContextMenu )
         self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
+    singleton_update_branches_running = False
+
+    def __updateBranches( self ):
+        WbScmMainWindow.singleton_update_table_running = True
+
+        scm_project = self.table_view.selectedScmProject()
+        self.branches_ctrl.clear()
+        if scm_project is not None:
+            all_branch_names = scm_project.getAllBranchNames()
+            self.branches_ctrl.addItems( all_branch_names )
+            self.branches_ctrl.setCurrentIndex( all_branch_names.index( scm_project.getBranchName() ) )
+
+        WbScmMainWindow.singleton_update_table_running = False
+
+    def branchChanged( self, index ):
+        if WbScmMainWindow.singleton_update_table_running:
+            return
+
+        if index < 0 or index >= self.branches_ctrl.count():
+            return
+
+        scm_project = self.table_view.selectedScmProject()
+        if scm_project is None:
+            return
+
+        branch_name = self.branches_ctrl.itemText( index )
+        if branch_name != scm_project.getBranchName():
+            self.app.log.infoheader( 'Switching to branch %s' % (branch_name,) )
+            scm_project.switchToBranch( branch_name )
+
     singleton_update_table_running = False
 
     @thread_switcher
@@ -287,6 +317,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         WbScmMainWindow.singleton_update_table_running = True
 
         self._debug( 'updateTableView_Bg start' )
+
+        self.__updateBranches()
+
         # need to turn sort on and off to have the view sorted on an update
         self.tree_view.setSortingEnabled( False )
 
@@ -732,13 +765,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.__ui_active_scm_type = scm_project.scmType()
             self.all_ui_components[ self.__ui_active_scm_type ].showUiComponents()
 
-        if scm_project is None:
-            self.branch_text.clear()
-
-        else:
-            self.branch_text.setText( scm_project.getBranchName() )
-
         self.updateActionEnabledStates()
+
+        self.__updateBranches()
 
         folder = self.table_view.selectedAbsoluteFolder()
         if folder is None:

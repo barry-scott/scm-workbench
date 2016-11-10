@@ -74,8 +74,14 @@ class SvnProject:
     def scmType( self ):
         return 'svn'
 
+    def switchToBranch( self, branch ):
+        pass
+
     def getBranchName( self ):
-        return ''
+        return T_('')
+
+    def getAllBranchNames( self ):
+        return [self.getBranchName()]
 
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name
