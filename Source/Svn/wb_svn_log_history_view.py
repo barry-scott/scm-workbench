@@ -86,10 +86,11 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         # size columns
         em = self.app.fontMetrics().width( 'm' )
-        self.log_table.setColumnWidth( self.log_model.col_revision, em*6 )
         self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
         self.log_table.setColumnWidth( self.log_model.col_date, em*20 )
+        self.log_table.setColumnWidth( self.log_model.col_tag, em*5 )
         self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
+        self.log_table.setColumnWidth( self.log_model.col_revision, em*4 )
 
         #----------------------------------------
         self.commit_message = QtWidgets.QTextEdit()
@@ -227,12 +228,13 @@ class WbLogHistoryTableView(wb_table_view.WbTableView):
         self.main_window.setFocusIsIn( 'commits' )
 
 class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
-    col_revision = 0
-    col_author = 1
-    col_date = 2
+    col_author = 0
+    col_date = 1
+    col_tag = 2
     col_message = 3
+    col_revision = 4
 
-    column_titles = (U_('Revision'), U_('Author'), U_('Date'), U_('Message'))
+    column_titles = (U_('Author'), U_('Date'), U_('Tag'), U_('Message'), U_('Revision'))
 
     def __init__( self, app ):
         self.app = app
@@ -242,6 +244,7 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
         super().__init__()
 
         self.all_commit_nodes  = []
+        self.all_tags_by_rev = {}
 
         self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
 
@@ -288,19 +291,33 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
 
             col = index.column()
 
-            if col == self.col_revision:
-                return '%d' % (node.revision.number,)
-
-            elif col == self.col_author:
+            if col == self.col_author:
                 return node.author
 
             elif col == self.col_date:
                 return self.app.formatDatetime( node.date )
 
+            elif col == self.col_tag:
+                if hasattr( node, 'is_tag' ):
+                    return node.tag_name
+
+                else:
+                    return ''
+
             elif col == self.col_message:
                 return node.message.split('\n')[0]
 
+            elif col == self.col_revision:
+                return '%d' % (node.revision.number,)
+
             assert False
+
+        elif role == QtCore.Qt.TextAlignmentRole:
+            if index.column() == self.col_revision:
+                return QtCore.Qt.AlignRight
+
+            else:
+                return QtCore.Qt.AlignLeft
 
         elif role == QtCore.Qt.ForegroundRole:
             node = self.all_commit_nodes[ index.row() ]

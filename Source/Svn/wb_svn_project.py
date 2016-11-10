@@ -432,6 +432,7 @@ class SvnProject:
                         all_tag_names.add( tag_name )
 
                         log.is_tag = True
+                        log.tag_name = tag_name
                         all_tag_logs.append( log )
 
         return all_tag_logs
