@@ -372,6 +372,14 @@ class HgProject:
 
         return all_logs
 
+    def cmdTagsForRepository( self ):
+        tag_name_by_rev = {}
+        for tag_name, rev, commit_id, x in self.repo.tags():
+            if tag_name != b'tip':
+                tag_name_by_rev[ rev ] = tag_name.decode('utf-8')
+
+        return tag_name_by_rev
+
     def __addCommitChangeInformation( self, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
         for offset in range( len(all_commit_logs) ):
@@ -569,7 +577,7 @@ class WbHgLogBasic:
         return self.author
 
     def commitIdString( self ):
-        return '%d' % (self.rev,)
+        return '%d:%s' % (self.rev, self.node)
 
 class WbHgLogFull(WbHgLogBasic):
     def __init__( self, data, repo ):

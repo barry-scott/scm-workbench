@@ -101,7 +101,9 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         em = self.app.fontMetrics().width( 'm' )
         self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
         self.log_table.setColumnWidth( self.log_model.col_date, em*20 )
+        self.log_table.setColumnWidth( self.log_model.col_tag, em*5 )
         self.log_table.setColumnWidth( self.log_model.col_message, em*40 )
+        self.log_table.setColumnWidth( self.log_model.col_commit_id, em*20 )
 
         #----------------------------------------
         self.commit_message = QtWidgets.QTextEdit()
@@ -237,7 +239,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         node = self.log_model.commitNode( self.current_commit_selections[0] )
 
         self.changeset_id.clear()
-        self.changeset_id.setText( '%d' % (node.rev,) )
+        self.changeset_id.setText( node.commitIdString() )
 
         self.commit_message.clear()
         self.commit_message.insertPlainText( node.message )
@@ -278,9 +280,11 @@ class WbLogTableView(wb_table_view.WbTableView):
 class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
     col_date = 1
-    col_message = 2
+    col_tag = 2
+    col_message = 3
+    col_commit_id = 4
 
-    column_titles = (U_('Author'), U_('Date'), U_('Message'))
+    column_titles = (U_('Author'), U_('Date'), U_('Tag'), U_('Message'), U_('Commit ID'))
 
     def __init__( self, app ):
         self.app = app
@@ -290,15 +294,20 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
         super().__init__()
 
         self.all_commit_nodes  = []
+        self.all_tags_by_rev = {}
+
+        self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
 
     def loadCommitLogForRepository( self, progress_callback, hg_project, limit, since, until ):
         self.beginResetModel()
         self.all_commit_nodes = hg_project.cmdCommitLogForRepository( limit, since, until )
+        self.all_tags_by_rev = hg_project.cmdTagsForRepository()
         self.endResetModel()
 
     def loadCommitLogForFile( self, progress_callback, hg_project, filename, limit, since, until ):
         self.beginResetModel()
         self.all_commit_nodes = hg_project.cmdCommitLogForFile( filename, limit, since, until )
+        self.all_tags_by_rev = hg_project.cmdTagsForRepository()
         self.endResetModel()
 
     def revisionForRow( self, row ):
@@ -346,10 +355,28 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
             elif col == self.col_date:
                 return self.app.formatDatetime( node.date )
 
+            elif col == self.col_tag:
+                return self.all_tags_by_rev.get( node.rev, '' )
+
             elif col == self.col_message:
                 return node.message.split('\n')[0]
 
-            assert False
+            elif col == self.col_commit_id:
+                return node.commitIdString()
+
+            assert False, 'col: %r' % (col,)
+
+        elif role == QtCore.Qt.TextAlignmentRole:
+            if index.column() == self.col_commit_id:
+                return QtCore.Qt.AlignRight
+
+            else:
+                return QtCore.Qt.AlignLeft
+
+        elif role == QtCore.Qt.ForegroundRole:
+            node = self.all_commit_nodes[ index.row() ]
+            if hasattr( node, 'is_tag' ):
+                return self.__brush_is_tag
 
         return None
 
