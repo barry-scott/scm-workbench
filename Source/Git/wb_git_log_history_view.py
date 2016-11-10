@@ -354,7 +354,7 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
                 return self.app.formatDatetime( node.commitDate() )
 
             elif col == self.col_tag:
-                return self.all_tags_by_id.get ( node.commitIdString(), '' )
+                return self.all_tags_by_id.get( node.commitIdString(), '' )
 
             elif col == self.col_message:
                 return node.commitMessage().split('\n')[0]
