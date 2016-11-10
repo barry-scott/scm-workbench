@@ -74,7 +74,18 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
 
         if tags_url is None:
             url_parts = info['URL'].split( '/' )
-            index = url_parts.index( 'trunk' )
+
+            # look for the conventional 'trunk' or 'branches' folder
+            try:
+                index = url_parts.index( 'trunk' )
+
+            except ValueError:
+                try:
+                    index = url_parts.index( 'branches' )
+
+                except ValueError:
+                    index = -1
+
             if index > 0:
                 url_parts[index] = 'tags'
                 tags_url = '/'.join( url_parts )
