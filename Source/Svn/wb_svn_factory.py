@@ -57,6 +57,12 @@ class WbSvnFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def logHistoryView( self, app, title ):
         return wb_svn_log_history_view.WbSvnLogHistoryView( app, title )
 
+    def setupPreferences( self, scheme_nodes ):
+        pass
+
+    def getAllPreferenceTabs( self, app ):
+        return []
+
 class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def __init__( self, app, parent, prefs_project, scm_project ):
         self.tags_url = QtWidgets.QLineEdit()

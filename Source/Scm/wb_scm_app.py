@@ -28,9 +28,6 @@ import wb_git_factory
 import wb_hg_factory
 import wb_svn_factory
 
-import wb_hg_preferences
-import wb_git_preferences
-
 from PyQt5 import QtGui
 
 if getattr( typing, 'TYPE_CHECKING', False ):
@@ -111,10 +108,8 @@ class WbScmApp(wb_app.WbApp):
                     self,
                     self.log,
                     wb_platform_specific.getPreferencesFilename(),
-                    (wb_hg_preferences.setupPreferences
-                    ,wb_git_preferences.setupPreferences),
-                    (wb_hg_preferences.getAllPreferenceTabs
-                    ,wb_git_preferences.getAllPreferenceTabs)
+                    [factory.setupPreferences for factory in self.all_factories.values()],
+                    [factory.getAllPreferenceTabs for factory in self.all_factories.values()]
                     )
 
     def writePreferences( self ) -> None:

@@ -13,6 +13,7 @@
 import wb_hg_ui_components
 import wb_hg_ui_actions
 import wb_hg_log_history_view
+import wb_hg_preferences
 
 import wb_scm_project_dialogs
 import wb_scm_factory_abc
@@ -50,6 +51,12 @@ class WbHgFactory(wb_scm_factory_abc.WbScmFactoryABC):
 
     def logHistoryView( self, app, title ):
         return wb_hg_log_history_view.WbHgLogHistoryView( app, title )
+
+    def setupPreferences( self, scheme_nodes ):
+        return wb_hg_preferences.setupPreferences( scheme_nodes )
+
+    def getAllPreferenceTabs( self, app ):
+        return wb_hg_preferences.getAllPreferenceTabs( app )
 
 class HgProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def __init__( self, app, parent, prefs_project, scm_project ):

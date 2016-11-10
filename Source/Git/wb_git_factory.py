@@ -13,6 +13,7 @@
 import wb_git_log_history_view
 import wb_git_ui_components
 import wb_git_ui_actions
+import wb_git_preferences
 
 import wb_scm_project_dialogs
 import wb_scm_factory_abc
@@ -50,6 +51,12 @@ class WbGitFactory(wb_scm_factory_abc.WbScmFactoryABC):
 
     def logHistoryView( self, app, title ):
         return wb_git_log_history_view.WbGitLogHistoryView( app, title )
+
+    def setupPreferences( self, scheme_nodes ):
+        return wb_git_preferences.setupPreferences( scheme_nodes )
+
+    def getAllPreferenceTabs( self, app ):
+        return wb_git_preferences.getAllPreferenceTabs( app )
 
 class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('ssh', 'git', 'https', 'http', 'ftps', 'ftp')
