@@ -78,7 +78,7 @@ class SvnProject:
         pass
 
     def getBranchName( self ):
-        return T_('')
+        return ''
 
     def getAllBranchNames( self ):
         return [self.getBranchName()]
