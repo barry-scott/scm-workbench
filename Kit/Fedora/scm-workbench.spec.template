@@ -18,7 +18,7 @@ Requires:       python3-qt5 >= 5.7
 Requires:       subversion >= 1.9
 Requires:       git-core >= 2.7
 Requires:       python3-hglib >= 2.0
-Requires:       GitPython >= 2.1.0
+Requires:       python3-GitPython >= 2.1.0
 
 %global __python %{__python3}
 
