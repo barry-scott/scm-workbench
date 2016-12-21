@@ -6,6 +6,31 @@ set -e
 set -x
 
 CMD="$1"
+if [ "$2" != "" ]
+then
+    VERSION_ID=$2
+else
+    . /etc/os-release
+fi
+
+if [ "$3" != "" ]
+then
+    ARCH=$3
+else
+    ARCH=$( uname -m )
+fi
+
+MOCK_VERSION_NAME=fedora-${VERSION_ID}-${ARCH}
+MOCK_ROOT=$( sudo mock --root=${MOCK_VERSION_NAME} -p )
+
+if [ ! -e "${MOCK_ROOT}" ]
+then
+    echo "Info: Init mock for ${MOCK_VERSION_NAME}"
+    sudo \
+         mock \
+            --root=${MOCK_VERSION_NAME} \
+            --init
+fi
 
 echo "Info: Creating source tarball"
 rm -rf tmp
@@ -46,39 +71,31 @@ PYTHONPATH=tmp python3 spec_set_version.py ${KITNAME}.spec ${V}
 echo "Info: Creating SRPM for ${KIT_BASENAME}"
 sudo \
     mock \
+        --root=${MOCK_VERSION_NAME} \
         --buildsrpm --dnf \
         --spec ${KITNAME}.spec \
         --sources tmp/${KIT_BASENAME}.tar.gz
 
-MOCK_ROOT=$( sudo mock -p )
 MOCK_BUILD_DIR=${MOCK_ROOT}/builddir/build
-ls -l ${MOCK_BUILD_DIR}/SRPMS
+sudo ls -l ${MOCK_BUILD_DIR}/SRPMS
 
-set $(tr : ' ' </etc/system-release-cpe)
-case $4 in
-fedora)
-    DISTRO=fc$5
-    ;;
-*)
-    echo "Error: need support for distro $4"
-    exit 1
-    ;;
-esac
+DISTRO=fc${VERSION_ID}
 
 SRPM_BASENAME="${KIT_BASENAME}-1.${DISTRO}"
 
-cp -v "${MOCK_BUILD_DIR}/SRPMS/${SRPM_BASENAME}.src.rpm" tmp
+sudo cp -v "${MOCK_BUILD_DIR}/SRPMS/${SRPM_BASENAME}.src.rpm" tmp
 
 echo "Info: Creating RPM"
 sudo \
     mock \
+        --root=${MOCK_VERSION_NAME} \
         --rebuild --dnf \
         --arch=noarch \
             "tmp/${SRPM_BASENAME}.src.rpm"
 
-ls -l ${MOCK_BUILD_DIR}/RPMS
+sudo ls -l ${MOCK_BUILD_DIR}/RPMS
 
-cp -v "${MOCK_BUILD_DIR}/RPMS/${SRPM_BASENAME}.noarch.rpm" tmp
+sudo cp -v "${MOCK_BUILD_DIR}/RPMS/${SRPM_BASENAME}.noarch.rpm" tmp
 
 echo "Info: Results:"
 ls -l ${PWD}/tmp

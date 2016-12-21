@@ -9,15 +9,18 @@ Source0:        https://github.com/barry-scott/scm-workbench/%{name}-%{version}.
 
 BuildArch:      noarch
 
-BuildRequires:  python3 >= 3.4
+BuildRequires:  python3 >= 3.5
+BuildRequires:  python3-devel >= 3.5
 BuildRequires:  gettext
 
-Requires:       python3 >= 3.4
-Requires:       python3-qt5 >= 5.5.1
+Requires:       python3 >= 3.5
+Requires:       python3-qt5 >= 5.7
 Requires:       subversion >= 1.9
 Requires:       git-core >= 2.7
 Requires:       python3-hglib >= 2.0
-#Requires:       GitPython >= 2.0.7
+Requires:       python3-GitPython >= 2.1.0
+
+%global __python %{__python3}
 
 %description
 SCM Workbench is a GUI to easily work with Git, Mercurial (hg) and Subversion (svn) repositories.
@@ -58,3 +61,5 @@ cd ${BUILDER_TOP_DIR}/Kit/Fedora
 %changelog
 * Wed Jul 27 2016 barry scott <barry@barrys-emacs.org> - 0.5.0-1
 - First version
+* Wed Jul 27 2016 barry scott <barry@barrys-emacs.org> - 0.7.1-1
+- require GitPython

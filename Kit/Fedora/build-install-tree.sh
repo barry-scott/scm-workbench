@@ -49,7 +49,3 @@ do
 done
 
 cp ${BUILDER_TOP_DIR}/Source/wb.png ${BUILD_ROOT}${LIB}/scm-workbench.png
-
-# hack until GitPython is packaged by fedora
-cp -r ${BUILDER_TOP_DIR}/Import/GitPython/git ${BUILD_ROOT}${LIB}/git
-rm -rf ${BUILD_ROOT}${LIB}/git/test
