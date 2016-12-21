@@ -86,12 +86,12 @@ this kit.
                 r'''Name: "{group}\SCM Workbench"; Filename: "{app}\%(app_name)s.exe"''' % self.__dict__,
                 r'''Name: "{group}\Web Site"; Filename: "https://github.com/barry-scott/scm-workbench"; IconFilename: "{app}\%(app_name)s.exe";''',
                 #
-                #    Add an Emacs icon to the Desktop
+                #    Add a SCM Workbench icon to the Desktop
                 #
                 r'''Name: "{commondesktop}\%(app_name)s"; Filename: "{app}\%(app_name)s.exe"; Tasks: "option_desktop_icon"''' % self.__dict__,
 
                 #
-                #    Add an Emacs icon to the Start menu
+                #    Add a SCM Workbench icon to the Start menu
                 #
                 r'''Name: "{commonstartmenu}\%(app_name)s"; Filename: "{app}\%(app_name)s.exe"; Tasks: "option_start_menu_icon"''' % self.__dict__,
 

@@ -20,11 +20,11 @@ begin
                             ExpandConstant('{src}'), SW_SHOWNORMAL, ewWaitUntilTerminated, Error );
             if not rcb then
                 MsgBox( 'Failed to run the uninstall procedure.' #13 #13
-                        'Please uninstall the old Barry''s Emacs' #13
+                        'Please uninstall the old SCM Workbench' #13
                         'and try this installation again.', mbError, MB_OK );
             if error <> 0 then
                 MsgBox( 'Failed to run the uninstall procedure.' #13 #13
-                        'Please uninstall the old Barry''s Emacs' #13
+                        'Please uninstall the old SCM Workbench' #13
                         'and try this installation again.', mbError, MB_OK );
         end;
     end;

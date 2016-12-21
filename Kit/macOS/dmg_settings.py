@@ -2,7 +2,7 @@
 #   dmg-settings.sh
 #
 
-#   settings file imported into dmgbuild to create the bemacs DMG file.
+#   settings file imported into dmgbuild to create the SCM Workbench DMG file.
 #
 import biplist
 import os
