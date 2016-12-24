@@ -9,9 +9,9 @@ fi
 SCMPYTHONPATH=${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Hg:${BUILDER_TOP_DIR}/Source/Svn:${BUILDER_TOP_DIR}/Source/Common
 
 # for override libraries
-OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython
-OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-prompt-patch
-OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-setprotocol-patch
+#OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython
+#OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-prompt-patch
+#OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-setprotocol-patch
 
 for PART in "${SCMPYTHONPATH}" "${OVERRIDE_PYTHONPATH_1}" "${OVERRIDE_PYTHONPATH_2}"
 do
@@ -60,7 +60,7 @@ Darwin)
     ;;
 esac
 
-cat ../Git/wb_git_askpass_server_unix.py >>"${PROG}"
+cat ../Git/wb_git_askpass_client_unix.py >>"${PROG}"
 chmod +x "${PROG}"
 unset PROG
 
