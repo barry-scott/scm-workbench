@@ -50,6 +50,13 @@ class WbApp(QtWidgets.QApplication,
         # setup the platform specific support
         wb_platform_specific.setupPlatform( self.app_name_parts, sys.argv[0] )
 
+        py_ver_dir = 'python%d.%d' % (sys.version_info[0], sys.version_info[1])
+
+        qt_plugin_dir = wb_platform_specific.getAppDir() / 'lib' / py_ver_dir / 'lib-dynload/PyQt5/Qt/plugins'
+
+        if qt_plugin_dir.exists():
+            QtWidgets.QApplication.setLibraryPaths( [str(qt_plugin_dir)] )
+
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
         if extra_loggers is None:
