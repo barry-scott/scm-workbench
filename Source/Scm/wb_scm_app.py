@@ -90,8 +90,8 @@ class WbScmApp(wb_app.WbApp):
         # tells wb_logging to turn on debug for git.cmd
         return self.__git_debug
 
-    def setupScmDebug( self ) -> None:
-        # turn on ScmPython debug is required
+    def setupAppDebug( self ) -> None:
+        # turn on GitPython debug as required
         import git
         import logging
 

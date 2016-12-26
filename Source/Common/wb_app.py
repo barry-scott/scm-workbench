@@ -37,9 +37,9 @@ for name in dir(QtCore.QEvent):
 def U_( s: str ) -> str:
     return s
 
-class WbApp(QtWidgets.QApplication,
-             wb_logging.AppLoggingMixin,
-             wb_background_thread.BackgroundWorkMixin):
+class WbApp(wb_logging.AppLoggingMixin,
+            wb_background_thread.BackgroundWorkMixin,
+            QtWidgets.QApplication):
 
     def __init__( self, app_name_parts, args, debug_class, extra_loggers=None ):
         self.top_window = None
@@ -49,15 +49,6 @@ class WbApp(QtWidgets.QApplication,
 
         # setup the platform specific support
         wb_platform_specific.setupPlatform( self.app_name_parts, sys.argv[0] )
-
-        py_ver_dir = 'python%d.%d' % (sys.version_info[0], sys.version_info[1])
-
-        qt_plugin_dir = wb_platform_specific.getAppDir() / 'lib' / py_ver_dir / 'lib-dynload/PyQt5/Qt/plugins'
-
-        if qt_plugin_dir.exists():
-            QtWidgets.QApplication.setLibraryPaths( [str(qt_plugin_dir)] )
-
-        QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
         if extra_loggers is None:
             extra_loggers = []
@@ -140,8 +131,6 @@ class WbApp(QtWidgets.QApplication,
         if self.app_dir == '':
             self.app_dir = self.startup_dir
 
-        self.background_thread.start()
-
         locale_path = wb_platform_specific.getLocalePath()
         self.translation = gettext.translation(
                 '-'.join( [part.lower() for part in self.app_name_parts] ),
@@ -162,7 +151,6 @@ class WbApp(QtWidgets.QApplication,
         self.__last_client_error = []
 
         # part 1 of settings up logging
-
         self.setupLogging()
 
         # and debug trace
@@ -172,7 +160,7 @@ class WbApp(QtWidgets.QApplication,
 
         self._debugApp = self._debug_options._debugApp
 
-        self.setupScmDebug()
+        self.setupAppDebug()
 
         # these messages just go into the log file not the log widget
         self.log.info( 'startup_dir %s' % (self.startup_dir,) )
@@ -188,9 +176,26 @@ class WbApp(QtWidgets.QApplication,
 
         self.log.info( 'app_dir %s' % (wb_platform_specific.getAppDir(),) )
         self.log.info( 'preferences_dir %s' % (wb_platform_specific.getPreferencesDir(),) )
+        self.log.info( 'Qt libraryPaths %r' % (QtWidgets.QApplication.libraryPaths(),) )
 
-        # and capture logs into the log widget
+        # init QApplication
+        py_ver_dir = 'python%d.%d' % (sys.version_info[0], sys.version_info[1])
+        qt_plugin_dir = wb_platform_specific.getAppDir() / 'lib' / py_ver_dir / 'lib-dynload/PyQt5/Qt/plugins'
+
+        if qt_plugin_dir.exists():
+            self.log.info( 'Settings Qt libraryPaths to %s' % (qt_plugin_dir,) )
+            QtWidgets.QApplication.setLibraryPaths( [str(qt_plugin_dir)] )
+
+        else:
+            self.log.info( 'Qt libraryPaths not found at %s' % (qt_plugin_dir,) )
+
+        QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
+
+        # capture logs into the log widget
         self.__wb_log = wb_logging.WbLog( self )
+
+        # background threads depend on Qt
+        self.startBackgoundThread()
 
         self.prefs_manager = self.createPreferencesManager()
         try:
@@ -216,7 +221,7 @@ class WbApp(QtWidgets.QApplication,
         return False
 
     # called to setup debug for the SCM supported by the derived class
-    def setupScmDebug( self ):
+    def setupAppDebug( self ):
         return
 
     def debugEnabled( self ):
