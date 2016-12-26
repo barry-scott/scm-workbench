@@ -57,7 +57,7 @@ class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
         return self.save_credentials.checkState() == QtCore.Qt.Checked
 
 class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
-    def __init__( self, parent, info_list ):
+    def __init__( self, parent, trust_info ):
         super().__init__( parent )
 
         self.setWindowTitle( T_('SVN SSL Server Trust') )
@@ -69,12 +69,12 @@ class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
-        self.addRow( T_('Hostname'), info_list['hostname'] )
-        self.addRow( T_('Finger Print'), info_list['finger_print'] )
-        self.addRow( T_('Valid From'), info_list['valid_from'] )
-        self.addRow( T_('Valid Until'), info_list['valid_until'] )
-        self.addRow( T_('Issuer Dname'), info_list['issuer_dname'] )
-        self.addRow( T_('Realm'), info_list['realm'] )
+        self.addRow( T_('Hostname'), trust_info['hostname'] )
+        self.addRow( T_('Finger Print'), trust_info['finger_print'] )
+        self.addRow( T_('Valid From'), trust_info['valid_from'] )
+        self.addRow( T_('Valid Until'), trust_info['valid_until'] )
+        self.addRow( T_('Issuer Dname'), trust_info['issuer_dname'] )
+        self.addRow( T_('Realm'), trust_info['realm'] )
         self.addRow( T_('Save Trust'), self.save_trust )
         self.addButtons()
 
