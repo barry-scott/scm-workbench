@@ -196,6 +196,7 @@ class WbApp(wb_logging.AppLoggingMixin,
 
         # background threads depend on Qt
         self.startBackgoundThread()
+        self.log.infoheader( T_('Starting %s') % (' '.join( self.app_name_parts ),) )
 
         self.prefs_manager = self.createPreferencesManager()
         try:
