@@ -42,6 +42,7 @@ ${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base $
 
 pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 
+# fixup 1. remove all the PyQt5 files from python35.zip where they cannot be used
 ${PYTHON} <<EOF
 import zipfile
 with zipfile.ZipFile('Resources/lib/python35.zip', 'r') as old:
@@ -55,10 +56,26 @@ EOF
 
 mv Resources/lib/python35clean.zip Resources/lib/python35.zip
 
+# fixup 2. copy all the PyQt5 files from site-packages
 # copy all the installed PyQt5 files as py2app does not copy them all
 cp -R \
     "/Library/Frameworks/Python.framework/Versions/${PY_VER}/lib/python${PY_VER}/site-packages/PyQt5" \
     "Resources/lib/python${PY_VER}/lib-dynload"
+
+# fixup 3. only keep the frameworks that we need, saving space
+# Resources/lib/python3.5/lib-dynload/PyQt5 - QtXxx.so
+mkdir \
+    Resources/lib/python3.5/lib-dynload/PyQt5/tmp
+mv \
+    Resources/lib/python3.5/lib-dynload/PyQt5/Qt?*.so \
+    Resources/lib/python3.5/lib-dynload/PyQt5/tmp
+
+# Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib - QtXxx.framework
+mkdir \
+    Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib/tmp
+mv \
+    Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib/Qt*.framework \
+    Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib/tmp
 
 for LIBNAME in \
     QtCore \
@@ -71,8 +88,17 @@ for LIBNAME in \
     ;
 do
     echo "Info: framework used ${LIBNAME}"
+    mv \
+            Resources/lib/python3.5/lib-dynload/PyQt5/tmp/${LIBNAME}.so \
+            Resources/lib/python3.5/lib-dynload/PyQt5
+    mv \
+        Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib/tmp/${LIBNAME}.framework \
+        Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib
 done
 
+# fixup 4. remove the unused frameworks
+rm -rf Resources/lib/python3.5/lib-dynload/PyQt5/tmp
+rm -rf Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib/tmp
 
 #
 #   add in the askpass client
