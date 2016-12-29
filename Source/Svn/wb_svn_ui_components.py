@@ -217,8 +217,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def svnSslServerTrustPrompt( self, trust_info ):
         # used as a pysvn callback for callback_ssl_server_trust_prompt
         dialog = wb_svn_credential_dialogs.WbSvnSslServerTrustDialog( self.app.top_window, trust_info )
-        result = dialog.ShowModal()
-        if result == wx.ID_OK:
+        if dialog.exec_():
             # Trust, save
             return  (True
                     ,trust_info[ 'failures' ]
@@ -228,4 +227,3 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return  (False
                     ,0
                     ,False)
-

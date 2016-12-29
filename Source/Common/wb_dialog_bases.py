@@ -44,13 +44,16 @@ class WbDialog(QtWidgets.QDialog):
     def completeInit( self ):
         pass
 
-    def addRow( self, label, value ):
+    def addRow( self, label, value, min_width=None ):
         if not isinstance( label, QtWidgets.QWidget ):
             label = QtWidgets.QLabel( label )
 
         if not isinstance( value, QtWidgets.QWidget ):
             value = QtWidgets.QLineEdit( str(value) )
             value.setReadOnly( True )
+
+        if min_width is not None:
+            value.setMinimumWidth( min_width )
 
         row = self.nextRow()
 

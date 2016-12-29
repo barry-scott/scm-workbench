@@ -35,8 +35,10 @@ class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
+        em = self.fontMetrics().width( 'M' )
+
         self.addRow( T_('Realm'), realm )
-        self.addRow( T_('Username'), self.username )
+        self.addRow( T_('Username'), self.username, min_width=50*em )
         self.addRow( T_('Password'), self.password )
 
         if self.save_credentials is not None:
@@ -62,14 +64,13 @@ class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
 
         self.setWindowTitle( T_('SVN SSL Server Trust') )
 
-        self.realm = QtWidgets.QLabel( realm )
+        self.realm = QtWidgets.QLabel( trust_info['realm'] )
         self.save_trust = QtWidgets.QCheckBox()
         self.save_trust.setCheckState( QtCore.Qt.Unchecked )
 
-        self.username.textChanged.connect( self.nameTextChanged )
-        self.password.textChanged.connect( self.nameTextChanged )
+        em = self.fontMetrics().width( 'M' )
 
-        self.addRow( T_('Hostname'), trust_info['hostname'] )
+        self.addRow( T_('Hostname'), trust_info['hostname'], min_width=50*em )
         self.addRow( T_('Finger Print'), trust_info['finger_print'] )
         self.addRow( T_('Valid From'), trust_info['valid_from'] )
         self.addRow( T_('Valid Until'), trust_info['valid_until'] )
