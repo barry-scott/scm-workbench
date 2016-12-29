@@ -100,6 +100,11 @@ done
 rm -rf Resources/lib/python3.5/lib-dynload/PyQt5/tmp
 rm -rf Resources/lib/python3.5/lib-dynload/PyQt5/Qt/lib/tmp
 
+# fixup 5. remove qml stuff
+rm -rf Resources/lib/python3.5/lib-dynload/PyQt5/Qt/qml
+rm -rf Resources/lib/python3.5/lib-dynload/PyQt5/Qt/translations
+rm -rf Resources/lib/python3.5/lib-dynload/PyQt5/Qt/qsci
+
 #
 #   add in the askpass client
 #
