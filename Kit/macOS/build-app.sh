@@ -42,6 +42,19 @@ ${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base $
 
 pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 
+${PYTHON} <<EOF
+import zipfile
+with zipfile.ZipFile('Resources/lib/python35.zip', 'r') as old:
+    with zipfile.ZipFile('Resources/lib/python35clean.zip', 'w' ) as new:
+        for name in old.namelist():
+            if not name.startswith( 'PyQt5' ):
+                print( 'Copy %s' % (name,) )
+                data = old.read( name )
+                new.writestr( name, data )
+EOF
+
+mv Resources/lib/python35clean.zip Resources/lib/python35.zip
+
 # copy all the installed PyQt5 files as py2app does not copy them all
 cp -R \
     "/Library/Frameworks/Python.framework/Versions/${PY_VER}/lib/python${PY_VER}/site-packages/PyQt5" \
