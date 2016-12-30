@@ -265,6 +265,7 @@ class SvnProject:
 
     def cmdRevert( self, filename, depth=None ):
         self._debug( 'cmdRevert( %r, %r )' % (filename, depth) )
+        self._debug( 'cmdRevert 2 ( %r, %r )' % (self.pathForSvn( filename ), depth) )
 
         self.client().revert( self.pathForSvn( filename ), depth=depth )
         self.__stale_status = True
