@@ -53,7 +53,8 @@ class GitProject:
         self._debugTree = self.app._debug_options._debugGitUpdateTree
 
         self.prefs_project = prefs_project
-        self.repo = git.Repo( str( prefs_project.path ) )
+        # repo will be setup on demand - this speeds up start up especically on macOS
+        self.repo = None
         self.index = None
 
         self.tree = GitProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
@@ -93,6 +94,10 @@ class GitProject:
         return wb_path
 
     def hasCommits( self ):
+        # setup repo on demand
+        if self.repo is None:
+            self.repo = git.Repo( str( self.prefs_project.path ) )
+
         try:
             self.repo.head.ref.commit
             return True
@@ -116,6 +121,10 @@ class GitProject:
         return self.repo.head.ref.name
 
     def getAllBranchNames( self ):
+        # setup repo on demand
+        if self.repo is None:
+            self.repo = git.Repo( str( self.prefs_project.path ) )
+
         return sorted( [b.name for b in self.repo.branches] )
 
     def getTrackingBranchName( self ):
@@ -137,6 +146,10 @@ class GitProject:
 
     def updateState( self ):
         self._debug( 'updateState() repo=%s' % (self.projectPath(),) )
+
+        # setup repo on demand
+        if self.repo is None:
+            self.repo = git.Repo( str( self.prefs_project.path ) )
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )

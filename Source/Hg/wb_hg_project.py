@@ -52,7 +52,7 @@ class HgProject:
 
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
-            self.repo = hglib.open( str( prefs_project.path ), 'utf-8' )
+            self.repo = None
             self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
             self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
@@ -121,6 +121,10 @@ class HgProject:
 
     def updateState( self ):
         # rebuild the tree
+
+        if self.repo is None:
+            self.repo = hglib.open( str( self.prefs_project.path ), 'utf-8' )
+
         self.tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
@@ -133,7 +137,6 @@ class HgProject:
 
         else:
             self.__calculateStatus()
-
 
         for path in self.all_file_state:
             self.__updateTree( path )
