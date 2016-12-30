@@ -88,9 +88,12 @@ class HgProject:
         return [self.getBranchName()]
 
     def getRemoteUrl( self ):
-        for section, name, value in self.repo.config( b'paths' ):
-            if name == b'default':
-                return value.decode( 'utf-8' )
+        try:
+            for section, name, value in self.repo.config( b'paths' ):
+                if name == b'default':
+                    return value.decode( 'utf-8' )
+        except hglib.error.CommandError:
+            pass
 
         return None
 
