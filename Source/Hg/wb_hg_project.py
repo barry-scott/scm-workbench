@@ -52,6 +52,7 @@ class HgProject:
 
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
+            # repo will be setup on demand - this speeds up start up especically on macOS
             self.repo = None
             self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
             self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
@@ -122,6 +123,7 @@ class HgProject:
     def updateState( self ):
         # rebuild the tree
 
+        # setup repo on demand
         if self.repo is None:
             self.repo = hglib.open( str( self.prefs_project.path ), 'utf-8' )
 
