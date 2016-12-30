@@ -128,6 +128,10 @@ class GitProject:
         return sorted( [b.name for b in self.repo.branches] )
 
     def getTrackingBranchName( self ):
+        # setup repo on demand
+        if self.repo is None:
+            self.repo = git.Repo( str( self.prefs_project.path ) )
+
         tracking_branch = self.repo.head.ref.tracking_branch()
         return tracking_branch.name if tracking_branch is not None else None
 
