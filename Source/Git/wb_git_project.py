@@ -382,6 +382,9 @@ class GitProject:
 
         self.__stale_index = True
 
+    def cmdCreateTag( self, tag_name, ref ):
+        self.repo.create_tag( tag_name, ref=ref )
+
     def cmdDiffFolder( self, folder, head, staged ):
         if head and staged:
             return self.repo.git.diff( 'HEAD', self.pathForGit( folder ), staged=staged )
@@ -494,6 +497,9 @@ class GitProject:
             tag_name_by_id[ tag.commit.hexsha ] = tag.name
 
         return tag_name_by_id
+
+    def doesTagExist( self, tag_name ):
+        return tag_name in self.repo.tags
 
     def __addCommitChangeInformation( self, progress_callback, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit

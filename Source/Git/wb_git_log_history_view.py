@@ -20,6 +20,7 @@ from wb_background_thread import thread_switcher
 import wb_tracked_qwidget
 import wb_main_window
 import wb_table_view
+import wb_dialog_bases
 
 import wb_ui_components
 
@@ -35,7 +36,8 @@ def U_( s: str ) -> str:
 #   add tool bars and menu for use in the log history window
 #
 class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
-    def __init__( self, factory ):
+    def __init__( self, factory, view ):
+        self.view = view
         super().__init__( 'git', factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
@@ -45,6 +47,8 @@ class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
         t = addToolBar( T_('git info') )
         addTool( t, T_('Diff'), act.tableActionGitDiffLogHistory, act.enablerTableGitDiffLogHistory, 'toolbar_images/diff.png' )
         #addTool( t, T_('Annotate'), act.tableActionGitAnnotateLogHistory, act.enablerTableGitAnnotateLogHistory )
+        t = addToolBar( T_('git actions') )
+        addTool( t, T_('Tag'), self.view.tableActionGitTag, self.view.enablerTableGitTag )
 
     def setupTableContextMenu( self, m, addMenu ):
         act = self.ui_actions
@@ -65,6 +69,29 @@ class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
             else:
                 self.progress.incEventCount()
 
+class WbTagName(wb_dialog_bases.WbDialog):
+    def __init__( self, app, parent, git_project ):
+        self.app = app
+        self.git_project = git_project
+
+        super().__init__( parent )
+
+        self.setWindowTitle( T_('Add Tag') )
+
+        self.name = QtWidgets.QLineEdit()
+        self.name.textChanged.connect( self.nameTextChanged )
+
+        self.addRow( T_('Tag Name'), self.name )
+        self.addButtons()
+        self.ok_button.setEnabled( False )
+
+    def nameTextChanged( self ):
+        tag_name = self.getTagName()
+        enable = not self.git_project.doesTagExist( tag_name )
+        self.ok_button.setEnabled( enable )
+
+    def getTagName( self ):
+        return self.name.text().strip()
 
 class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     focus_is_in_names = ('commits', 'changes')
@@ -74,14 +101,13 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         super().__init__( app, app._debug_options._debugMainWindow )
 
-
         self.current_commit_selections = []
         self.current_file_selection = []
 
         self.filename = None
         self.git_project = None
 
-        self.ui_component = GitLogHistoryWindowComponents( self.app.getScmFactory( 'git' ) )
+        self.ui_component = GitLogHistoryWindowComponents( self.app.getScmFactory( 'git' ), self )
 
         self.log_model = WbGitLogHistoryModel( self.app )
         self.changes_model = WbGitChangedFilesModel( self.app )
@@ -195,6 +221,19 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'git'
 
+    def enablerTableGitTag( self ):
+        return len(self.current_commit_selections) == 1 and self.git_project is not None
+
+    def tableActionGitTag( self ):
+        node = self.log_model.commitNode( self.current_commit_selections[0] )
+
+        dialog = WbTagName( self.app, self, self.git_project )
+        if dialog.exec_():
+            tag_name = dialog.getTagName()
+            self.app.log.infoheader( 'Create tag %s for %s' % (tag_name, node.commitIdString()) )
+            self.git_project.cmdCreateTag( tag_name, node.commitIdString() )
+            self.log_model.updateTags( self.git_project )
+
     @thread_switcher
     def showCommitLogForRepository_Bg( self, git_project, options ):
         self.filename = None
@@ -305,6 +344,11 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     def loadCommitLogForFile( self, progress_callback, git_project, filename, limit, since, until ):
         self.beginResetModel()
         self.all_commit_nodes = git_project.cmdCommitLogForFile( progress_callback, filename, limit, since, until )
+        self.all_tags_by_id = git_project.cmdTagsForRepository()
+        self.endResetModel()
+
+    def updateTags( self, git_project ):
+        self.beginResetModel()
         self.all_tags_by_id = git_project.cmdTagsForRepository()
         self.endResetModel()
 
