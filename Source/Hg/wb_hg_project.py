@@ -52,12 +52,13 @@ class HgProject:
 
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
-            self.repo = None
+            # repo will be setup on demand - this speeds up start up especically on macOS
+            self.__repo = None
             self.tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
             self.flat_tree = HgProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
         else:
-            self.repo = hglib.open( None, 'utf-8' )
+            self.__repo = hglib.open( None, 'utf-8' )
             self.tree = None
             self.flat_tree = None
 
@@ -65,15 +66,22 @@ class HgProject:
 
         self.__num_modified_files = 0
 
+    def repo( self ):
+        # setup repo on demand
+        if self.__repo is None:
+            self.__repo = hglib.open( str( self.prefs_project.path ), 'utf-8' )
+
+        return self.__repo
+
     def cmdClone( self, url, wc_path, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         assert self.prefs_project is None
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-            self.repo.clone( str(url).encode('utf-8'), self.pathForHg( wc_path ) )
+            self.repo().clone( str(url).encode('utf-8'), self.pathForHg( wc_path ) )
 
     def cmdInit( self, wc_path, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         assert self.prefs_project is None
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-            self.repo.init( self.pathForHg( wc_path ) )
+            self.repo().init( self.pathForHg( wc_path ) )
 
     def scmType( self ):
         return 'hg'
@@ -89,7 +97,7 @@ class HgProject:
 
     def getRemoteUrl( self ):
         try:
-            for section, name, value in self.repo.config( b'paths' ):
+            for section, name, value in self.repo().config( b'paths' ):
                 if name == b'default':
                     return value.decode( 'utf-8' )
         except hglib.error.CommandError:
@@ -121,10 +129,6 @@ class HgProject:
 
     def updateState( self ):
         # rebuild the tree
-
-        if self.repo is None:
-            self.repo = hglib.open( str( self.prefs_project.path ), 'utf-8' )
-
         self.tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
@@ -169,7 +173,7 @@ class HgProject:
                 else:
                     self.all_file_state[ repo_relative ] = WbHgFileState( self, repo_relative )
 
-        for nodeid, permission, executable, symlink, filepath in self.repo.manifest():
+        for nodeid, permission, executable, symlink, filepath in self.repo().manifest():
             filepath = self.pathForWb( filepath )
             if filepath not in self.all_file_state:
                 # filepath has been deleted
@@ -177,7 +181,7 @@ class HgProject:
 
             self.all_file_state[ filepath ].setManifest( nodeid, permission, executable, symlink )
 
-        for state, filepath in self.repo.status( all=True, ignored=True ):
+        for state, filepath in self.repo().status( all=True, ignored=True ):
             state = state.decode( 'utf-8' )
 
             filepath = self.pathForWb( filepath )
@@ -253,13 +257,13 @@ class HgProject:
 
     def cmdIncomingCommits( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-            all_logs = [WbHgLogBasic( data, self.repo ) for data in self.repo.incoming()]
+            all_logs = [WbHgLogBasic( data, self.repo() ) for data in self.repo().incoming()]
 
         return all_logs
 
     def cmdOutgoingCommits( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-            all_logs = [WbHgLogBasic( data, self.repo ) for data in self.repo.outgoing()]
+            all_logs = [WbHgLogBasic( data, self.repo() ) for data in self.repo().outgoing()]
 
         return all_logs
 
@@ -293,32 +297,32 @@ class HgProject:
             return all_lines
 
     def cmdCat( self, filename, rev=None ):
-        byte_result = self.repo.cat( [self.pathForHg( filename )], rev=rev )
+        byte_result = self.repo().cat( [self.pathForHg( filename )], rev=rev )
         return byte_result.decode( 'utf-8' )
 
     def cmdAdd( self, filename ):
-        self.repo.add( self.pathForHg( filename ) )
+        self.repo().add( self.pathForHg( filename ) )
 
     def cmdRevert( self, filename ):
-        self.repo.revert( self.pathForHg( filename ) )
+        self.repo().revert( self.pathForHg( filename ) )
 
     def cmdDelete( self, filename ):
-        self.repo.delete( self.pathForHg( filename ) )
+        self.repo().delete( self.pathForHg( filename ) )
 
     def cmdDiffFolder( self, folder ):
-        text = self.repo.diff( [self.pathForHg( folder )] )
+        text = self.repo().diff( [self.pathForHg( folder )] )
         return text.decode( 'utf-8' )
 
     def cmdDiffWorkingVsCommit( self, filename, commit ):
-        text = self.repo.diff( [self.pathForHg( filename )], revs='%d' % (commit,) )
+        text = self.repo().diff( [self.pathForHg( filename )], revs='%d' % (commit,) )
         return text.decode( 'utf-8' )
 
     def cmdDiffCommitVsCommit( self, filename, old_commit, new_commit ):
-        text = self.repo.diff( [self.pathForHg( filename )], revs='%d:%d' % (old_commit, new_commit) )
+        text = self.repo().diff( [self.pathForHg( filename )], revs='%d:%d' % (old_commit, new_commit) )
         return text.decode( 'utf-8' )
 
     def cmdCommit( self, message ):
-        return self.repo.commit( message )
+        return self.repo().commit( message )
 
     def cmdAnnotationForFile( self, filename, rev=None ):
         if rev is None:
@@ -327,7 +331,7 @@ class HgProject:
         all_annotate_nodes = []
 
         line_num = 0
-        for rev, line_text in self.repo.annotate( self.pathForHg( filename ) ):
+        for rev, line_text in self.repo().annotate( self.pathForHg( filename ) ):
             line_num += 1
             all_annotate_nodes.append(
                 wb_annotate_node.AnnotateNode( line_num, line_text.decode('utf-8'), rev ) )
@@ -338,8 +342,8 @@ class HgProject:
         all_commit_logs = {}
 
         for rev in all_revs:
-            data = self.repo.log( rev )[0]
-            all_commit_logs[ rev ] = WbHgLogBasic( data, self.repo )
+            data = self.repo().log( rev )[0]
+            all_commit_logs[ rev ] = WbHgLogBasic( data, self.repo() )
 
         return all_commit_logs
 
@@ -356,7 +360,7 @@ class HgProject:
         else:
             date = None
 
-        all_logs = [WbHgLogFull( data, self.repo ) for data in self.repo.log( limit=limit, date=date )]
+        all_logs = [WbHgLogFull( data, self.repo() ) for data in self.repo().log( limit=limit, date=date )]
 
         return all_logs
 
@@ -373,14 +377,14 @@ class HgProject:
         else:
             date = None
 
-        all_logs = [WbHgLogFull( data, self.repo )
-                    for data in self.repo.log( files=[self.pathForHg( filename )], limit=limit, date=date )]
+        all_logs = [WbHgLogFull( data, self.repo() )
+                    for data in self.repo().log( files=[self.pathForHg( filename )], limit=limit, date=date )]
 
         return all_logs
 
     def cmdTagsForRepository( self ):
         tag_name_by_rev = {}
-        for tag_name, rev, commit_id, x in self.repo.tags():
+        for tag_name, rev, commit_id, x in self.repo().tags():
             if tag_name != b'tip':
                 tag_name_by_rev[ rev ] = tag_name.decode('utf-8')
 
@@ -442,14 +446,15 @@ class HgProject:
 
     def cmdPull( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         self._debug( 'cmdPull()' )
+
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-            self.repo.pull( update=True )
+            self.repo().pull( update=True )
 
     def cmdPush( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         self._debug( 'cmdPush()' )
 
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-            self.repo.push()
+            self.repo().push()
 
 class WbHgOutBuffer:
     def __init__( self, cb ):
