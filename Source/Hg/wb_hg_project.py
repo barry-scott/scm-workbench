@@ -518,24 +518,18 @@ class WbHgIoHandler:
 
     def __enter__( self ):
         if self.__traceProtocol.isEnabled():
-            # setprotocoltrace is not in older version of hglib
-            if hasattr( self.__repo, 'setprotocoltrace' ):
-                self.__repo.setprotocoltrace( self.traceHgProtocol )
+            self.__repo.setprotocoltrace( self.traceHgProtocol )
 
-        if hasattr( self.__repo, 'setcbprompt' ):
-            self.__repo.setcbprompt( self.hgPromptHandler )
-            self.__repo.setcbout( self.hgOutputHandler )
-            self.__repo.setcberr( self.hgErrorHandler )
+        self.__repo.setcbprompt( self.hgPromptHandler )
+        self.__repo.setcbout( self.hgOutputHandler )
+        self.__repo.setcberr( self.hgErrorHandler )
 
     def __exit__( self, exc_type, exc_value, traceback ):
-        # setprotocoltrace is not in older version of hglib
-        if hasattr( self.__repo, 'setprotocoltrace' ):
-            self.__repo.setprotocoltrace( None )
+        self.__repo.setprotocoltrace( None )
 
-        if hasattr( self.__repo, 'setcbprompt' ):
-            self.__repo.setcbprompt( None )
-            self.__repo.setcbout( None )
-            self.__repo.setcberr( None )
+        self.__repo.setcbprompt( None )
+        self.__repo.setcbout( None )
+        self.__repo.setcberr( None )
 
     def traceHgProtocol( self, direction, channel, data ):
         if type(data) == bytes and len(data) > 80:
