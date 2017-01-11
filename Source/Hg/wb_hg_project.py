@@ -505,7 +505,7 @@ class WbHgOutBuffer:
 
 class WbHgIoHandler:
     def __init__( self, project, cb_output, cb_error, cb_prompt, cb_auth_failed ):
-        self.__repo = project.repo
+        self.__repo = project.repo()
         self.__app = project.app
         self.__debug = project._debug
 
@@ -676,7 +676,7 @@ class WbHgFileState:
         return  self.isAdded() or self.isModified() or self.isDeleted()
 
     def canAdd( self ) -> bool:
-        return self.isControlled()
+        return not self.isControlled()
 
     def canRevert( self ) -> bool:
         return self.isAdded() or self.isModified() or self.isDeleted()
