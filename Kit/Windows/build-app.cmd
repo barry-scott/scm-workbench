@@ -112,11 +112,11 @@ rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\site-packages\smmap\test
 rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\unittest\test
     if errorlevel 1 goto :error
 
-echo Info: clean up python lib 1. delete distutils exe
+echo Info: clean up python lib 2. delete distutils exe
 del /s %DIST_DIR%\PyWinAppRes\Lib\distutils\command\wininst-*.exe
     if errorlevel 1 goto :error
 
-echo Info: clean up python lib 1. delete pysvn uninstall exe
+echo Info: clean up python lib 3. delete pysvn uninstall exe
 del /s %DIST_DIR%\PyWinAppRes\Lib\site-packages\pysvn\unins000.exe
     if errorlevel 1 goto :error
 
