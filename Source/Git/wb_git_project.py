@@ -54,7 +54,7 @@ class GitProject:
 
         self.prefs_project = prefs_project
         # repo will be setup on demand - this speeds up start up especically on macOS
-        self.repo = None
+        self.__repo = None
         self.index = None
 
         self.tree = GitProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
@@ -66,6 +66,13 @@ class GitProject:
 
         self.__num_staged_files = 0
         self.__num_modified_files = 0
+
+    def repo( self ):
+        # setup repo on demand
+        if self.__repo is None:
+            self.__repo = git.Repo( str( self.prefs_project.path ) )
+
+        return self.__repo
 
     def scmType( self ):
         return 'git'
@@ -94,12 +101,9 @@ class GitProject:
         return wb_path
 
     def hasCommits( self ):
-        # setup repo on demand
-        if self.repo is None:
-            self.repo = git.Repo( str( self.prefs_project.path ) )
 
         try:
-            self.repo.head.ref.commit
+            self.repo().head.ref.commit
             return True
 
         except ValueError:
@@ -112,27 +116,19 @@ class GitProject:
         return pathlib.Path( self.prefs_project.path )
 
     def getHeadCommit( self ):
-        return self.repo.head.ref.commit
+        return self.repo().head.ref.commit
 
     def switchToBranch( self, branch ):
         self.cmdCheckout( branch )
 
     def getBranchName( self ):
-        return self.repo.head.ref.name
+        return self.repo().head.ref.name
 
     def getAllBranchNames( self ):
-        # setup repo on demand
-        if self.repo is None:
-            self.repo = git.Repo( str( self.prefs_project.path ) )
-
-        return sorted( [b.name for b in self.repo.branches] )
+        return sorted( [b.name for b in self.repo().branches] )
 
     def getTrackingBranchName( self ):
-        # setup repo on demand
-        if self.repo is None:
-            self.repo = git.Repo( str( self.prefs_project.path ) )
-
-        tracking_branch = self.repo.head.ref.tracking_branch()
+        tracking_branch = self.repo().head.ref.tracking_branch()
         return tracking_branch.name if tracking_branch is not None else None
 
     def numStagedFiles( self ):
@@ -150,10 +146,6 @@ class GitProject:
 
     def updateState( self ):
         self._debug( 'updateState() repo=%s' % (self.projectPath(),) )
-
-        # setup repo on demand
-        if self.repo is None:
-            self.repo = git.Repo( str( self.prefs_project.path ) )
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -202,19 +194,19 @@ class GitProject:
 
         # ----------------------------------------
         # can only get info from the index if there is at least 1 commit
-        self.index = git.index.IndexFile( self.repo )
+        self.index = git.index.IndexFile( self.repo() )
 
         if self.hasCommits():
-            head_vs_index = self.index.diff( self.repo.head.commit )
+            head_vs_index = self.index.diff( self.repo().head.commit )
             index_vs_working = self.index.diff( None )
 
         else:
             head_vs_index = []
             index_vs_working = []
 
-        # each ref to self.repo.untracked_files creates a new object
+        # each ref to self.repo().untracked_files creates a new object
         # cache the value once/update
-        untracked_files = self.repo.untracked_files
+        untracked_files = self.repo().untracked_files
 
         for entry in self.index.entries.values():
             filepath = pathlib.Path( entry.path )
@@ -319,8 +311,8 @@ class GitProject:
         if not self.hasCommits():
             return False
 
-        head_commit = self.repo.head.ref.commit
-        tracking_branch = self.repo.head.ref.tracking_branch()
+        head_commit = self.repo().head.ref.commit
+        tracking_branch = self.repo().head.ref.tracking_branch()
         if tracking_branch is None:
             return False
 
@@ -328,17 +320,17 @@ class GitProject:
         return head_commit != remote_commit
 
     def canPull( self ):
-        return self.repo.head.ref.tracking_branch() is not None
+        return self.repo().head.ref.tracking_branch() is not None
 
     def getUnpushedCommits( self ):
-        tracking_branch = self.repo.head.ref.tracking_branch()
+        tracking_branch = self.repo().head.ref.tracking_branch()
         if tracking_branch is None:
             return []
 
         last_pushed_commit_id = tracking_branch.commit.hexsha
 
         all_unpushed_commits = []
-        for commit in self.repo.iter_commits( None ):
+        for commit in self.repo().iter_commits( None ):
             commit_id = commit.hexsha
 
             if last_pushed_commit_id == commit_id:
@@ -355,7 +347,7 @@ class GitProject:
     #------------------------------------------------------------
     def cmdCheckout( self, branch_name ):
         try:
-            branch = self.repo.branches[ branch_name ]
+            branch = self.repo().branches[ branch_name ]
             branch.checkout()
 
         except GitCommandError as e:
@@ -364,19 +356,19 @@ class GitProject:
     def cmdStage( self, filename ):
         self._debug( 'cmdStage( %r )' % (filename,) )
 
-        self.repo.git.add( filename )
+        self.repo().git.add( filename )
         self.__stale_index = True
 
     def cmdUnstage( self, rev, filename ):
         self._debug( 'cmdUnstage( %r )' % (filename,) )
 
-        self.repo.git.reset( 'HEAD', filename, mixed=True )
+        self.repo().git.reset( 'HEAD', filename, mixed=True )
         self.__stale_index = True
 
     def cmdRevert( self, rev, filename ):
         self._debug( 'cmdRevert( %r, %r )' % (rev, filename) )
 
-        self.repo.git.checkout( rev, filename )
+        self.repo().git.checkout( rev, filename )
         self.__stale_index = True
 
     def cmdDelete( self, filename ):
@@ -386,7 +378,7 @@ class GitProject:
     def cmdRename( self, filename, new_filename ):
         filestate = self.getFileState( filename )
         if filestate.isControlled():
-            self.repo.git.mv( filename, new_filename )
+            self.repo().git.mv( filename, new_filename )
 
         else:
             abs_path = filestate.absolutePath()
@@ -400,32 +392,32 @@ class GitProject:
         self.__stale_index = True
 
     def cmdCreateTag( self, tag_name, ref ):
-        self.repo.create_tag( tag_name, ref=ref )
+        self.repo().create_tag( tag_name, ref=ref )
 
     def cmdDiffFolder( self, folder, head, staged ):
         if head and staged:
-            return self.repo.git.diff( 'HEAD', self.pathForGit( folder ), staged=staged )
+            return self.repo().git.diff( 'HEAD', self.pathForGit( folder ), staged=staged )
 
         elif staged:
-            return self.repo.git.diff( self.pathForGit( folder ), staged=True )
+            return self.repo().git.diff( self.pathForGit( folder ), staged=True )
 
         elif head:
-            return self.repo.git.diff( 'HEAD', self.pathForGit( folder ), staged=False )
+            return self.repo().git.diff( 'HEAD', self.pathForGit( folder ), staged=False )
 
         else:
-            return self.repo.git.diff( self.pathForGit( folder ), staged=False )
+            return self.repo().git.diff( self.pathForGit( folder ), staged=False )
 
     def cmdDiffWorkingVsCommit( self, filename, commit ):
-        return self.repo.git.diff( commit, self.pathForGit( filename ), staged=False )
+        return self.repo().git.diff( commit, self.pathForGit( filename ), staged=False )
 
     def cmdDiffStagedVSCommit( self, filename, commit ):
-        return self.repo.git.diff( commit, self.pathForGit( filename ), staged=True )
+        return self.repo().git.diff( commit, self.pathForGit( filename ), staged=True )
 
     def cmdDiffCommitVsCommit( self, filename, old_commit, new_commit ):
-        return self.repo.git.diff( old_commit, new_commit, '--', self.pathForGit( filename ) )
+        return self.repo().git.diff( old_commit, new_commit, '--', self.pathForGit( filename ) )
 
     def cmdShow( self, what ):
-        return self.repo.git.show( what )
+        return self.repo().git.show( what )
 
     def getTextLinesForCommit( self, filepath, commit_id ):
         assert isinstance( filepath, pathlib.Path ), 'expecting pathlib.Path got %r' % (filepath,)
@@ -449,7 +441,7 @@ class GitProject:
 
         all_commit_logs = []
 
-        for commit in self.repo.iter_commits( None ):
+        for commit in self.repo().iter_commits( None ):
             if commit.hexsha == commit_id:
                 break
 
@@ -471,7 +463,7 @@ class GitProject:
         if since is not None:
             kwds['until'] = until
 
-        for commit in self.repo.iter_commits( None, **kwds ):
+        for commit in self.repo().iter_commits( None, **kwds ):
             all_commit_logs.append( GitCommitLogNode( commit ) )
 
         total = len(all_commit_logs)
@@ -497,7 +489,7 @@ class GitProject:
             kwds['until'] = until
 
         progress_callback( 0, 0 )
-        for commit in self.repo.iter_commits( None, str(filename), **kwds ):
+        for commit in self.repo().iter_commits( None, str(filename), **kwds ):
             all_commit_logs.append( GitCommitLogNode( commit ) )
 
         total = len(all_commit_logs)
@@ -510,13 +502,13 @@ class GitProject:
 
     def cmdTagsForRepository( self ):
         tag_name_by_id = {}
-        for tag in self.repo.tags:
+        for tag in self.repo().tags:
             tag_name_by_id[ tag.commit.hexsha ] = tag.name
 
         return tag_name_by_id
 
     def doesTagExist( self, tag_name ):
-        return tag_name in self.repo.tags
+        return tag_name in self.repo().tags
 
     def __addCommitChangeInformation( self, progress_callback, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
@@ -590,7 +582,7 @@ class GitProject:
         all_annotate_nodes = []
 
         line_num = 0
-        for commit, all_lines in self.repo.blame( rev, self.pathForGit( filename ) ):
+        for commit, all_lines in self.repo().blame( rev, self.pathForGit( filename ) ):
             commit_id = commit.hexsha
             for line_text in all_lines:
                 line_num += 1
@@ -603,14 +595,14 @@ class GitProject:
         all_commit_logs = {}
 
         for commit_id in all_commit_ids:
-            commit = self.repo.commit( commit_id )
+            commit = self.repo().commit( commit_id )
             all_commit_logs[ commit_id ] = GitCommitLogNode( commit )
 
         return all_commit_logs
 
     def cmdPull( self, progress_callback, info_callback ):
-        tracking_branch = self.repo.head.ref.tracking_branch()
-        remote = self.repo.remote( tracking_branch.remote_name )
+        tracking_branch = self.repo().head.ref.tracking_branch()
+        remote = self.repo().remote( tracking_branch.remote_name )
 
         progress = Progress( progress_callback )
 
@@ -630,8 +622,8 @@ class GitProject:
     def cmdPush( self, progress_callback, info_callback ):
         progress = Progress( progress_callback )
 
-        tracking_branch = self.repo.head.ref.tracking_branch()
-        remote = self.repo.remote( tracking_branch.remote_name )
+        tracking_branch = self.repo().head.ref.tracking_branch()
+        remote = self.repo().remote( tracking_branch.remote_name )
 
         try:
             for info in remote.push( progress=progress ):
