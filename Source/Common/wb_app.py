@@ -178,17 +178,6 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.log.info( 'preferences_dir %s' % (wb_platform_specific.getPreferencesDir(),) )
         self.log.info( 'Qt libraryPaths %r' % (QtWidgets.QApplication.libraryPaths(),) )
 
-        # init QApplication
-        py_ver_dir = 'python%d.%d' % (sys.version_info[0], sys.version_info[1])
-        qt_plugin_dir = wb_platform_specific.getAppDir() / 'lib' / py_ver_dir / 'lib-dynload/PyQt5/Qt/plugins'
-
-        if qt_plugin_dir.exists():
-            self.log.info( 'Settings Qt libraryPaths to %s' % (qt_plugin_dir,) )
-            QtWidgets.QApplication.setLibraryPaths( [str(qt_plugin_dir)] )
-
-        else:
-            self.log.info( 'Qt libraryPaths not found at %s' % (qt_plugin_dir,) )
-
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
         # capture logs into the log widget

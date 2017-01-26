@@ -19,26 +19,9 @@ import sys
 #
 #   This hack works around the problem.
 #   
-if sys.platform == 'darwin':
-    sys.modules['pkg_resources'] = sys.modules['wb_date']
-    import zipfile
-    import io
-
-    def resource_stream( package_or_requirement, resource_name ):
-        for path in sys.path:
-            if path.endswith( '.zip' ):
-                zip_filename = path
-                break
-
-        z = zipfile.ZipFile( zip_filename )
-        resource_filename = '%s/%s' % (package_or_requirement, resource_name)
-        resource = z.read( resource_filename )
-        return io.BytesIO( resource )
-
 import datetime
 import pytz
 import tzlocal
-
 
 def utcDatetime( timestamp ):
     return pytz.utc.localize( datetime.datetime.utcfromtimestamp( timestamp ) )

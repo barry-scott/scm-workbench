@@ -7,6 +7,14 @@ import wb_scm_version
 import os
 from setuptools import setup
 
+import py2app
+
+min_py2app = [0,11]     # 0.11
+
+py2app_version = [int(part) for part in py2app.__version__.split('.')]
+if py2app_version < min_py2app:
+    raise ValueError( 'build requires at least version %d.%d of py2app' % tuple(min_py2app) )
+
 v = wb_scm_version.__dict__
 
 short_version = '%(major)d.%(minor)d.%(patch)d' % v
