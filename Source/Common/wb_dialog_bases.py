@@ -44,6 +44,14 @@ class WbDialog(QtWidgets.QDialog):
     def completeInit( self ):
         pass
 
+    def addNamedDivider( self, name ):
+        if not isinstance( name, QtWidgets.QWidget ):
+            name = QtWidgets.QLabel( '<b>%s</b>' % (name,) )
+
+        row = self.nextRow()
+
+        self.grid_layout.addWidget( name, row, 0, 1, 2 )
+
     def addRow( self, label, value, min_width=None ):
         if not isinstance( label, QtWidgets.QWidget ):
             label = QtWidgets.QLabel( label )
@@ -66,3 +74,24 @@ class WbDialog(QtWidgets.QDialog):
     def nextRow( self ):
         return self.grid_layout.rowCount()
 
+class WbLineEdit(QtWidgets.QLineEdit):
+    def __init__( self, value, case_blind=False, strip=True ):
+        super().__init__( value )
+        self.strip = strip
+        self.case_blind = case_blind
+
+        if strip:
+            value = value.strip()
+        if case_blind:
+            value = value.lower()
+
+        self.initial_value = value
+
+    def hasChanged( self ):
+        value = self.text()
+        if self.strip:
+            value = value.strip()
+        if self.case_blind:
+            value = value.lower()
+
+        return self.initial_value != value
