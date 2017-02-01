@@ -101,7 +101,6 @@ class GitProject:
         return wb_path
 
     def hasCommits( self ):
-
         try:
             self.repo().head.ref.commit
             return True
@@ -114,6 +113,12 @@ class GitProject:
 
     def projectPath( self ):
         return pathlib.Path( self.prefs_project.path )
+
+    def configReader( self, level ):
+        return self.repo().config_reader( level )
+
+    def configWriter( self, level ):
+        return self.repo().config_writer( level )
 
     def getHeadCommit( self ):
         return self.repo().head.ref.commit
