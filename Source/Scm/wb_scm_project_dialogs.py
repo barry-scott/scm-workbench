@@ -725,6 +725,11 @@ class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
         widget.textChanged.connect( self.enableOkButton )
         return widget
 
+    def scmSpecificCheckBox( self, title, initial_value ):
+        widget = wb_dialog_bases.WbCheckBox( title, initial_value )
+        widget.stateChanged.connect( self.enableOkButton )
+        return widget
+
     def scmSpecificAddRows( self ):
         pass
 
@@ -732,7 +737,7 @@ class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
         name = self.name.text().strip().lower()
         return name != '' and name not in self.all_other_existing_project_names
 
-    def enableOkButton( self, text=None ):
+    def enableOkButton( self, arg=None ):
         self.ok_button.setEnabled( self.__nameValid() and (self.name.hasChanged() or self.scmSpecificEnableOkButton()) )
 
     def scmSpecificEnableOkButton( self ):
@@ -742,7 +747,6 @@ class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
         prefs = self.app.prefs
 
         if self.name.hasChanged():
-            print( 'qqq hame has changed' )
             # remove under the old name
             prefs.delProject( self.old_project_name )
 

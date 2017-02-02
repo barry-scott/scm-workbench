@@ -95,3 +95,13 @@ class WbLineEdit(QtWidgets.QLineEdit):
             value = value.lower()
 
         return self.initial_value != value
+
+class WbCheckBox(QtWidgets.QCheckBox):
+    def __init__( self, title, value ):
+        super().__init__( title )
+        self.setChecked( value )
+
+        self.initial_value = value
+
+    def hasChanged( self ):
+        return self.initial_value != self.isChecked()

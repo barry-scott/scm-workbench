@@ -70,9 +70,17 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
         self.config_local_user_name = self.scmSpecificLineEdit( self.config_local.get_value( 'user', 'name', '' ) )
         self.config_local_user_email = self.scmSpecificLineEdit( self.config_local.get_value( 'user', 'email', '' ) )
 
+        if self.config_local.has_option( 'pull', 'rebase' ):
+            rebase = self.config_local.get_value( 'pull', 'rebase' )
+        else:
+            rebase = False
+
+        self.config_local_pull_rebase = self.scmSpecificCheckBox( T_('git pull --rebase'), rebase )
+
         self.addNamedDivider( T_('Repository local config') )
         self.addRow( T_('user.name'), self.config_local_user_name )
         self.addRow( T_('user.email'), self.config_local_user_email )
+        self.addRow( T_('pull.rebase'), self.config_local_pull_rebase )
 
         self.config_global = self.scm_project.configReader( 'global' )
 
@@ -86,6 +94,7 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def scmSpecificEnableOkButton( self ):
         if( self.config_local_user_name.hasChanged()
         or  self.config_local_user_email.hasChanged()
+        or  self.config_local_pull_rebase.hasChanged()
         or  self.config_global_user_name.hasChanged()
         or  self.config_global_user_email.hasChanged() ):
             return True
@@ -94,9 +103,14 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
 
     def scmSpecificUpdateProject( self ):
         if( self.config_local_user_name.hasChanged()
-        or  self.config_local_user_email.hasChanged() ):
+        or  self.config_local_user_email.hasChanged()
+        or  self.config_local_pull_rebase.hasChanged() ):
             # update local config
             config = self.scm_project.configWriter( 'repository' )
+
+            if self.config_local_pull_rebase.hasChanged():
+                value = 'true' if self.config_local_pull_rebase.isChecked() else 'false'
+                config.set_value( 'pull', 'rebase', value )
 
             if self.config_local_user_name.hasChanged():
                 value = self.config_local_user_name.text().strip()
