@@ -34,7 +34,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         if prefs.program is not None:
             hglib.HGPATH = str( prefs.program )
 
-        self.log.info( T_('Hg using program %s') % (hglib.HGPATH,) )
+        self.log.info( T_('Hg using program %s') % (shutil.which( hglib.HGPATH ),) )
 
     def createProject( self, project ):
         tm = self.table_view.table_model

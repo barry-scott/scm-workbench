@@ -47,7 +47,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.saved_password = SavedPassword()
 
     def createProject( self, project ):
-        if shutil.which( 'git' ) is None:
+        if shutil.which( git.Git.GIT_PYTHON_GIT_EXECUTABLE ) is None:
             self.app.log.error( '"git" command line tool not found' )
             return None
 
@@ -99,7 +99,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         if prefs.program is not None:
             git.Git.GIT_PYTHON_GIT_EXECUTABLE = str(prefs.program)
 
-        self.log.info( 'Git using program %s' % (git.Git.GIT_PYTHON_GIT_EXECUTABLE,) )
+        self.log.info( 'Git using program %s' % (shutil.which( git.Git.GIT_PYTHON_GIT_EXECUTABLE ),) )
 
         if 'GIT_ASKPASS' in os.environ:
             self.log.info( "Using user's GIT_ASKPASS program %s" % (os.environ[ 'GIT_ASKPASS' ],) )
@@ -127,7 +127,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.log.info( "Using Workbench's GIT_ASKPASS program" )
 
     def about( self ):
-        if shutil.which( 'git' ) is None:
+        if shutil.which( git.Git.GIT_PYTHON_GIT_EXECUTABLE ) is None:
             git_ver = '"git" command line tool not found'
 
         else:
