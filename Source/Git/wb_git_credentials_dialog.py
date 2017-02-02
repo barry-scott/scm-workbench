@@ -32,8 +32,10 @@ class WbGitCredentialsDialog(wb_dialog_bases.WbDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
+        em = self.fontMetrics().width( 'M' )
+
         self.addRow( T_('URL'), self.url )
-        self.addRow( T_('Username'), self.username )
+        self.addRow( T_('Username'), self.username, min_width=50*em )
         self.addRow( T_('Password'), self.password )
         self.addButtons()
 
