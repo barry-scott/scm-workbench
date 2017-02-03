@@ -63,6 +63,7 @@ class WbDebug:
         self._debugThreading = self.addDebugOption( 'THREADING' )
         self._debugMainWindow = self.addDebugOption( 'MAIN WINDOW' )
         self._debugTreeModel = self.addDebugOption( 'TREE MODEL' )
+        self._debugTreeModelNode = self.addDebugOption( 'TREE MODEL NODE' )
         self._debugTableModel = self.addDebugOption( 'TABLE MODEL' )
         self._debugDiff = self.addDebugOption( 'DIFF' )
 

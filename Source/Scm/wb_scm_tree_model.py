@@ -46,12 +46,15 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         assert table_model is not None
         self.app = app
         self._debug = self.app._debug_options._debugTreeModel
+        self._debugNode = self.app._debug_options._debugTreeModelNode
+
         self.table_model = table_model
 
         super().__init__()
 
         self.all_scm_projects = {}
 
+        self._debug( 'WbScmTreeModel.__init__ self.selected_node = None' )
         self.selected_node = None
 
     def loadNextProject( self, index ):
@@ -197,7 +200,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         self._debug( 'selectionChanged_Bg() all_selected %r' % ([(index.row(), index.column()) for index in all_selected],) )
         if len( all_selected ) == 0:
             self.selected_node = None
-            self._debug( 'selectionChanged_Bg() nothing selected' )
+            self._debug( 'selectionChanged_Bg() nothing selected self.selected_node = None' )
             return
 
         index = selected.indexes()[0]
@@ -217,6 +220,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
             if old_project != new_project:
                 need_to_refresh = True
 
+        self._debug( 'selectionChanged() self.selected_node = %r' % (selected_node,) )
         self.selected_node = selected_node
 
         if need_to_refresh:
@@ -237,7 +241,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 class ProjectTreeNode(QtGui.QStandardItem):
     def __init__( self, model, scm_project_tree_node ):
         self.model = model
-        self._debug = self.model._debug
+        self._debug = self.model._debugNode
 
         self.scm_project_tree_node = scm_project_tree_node
 
