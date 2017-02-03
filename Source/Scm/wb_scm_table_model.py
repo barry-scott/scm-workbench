@@ -415,7 +415,11 @@ class WbScmTableEntry:
             return '-'
 
         else:
-            return self.app.formatDatetime( self.dirent.stat( follow_symlinks=not self.dirent.is_symlink() ).st_mtime )
+            try:
+                return self.app.formatDatetime( self.dirent.stat( follow_symlinks=not self.dirent.is_symlink() ).st_mtime )
+
+            except FileNotFoundError:
+                return '-'
 
     # ------------------------------------------------------------
     def isControlled( self ):
