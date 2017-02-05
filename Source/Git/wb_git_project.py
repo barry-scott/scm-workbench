@@ -32,7 +32,7 @@ def gitCloneFrom( app, progress_handler, url, wc_path ):
             app.log.error( line )
         return False
 
-def gitInit( app, wc_path ):
+def gitInit( app, progress_handler, wc_path ):
     progress = Progress( progress_handler )
 
     try:
@@ -130,7 +130,11 @@ class GitProject:
         return self.repo().head.ref.name
 
     def getAllBranchNames( self ):
-        return sorted( [b.name for b in self.repo().branches] )
+        all_branch_names = sorted( [b.name for b in self.repo().branches] )
+        # detect the case of a new, empty git repo
+        if len(all_branch_names) == 0:
+            all_branch_names = [self.getBranchName()]
+        return all_branch_names
 
     def getTrackingBranchName( self ):
         tracking_branch = self.repo().head.ref.tracking_branch()
