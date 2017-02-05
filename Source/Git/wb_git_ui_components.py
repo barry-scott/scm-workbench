@@ -67,7 +67,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     # runs on the background thread
     def addProjectInitWizardHandler_Bg( self, wc_path ):
-        return wb_git_project.gitInit( self.app, wc_path )
+        return wb_git_project.gitInit( self.app, self.ui_actions.pullProgressHandler, wc_path )
 
     def addProjectPostInitWizardHandler( self ):
         self.progress.end()
