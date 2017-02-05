@@ -42,9 +42,10 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.page_id_browse_existing = 2
         self.page_id_scan_for_existing = 3
 
-        self.page_id_name = 4
+        self.page_id_folder = 4
+        self.page_id_name = 5
 
-        next_id = 5
+        next_id = 6
 
         self.all_clone_pages = {}
         self.all_init_pages = {}
@@ -65,6 +66,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.page_browse_existing = PageAddProjectBrowseExisting()
         self.page_scan_for_existing = PageAddProjectScanForExisting()
 
+        self.page_folder = PageAddProjectFolder()
         self.page_name = PageAddProjectName()
 
         self.setPage( self.page_id_start, self.page_start )
@@ -72,6 +74,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.setPage( self.page_id_scan_for_existing, self.page_scan_for_existing )
         self.setPage( self.page_id_browse_existing, self.page_browse_existing )
 
+        self.setPage( self.page_id_folder, self.page_folder )
         self.setPage( self.page_id_name, self.page_name )
 
         for id_, page in sorted( self.all_clone_pages.items() ):
@@ -91,15 +94,14 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
                 self.all_existing_project_names.add( project.name.lower() )
                 self.all_existing_project_paths.add( project.path )
 
-
         if self.app.prefs.projects_defaults.new_projects_folder is not None:
-            self.project_default_parent_folder = self.app.prefs.projects_defaults.new_projects_folder
+            self.project_default_parent_folder = pathlib.Path( self.app.prefs.projects_defaults.new_projects_folder )
         else:
             self.project_default_parent_folder = wb_platform_specific.getHomeFolder()
 
         self.scm_type = None
         self.action = None
-        self.wc_path = None
+        self.project_folder = None
         self.scm_url = None
         self.name = None
 
@@ -130,15 +132,18 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
     def getAction( self ):
         return self.action
 
-    def setWcPath( self, wc_path ):
-        if isinstance( wc_path, pathlib.Path ):
-            self.wc_path = wc_path
+    def setProjectFolder( self, project_folder ):
+        if isinstance( project_folder, pathlib.Path ):
+            self.project_folder = project_folder
 
         else:
-            self.wc_path = pathlib.Path( wc_path )
+            self.project_folder = pathlib.Path( project_folder )
 
-    def getWcPath( self ):
-        return self.wc_path
+    def getProjectFolder( self ):
+        if self.project_folder is None:
+            self.project_folder = self.project_default_parent_folder
+
+        return self.project_folder
 
     def setProjectName( self, name ):
         self.name = name
@@ -146,10 +151,10 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
     def getProjectName( self ):
         return self.name
 
-    def pickWcPath( self, parent ):
-        path = wb_pick_path_dialogs.pickFolder( self, self.wc_path )
+    def pickProjectFolder( self, parent ):
+        path = wb_pick_path_dialogs.pickFolder( self, self.project_folder )
         if path is not None:
-            self.wc_path = path
+            self.project_folder = path
             return True
 
         return False
@@ -176,8 +181,8 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
     def __init__( self, wizard ):
         super().__init__()
 
-        self.setTitle( T_('Add SCM Project') )
-        self.setSubTitle( T_('Where is the SCM Project?') )
+        self.setTitle( T_('Add Project') )
+        self.setSubTitle( T_('Where is the Project?') )
 
         self.radio_git_init = QtWidgets.QRadioButton(  )
         self.radio_hg_init = QtWidgets.QRadioButton(  )
@@ -238,113 +243,30 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
 
         assert False
 
-class PageAddProjectScmInitAndCloneBase(QtWidgets.QWizardPage):
+#--------------------------------------------------
+class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
     def __init__( self ):
         super().__init__()
-
-        self.browse_button = QtWidgets.QPushButton( T_('Browse...') )
-        self.browse_button.clicked.connect( self.__pickDirectory )
-
-        self.wc_path = QtWidgets.QLineEdit()
-        self.wc_path.textChanged.connect( self._fieldsChanged )
 
         self.feedback = QtWidgets.QLabel( '' )
 
         self.grid_layout = wb_dialog_bases.WbGridLayout()
-        self.initLayout()
         self.setLayout( self.grid_layout )
 
-    def initLayout( self ):
-        raise NotImplementedError()
+        self.url = QtWidgets.QLineEdit( '' )
+        self.url.textChanged.connect( self._fieldsChanged )
 
-    def initializePage( self ):
-        self.wc_path.setText( str( self.wizard().project_default_parent_folder ) )
-
-    def addRow( self, label, value, button=None ):
-        self.grid_layout.addRow( label, value, button=button )
+        self.grid_layout.addRow( T_('URL'), self.url )
+        self.grid_layout.addRow( '', self.feedback )
 
     def nextId( self ):
-        return self.wizard().page_id_name
-
-    def __pickDirectory( self ):
-        w = self.wizard()
-        w.setWcPath( self.wc_path.text() )
-        if w.pickWcPath( self ):
-            self.wc_path.setText( str( w.getWcPath() ) )
+        return self.wizard().page_id_folder
 
     def _fieldsChanged( self, text ):
         self.completeChanged.emit()
 
     def isComplete( self ):
-        if not self.isValidPath():
-            return False
-
-        return True
-
-    def isValidPath( self ):
-        path =  self.wc_path.text().strip()
-        if path == '':
-            self.feedback.setText( T_('Fill in the Working Copy') )
-            return False
-
-        path = pathlib.Path( path )
-
-        if not path.exists():
-            if path.parent.exists():
-                self.feedback.setText( T_('%s will be created') % (path,) )
-                return True
-
-            else:
-                self.feedback.setText( T_('%s cannot be used as it does not exist') % (path,) )
-                return False
-
-        if not path.is_dir():
-            self.feedback.setText( T_('%s is not a directory') % (path,) )
-            return False
-
-        is_empty = True
-        for filenme in path.iterdir():
-            is_empty = False
-            break
-
-        if not is_empty:
-            self.feedback.setText( T_('%s is not an empty directory') % (path,) )
-            return False
-
-        self.feedback.setText( '' )
-        return True
-
-    def validatePage( self ):
-        w = self.wizard()
-        w.setScmType( self.getScmType() )
-        w.setAction( w.action_init )
-        w.setWcPath( self.wc_path.text().strip() )
-
-        return True
-
-    def getScmType( self ):
-        raise NotImplementedError()
-
-
-#--------------------------------------------------
-class PageAddProjectScmCloneBase(PageAddProjectScmInitAndCloneBase):
-    def __init__( self ):
-        self.url = None
-        super().__init__()
-
-    def initLayout( self ):
-        self.url = QtWidgets.QLineEdit( '' )
-        self.url.textChanged.connect( self._fieldsChanged )
-
-        self.addRow( T_('URL'), self.url )
-        self.addRow( T_('Project folder'), self.wc_path, self.browse_button )
-        self.addRow( '', self.feedback )
-
-    def isComplete( self ):
         if not self.isValidUrl():
-            return False
-
-        if not self.isValidPath():
             return False
 
         self.feedback.setText( '' )
@@ -376,7 +298,6 @@ class PageAddProjectScmCloneBase(PageAddProjectScmInitAndCloneBase):
         w.setScmType( self.getScmType() )
         w.setAction( w.action_clone )
         w.setScmUrl( self.url.text().strip() )
-        w.setWcPath( self.wc_path.text() )
 
         return True
 
@@ -384,13 +305,32 @@ class PageAddProjectScmCloneBase(PageAddProjectScmInitAndCloneBase):
         raise NotImplementedError()
 
 #------------------------------------------------------------
-class PageAddProjectScmInitBase(PageAddProjectScmInitAndCloneBase):
+class PageAddProjectScmInitBase(QtWidgets.QWizardPage):
     def __init__( self ):
         super().__init__()
 
-    def initLayout( self ):
-        self.addRow( T_('Working Copy'), self.wc_path, self.browse_button )
-        self.addRow( '', self.feedback )
+        self.grid_layout = wb_dialog_bases.WbGridLayout()
+        self.setLayout( self.grid_layout )
+
+        self.project_folder = QtWidgets.QLineEdit()
+        self.project_folder.textChanged.connect( self.__fieldsChanged )
+
+        self.browse_button = QtWidgets.QPushButton( T_('Browse...') )
+        self.browse_button.clicked.connect( self.__pickDirectory )
+
+        self.feedback = QtWidgets.QLabel( '' )
+
+        self.grid_layout.addRow( T_('Project folder'), self.project_folder, self.browse_button )
+        self.grid_layout.addRow( '', self.feedback )
+
+    def nextId( self ):
+        return self.wizard().page_id_name
+
+    def initializePage( self ):
+        self.project_folder.setText( str( self.wizard().getProjectFolder() ) )
+
+    def __fieldsChanged( self, text ):
+        self.completeChanged.emit()
 
     def isComplete( self ):
         if not self.isValidPath():
@@ -398,16 +338,45 @@ class PageAddProjectScmInitBase(PageAddProjectScmInitAndCloneBase):
 
         return True
 
+    def isValidPath( self ):
+        path =  self.project_folder.text().strip()
+        if path == '':
+            self.feedback.setText( T_('Fill in the project folder') )
+            return False
+
+        path = pathlib.Path( path )
+
+        if not path.exists():
+            if path.parent.exists():
+                self.feedback.setText( T_('%s will be created') % (path,) )
+                return True
+
+            else:
+                self.feedback.setText( T_('%s cannot be used as it does not exist') % (path.parent,) )
+                return False
+
+        if not path.is_dir():
+            self.feedback.setText( T_('%s is not a directory') % (path,) )
+            return False
+
+        return False
+
     def validatePage( self ):
         w = self.wizard()
         w.setScmType( self.getScmType() )
         w.setAction( w.action_init )
-        w.setWcPath( self.wc_path.text().strip() )
+        w.setProjectFolder( self.project_folder.text().strip() )
 
         return True
 
     def getScmType( self ):
         raise NotImplementedError()
+
+    def __pickDirectory( self ):
+        w = self.wizard()
+        w.setProjectFolder( self.project_folder.text() )
+        if w.pickProjectFolder( self ):
+            self.project_folder.setText( str( w.getProjectFolder() ) )
 
 #------------------------------------------------------------
 class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
@@ -422,12 +391,12 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
         self.browse_button = QtWidgets.QPushButton( T_('Browse...') )
         self.browse_button.clicked.connect( self.__pickDirectory )
 
-        self.wc_path = QtWidgets.QLineEdit( '' )
-        self.wc_path.textChanged.connect( self.__fieldsChanged )
+        self.project_folder = QtWidgets.QLineEdit( '' )
+        self.project_folder.textChanged.connect( self.__fieldsChanged )
 
         layout = QtWidgets.QGridLayout()
         layout.addWidget( QtWidgets.QLabel( T_('SCM Working Copy') ), 0, 0 )
-        layout.addWidget( self.wc_path, 0, 1 )
+        layout.addWidget( self.project_folder, 0, 1 )
         layout.addWidget( self.browse_button, 0, 2 )
         layout.addWidget( self.feedback, 1, 1 )
 
@@ -440,7 +409,7 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
         self.completeChanged.emit()
 
     def isComplete( self ):
-        path =  self.wc_path.text().strip()
+        path =  self.project_folder.text().strip()
         if path == '':
             return False
 
@@ -465,15 +434,15 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
     def validatePage( self ):
         w = self.wizard()
         w.setAction( w.action_add_existing )
-        w.setWcPath( self.wc_path.text() )
+        w.setProjectFolder( self.project_folder.text() )
 
         return True
 
     def __pickDirectory( self ):
         w = self.wizard()
-        w.setWcPath( self.wc_path.text() )
-        if w.pickWcPath( self ):
-            self.wc_path.setText( str( w.getWcPath() ) )
+        w.setProjectFolder( self.project_folder.text() )
+        if w.pickProjectFolder( self ):
+            self.project_folder.setText( str( w.getProjectFolder() ) )
 
 class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
     foundRepository = QtCore.pyqtSignal( [str, str] )
@@ -507,6 +476,9 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         self.scanComplete.connect( self.__scanCompleted, type=QtCore.Qt.QueuedConnection )
 
         self.__all_labels_to_scm_info = {}
+
+    def nextId( self ):
+        return self.wizard().page_id_name
 
     def freeResources( self ):
         if self.thread is None:
@@ -573,9 +545,6 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         all_selected_items = self.wc_list.selectedItems()
         return len(all_selected_items) == 1
 
-    def nextId( self ):
-        return self.wizard().page_id_name
-
     def validatePage( self ):
         all_selected_items = self.wc_list.selectedItems()
 
@@ -584,7 +553,7 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         w = self.wizard()
         w.setScmType( scm_type )
         w.setAction( w.action_add_existing )
-        w.setWcPath( project_path )
+        w.setProjectFolder( project_path )
 
         self.freeResources()
 
@@ -636,6 +605,88 @@ class ScanForScmRepositoriesThread(QtCore.QThread):
 
         self.page.scanComplete.emit()
 
+#------------------------------------------------------------
+class PageAddProjectFolder(QtWidgets.QWizardPage):
+    def __init__( self ):
+        super().__init__()
+
+        self.setSubTitle( T_('Project folder') )
+
+        self.browse_button = QtWidgets.QPushButton( T_('Browse...') )
+        self.browse_button.clicked.connect( self.__pickDirectory )
+
+        self.project_folder = QtWidgets.QLineEdit()
+        self.project_folder.textChanged.connect( self._fieldsChanged )
+
+        self.feedback = QtWidgets.QLabel( '' )
+
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget( QtWidgets.QLabel( T_('Project folder') ), 0, 0 )
+        layout.addWidget( self.project_folder, 0, 1 )
+        layout.addWidget( self.feedback, 1, 1 )
+
+        self.setLayout( layout )
+
+    def nextId( self ):
+        return self.wizard().page_id_name
+
+    def _fieldsChanged( self, text ):
+        self.completeChanged.emit()
+
+    def initializePage( self ):
+        w = self.wizard()
+        if w.getAction() == w.action_init:
+            self.project_folder.setText( str( w.getProjectFolder() ) )
+
+        else:
+            name = w.getScmUrl().split('/')[-1]
+            # qqq breaks OO - factory function?
+            if name.endswith( '.git' ):
+                name = name[:-len('.git')]
+            folder = w.getProjectFolder() / name
+            self.project_folder.setText( str( folder ) )
+
+    def isComplete( self ):
+        if not self.isValidPath():
+            return False
+
+        return True
+
+    def isValidPath( self ):
+        path =  self.project_folder.text().strip()
+        if path == '':
+            self.feedback.setText( T_('Fill in the project folder') )
+            return False
+
+        path = pathlib.Path( path )
+
+        if not path.exists():
+            if path.parent.exists():
+                self.feedback.setText( T_('%s will be created') % (path,) )
+                return True
+
+            else:
+                self.feedback.setText( T_('%s cannot be used as it does not exist') % (path.parent,) )
+                return False
+
+        if not path.is_dir():
+            self.feedback.setText( T_('%s is not a directory') % (path,) )
+            return False
+
+        return False
+
+    def validatePage( self ):
+        self.wizard().setProjectFolder( self.project_folder.text().strip() )
+
+        return True
+
+    def __pickDirectory( self ):
+        w = self.wizard()
+        w.setProjectFolder( self.project_folder.text() )
+        if w.pickProjectFolder( self ):
+            self.project_folder.setText( str( w.getProjectFolder() ) )
+
+#------------------------------------------------------------
 class PageAddProjectName(QtWidgets.QWizardPage):
     def __init__( self ):
         super().__init__()
@@ -654,15 +705,18 @@ class PageAddProjectName(QtWidgets.QWizardPage):
 
         self.setLayout( layout )
 
+    def nextId( self ):
+        return -1
+
     def initializePage( self ):
         w = self.wizard()
 
         factory = w.getScmFactory()
         self.setTitle( T_('Add %s Project') % (factory.scmPresentationShortName(),) )
 
-        wc_path = w.getWcPath()
+        project_folder = w.getProjectFolder()
 
-        self.name.setText( wc_path.name )
+        self.name.setText( project_folder.name )
 
     def __nameChanged( self, text ):
         self.completeChanged.emit()
@@ -675,9 +729,6 @@ class PageAddProjectName(QtWidgets.QWizardPage):
             return False
 
         return name != ''
-
-    def nextId( self ):
-        return -1
 
     def validatePage( self ):
         self.wizard().setProjectName( self.name.text().strip() )
@@ -780,7 +831,7 @@ if __name__ == '__main__':
         print( 'Action', wiz.getAction() )
         print( 'url', wiz.getScmUrl() )
         print( 'name', wiz.getProjectName() )
-        print( 'path', wiz.getWcPath() )
+        print( 'path', wiz.getProjectFolder() )
 
     else:
         print( 'Cancelled' )
