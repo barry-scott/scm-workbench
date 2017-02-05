@@ -102,6 +102,9 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         if self.selected_node is None:
             return
 
+        if self._debug.isEnabled():
+            self.app.log.stack( 'Who called refreshTree_Bg instance %d' % (event,) )
+
         scm_project = self.selected_node.scm_project_tree_node.project
         self.app.top_window.setStatusAction( T_('Update status of %s') % (scm_project.projectName(),) )
         yield self.app.switchToBackground
