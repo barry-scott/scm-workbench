@@ -91,7 +91,11 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
                 self.all_existing_project_names.add( project.name.lower() )
                 self.all_existing_project_paths.add( project.path )
 
-        self.project_default_parent_folder = wb_platform_specific.getHomeFolder()
+
+        if self.app.prefs.projects_defaults.new_projects_folder is not None:
+            self.project_default_parent_folder = self.app.prefs.projects_defaults.new_projects_folder
+        else:
+            self.project_default_parent_folder = wb_platform_specific.getHomeFolder()
 
         self.scm_type = None
         self.action = None
@@ -182,8 +186,8 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
         self.radio_hg_clone = QtWidgets.QRadioButton(  )
         self.radio_svn_checkout = QtWidgets.QRadioButton(  )
 
-        self.radio_browse_existing = QtWidgets.QRadioButton( T_('Browse for existing SCM repository') )
-        self.radio_scan_for_existing = QtWidgets.QRadioButton( T_('Scan for existing SCM repositories') )
+        self.radio_browse_existing = QtWidgets.QRadioButton( T_('Browse for an existing project') )
+        self.radio_scan_for_existing = QtWidgets.QRadioButton( T_('Scan for existing projects') )
 
         self.radio_scan_for_existing.setChecked( True )
         self.radio_browse_existing.setChecked( False )
@@ -205,15 +209,15 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
             self.grp_show.addButton( radio )
 
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget( QtWidgets.QLabel( T_('Add a local project') ) )
+        layout.addWidget( QtWidgets.QLabel( '<b>%s</b>' % (T_('Add an existing local project'),) ) )
         layout.addWidget( self.radio_scan_for_existing )
         layout.addWidget( self.radio_browse_existing )
 
-        layout.addWidget( QtWidgets.QLabel( T_('Add an external project') ) )
+        layout.addWidget( QtWidgets.QLabel( '<b>%s</b>' % (T_('Add an external project'),) ) )
         for id_, radio in self.all_clone_radio:
             layout.addWidget( radio )
 
-        layout.addWidget( QtWidgets.QLabel( T_('Create an empty project') ) )
+        layout.addWidget( QtWidgets.QLabel( '<b>%s</b>' % (T_('Create an empty project'),) ) )
         for id_, radio in self.all_init_radio:
             layout.addWidget( radio )
 
@@ -246,15 +250,33 @@ class PageAddProjectScmInitAndCloneBase(QtWidgets.QWizardPage):
 
         self.feedback = QtWidgets.QLabel( '' )
 
-        layout = QtWidgets.QGridLayout()
-        self.initLayout( layout )
-        self.setLayout( layout )
+        self.grid_layout = QtWidgets.QGridLayout()
+        self.initLayout()
+        self.setLayout( self.grid_layout )
 
-    def initLayout( self, layout ):
+    def initLayout( self ):
         raise NotImplementedError()
 
     def initializePage( self ):
         self.wc_path.setText( str( self.wizard().project_default_parent_folder ) )
+
+    def addRow( self, label, value, button=None ):
+        if not isinstance( label, QtWidgets.QWidget ):
+            label = QtWidgets.QLabel( label )
+
+        if not isinstance( value, QtWidgets.QWidget ):
+            value = QtWidgets.QLineEdit( str(value) )
+            value.setReadOnly( True )
+
+        row = self.grid_layout.rowCount()
+
+        self.grid_layout.addWidget( label, row, 0 )
+        if button is None:
+            self.grid_layout.addWidget( value, row, 1, 1, 2 )
+
+        else:
+            self.grid_layout.addWidget( value, row, 1 )
+            self.grid_layout.addWidget( button, row, 2 )
 
     def nextId( self ):
         return self.wizard().page_id_name
@@ -325,16 +347,13 @@ class PageAddProjectScmCloneBase(PageAddProjectScmInitAndCloneBase):
         self.url = None
         super().__init__()
 
-    def initLayout( self, layout ):
+    def initLayout( self ):
         self.url = QtWidgets.QLineEdit( '' )
         self.url.textChanged.connect( self._fieldsChanged )
 
-        layout.addWidget( QtWidgets.QLabel( T_('URL') ), 0, 0 )
-        layout.addWidget( self.url, 0, 1 )
-        layout.addWidget( QtWidgets.QLabel( T_('Working Copy') ), 1, 0 )
-        layout.addWidget( self.wc_path, 1, 1 )
-        layout.addWidget( self.browse_button, 1, 2 )
-        layout.addWidget( self.feedback, 2, 1 )
+        self.addRow( T_('URL'), self.url )
+        self.addRow( T_('Project folder'), self.wc_path, self.browse_button )
+        self.addRow( '', self.feedback )
 
     def isComplete( self ):
         if not self.isValidUrl():
@@ -384,11 +403,9 @@ class PageAddProjectScmInitBase(PageAddProjectScmInitAndCloneBase):
     def __init__( self ):
         super().__init__()
 
-    def initLayout( self, layout ):
-        layout.addWidget( QtWidgets.QLabel( T_('Working Copy') ), 1, 0 )
-        layout.addWidget( self.wc_path, 1, 1 )
-        layout.addWidget( self.browse_button, 1, 2 )
-        layout.addWidget( self.feedback, 2, 1 )
+    def initLayout( self ):
+        self.addRow( T_('Working Copy'), self.wc_path, self.browse_button )
+        self.addRow( '', self.feedback )
 
     def isComplete( self ):
         if not self.isValidPath():

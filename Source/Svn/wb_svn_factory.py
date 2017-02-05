@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -16,6 +16,7 @@ import wb_svn_ui_actions
 
 import wb_scm_project_dialogs
 import wb_scm_factory_abc
+import wb_svn_preferences
 
 import pathlib
 
@@ -58,10 +59,10 @@ class WbSvnFactory(wb_scm_factory_abc.WbScmFactoryABC):
         return wb_svn_log_history_view.WbSvnLogHistoryView( app, title )
 
     def setupPreferences( self, scheme_nodes ):
-        pass
+        return wb_svn_preferences.setupPreferences( scheme_nodes )
 
     def getAllPreferenceTabs( self, app ):
-        return []
+        return wb_svn_preferences.getAllPreferenceTabs( app )
 
 class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def __init__( self, app, parent, prefs_project, scm_project ):

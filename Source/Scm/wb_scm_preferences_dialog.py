@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -21,52 +21,69 @@ from PyQt5 import QtCore
 import wb_pick_path_dialogs
 import wb_shell_commands
 import wb_platform_specific
+import wb_dialog_bases
 
-class WbScmPreferencesDialog(QtWidgets.QDialog):
+class WbScmPreferencesDialog(wb_dialog_bases.WbTabbedDialog):
     def __init__( self, app, parent ):
         self.app = app
 
-        super().__init__( parent )
+        super().__init__( parent=parent, size=(75, 20) )
 
+    def completeTabsInit( self ):
         self.tabs = QtWidgets.QTabWidget()
-        for tab_class in (EditorTab, ShellTab, LogHistoryTab, FontTab):
+        for tab_class in (ProjectsTab, EditorTab, ShellTab, LogHistoryTab, FontTab):
             tab = tab_class( self.app )
-            self.tabs.addTab( tab, tab.name() )
+            self.addTab( tab )
 
         for tab in self.app.prefs_manager.getAllPreferenceTabs():
-            self.tabs.addTab( tab, tab.name() )
-
-        self.buttons = QtWidgets.QDialogButtonBox()
-        self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
-
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
-
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget( self.tabs )
-        self.layout.addWidget( self.buttons )
-
-        self.setLayout( self.layout )
-
-        em = self.app.fontMetrics().width( 'm' )
-        ex = self.app.fontMetrics().lineSpacing()
-        self.resize( 75*em, 40*ex )
+            self.addTab( tab )
 
     def savePreferences( self ):
         for index in range( self.tabs.count() ):
             tab = self.tabs.widget( index )
             tab.savePreferences()
 
-class EditorTab(QtWidgets.QWidget):
+class ProjectsTab(wb_dialog_bases.WbTabBase):
     def __init__( self, app ):
-        self.app = app
+        super().__init__( app, T_('Projects') )
+
+        if self.app is None:
+            self.prefs = None
+        else:
+            self.prefs = self.app.prefs.projects_defaults
+
+        self.new_projects_folder = QtWidgets.QLineEdit()
+        if self.prefs.new_projects_folder is not None:
+            self.new_projects_folder.setText( str(self.prefs.new_projects_folder) )
+
+        else:
+            # show the default
+            self.new_projects_folder.setText( str(wb_platform_specific.getHomeFolder()) )
+
+        self.browse_folder = QtWidgets.QPushButton( T_('Browse...') )
+        self.browse_folder.clicked.connect( self.__pickFolder )
+
+        self.addRow( T_('New projects folder'), self.new_projects_folder, self.browse_folder )
+
+    def savePreferences( self ):
+        if self.prefs is None:
+            return
+
+        self.prefs.new_projects_folder = self.new_projects_folder.text()
+
+    def __pickFolder( self ):
+        folder = wb_pick_path_dialogs.pickFolder( self, pathlib.Path( self.new_projects_folder.text() ) )
+        if folder is not None:
+            self.new_projects_folder.setText( str(folder) )
+
+class EditorTab(wb_dialog_bases.WbTabBase):
+    def __init__( self, app ):
+        super().__init__( app, T_('Editor') )
+
         if self.app is None:
             self.prefs = None
         else:
             self.prefs = self.app.prefs.editor
-
-        super().__init__()
 
         self.editor_program = QtWidgets.QLineEdit( '' )
         self.editor_options = QtWidgets.QLineEdit( '' )
@@ -77,20 +94,10 @@ class EditorTab(QtWidgets.QWidget):
 
         self.browse = QtWidgets.QPushButton( T_('Browse…') )
 
-        self.layout = QtWidgets.QGridLayout()
-        self.layout.setAlignment( QtCore.Qt.AlignTop )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Editor') ), 0, 0 )
-        self.layout.addWidget( self.editor_program, 0, 1 )
-        self.layout.addWidget( self.browse, 0, 2 )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Editor Options') ), 1, 0 )
-        self.layout.addWidget( self.editor_options, 1, 1 )
-
-        self.setLayout( self.layout )
+        self.addRow( T_('Editor'), self.editor_program, self.browse )
+        self.addRow( T_('Editor Options'), self.editor_options )
 
         self.browse.clicked.connect( self.pickEditor )
-
-    def name( self ):
-        return T_('Editor')
 
     def savePreferences( self ):
         if self.prefs is None:
@@ -104,15 +111,14 @@ class EditorTab(QtWidgets.QWidget):
         if editor is not None:
             self.editor_program.setText( str(editor) )
 
-class ShellTab(QtWidgets.QWidget):
+class ShellTab(wb_dialog_bases.WbTabBase):
     def __init__( self, app ):
-        self.app = app
+        super().__init__( app, T_('Shell') )
+
         if self.app is None:
             self.prefs = None
         else:
             self.prefs = self.app.prefs.shell
-
-        super().__init__()
 
         terminal_program_list = wb_shell_commands.getTerminalProgramList()
         file_browser_program_list = wb_shell_commands.getFileBrowserProgramList()
@@ -128,19 +134,9 @@ class ShellTab(QtWidgets.QWidget):
             self.terminal_init.setText( self.prefs.terminal_init )
             self.file_browser_program.setCurrentText( self.prefs.file_browser )
 
-        self.layout = QtWidgets.QGridLayout()
-        self.layout.setAlignment( QtCore.Qt.AlignTop )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Terminal Program') ), 0, 0 )
-        self.layout.addWidget( self.terminal_program, 0, 1 )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Terminal Init Command') ), 1, 0 )
-        self.layout.addWidget( self.terminal_init, 1, 1 )
-        self.layout.addWidget( QtWidgets.QLabel( T_('File Browser Program') ), 2, 0 )
-        self.layout.addWidget( self.file_browser_program, 2, 1 )
-
-        self.setLayout( self.layout )
-
-    def name( self ):
-        return T_('Shell')
+        self.addRow( T_('Terminal Program'), self.terminal_program )
+        self.addRow( T_('Terminal Init Command'), self.terminal_init )
+        self.addRow( T_('File Browser Program'), self.file_browser_program )
 
     def savePreferences( self ):
         if self.prefs is None:
@@ -150,15 +146,14 @@ class ShellTab(QtWidgets.QWidget):
         self.prefs.terminal_init = self.terminal_init.text()
         self.prefs.file_browser = self.file_browser_program.currentText()
 
-class LogHistoryTab(QtWidgets.QWidget):
+class LogHistoryTab(wb_dialog_bases.WbTabBase):
     def __init__( self, app ):
-        self.app = app
+        super().__init__( app, T_('Log History') )
+
         if self.app is None:
             self.prefs = None
         else:
             self.prefs = self.app.prefs.log_history
-
-        super().__init__()
 
         self.default_limit = QtWidgets.QSpinBox()
         self.default_limit.setRange( 1, 100000 )
@@ -188,26 +183,11 @@ class LogHistoryTab(QtWidgets.QWidget):
             self.default_since.setValue( self.prefs.default_since_days_interval )
             self.use_default_since.setChecked( self.prefs.use_default_since_days_interval )
 
-        self.layout = QtWidgets.QGridLayout()
-        self.layout.setAlignment( QtCore.Qt.AlignTop )
-        self.layout.addWidget( QtWidgets.QLabel( T_('Default Limit') ), 0, 0 )
-        self.layout.addWidget( self.default_limit, 0, 1 )
-        self.layout.addWidget( self.use_default_limit, 0, 2 )
-
-        self.layout.addWidget( QtWidgets.QLabel( T_('Default until interval') ), 1, 0 )
-        self.layout.addWidget( self.default_until, 1, 1 )
-        self.layout.addWidget( self.use_default_until, 1, 2 )
-
-        self.layout.addWidget( QtWidgets.QLabel( T_('Default since interval') ), 2, 0 )
-        self.layout.addWidget( self.default_since, 2, 1 )
-        self.layout.addWidget( self.use_default_since, 2, 2 )
-
-        self.setLayout( self.layout )
+        self.addRow( T_('Default Limit'), self.default_limit, self.use_default_limit )
+        self.addRow( T_('Default until interval'), self.default_until, self.use_default_until )
+        self.addRow( T_('Default since interval'), self.default_since, self.use_default_since )
 
         self.default_until.valueChanged.connect( self.__untilChanged )
-
-    def name( self ):
-        return T_('Log History')
 
     def __untilChanged( self ):
         v_until = self.default_until.value()
@@ -231,11 +211,9 @@ class LogHistoryTab(QtWidgets.QWidget):
         self.prefs.default_since_days_interval = self.default_since.value()
         self.prefs.use_default_since_days_interval = self.use_default_since.isChecked()
 
-class FontTab(QtWidgets.QWidget):
+class FontTab(wb_dialog_bases.WbTabBase):
     def __init__( self, app ):
-        super().__init__()
-
-        self.app = app
+        super().__init__( app, 'Fonts' )
 
         p = self.app.prefs.font_ui
 
@@ -273,28 +251,11 @@ class FontTab(QtWidgets.QWidget):
 
         self.code_font_select_font = QtWidgets.QPushButton( T_(' Select Font... ') )
 
-        self.grid_sizer = QtWidgets.QGridLayout()
-
-        row = 0
-        self.grid_sizer.addWidget( QtWidgets.QLabel( T_('User Interface Font:') ), row, 0 )
-        self.grid_sizer.addWidget( self.ui_font_text, row, 1 )
-        self.grid_sizer.addWidget( self.ui_font_select_font, row, 2 )
-
-        row += 1
-        self.grid_sizer.addWidget( QtWidgets.QLabel( T_('Code Font:') ), row, 0 )
-        self.grid_sizer.addWidget( self.code_font_text, row, 1 )
-        self.grid_sizer.addWidget( self.code_font_select_font, row, 2 )
-
-        self.grid_sizer.setRowStretch( row+1, row+2 )
-        self.grid_sizer.setColumnStretch( 1, 2 )
+        self.addRow( T_('User Interface Font:'), self.ui_font_text, self.ui_font_select_font )
+        self.addRow( T_('Code Font:'), self.code_font_text, self.code_font_select_font )
 
         self.ui_font_select_font.clicked.connect( self.onSelectFontUserInterface )
         self.code_font_select_font.clicked.connect( self.onSelectFontCode )
-
-        self.setLayout( self.grid_sizer )
-
-    def name( self ):
-        return T_('Fonts')
 
     def savePreferences( self ):
         p =  self.app.prefs.font_ui

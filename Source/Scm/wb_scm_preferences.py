@@ -1,7 +1,7 @@
 '''
 
  ====================================================================
- Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -13,6 +13,7 @@
 
 '''
 import sys
+import pathlib
 
 import wb_preferences
 
@@ -26,6 +27,14 @@ class Preferences(wb_preferences.Preferences):
     def __init__( self ):
         super().__init__()
         self.log_history = None
+
+class Projects(PreferencesNode):
+    xml_attribute_info = (('new_projects_folder', pathlib.Path),)
+
+    def __init__( self ):
+        super().__init__()
+
+        self.new_projects_folder = None
 
 class LogHistory(PreferencesNode):
     xml_attribute_info = (('default_limit', int)
@@ -52,6 +61,8 @@ class PreferencesManager(wb_preferences.PreferencesManager):
 
         scheme_nodes = wb_preferences.scheme_nodes
         scheme_nodes << SchemeNode( LogHistory, 'log_history' )
+        scheme_nodes << SchemeNode( Projects, 'projects_defaults' )
+
         for setup_preferences in all_setup_preferences:
             setup_preferences( scheme_nodes )
 
@@ -63,7 +74,7 @@ class PreferencesManager(wb_preferences.PreferencesManager):
         all_tabs = []
         for get_all_preference_tabs in self.all_get_all_preference_tabs:
             all_tabs.extend( get_all_preference_tabs( self.app ) )
-        return all_tabs
+        return sorted( all_tabs )
 
 if __name__ == '__main__':
     class FakeLog:
