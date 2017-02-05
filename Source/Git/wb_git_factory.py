@@ -151,7 +151,7 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
             config.release()
 
 class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
-    all_supported_schemes = ('ssh', 'git', 'https', 'http', 'ftps', 'ftp')
+    all_supported_schemes = ('ssh', 'git', 'https', 'http')
 
     def __init__( self, wizard ):
         super().__init__()
