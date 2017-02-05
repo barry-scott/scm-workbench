@@ -250,7 +250,7 @@ class PageAddProjectScmInitAndCloneBase(QtWidgets.QWizardPage):
 
         self.feedback = QtWidgets.QLabel( '' )
 
-        self.grid_layout = QtWidgets.QGridLayout()
+        self.grid_layout = wb_dialog_bases.WbGridLayout()
         self.initLayout()
         self.setLayout( self.grid_layout )
 
@@ -261,22 +261,7 @@ class PageAddProjectScmInitAndCloneBase(QtWidgets.QWizardPage):
         self.wc_path.setText( str( self.wizard().project_default_parent_folder ) )
 
     def addRow( self, label, value, button=None ):
-        if not isinstance( label, QtWidgets.QWidget ):
-            label = QtWidgets.QLabel( label )
-
-        if not isinstance( value, QtWidgets.QWidget ):
-            value = QtWidgets.QLineEdit( str(value) )
-            value.setReadOnly( True )
-
-        row = self.grid_layout.rowCount()
-
-        self.grid_layout.addWidget( label, row, 0 )
-        if button is None:
-            self.grid_layout.addWidget( value, row, 1, 1, 2 )
-
-        else:
-            self.grid_layout.addWidget( value, row, 1 )
-            self.grid_layout.addWidget( button, row, 2 )
+        self.grid_layout.addRow( label, value, button=button )
 
     def nextId( self ):
         return self.wizard().page_id_name

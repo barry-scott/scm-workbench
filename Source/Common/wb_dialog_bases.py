@@ -25,8 +25,7 @@ class WbDialog(QtWidgets.QDialog):
         self.buttons.accepted.connect( self.accept )
         self.buttons.rejected.connect( self.reject )
 
-        self.grid_layout = QtWidgets.QGridLayout()
-        self.grid_layout.setAlignment( QtCore.Qt.AlignTop )
+        self.grid_layout = WbGridLayout()
 
         self.setLayout( self.grid_layout )
 
@@ -45,34 +44,13 @@ class WbDialog(QtWidgets.QDialog):
         pass
 
     def addNamedDivider( self, name ):
-        if not isinstance( name, QtWidgets.QWidget ):
-            name = QtWidgets.QLabel( '<b>%s</b>' % (name,) )
-
-        row = self.nextRow()
-
-        self.grid_layout.addWidget( name, row, 0, 1, 2 )
+        self.grid_layout.addNamedDivider( name )
 
     def addRow( self, label, value, min_width=None ):
-        if not isinstance( label, QtWidgets.QWidget ):
-            label = QtWidgets.QLabel( label )
-
-        if not isinstance( value, QtWidgets.QWidget ):
-            value = QtWidgets.QLineEdit( str(value) )
-            value.setReadOnly( True )
-
-        if min_width is not None:
-            value.setMinimumWidth( min_width )
-
-        row = self.nextRow()
-
-        self.grid_layout.addWidget( label, row, 0 )
-        self.grid_layout.addWidget( value, row, 1 )
+        self.grid_layout.addRow( label, value, min_width=min_width )
 
     def addButtons( self ):
-        self.grid_layout.addWidget( self.buttons, self.nextRow(), 0, 1, 2 )
-
-    def nextRow( self ):
-        return self.grid_layout.rowCount()
+        self.grid_layout.addButtons( self.buttons )
 
 class WbTabbedDialog(QtWidgets.QDialog):
     def __init__( self, parent=None, size=None ):
@@ -119,9 +97,7 @@ class WbTabBase(QtWidgets.QWidget):
         self.app = app
         self.__name = name
 
-        self.grid_layout = QtWidgets.QGridLayout()
-        self.grid_layout.setAlignment( QtCore.Qt.AlignTop )
-        self.grid_layout.setColumnStretch( 1, 2 )
+        self.grid_layout = WbGridLayout()
 
         self.setLayout( self.grid_layout )
 
@@ -132,12 +108,23 @@ class WbTabBase(QtWidgets.QWidget):
         return self.name() < other.name()
 
     def addNamedDivider( self, name ):
+        self.grid_layout.addNamedDivider( name )
+
+    def addRow( self, label, value, button=None, min_width=None ):
+        self.grid_layout.addRow( label, value, button=button, min_width=min_width )
+
+class WbGridLayout(QtWidgets.QGridLayout):
+    def __init__( self ):
+        super().__init__()
+
+        self.setAlignment( QtCore.Qt.AlignTop )
+        self.setColumnStretch( 1, 2 )
+
+    def addNamedDivider( self, name ):
         if not isinstance( name, QtWidgets.QWidget ):
             name = QtWidgets.QLabel( '<b>%s</b>' % (name,) )
 
-        row = self.nextRow()
-
-        self.grid_layout.addWidget( name, row, 0, 1, 3 )
+        self.addWidget( name, self.rowCount(), 0, 1, 2 )
 
     def addRow( self, label, value, button=None, min_width=None ):
         if not isinstance( label, QtWidgets.QWidget ):
@@ -150,18 +137,18 @@ class WbTabBase(QtWidgets.QWidget):
         if min_width is not None:
             value.setMinimumWidth( min_width )
 
-        row = self.nextRow()
+        row = self.rowCount()
 
-        self.grid_layout.addWidget( label, row, 0 )
+        self.addWidget( label, row, 0 )
         if button is None:
-            self.grid_layout.addWidget( value, row, 1, 1, 2 )
+            self.addWidget( value, row, 1, 1, 2 )
 
         else:
-            self.grid_layout.addWidget( value, row, 1 )
-            self.grid_layout.addWidget( button, row, 2 )
+            self.addWidget( value, row, 1 )
+            self.addWidget( button, row, 2 )
 
-    def nextRow( self ):
-        return self.grid_layout.rowCount()
+    def addButtons( self, buttons ):
+        self.addWidget( buttons, self.rowCount(), 0, 1, 2 )
 
 class WbLineEdit(QtWidgets.QLineEdit):
     def __init__( self, value, case_blind=False, strip=True ):
