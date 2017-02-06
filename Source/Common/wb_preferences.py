@@ -188,8 +188,8 @@ class Project(PreferencesNode):
     def __init__( self, name:str, scm_type:str=None, path:pathlib.Path=None, tags_url:str=None ) -> None:
         super().__init__()
 
-        assert path is None or isinstance( path, pathlib.Path )
-        assert scm_type is None or scm_type in ('git','hg','svn')
+        assert path is None or isinstance( path, pathlib.Path ), 'path is %r' % (path,)
+        assert scm_type is None or scm_type in ('git','hg','svn'), 'scm_type is %r' % (scm_type,)
 
         self.name = name
         self.scm_type = scm_type
