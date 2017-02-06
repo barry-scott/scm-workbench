@@ -78,6 +78,9 @@ class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         self.setTitle( T_('Add Hg Project') )
         self.setSubTitle( T_('Clone Hg repository') )
 
+        self.grid_layout.addRow( T_('Git Repository URL'), self.url )
+        self.grid_layout.addRow( '', self.feedback )
+
     def getScmType( self ):
         return 'hg'
 
@@ -91,6 +94,12 @@ class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         # if this works we have an hg repo
         # hg identify <URL>
         return False
+
+    def isCompleteScmSpecific( self ):
+        return True
+
+    def validatePageScmSpecific( self ):
+        pass
 
 class PageAddProjectHgInit(wb_scm_project_dialogs.PageAddProjectScmInitBase):
     def __init__( self, wizard ):

@@ -88,7 +88,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.progress.start( T_('No progress available for hg') )
 
     # runs on the background thread
-    def addProjectCloneWizardHandler_Bg( self, name, url, wc_path ):
+    def addProjectCloneWizardHandler_Bg( self, name, url, wc_path, scm_state ):
         try:
             hg_project = wb_hg_project.HgProject( self.app, None, self )
             hg_project.cmdClone( url, wc_path,

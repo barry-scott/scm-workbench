@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -18,7 +18,7 @@ import urllib.parse
 
 import wb_log_history_options_dialog
 import wb_platform_specific
-
+import wb_preferences
 import wb_ui_components
 
 import wb_git_ui_actions
@@ -81,8 +81,23 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
                                     {'project': name} )
 
     # runs on the background thread
-    def addProjectCloneWizardHandler_Bg( self, name, url, wc_path ):
-        return wb_git_project.gitCloneFrom( self.app, self.ui_actions.pullProgressHandler, url, wc_path )
+    def addProjectCloneWizardHandler_Bg( self, name, url, project_path, scm_state ):
+        prefs_project = wb_preferences.Project( name, 'git', project_path )
+        scm_project = wb_git_project.GitProject( self.app, prefs_project, self )
+        if not scm_project.cloneFrom( url, self.ui_actions.pullProgressHandler ):
+            return False
+
+        if scm_state.pull_rebase:
+            config = scm_project.configWriter( 'repository' )
+            config.set_value( 'pull', 'rebase', 'true' )
+            config.release()
+            self.log.info( 'git config --local pull.rebase true' )
+
+        if scm_state.upstream_url is not None:
+            scm_project.addRemote( 'upstream', scm_state.upstream_url )
+            self.log.info( 'git remote add upstream %s' % (scm_state.upstream_url,) )
+
+        return True
 
     def addProjectPostCloneWizardHandler( self ):
         self.progress.end()

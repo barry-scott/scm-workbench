@@ -614,10 +614,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             if w.getAction() == w.action_init:
                 # pre is a good place to setup progress and status
-                ui_components.addProjectPreInitWizardHandler( w.name, w.getScmUrl(), w.getWcPath() )
+                ui_components.addProjectPreInitWizardHandler( w.getProjectName(), w.getScmUrl(), w.getProjectFolder() )
 
                 yield self.app.switchToBackground
-                add_project = ui_components.addProjectInitWizardHandler_Bg( w.getWcPath() )
+                add_project = ui_components.addProjectInitWizardHandler_Bg( w.getProjectFolder() )
                 yield self.app.switchToForeground
 
                 # post is a good place to finalise progress and status
@@ -625,11 +625,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             elif w.getAction() == w.action_clone:
                 # pre is a good place to setup progress and status
-                ui_components.addProjectPreCloneWizardHandler( w.name, w.getScmUrl(), w.getWcPath() )
+                ui_components.addProjectPreCloneWizardHandler( w.getProjectName(), w.getScmUrl(), w.getProjectFolder() )
 
                 yield self.app.switchToBackground
                 # do the actual clone in the background
-                add_project = ui_components.addProjectCloneWizardHandler_Bg( w.name, w.getScmUrl(), w.getWcPath() )
+                add_project = ui_components.addProjectCloneWizardHandler_Bg(
+                                        w.getProjectName(), w.getScmUrl(), w.getProjectFolder(), w.getScmSpecificState() )
 
                 yield self.app.switchToForeground
                 # post is a good place to finalise progress and status
@@ -640,7 +641,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             if add_project:
                 prefs = self.app.prefs
-                project = wb_preferences.Project( w.name, w.getScmType(), w.getWcPath() )
+                project = wb_preferences.Project( w.getProjectName(), w.getScmType(), w.getProjectFolder() )
                 prefs.addProject( project )
 
                 self.app.writePreferences()

@@ -20,18 +20,6 @@ import git.index
 
 GitCommandError = git.exc.GitCommandError
 
-def gitCloneFrom( app, progress_handler, url, wc_path ):
-    progress = Progress( progress_handler )
-
-    try:
-        git.repo.Repo.clone_from( url, str(wc_path), progress )
-        return True
-
-    except GitCommandError:
-        for line in progress.allErrorLines():
-            app.log.error( line )
-        return False
-
 def gitInit( app, progress_handler, wc_path ):
     progress = Progress( progress_handler )
 
@@ -66,6 +54,21 @@ class GitProject:
 
         self.__num_staged_files = 0
         self.__num_modified_files = 0
+
+    def cloneFrom( self, url, progress_handler ):
+        assert self.__repo is None
+
+        progress = Progress( progress_handler )
+
+        try:
+            self.__repo = git.repo.Repo.clone_from( url, str(self.prefs_project.path), progress )
+            return True
+
+        except GitCommandError:
+            for line in progress.allErrorLines():
+                app.log.error( line )
+
+            return False
 
     def repo( self ):
         # setup repo on demand
@@ -119,6 +122,9 @@ class GitProject:
 
     def configWriter( self, level ):
         return self.repo().config_writer( level )
+
+    def addRemote( self, name, url ):
+        self.repo().create_remote( name, url )
 
     def getHeadCommit( self ):
         return self.repo().head.ref.commit

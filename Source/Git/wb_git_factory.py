@@ -159,6 +159,32 @@ class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         self.setTitle( T_('Add Git Project') )
         self.setSubTitle( T_('Clone Git repository') )
 
+        #------------------------------------------------------------
+        self.setup_upstream = QtWidgets.QCheckBox( T_('Setup git remote upstream. Usually required when using a forked repository') )
+        self.setup_upstream.setChecked( True )
+
+        self.url_upstream = QtWidgets.QLineEdit( '' )
+        self.url_upstream.textChanged.connect( self._fieldsChanged )
+
+        self.setup_upstream.stateChanged.connect( self.url_upstream.setEnabled )
+
+        #------------------------------------------------------------
+        self.pull_rebase = QtWidgets.QCheckBox( T_('git pull --rebase') )
+        self.pull_rebase.setChecked( True )
+
+        #------------------------------------------------------------
+        self.grid_layout.addNamedDivider( T_('git remote origin') )
+        self.grid_layout.addRow( T_('Repository URL'), self.url )
+
+        self.grid_layout.addNamedDivider( T_('git remote upstream') )
+        self.grid_layout.addRow( T_('remote upstream'), self.setup_upstream )
+        self.grid_layout.addRow( T_('Upstream URL'),  self.url_upstream )
+
+        self.grid_layout.addNamedDivider( T_('git config --local') )
+        self.grid_layout.addRow( T_('pull.rebase'), self.pull_rebase )
+
+        self.grid_layout.addRow( '', self.feedback )
+
     def getScmType( self ):
         return 'git'
 
@@ -172,6 +198,28 @@ class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         # if this works we have a git repo
         # git ls-remote --heads <URL>
         return False
+
+    def isCompleteScmSpecific( self ):
+        if( self.setup_upstream.isChecked()
+        and not self.isValidUrl( self.url_upstream, T_('Fill in the upstream URL') ) ):
+            return False
+
+        return True
+
+    def validatePageScmSpecific( self ):
+        if self.setup_upstream.isChecked():
+            url_upstream = self.url_upstream.text().strip()
+        else:
+            url_upstream = None
+
+        pull_rebase = self.pull_rebase.isChecked()
+
+        self.wizard().setScmSpecificState( WbGitScmSpecificState( url_upstream, pull_rebase ) )
+
+class WbGitScmSpecificState:
+    def __init__( self, upstream_url, pull_rebase ):
+        self.upstream_url = upstream_url
+        self.pull_rebase = pull_rebase
 
 
 class PageAddProjectGitInit(wb_scm_project_dialogs.PageAddProjectScmInitBase):
