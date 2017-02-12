@@ -332,19 +332,23 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
         self.all_commit_nodes  = []
         self.all_tags_by_id = {}
+        self.all_unpushed_commit_ids = set()
 
         self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
+        self.__brush_is_unpushed = QtGui.QBrush( QtGui.QColor( 192, 0, 192 ) )
 
     def loadCommitLogForRepository( self, progress_callback, git_project, limit, since, until ):
         self.beginResetModel()
         self.all_commit_nodes = git_project.cmdCommitLogForRepository( progress_callback, limit, since, until )
         self.all_tags_by_id = git_project.cmdTagsForRepository()
+        self.all_unpushed_commit_ids = set( [commit.hexsha for commit in git_project.getUnpushedCommits()] )
         self.endResetModel()
 
     def loadCommitLogForFile( self, progress_callback, git_project, filename, limit, since, until ):
         self.beginResetModel()
         self.all_commit_nodes = git_project.cmdCommitLogForFile( progress_callback, filename, limit, since, until )
         self.all_tags_by_id = git_project.cmdTagsForRepository()
+        self.all_unpushed_commit_ids = set( git_project.getUnpushedCommits() )
         self.endResetModel()
 
     def updateTags( self, git_project ):
@@ -410,8 +414,15 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
         elif role == QtCore.Qt.ForegroundRole:
             node = self.all_commit_nodes[ index.row() ]
-            if node.commitIdString() in self.all_tags_by_id:
+            commit_id = node.commitIdString()
+
+            col = index.column()
+            if commit_id in self.all_tags_by_id and col == self.col_tag:
                 return self.__brush_is_tag
+
+            if commit_id in self.all_unpushed_commit_ids:
+                return self.__brush_is_unpushed
+
 
         return None
 

@@ -146,6 +146,13 @@ class GitProject:
         tracking_branch = self.repo().head.ref.tracking_branch()
         return tracking_branch.name if tracking_branch is not None else None
 
+    def getTrackingBranchCommit( self ):
+        tracking_branch = self.repo().head.ref.tracking_branch()
+        if tracking_branch is None:
+            return None
+
+        return tracking_branch.commit
+
     def numStagedFiles( self ):
         return self.__num_staged_files
 
@@ -326,23 +333,23 @@ class GitProject:
         if not self.hasCommits():
             return False
 
-        head_commit = self.repo().head.ref.commit
-        tracking_branch = self.repo().head.ref.tracking_branch()
-        if tracking_branch is None:
+        remote_commit = self.getTrackingBranchCommit()
+        if remote_commit is None:
             return False
 
-        remote_commit = tracking_branch.commit
+        head_commit = self.repo().head.ref.commit
+
         return head_commit != remote_commit
 
     def canPull( self ):
         return self.repo().head.ref.tracking_branch() is not None
 
     def getUnpushedCommits( self ):
-        tracking_branch = self.repo().head.ref.tracking_branch()
-        if tracking_branch is None:
+        tracking_commit = self.getTrackingBranchCommit()
+        if tracking_commit is None:
             return []
 
-        last_pushed_commit_id = tracking_branch.commit.hexsha
+        last_pushed_commit_id = tracking_commit.hexsha
 
         all_unpushed_commits = []
         for commit in self.repo().iter_commits( None ):
