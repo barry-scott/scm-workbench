@@ -33,7 +33,8 @@ class WbRenameFilenameDialog(wb_dialog_bases.WbDialog):
 
         self.ok_button.setEnabled( False )
 
-        self.addRow( T_('Name'), self.name )
+        em = self.fontMetrics().width( 'M' )
+        self.addRow( T_('Name'), self.name, min_width=80 )
         self.addButtons()
 
     def nameTextChanged( self, text ):
@@ -67,7 +68,8 @@ class WbNewFolderDialog(wb_dialog_bases.WbDialog):
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )
 
-        self.addRow( T_('Folder Name'), self.name )
+        em = self.fontMetrics().width( 'M' )
+        self.addRow( T_('Folder Name'), self.name, min_width=em*60 )
         self.addButtons()
 
     def nameTextChanged( self, text ):
