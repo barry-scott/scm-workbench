@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_git_ui_components.py.py
+    wb_git_ui_components.py
 
 '''
 import os
