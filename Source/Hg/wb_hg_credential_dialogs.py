@@ -30,11 +30,10 @@ class WbHgGetLoginDialog(wb_dialog_bases.WbDialog):
         self.password.textChanged.connect( self.nameTextChanged )
 
         em = self.fontMetrics().width( 'M' )
-        self.username.setMinimumWidth( 50*em )
 
         self.addRow( T_('URL'), url )
         self.addRow( T_('Realm'), realm )
-        self.addRow( T_('Username'), self.username )
+        self.addRow( T_('Username'), self.username, min_width=50*em )
         self.addRow( T_('Password'), self.password )
 
         self.addButtons()
