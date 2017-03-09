@@ -122,25 +122,24 @@ class WbGitCallbackServer(threading.Thread):
                 buf_size = ctypes.c_uint( 256 )
                 buf_client = ctypes.create_string_buffer( buf_size.value )
                 hr = ctypes.windll.kernel32.ReadFile( h_pipe, buf_client, buf_size, ctypes.byref( buf_size ), None )
-                message = buf_client.raw[:buf_size.value].decode( 'utf-8' )
-                facility, request = message.split( '\0' )
+                request = buf_client.raw[:buf_size.value].decode( 'utf-8' )
+                facility, param = request.split( '\0' )
 
                 reply = ctypes.create_string_buffer( 256 )
 
                 if facility == 'askpass':
-                    code, value = self.__waitForReplyAskPass( request )
+                    code, value = self.__waitForReplyAskPass( param )
 
                 elif facility == 'sequence-editor':
-                    code, value = self.__waitForReplySequenceEditor( request )
+                    code, value = self.__waitForReplySequenceEditor( param )
 
                 elif facility == 'editor':
-                    code, value = self.__waitForReplyEditor( request )
+                    code, value = self.__waitForReplyEditor( param )
 
                 else:
                     code = 1, 'Error: server does not support facility %r' % (facility,)
 
-
-                reply.value = ('%d%s' % (code, answer)).encode( 'utf-8' )
+                reply.value = ('%d%s' % (code, value)).encode( 'utf-8' )
                 reply_size = ctypes.c_uint( len( reply.value ) )
 
                 hr = ctypes.windll.kernel32.WriteFile( h_pipe, reply, reply_size, ctypes.byref( reply_size ), None )

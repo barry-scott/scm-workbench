@@ -117,20 +117,20 @@ class WbGitCallbackServer(threading.Thread):
             return
 
         while self.__run:
-            message = os.read( fd_server, 1024 )
+            request = os.read( fd_server, 1024 )
 
-            if len(message) > 0:
-                message = message.decode( 'utf-8' )
-                facility, request = message.split( '\0', 1 )
+            if len(request) > 0:
+                request = request.decode( 'utf-8' )
+                facility, param = request.split( '\0', 1 )
 
                 if facility == 'askpass':
-                    code, value = self.__waitForReplyAskPass( request )
+                    code, value = self.__waitForReplyAskPass( param )
 
                 elif facility == 'sequence-editor':
-                    code, value = self.__waitForReplySequenceEditor( request )
+                    code, value = self.__waitForReplySequenceEditor( param )
 
                 elif facility == 'editor':
-                    code, value = self.__waitForReplyEditor( request )
+                    code, value = self.__waitForReplyEditor( param   )
 
                 else:
                     code, value = 1, 'Error: server does not support facility %r' % (facility,)

@@ -16,6 +16,9 @@ nmake -f windows.mak clean
 nmake -f windows.mak all
     if errorlevel 1 goto :eof
 
+set PROG=scm_workbench_git_callback.cmd
+echo "%PYTHON%" "%BUILDER_TOP_DIR%\Source\Git\wb_git_callback_client_win32.py" %%1 %%2 >%PROG%
+
 set BUILDER_START_DIR=
 set BUILDER_TOP_DIR=
 set BUILDROOT_DIR=

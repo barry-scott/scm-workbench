@@ -51,7 +51,7 @@ def initCallbackServer( app ):
         if not callback.exists():
             app.log.info( 'Cannot find %s' % (callback,) )
             # assume in development environment
-            callback = wb_platform_specific.getAppDir() / 'scm-workbench-git-callback.py'
+            callback = wb_platform_specific.getAppDir() / 'scm_workbench_git_callback.cmd'
 
     else:
         callback = wb_platform_specific.getAppDir() / 'scm-workbench-git-callback'

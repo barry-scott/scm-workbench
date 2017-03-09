@@ -64,9 +64,9 @@ class WbGitCallback:
             print( reply )
         return rc
 
-    def sendRequest( self, facility, request ):
-        message = '%s\0%s' % (facility, request)
-        message = message.encode( 'utf-8' )
+    def sendRequest( self, facility, param ):
+        request = '%s\0%s' % (facility, param)
+        request = request.encode( 'utf-8' )
 
         e = pwd.getpwuid( os.geteuid() )
         fifo_dir = os.path.join( tempfile.gettempdir(), e.pw_name )
@@ -82,8 +82,8 @@ class WbGitCallback:
             fd_client = os.open( client_fifo, os.O_RDONLY|os.O_NONBLOCK )
 
             error_msg = 'Error: failed to write cmd to server - %s'
-            size = os.write( fd_server, message )
-            if size != len(message):
+            size = os.write( fd_server, request )
+            if size != len(request):
                 print( 'Error: failed to write cmd to server' )
                 return 1
 

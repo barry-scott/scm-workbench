@@ -36,14 +36,26 @@ class WbGitcallback:
             return 1
 
     def askPass( self, prompt ):
-        rc, reply = self.callback( 'askpass', prompt )
+        rc, reply = self.sendRequest( 'askpass', prompt )
         if reply is not None:
             print( reply )
         return rc
 
-    def callback( self, facility, request ):
-        message = '%s\0%s' % (facility, request)
-        message = message.encode( 'utf-8' )
+    def editor( self, filename ):
+        rc, reply = self.sendRequest( 'editor', filename )
+        if reply is not None and reply != '':
+            print( reply )
+        return rc
+
+    def sequenceEditor( self, filename ):
+        rc, reply = self.sendRequest( 'sequence-editor', filename )
+        if reply is not None and reply != '':
+            print( reply )
+        return rc
+
+    def sendRequest( self, facility, param ):
+        request = '%s\0%s' % (facility, param)
+        request = request.encode( 'utf-8' )
 
         buf_size = ctypes.c_int( 256 )
         buf_result = ctypes.create_string_buffer( buf_size.value )
@@ -60,7 +72,7 @@ class WbGitcallback:
         if rc == 0:
             err = ctypes.windll.kernel32.GetLastError()
             if err == 2:
-                return None
+                return 1, None
 
             errmsg  = self.__getErrorMessage( err )
             with open( os.path.join( os.environ['USERPROFILE'], 'wb_scm_git_callback.log' ), 'a' ) as f:
