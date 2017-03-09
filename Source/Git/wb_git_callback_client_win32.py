@@ -94,4 +94,4 @@ class WbGitcallback:
         return errmsg.value
 
 if __name__ == '__main__':
-    sys.exit( WbGitcallback().callback( argv ) )
+    sys.exit( WbGitcallback().callback( sys.argv ) )
