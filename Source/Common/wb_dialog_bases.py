@@ -15,12 +15,13 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 class WbDialog(QtWidgets.QDialog):
-    def __init__( self, parent=None ):
+    def __init__( self, parent=None, cancel=True ):
         super().__init__( parent )
 
         self.buttons = QtWidgets.QDialogButtonBox()
         self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
+        if cancel:
+            self.buttons.addButton( self.buttons.Cancel )
 
         self.buttons.accepted.connect( self.accept )
         self.buttons.rejected.connect( self.reject )

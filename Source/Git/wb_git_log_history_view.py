@@ -21,6 +21,7 @@ import wb_tracked_qwidget
 import wb_main_window
 import wb_table_view
 import wb_dialog_bases
+import wb_common_dialogs
 
 import wb_ui_components
 
@@ -337,16 +338,21 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         for line in stdout:
             self.log.info( line )
 
+        if len(stderr) == 0 and rc != 0:
+            stderr = ['rebase failed rc=%d' % (rc,)]
+
         for line in stderr:
             if rc == 0:
                 self.log.info( line )
             else:
                 self.log.error( line )
 
-        if len(stderr) == 0 and rc != 0:
-            self.log.error( 'rebase failed rc=%d' % (rc,) )
-
         if rc != 0:
+            dialog = wb_common_dialogs.WbErrorDialog(
+                self.app, self,
+                T_('Rebase failed'),
+                '\n'.join( stderr ) )
+            dialog.exec_()
             return
 
         # reload the commit history to pick up the rebase changes
@@ -394,10 +400,11 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         all_commit_text = []
         for node in all_commit_messages:
-            all_commit_text.append( node.commitMessage() )
-            all_commit_text.append( '' )
-
-        del all_commit_text[-1]
+            message = node.commitMessage()
+            while message.endswith( '\n' ):
+                message = message[:-1]
+            message = message + '\n'
+            all_commit_text.append( message )
 
         dialog = WbRebaseConfirmDialog(
                     self.app, self,

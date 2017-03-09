@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -34,7 +34,7 @@ class WbRenameFilenameDialog(wb_dialog_bases.WbDialog):
         self.ok_button.setEnabled( False )
 
         em = self.fontMetrics().width( 'M' )
-        self.addRow( T_('Name'), self.name, min_width=80 )
+        self.addRow( T_('Name'), self.name, min_width=em*80 )
         self.addButtons()
 
     def nameTextChanged( self, text ):
@@ -107,6 +107,23 @@ def __WbAreYouSure( parent, title, question, all_filenames ):
 
     rc = QtWidgets.QMessageBox.question( parent, title, message, defaultButton=default_button )
     return rc == QtWidgets.QMessageBox.Yes
+
+class WbErrorDialog(wb_dialog_bases.WbDialog):
+    def __init__( self, app, parent, title, error_message ):
+        self.app = app
+
+        super().__init__( parent, cancel=False )
+
+        self.setWindowTitle( title )
+
+        self.error_message = QtWidgets.QPlainTextEdit( self )
+        self.error_message.setReadOnly( True )
+        self.error_message.insertPlainText( error_message )
+        self.setFont( self.app.getCodeFont() )
+
+        em = self.fontMetrics().width( 'M' )
+        self.addRow( None, self.error_message, min_width=em*60 )
+        self.addButtons()
 
 if __name__ == '__main__':
     def T_(s):
