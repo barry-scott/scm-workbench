@@ -46,7 +46,7 @@ popd >/dev/null
 make -f linux.mak clean
 make -f linux.mak
 
-PROG="scm-workbench-askpass"
+PROG="scm-workbench-git-callback"
 
 pwd
 
@@ -60,7 +60,7 @@ Darwin)
     ;;
 esac
 
-cat ../Git/wb_git_askpass_client_unix.py >>"${PROG}"
+cat ../Git/wb_git_callback_client_unix.py >>"${PROG}"
 chmod +x "${PROG}"
 unset PROG
 

@@ -17,13 +17,11 @@ import shutil
 import urllib.parse
 
 import wb_log_history_options_dialog
-import wb_platform_specific
 import wb_preferences
 import wb_ui_components
 
 import wb_git_ui_actions
 import wb_git_project
-import wb_git_askpass_server
 import wb_git_credentials_dialog
 
 import git
@@ -43,7 +41,6 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         super().__init__( 'git', factory )
 
-        self.askpass_server = None
         self.saved_password = SavedPassword()
 
     def createProject( self, project ):
@@ -116,30 +113,8 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         self.log.info( 'Git using program %s' % (shutil.which( git.Git.GIT_PYTHON_GIT_EXECUTABLE ),) )
 
-        if 'GIT_ASKPASS' in os.environ:
-            self.log.info( "Using user's GIT_ASKPASS program %s" % (os.environ[ 'GIT_ASKPASS' ],) )
-            return
-
-        self.askpass_server = wb_git_askpass_server.WbGitAskPassServer( self.app, self )
-
-        devel_fallback = False
-        self.askpass_server.start()
-        if sys.platform == 'win32':
-            askpass  = wb_platform_specific.getAppDir() / 'scm-workbench-askpass.exe'
-            if not askpass.exists():
-                self.log.info( 'Cannot find %s' % (askpass,) )
-                # assume in development environment
-                askpass = wb_platform_specific.getAppDir() / 'scm-workbench-askpass.py'
-
-        else:
-            askpass = wb_platform_specific.getAppDir() / 'scm-workbench-askpass'
-
-        if not askpass.exists():
-            self.log.error( 'Cannot find %s' % (askpass,) )
-            return
-
-        os.environ['GIT_ASKPASS'] = str(askpass)
-        self.log.info( "Using Workbench's GIT_ASKPASS program" )
+        wb_git_project.initCallbackServer( self.app )
+        wb_git_project.setCallbackCredentialsHandler( self.getGitCredentials )
 
     def about( self ):
         if shutil.which( git.Git.GIT_PYTHON_GIT_EXECUTABLE ) is None:
@@ -253,16 +228,19 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff Staged vs. Working'), act.treeActionGitDiffStagedVsWorking, act.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
     def getGitCredentials( self, prompt ):
+        self.app.runInForeground( self.__get_git_credentials, (prompt,) )
+
+    def __getGitCredentials( self, prompt ):
         # the prompt contains a url enclosed in "'".
         if "'" not in prompt:
-            self.askpass_server.setReply( 1, 'unknown prompt' )
+            wb_git_project.setCallbackReply( 1, 'unknown prompt' )
             return
 
         url = prompt.split( "'" )[1]
 
         # see if the password is required
         if self.saved_password.isValid():
-            self.askpass_server.setReply( 0, self.saved_password.password )
+            wb_git_project.setCallbackReply( 0, self.saved_password.password )
             self.saved_password.clearPassword()
             return
 
@@ -275,7 +253,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         cred.setFields( url, url_parts.username )
         if cred.exec_():
             if url_parts.username is None:
-                self.askpass_server.setReply( 0, cred.getUsername() )
+                wb_git_project.setCallbackReply( 0, cred.getUsername() )
 
                 # assume that the password will be required next
                 netloc = '%s@%s' % (cred.getUsername(), url_parts.netloc)
@@ -283,10 +261,10 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
                 self.saved_password.savePassword( url2, cred.getPassword() )
 
             else:
-                self.askpass_server.setReply( 0, cred.getPassword() )
+                wb_git_project.setCallbackReply( 0, cred.getPassword() )
 
         else:
-            self.askpass_server.setReply( 1, '' )
+            wb_git_project.setCallbackReply( 1, '' )
 
 class SavedPassword:
     timeout = 5.0

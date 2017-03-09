@@ -1,11 +1,11 @@
 Scm
-- How to automate testing of workbench.
+- How to automate testing of workbench?
 
 Git
-- support: git pull --rebase <remote> <branch>
+- need upstream pull support completed
 
 Svn
-- almost complete
+- most features supported to the level for PySVN WorkBench
 
 Hg
 - Only a few commands implemented

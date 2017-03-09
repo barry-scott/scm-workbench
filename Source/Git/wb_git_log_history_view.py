@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -57,6 +57,23 @@ class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         m.addSection( T_('Diff') )
         addMenu( m, T_('Diff'), act.tableActionGitDiffLogHistory, act.enablerTableGitDiffLogHistory, 'toolbar_images/diff.png' )
+        addMenu( m, T_('Tag'), self.view.tableActionGitTag, self.view.enablerTableGitTag )
+        m.addSection( T_('Rebase') )
+        addMenu( m, T_('Reword commit message'), self.view.tableActionGitRebaseReword, self.view.enablerTableGitRebaseReword )
+        addMenu( m, T_('Squash commits together'), self.view.tableActionGitRebaseSquash, self.view.enablerTableGitRebaseSquash )
+        addMenu( m, T_('Drop commit'), self.view.tableActionGitRebaseDrop, self.view.enablerTableGitRebaseDrop )
+
+
+    def setupChangedFilesContextMenu( self, m, addMenu ):
+        self.changed_files_context_menu = m
+
+        act = self.ui_actions
+
+        m.addSection( T_('Diff') )
+        addMenu( m, T_('Diff'), act.tableActionGitDiffLogHistory, act.enablerTableGitDiffLogHistory, 'toolbar_images/diff.png' )
+
+    def getChangedFilesContextMenu( self ):
+        return self.changed_files_context_menu
 
     def deferedLogHistoryProgress( self ):
         return self.app.deferRunInForeground( self.__logHistoryProgress )
@@ -69,7 +86,7 @@ class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
             else:
                 self.progress.incEventCount()
 
-class WbTagName(wb_dialog_bases.WbDialog):
+class WbTagNameDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent, git_project ):
         self.app = app
         self.git_project = git_project
@@ -81,7 +98,8 @@ class WbTagName(wb_dialog_bases.WbDialog):
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )
 
-        self.addRow( T_('Tag Name'), self.name )
+        em = self.fontMetrics().width( 'M' )
+        self.addRow( T_('Tag Name'), self.name, min_width=50*em )
         self.addButtons()
         self.ok_button.setEnabled( False )
 
@@ -92,6 +110,53 @@ class WbTagName(wb_dialog_bases.WbDialog):
 
     def getTagName( self ):
         return self.name.text().strip()
+
+class WbRebaseConfirmDialog(wb_dialog_bases.WbDialog):
+    def __init__( self, app, parent, title, all_rebase_commands, commit_message=None ):
+        self.app = app
+
+        super().__init__( parent )
+
+        self.setWindowTitle( title )
+
+        em = self.fontMetrics().width( 'M' )
+
+        self.rebase_details = QtWidgets.QPlainTextEdit()
+        self.rebase_details.setReadOnly( True )
+        self.rebase_details.setFont( app.getCodeFont() )
+
+        self.addNamedDivider( T_('Rebase Details') )
+        self.addRow( None, self.rebase_details, min_width=em*80 )
+
+        if commit_message is not None:
+            self.commit_message = QtWidgets.QPlainTextEdit()
+            self.commit_message.setFont( app.getCodeFont() )
+            self.commit_message.textChanged.connect( self.commitMessageChanged )
+
+            self.addNamedDivider( T_('New Commit Message') )
+            self.addRow( None, self.commit_message, min_width=em*80 )
+
+        else:
+            self.commit_message = None
+
+        self.addButtons()
+
+        # turn rebase details into a block of text
+        all_details_text = []
+        for detail_row in all_rebase_commands:
+            all_details_text.append( ' '.join( detail_row ) )
+
+        self.rebase_details.setPlainText( '\n'.join( all_details_text ) )
+
+        if commit_message is not None:
+            self.commit_message.setPlainText( commit_message )
+            self.commitMessageChanged()
+
+    def commitMessageChanged( self ):
+        self.ok_button.setEnabled( self.commitMessage() != '' )
+
+    def commitMessage( self ):
+        return self.commit_message.toPlainText().strip()
 
 class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     focus_is_in_names = ('commits', 'changes')
@@ -106,6 +171,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         self.filename = None
         self.git_project = None
+        self.reload_commit_log_options = None
 
         self.ui_component = GitLogHistoryWindowComponents( self.app.getScmFactory( 'git' ), self )
 
@@ -132,9 +198,9 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.log_table.setColumnWidth( self.log_model.col_commit_id, em*30 )
 
         #----------------------------------------
-        self.commit_message = QtWidgets.QTextEdit()
+        self.commit_message = QtWidgets.QPlainTextEdit()
         self.commit_message.setReadOnly( True )
-        self.commit_message.setCurrentFont( self.code_font )
+        self.commit_message.setFont( self.code_font )
 
         #----------------------------------------
         self.commit_id = QtWidgets.QLineEdit()
@@ -194,7 +260,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         # setup the chrome
         self.setupMenuBar( self.menuBar() )
         self.setupToolBar()
-        self.__setupTableContextMenu()
+        self.__setupTableContextMenus()
 
     def completeInit( self ):
         self._debug( 'completeInit()' )
@@ -205,14 +271,14 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def setupMenuBar( self, mb ):
         self.ui_component.setupMenuBar( mb, self._addMenu )
 
-    def __setupTableContextMenu( self ):
-        self._debug( '__setupTableContextMenu' )
-
-        # --- setup scm_type specific menu
+    def __setupTableContextMenus( self ):
+        self._debug( '__setupTableContextMenus' )
 
         m = QtWidgets.QMenu( self )
-
         self.ui_component.setupTableContextMenu( m, self._addMenu )
+
+        m = QtWidgets.QMenu( self )
+        self.ui_component.setupChangedFilesContextMenu( m, self._addMenu )
 
     def setupToolBar( self ):
         # --- setup scm_type specific tool bars
@@ -221,27 +287,223 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'git'
 
+    #------------------------------------------------------------
     def enablerTableGitTag( self ):
         return len(self.current_commit_selections) == 1 and self.git_project is not None
 
     def tableActionGitTag( self ):
         node = self.log_model.commitNode( self.current_commit_selections[0] )
 
-        dialog = WbTagName( self.app, self, self.git_project )
+        dialog = WbTagNameDialog( self.app, self, self.git_project )
         if dialog.exec_():
             tag_name = dialog.getTagName()
             self.app.log.infoheader( 'Create tag %s for %s' % (tag_name, node.commitIdString()) )
             self.git_project.cmdCreateTag( tag_name, node.commitIdString() )
             self.log_model.updateTags( self.git_project )
 
+    #------------------------------------------------------------
+    def isRebasePossible( self ):
+        # must have a git project
+        if self.git_project is None:
+            return False
+
+        # reload_commit_log_options means that its a repo log history
+        if self.reload_commit_log_options is None:
+            return False
+
+        # until may exclude HEAD which is needed in the rebase code
+        if self.reload_commit_log_options.getUntil() is not None:
+            return False
+
+        # make sure all commits are unpushed
+        for row in self.current_commit_selections:
+            if not self.log_model.isCommitUnpushed( row ):
+                return False
+
+        return True
+
+    def areSelectionsConsecutive( self ):
+        if len(self.current_commit_selections) <= 1:
+            return False
+
+        for index in range( len(self.current_commit_selections) - 1 ):
+            if (self.current_commit_selections[index] + 1) != self.current_commit_selections[index + 1]:
+                return False
+
+        return True
+
+    @thread_switcher
+    def finaliseRebase_Bg( self, rc, stdout, stderr, row_to_select ):
+        for line in stdout:
+            self.log.info( line )
+
+        for line in stderr:
+            if rc == 0:
+                self.log.info( line )
+            else:
+                self.log.error( line )
+
+        if len(stderr) == 0 and rc != 0:
+            self.log.error( 'rebase failed rc=%d' % (rc,) )
+
+        if rc != 0:
+            return
+
+        # reload the commit history to pick up the rebase changes
+        yield self.app.switchToBackground
+
+        options = self.reload_commit_log_options
+        self.log_model.loadCommitLogForRepository(
+                    self.ui_component.deferedLogHistoryProgress(), self.git_project,
+                    options.getLimit(), options.getSince(), options.getUntil() )
+
+        yield self.app.switchToForeground
+
+        self.log_table.resizeColumnToContents( self.log_model.col_date )
+
+        self.log_table.setCurrentIndex( self.log_model.index( row_to_select, 0, QtCore.QModelIndex() ) )
+
+        self.ui_component.progress.end()
+        self.updateEnableStates()
+        self.show()
+
+    #------------------------------------------------------------
+    def enablerTableGitRebaseSquash( self ):
+        return (self.isRebasePossible()
+                and self.areSelectionsConsecutive())    # need consecutive selection to squash
+
+    @thread_switcher
+    def tableActionGitRebaseSquash( self, checked=None ):
+        first_to_squash = self.current_commit_selections[0]
+        last_to_squash = self.current_commit_selections[-1]
+
+        all_rebase_commands = []
+        for row in range(first_to_squash):
+            node = self.log_model.commitNode( row )
+            all_rebase_commands.append( ('pick', node.commitIdString(), node.commitMessageHeadline()) )
+
+        all_commit_messages = []
+        for row in range(first_to_squash, last_to_squash):
+            node = self.log_model.commitNode( row )
+            all_rebase_commands.append( ('squash', node.commitIdString(), node.commitMessageHeadline()) )
+            all_commit_messages.append( node )
+
+        node = self.log_model.commitNode( last_to_squash )
+        all_rebase_commands.append( ('pick', node.commitIdString(), node.commitMessageHeadline()) )
+        all_commit_messages.append( node )
+
+        all_commit_text = []
+        for node in all_commit_messages:
+            all_commit_text.append( node.commitMessage() )
+            all_commit_text.append( '' )
+
+        del all_commit_text[-1]
+
+        dialog = WbRebaseConfirmDialog(
+                    self.app, self,
+                    T_('Rebase Squash commits'),
+                    all_rebase_commands,
+                    '\n'.join( all_commit_text ) )
+        if dialog.exec_():
+            commit_message = dialog.commitMessage()
+            commit_id = self.log_model.commitNode( last_to_squash ).commitIdString()
+
+            self.log.infoheader( 'Rebase Squash from commit %s' % (commit_id,) )
+
+            all_rebase_commands.reverse()
+
+            rc, stdout, stderr = self.git_project.cmdRebase(
+                    commit_id,
+                    all_rebase_commands,
+                    commit_message
+                    )
+
+            yield from self.finaliseRebase_Bg( rc, stdout, stderr, first_to_squash )
+
+    #------------------------------------------------------------
+    def enablerTableGitRebaseReword( self ):
+        return (self.isRebasePossible()
+                and len(self.current_commit_selections) == 1)   # reword one entry only
+
+    @thread_switcher
+    def tableActionGitRebaseReword( self, checked=None ):
+        reword_row = self.current_commit_selections[0]
+
+        all_rebase_commands = []
+        for row in range(reword_row):
+            node = self.log_model.commitNode( row )
+            all_rebase_commands.append( ('pick', node.commitIdString(), node.commitMessageHeadline()) )
+
+        node = self.log_model.commitNode( reword_row )
+        all_rebase_commands.append( ('reword', node.commitIdString(), node.commitMessageHeadline()) )
+        commit_message = node.commitMessage()
+
+        dialog = WbRebaseConfirmDialog(
+                    self.app, self,
+                    T_('Rebase Reword commit message'),
+                    all_rebase_commands, commit_message )
+        if dialog.exec_():
+            commit_message = dialog.commitMessage()
+            commit_id = self.log_model.commitNode( reword_row ).commitIdString()
+
+            self.log.infoheader( 'Rebase Reword commit %s' % (commit_id,) )
+
+            all_rebase_commands.reverse()
+
+            rc, stdout, stderr = self.git_project.cmdRebase(
+                    commit_id,
+                    all_rebase_commands,
+                    commit_message
+                    )
+
+            yield from self.finaliseRebase_Bg( rc, stdout, stderr, reword_row )
+
+    #------------------------------------------------------------
+    def enablerTableGitRebaseDrop( self ):
+        return (self.isRebasePossible()
+                and len(self.current_commit_selections) > 1)
+
+    @thread_switcher
+    def tableActionGitRebaseDrop( self, checked=None ):
+        last_drop_row = self.current_commit_selections[-1]
+
+        all_rebase_commands = []
+        for row in range(last_drop_row+1):
+            node = self.log_model.commitNode( row )
+            if row in self.current_commit_selections:
+                all_rebase_commands.append( ('drop', node.commitIdString(), node.commitMessageHeadline()) )
+            else:
+                all_rebase_commands.append( ('pick', node.commitIdString(), node.commitMessageHeadline()) )
+
+        dialog = WbRebaseConfirmDialog(
+                    self.app, self,
+                    T_('Rebase Drop commits'),
+                    all_rebase_commands )
+        if dialog.exec_():
+            all_rebase_commands.reverse()
+
+            commit_id = self.log_model.commitNode( last_drop_row ).commitIdString()
+            self.log.infoheader( 'Rebase Drop from commit %s' % (commit_id,) )
+
+            rc, stdout, stderr = self.git_project.cmdRebase(
+                    commit_id,
+                    all_rebase_commands
+                    )
+
+            yield from self.finaliseRebase_Bg( rc, stdout, stderr, self.current_commit_selections[0] )
+
+    #------------------------------------------------------------
     @thread_switcher
     def showCommitLogForRepository_Bg( self, git_project, options ):
         self.filename = None
+        self.reload_commit_log_options = options
         self.git_project = git_project
 
         yield self.app.switchToBackground
 
-        self.log_model.loadCommitLogForRepository( self.ui_component.deferedLogHistoryProgress(), git_project, options.getLimit(), options.getSince(), options.getUntil() )
+        self.log_model.loadCommitLogForRepository(
+                    self.ui_component.deferedLogHistoryProgress(), git_project,
+                    options.getLimit(), options.getSince(), options.getUntil() )
 
         yield self.app.switchToForeground
 
@@ -258,7 +520,9 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         yield self.app.switchToBackground
 
-        self.log_model.loadCommitLogForFile( self.ui_component.deferedLogHistoryProgress(), git_project, filename, options.getLimit(), options.getSince(), options.getUntil() )
+        self.log_model.loadCommitLogForFile(
+                    self.ui_component.deferedLogHistoryProgress(), git_project,
+                    filename, options.getLimit(), options.getSince(), options.getUntil() )
 
         yield self.app.switchToForeground
 
@@ -301,6 +565,10 @@ class WbLogTableView(wb_table_view.WbTableView):
 
         super().__init__()
 
+        # connect up signals
+        self.customContextMenuRequested.connect( self.tableContextMenu )
+        self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
+
     def selectionChanged( self, selected, deselected ):
         self._debug( 'WbLogTableView.selectionChanged()' )
 
@@ -313,6 +581,13 @@ class WbLogTableView(wb_table_view.WbTableView):
         super().focusInEvent( event )
 
         self.main_window.setFocusIsIn( 'commits' )
+
+    def tableContextMenu( self, pos ):
+        self._debug( 'tableContextMenu( %r )' % (pos,) )
+        global_pos = self.viewport().mapToGlobal( pos )
+
+        self.main_window.ui_component.getTableContextMenu().exec_( global_pos )
+
 
 class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     col_author = 0
@@ -360,6 +635,9 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
         node = self.all_commit_nodes[ row ]
         return node.commitIdString()
 
+    def isCommitUnpushed( self, row ):
+        return self.commitForRow( row ) in self.all_unpushed_commit_ids
+
     def dateStringForRow( self, row ):
         node = self.all_commit_nodes[ row ]
         return self.app.formatDatetime( node.commitDate() )
@@ -405,7 +683,7 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
                 return self.all_tags_by_id.get( node.commitIdString(), '' )
 
             elif col == self.col_message:
-                return node.commitMessage().split('\n')[0]
+                return node.commitMessageHeadline()
 
             elif col == self.col_commit_id:
                 return node.commitIdString()
@@ -423,7 +701,6 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
             if commit_id in self.all_unpushed_commit_ids:
                 return self.__brush_is_unpushed
 
-
         return None
 
 class WbChangesTableView(wb_table_view.WbTableView):
@@ -433,6 +710,10 @@ class WbChangesTableView(wb_table_view.WbTableView):
         self._debug = main_window._debug
 
         super().__init__()
+
+        # connect up signals
+        self.customContextMenuRequested.connect( self.tableContextMenu )
+        self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
         self.setShowGrid( False )
 
@@ -448,6 +729,12 @@ class WbChangesTableView(wb_table_view.WbTableView):
         super().focusInEvent( event )
 
         self.main_window.setFocusIsIn( 'changes' )
+
+    def tableContextMenu( self, pos ):
+        self._debug( 'tableContextMenu( %r )' % (pos,) )
+        global_pos = self.viewport().mapToGlobal( pos )
+
+        self.main_window.ui_component.getChangedFilesContextMenu().exec_( global_pos )
 
 class WbGitChangedFilesModel(QtCore.QAbstractTableModel):
     col_action = 0

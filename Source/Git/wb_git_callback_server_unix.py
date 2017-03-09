@@ -1,13 +1,13 @@
 '''
  ====================================================================
- Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
 
  ====================================================================
 
-    wb_git_askpass_server_unix.py
+    wb_git_callback_server_unix.py
 
 '''
 import sys
@@ -28,15 +28,18 @@ import time
 #
 
 
-class WbGitAskPassServer(threading.Thread):
-    fifo_name_client = '.ScmWorkbench.client'
-    fifo_name_server = '.ScmWorkbench.server'
+class WbGitCallbackServer(threading.Thread):
+    fifo_name_client = '.ScmWorkbench.gitCallbackClient'
+    fifo_name_server = '.ScmWorkbench.gitCallbackServer'
 
-    def __init__( self, app, ui_component ):
+    def __init__( self, app ):
         super().__init__()
 
         self.app = app
-        self.ui_component = ui_component
+
+        self.git_credentials_handler = None
+        self.git_rebase_commands_handler = None
+        self.git_editor_text_handler = None
 
         self.setDaemon( 1 )
         self.__run = True
@@ -44,6 +47,15 @@ class WbGitAskPassServer(threading.Thread):
         self.__reply_available = threading.Event()
         self.__reply_code = None
         self.__reply_value = None
+
+    def setCallbackCredentialsHandler( self, handler ):
+        self.git_credentials_handler = handler
+
+    def setCallbackRebaseSequenceHandler( self, handler ):
+        self.git_rebase_commands_handler = handler
+
+    def setCallbackRebaseEditorHandler( self, handler ):
+        self.git_editor_text_handler = handler
 
     def shutdown( self ):
         self.__run = False
@@ -54,12 +66,18 @@ class WbGitAskPassServer(threading.Thread):
 
         self.__reply_available.set()
 
-    def __waitForReply( self, prompt ):
-        self.app.runInForeground( self.ui_component.getGitCredentials, (prompt,) )
+    def __waitForReplyAskPass( self, prompt ):
+        self.git_credentials_handler( prompt )
 
         self.__reply_available.wait()
         self.__reply_available.clear()
         return self.__reply_code, self.__reply_value
+
+    def __waitForReplySequenceEditor( self, filename ):
+        return self.git_rebase_commands_handler( filename )
+
+    def __waitForReplyEditor( self, filename ):
+        return self.git_editor_text_handler( filename )
 
     def run( self ):
         e = pwd.getpwuid( os.geteuid() )
@@ -99,12 +117,23 @@ class WbGitAskPassServer(threading.Thread):
             return
 
         while self.__run:
-            prompt = os.read( fd_server, 1024 )
+            message = os.read( fd_server, 1024 )
 
-            if len(prompt) > 0:
-                prompt = prompt.decode( 'utf-8' )
+            if len(message) > 0:
+                message = message.decode( 'utf-8' )
+                facility, request = message.split( '\0', 1 )
 
-                code, value = self.__waitForReply( prompt )
+                if facility == 'askpass':
+                    code, value = self.__waitForReplyAskPass( request )
+
+                elif facility == 'sequence-editor':
+                    code, value = self.__waitForReplySequenceEditor( request )
+
+                elif facility == 'editor':
+                    code, value = self.__waitForReplyEditor( request )
+
+                else:
+                    code, value = 1, 'Error: server does not support facility %r' % (facility,)
 
                 reply = ('%d%s' % (code, value)).encode( 'utf-8' )
 
@@ -147,7 +176,7 @@ if __name__ == '__main__':
     ui = FakeUiComponent()
 
     print( 'Create server' )
-    server = WbGitAskPassServer( app, ui )
+    server = WbGitCallbackServer( app, ui )
     print( 'Start server' )
     server.start()
 

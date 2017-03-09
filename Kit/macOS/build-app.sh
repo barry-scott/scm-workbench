@@ -87,11 +87,11 @@ rm -rf Resources/lib/python3.5/PyQt5/Qt/translations
 rm -rf Resources/lib/python3.5/PyQt5/Qt/qsci
 
 #
-#   add in the askpass client
+#   add in the git-callback client
 #
-PROG=Resources/scm-workbench-askpass
+PROG=Resources/scm-workbench-git-callback
 echo '#!/usr/bin/python2.7' >${PROG}
-cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_askpass_client_unix.py >>${PROG}
+cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_callback_client_unix.py >>${PROG}
 chmod +x ${PROG}
 unset PROG
 

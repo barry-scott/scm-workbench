@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -10,9 +10,13 @@
     wb_git_project.py
 
 '''
+import sys
+import os
 import pathlib
 
 import wb_annotate_node
+import wb_platform_specific
+import wb_git_callback_server
 
 import git
 import git.exc
@@ -31,6 +35,57 @@ def gitInit( app, progress_handler, wc_path ):
         for line in progress.allErrorLines():
             app.log.error( line )
         return False
+
+__callback_server = None
+git_extra_environ = {}
+def initCallbackServer( app ):
+    global __callback_server
+    assert __callback_server is None, 'Cannot call initCallbackServer twice'
+
+    __callback_server = wb_git_callback_server.WbGitCallbackServer( app )
+
+    devel_fallback = False
+    __callback_server.start()
+    if sys.platform == 'win32':
+        callback  = wb_platform_specific.getAppDir() / 'scm-workbench-git-callback.exe'
+        if not callback.exists():
+            app.log.info( 'Cannot find %s' % (callback,) )
+            # assume in development environment
+            callback = wb_platform_specific.getAppDir() / 'scm-workbench-git-callback.py'
+
+    else:
+        callback = wb_platform_specific.getAppDir() / 'scm-workbench-git-callback'
+
+    if not callback.exists():
+        app.log.error( 'Cannot find %s' % (callback,) )
+        return
+
+    if 'GIT_ASKPASS' in os.environ:
+        app.log.info( "Using user's GIT_ASKPASS program %s" % (os.environ[ 'GIT_ASKPASS' ],) )
+
+    else:
+        git_extra_environ['GIT_ASKPASS'] = '"%s" askpass' % (str(callback),)
+        app.log.info( "Using Workbench's GIT_ASKPASS program" )
+
+    git_extra_environ['GIT_SEQUENCE_EDITOR'] = '"%s" sequence-editor' % (str(callback),)
+    git_extra_environ['GIT_EDITOR'] = '"%s" editor' % (str(callback),)
+    app.log.info( "Setup Workbench's GIT callback program" )
+
+def setCallbackCredentialsHandler( handler ):
+    global __callback_server
+    __callback_server.setCallbackCredentialsHandler( handler )
+
+def setCallbackRebaseSequenceHandler( handler ):
+    global __callback_server
+    __callback_server.setCallbackRebaseSequenceHandler( handler )
+
+def setCallbackRebaseEditorHandler( handler ):
+    global __callback_server
+    __callback_server.setCallbackRebaseEditorHandler( handler )
+
+def setCallbackReply( code, value ):
+    global __callback_server
+    __callback_server.setReply( code, value )
 
 class GitProject:
     def __init__( self, app, prefs_project, ui_components ):
@@ -74,6 +129,7 @@ class GitProject:
         # setup repo on demand
         if self.__repo is None:
             self.__repo = git.Repo( str( self.prefs_project.path ) )
+            self.__repo.git.update_environment( **git_extra_environ )
 
         return self.__repo
 
@@ -412,6 +468,74 @@ class GitProject:
                 self.app.log.error( 'Renamed failed - %s' % (e,) )
 
         self.__stale_index = True
+
+    def cmdRebase( self, commit_id, all_rebase_commands, new_commit_message=None ):
+        all_text = []
+        for command in all_rebase_commands:
+            all_text.append( ' '.join( command ) )
+        all_text.append( '' )
+        rebase_commands = '\n'.join( all_text )
+
+        def rebaseHandler( filename ):
+            if self._debug.isEnabled():
+                with open( filename, 'r', encoding='utf-8' ) as f:
+                    for line in f:
+                        self._debug( 'Old Rebase: %r' % (line,) )
+
+            with open( filename, 'w', encoding='utf-8' ) as f:
+                if self._debug.isEnabled():
+                    for line in all_text:
+                        self._debug( 'New Rebase: %r' %(line,) )
+
+                f.write( rebase_commands )
+
+            return 0, ''
+
+        def newCommitMessage( filename ):
+            if self._debug.isEnabled():
+                with open( filename, 'r', encoding='utf-8' ) as f:
+                    for line in f:
+                        self._debug( 'Old Commit Message: %r' % (line,) )
+
+            with open( filename, 'w', encoding='utf-8' ) as f:
+                if self._debug.isEnabled():
+                    for line in new_commit_message.split('\n'):
+                        self._debug( 'New Commit Message: %r' % (line,) )
+
+                f.write( new_commit_message )
+
+            return 0, ''
+
+        def unexpectedCallback( filename ):
+            return 1, 'Unexpected callback with %r' % (filename,)
+
+        setCallbackRebaseSequenceHandler( rebaseHandler )
+        if new_commit_message is None:
+            setCallbackRebaseEditorHandler( unexpectedCallback )
+        else:
+            setCallbackRebaseEditorHandler( newCommitMessage )
+
+        rc, stdout, stderr = self.repo().git.execute(
+                    ['git', 'rebase', '--interactive', '%s^1' % (commit_id,)],
+                    with_extended_output=True,
+                    with_exceptions=False,
+                    universal_newlines=False,   # GitPython bug will TB if true
+                    stdout_as_string=True )
+        self._debug( 'git rebase --interactive %s -> rc %d' % (commit_id, rc) )
+
+        if rc != 0:
+            # assume need to abort rebase on failure
+            self.repo().git.execute(
+                    ['git', 'rebase', '--abort'],
+                    with_extended_output=True,
+                    with_exceptions=False,
+                    universal_newlines=False,   # GitPython bug will TB if true
+                    stdout_as_string=True )
+
+        setCallbackRebaseSequenceHandler( None )
+        setCallbackRebaseEditorHandler( None )
+
+        return rc, stdout.replace( '\r', '' ).split('\n'), stderr.replace( '\r', '' ).split('\n')
 
     def cmdCreateTag( self, tag_name, ref ):
         self.repo().create_tag( tag_name, ref=ref )
@@ -948,6 +1072,9 @@ class GitCommitLogNode:
 
     def commitMessage( self ):
         return self.__commit.message
+
+    def commitMessageHeadline( self ):
+        return self.__commit.message.split('\n')[0]
 
     def commitFileChanges( self ):
         return self.__all_changes

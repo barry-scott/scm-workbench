@@ -127,7 +127,7 @@ class WbGridLayout(QtWidgets.QGridLayout):
         self.addWidget( name, self.rowCount(), 0, 1, 2 )
 
     def addRow( self, label, value, button=None, min_width=None ):
-        if not isinstance( label, QtWidgets.QWidget ):
+        if label is not None and not isinstance( label, QtWidgets.QWidget ):
             label = QtWidgets.QLabel( label )
 
         if not isinstance( value, QtWidgets.QWidget ):
@@ -139,9 +139,17 @@ class WbGridLayout(QtWidgets.QGridLayout):
 
         row = self.rowCount()
 
-        self.addWidget( label, row, 0 )
+        if label is not None:
+            self.addWidget( label, row, 0 )
+            col_start = 1
+            col_span = 1
+
+        else:
+            col_start = 0
+            col_span = 2
+
         if button is None:
-            self.addWidget( value, row, 1, 1, 2 )
+            self.addWidget( value, row, col_start, 1, col_span )
 
         else:
             self.addWidget( value, row, 1 )

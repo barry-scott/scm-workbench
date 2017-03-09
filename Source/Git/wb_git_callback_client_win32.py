@@ -1,13 +1,13 @@
 '''
  ====================================================================
- Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
 
  ====================================================================
 
-    wb_git_askpass_client_win32.py
+    wb_git_callback_client_win32.py
 
     called with argv[1:] as the prompt
     expects a single line output as response.
@@ -17,20 +17,41 @@ import sys
 import os
 import ctypes
 
-class WbGitAskPass:
+class WbGitcallback:
     def __init__( self ):
-        self.pipe_name = r'\\.\pipe\SCM Workbench AskPass'
+        self.pipe_name = r'\\.\pipe\SCM Workbench GIT callback'
+
+    def callback( self, argv ):
+        if argv[1] == 'askpass':
+            return self.askPass( argv[2] )
+
+        elif argv[1] == 'editor':
+            return self.editor( argv[2] )
+
+        elif argv[1] == 'sequence-editor':
+            return self.sequenceEditor( argv[2] )
+
+        else:
+            print( 'Error: Unknown callback command: %r' % (argv[1:],) )
+            return 1
 
     def askPass( self, prompt ):
-        prompt = prompt.encode( 'utf-8' )
+        rc, reply = self.callback( 'askpass', prompt )
+        if reply is not None:
+            print( reply )
+        return rc
+
+    def callback( self, facility, request ):
+        message = '%s\0%s' % (facility, request)
+        message = message.encode( 'utf-8' )
 
         buf_size = ctypes.c_int( 256 )
         buf_result = ctypes.create_string_buffer( buf_size.value )
 
         rc = ctypes.windll.kernel32.CallNamedPipeW(
                 self.pipe_name,
-                prompt,
-                len(prompt),
+                request,
+                len(request),
                 buf_result,
                 buf_size,
                 ctypes.byref( buf_size ),
@@ -42,16 +63,14 @@ class WbGitAskPass:
                 return None
 
             errmsg  = self.__getErrorMessage( err )
-            with open( os.path.join( os.environ['USERPROFILE'], 'wb_scm_askpass.log' ), 'a' ) as f:
+            with open( os.path.join( os.environ['USERPROFILE'], 'wb_scm_git_callback.log' ), 'a' ) as f:
                 f.write( 'Error: CallNamedPipeA rc=%d err=%d errmsg=%r\n' % (rc, err, errmsg) )
 
-            return 1
+            return 1, None
 
         else:
             reply = buf_result.raw[:buf_size.value].decode( 'utf-8' )
-
-            print( reply[1:] )
-            return int(reply[0])
+            return int(reply[0]), reply[1:]
 
     def __getErrorMessage( self, err ):
         FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000
@@ -75,4 +94,4 @@ class WbGitAskPass:
         return errmsg.value
 
 if __name__ == '__main__':
-    sys.exit( WbGitAskPass().askPass( sys.argv[1] ) )
+    sys.exit( WbGitcallback().callback( argv ) )

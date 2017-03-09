@@ -25,9 +25,9 @@ cat ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_main.py >>${PROG}
 chmod +x ${PROG}
 unset PROG
 
-PROG=${BUILD_ROOT}${BIN}/scm-workbench-askpass
+PROG=${BUILD_ROOT}${BIN}/scm-workbench-git-callback
 echo '#!/usr/bin/python3' >${PROG}
-cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_askpass_client_unix.py >>${PROG}
+cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_callback_client_unix.py >>${PROG}
 chmod +x ${PROG}
 unset PROG
 

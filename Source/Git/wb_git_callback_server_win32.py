@@ -1,13 +1,13 @@
 '''
  ====================================================================
- Copyright (c) 2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2016-2017 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
 
  ====================================================================
 
-    wb_git_askpass_server_win32.py
+    wb_git_callback_server_win32.py
 
 '''
 import sys
@@ -26,22 +26,34 @@ INFINITE = -1
 ERROR_PIPE_CONNECTED = 535
 WAIT_OBJECT_0 = 0
 
-class WbGitAskPassServer(threading.Thread):
-    def __init__( self, app, ui_component ):
+class WbGitCallbackServer(threading.Thread):
+    def __init__( self, app ):
         super().__init__()
 
         self.app = app
-        self.ui_component = ui_component
+
+        self.git_credentials_handler = None
+        self.git_rebase_commands_handler = None
+        self.git_editor_text_handler = None
 
         self.setDaemon( 1 )
         self.running = 1
 
-        self.pipe_name = r'\\.\pipe\SCM workbench AskPass'
+        self.pipe_name = r'\\.\pipe\SCM workbench GIT callback'
 
         self.__thread = None
         self.__h_wait_stop = None
         self.__h_wait_reply = None
         self.__overlapped = None
+
+    def setCallbackCredentialsHandler( self, handler ):
+        self.git_credentials_handler = handler
+
+    def setCallbackRebaseSequenceHandler( self, handler ):
+        self.git_rebase_commands_handler = handler
+
+    def setCallbackRebaseEditorHandler( self, handler ):
+        self.git_editor_text_handler = handler
 
     def shutdown( self ):
         ctypes.windll.kernel32.SetEvent( self.__h_wait_stop )
@@ -110,13 +122,25 @@ class WbGitAskPassServer(threading.Thread):
                 buf_size = ctypes.c_uint( 256 )
                 buf_client = ctypes.create_string_buffer( buf_size.value )
                 hr = ctypes.windll.kernel32.ReadFile( h_pipe, buf_client, buf_size, ctypes.byref( buf_size ), None )
-                prompt = buf_client.raw[:buf_size.value].decode( 'utf-8' )
+                message = buf_client.raw[:buf_size.value].decode( 'utf-8' )
+                facility, request = message.split( '\0' )
 
                 reply = ctypes.create_string_buffer( 256 )
 
-                state, answer = self.__waitForReply( prompt )
+                if facility == 'askpass':
+                    code, value = self.__waitForReplyAskPass( request )
 
-                reply.value = ('%d%s' % (state, answer)).encode( 'utf-8' )
+                elif facility == 'sequence-editor':
+                    code, value = self.__waitForReplySequenceEditor( request )
+
+                elif facility == 'editor':
+                    code, value = self.__waitForReplyEditor( request )
+
+                else:
+                    code = 1, 'Error: server does not support facility %r' % (facility,)
+
+
+                reply.value = ('%d%s' % (code, answer)).encode( 'utf-8' )
                 reply_size = ctypes.c_uint( len( reply.value ) )
 
                 hr = ctypes.windll.kernel32.WriteFile( h_pipe, reply, reply_size, ctypes.byref( reply_size ), None )
@@ -130,8 +154,8 @@ class WbGitAskPassServer(threading.Thread):
         wait_handles = wait_handles_t( *all_handles )
         return ctypes.windll.kernel32.WaitForMultipleObjects( num_handles, ctypes.byref( wait_handles ), 0, INFINITE )
 
-    def __waitForReply( self, prompt ):
-        self.app.runInForeground( self.ui_component.getGitCredentials, (prompt,) )
+    def __waitForReplyAskPass( self, prompt ):
+        self.git_credentials_handler( prompt )
 
         rc = self.__waitForMultipleObjects( (self.__h_wait_reply,) )
         if rc == WAIT_OBJECT_0:
@@ -140,6 +164,12 @@ class WbGitAskPassServer(threading.Thread):
         else:
             self.app.log.error( 'WaitForMultipleObjects returned 0x%x' % (rc,) )
             return 1, ''
+
+    def __waitForReplySequenceEditor( self, filename ):
+        return self.git_rebase_commands_handler( filename )
+
+    def __waitForReplyEditor( self, filename ):
+        return self.git_editor_text_handler( filename )
 
     def __getLastErrorMessage( self ):
         err = ctypes.windll.kernel32.GetLastError()

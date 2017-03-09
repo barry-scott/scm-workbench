@@ -766,6 +766,9 @@ class HgCommitLogNode:
     def commitMessage( self ):
         return self.__commit.message
 
+    def commitMessageHeadline( self ):
+        return self.__commit.message.split('\n')[0]
+
     def commitFileChanges( self ):
         return self.__all_changes
 

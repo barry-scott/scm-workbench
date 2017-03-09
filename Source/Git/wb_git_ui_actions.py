@@ -339,7 +339,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 self.deferRunInForeground( self.pullInfoHandler ) )
 
             for commit in git_project.cmdCommitLogAfterCommitId( commit_id ):
-                self.log.info( 'pulled "%s" id %s' % (commit.commitMessage().split('\n')[0], commit.commitIdString()) )
+                self.log.info( 'pulled "%s" id %s' % (commit.commitMessageHeadline(), commit.commitIdString()) )
 
         except wb_git_project.GitCommandError as e:
             self.__logGitCommandError( e )

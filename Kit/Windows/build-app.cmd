@@ -50,7 +50,7 @@ pushd %SRC_DIR%\Scm
     if errorlevel 1 goto :error
 popd >NUL
 pushd %SRC_DIR%\Git
-%PYTHON% -m win_app_packager build wb_git_askpass_client_win32.py --cli %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM-Workbench-AskPass" --merge %VERBOSE%
+%PYTHON% -m win_app_packager build wb_git_callback_client_win32.py --cli %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM-Workbench-Git-Callback" --merge %VERBOSE%
     if errorlevel 1 goto :error
 popd >NUL
 
