@@ -461,7 +461,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     #------------------------------------------------------------
     def enablerTableGitRebaseDrop( self ):
         return (self.isRebasePossible()
-                and len(self.current_commit_selections) > 1)
+                and len(self.current_commit_selections) >= 1)
 
     @thread_switcher
     def tableActionGitRebaseDrop( self, checked=None ):
