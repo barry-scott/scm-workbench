@@ -55,7 +55,7 @@ def getLocalePath():
     return getAppDir() / 'locale'
 
 def getDocUserGuide():
-    return pathlib.Path( doc_dir ) / 'emacs-documentation.html'
+    return pathlib.Path( doc_dir ) / 'scm-workbench.html'
 
 def getNullDevice():
     return pathlib.Path( '/dev/null' )
