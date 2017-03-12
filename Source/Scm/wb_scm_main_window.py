@@ -531,7 +531,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def appActionUserGuide( self ):
         user_guide = wb_platform_specific.getDocUserGuide()
         if not user_guide.exists():
-            self.log.error( 'Expected user guide %r to exist' % (user_guide,) )
+            self.log.error( 'Expected user guide %s to exist' % (user_guide,) )
             return
 
         # replace \ on windows with / for a good URL.
