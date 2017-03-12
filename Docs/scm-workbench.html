@@ -1,4 +1,4 @@
-?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -96,7 +96,7 @@ Hg using program /usr/bin/hg
 Git using program /usr/bin/git
 </pre>
 
-<p>More details, like version information, is shown in the <tt>Help</tt> » <tt>About…</tt> <a href="#help_about">menu</a>.
+<p>More details, like version information, is shown in the <tt>Help</tt> » <tt>About…</tt> <a href="#help_about">menu</a>.</p>
 
 <h4>Subversion (svn)</h4>
 <p>Subversion is always supported by the builtin pysvn code.</p>
@@ -151,7 +151,7 @@ a file and folder explorer.
 
 <p>Use the left hand tree control to change between projects and folders and
 use the right hand list control to work with files. You can change the information
-shown using the <a href="#menu_view">View</a> menu>.
+shown using the <a href="#menu_view">View</a> menu.
 </p>
 
 <p>The bottom panel is used to show messages. In the example below the result of
@@ -197,8 +197,8 @@ push and checkin commands.</p>
     <div class="menu_dropdown">
     <table><!-- File -->
     <tr><td><a href="#file_preferences">Preferences…</a></td></tr>
-    <tr><td><a href="#file_view_log">View Log</td></a></tr>
-    <tr><td><a href="#file_exit">Exit</td></a></tr>
+    <tr><td><a href="#file_view_log">View Log</a></td></tr>
+    <tr><td><a href="#file_exit">Exit</a></td></tr>
     </table></div></td>
 <td valign="top">
     <div class="menu_dropdown">
@@ -230,13 +230,13 @@ push and checkin commands.</p>
     <tr><td><a href="#project_settings">Settings…</a></td></tr>
     <tr><td><hr /></td></tr>
     <tr><td><a href="#project_delete">Delete…</a></td></tr>
-    </table></td>
+    </table></div></td>
 <td valign="top">
     <div class="menu_dropdown">
     <table><!-- Help -->
     <tr><td><a href="#help_about">About…</a></td></tr>
     </table></div></td>
-</table>
+</tr></table>
 <figcaption>Common menus.</figcaption>
 </figure>
 
@@ -375,9 +375,9 @@ The Browse button pops up a file picker dialog to help locate the editor program
 The available choices depend on your operating system:
 </p>
 <ul>
-<li>Windows: CMD, PowerShell and bash
-<li>macOS: Terminal and iTerm V2
-<li>Unix (Linux, *BSD, etc): konsole, gnome-terminal, xfce4-terminal and xterm
+<li>Windows: CMD, PowerShell and bash</li>
+<li>macOS: Terminal and iTerm</li>
+<li>Unix (Linux, *BSD, etc): konsole, gnome-terminal, xfce4-terminal and xterm</li>
 </ul>
 
 <p>The optional "Terminal Init Command" will be run each time a new Command Shell is created.
@@ -388,14 +388,14 @@ For Unix and macOS the terminal init command it sourced into the shell, which al
 The available choices depend on your operating system:
 </p>
 <ul>
-<li>Windows: Explorer
-<li>Mac OS X: Finder
-<li>Unix (Linux, *BSD, etc): nautilus, konqueror, thunar and dolphin
+<li>Windows: Explorer</li>
+<li>Mac OS X: Finder</li>
+<li>Unix (Linux, *BSD, etc): nautilus, konqueror, thunar and dolphin</li>
 </ul>
 
-<h5>Log History preferences</h5>
+<h5>Commit Log History preferences</h5>
 <figure>
-    <img src="scm-workbench_files/wb_prefs_log_history.png" />
+    <img src="scm-workbench_files/wb_prefs_commit_log_history.png" />
     <figcaption>Log history Preferences</figcaption>
 </figure>
 
@@ -473,47 +473,69 @@ list panel. Ignored files are configured in the project specific config file: .g
 <h3><a href="#menus">Menu:</a> <a name="menu_project">Project</a></h3>
 <h4><a name="project_add"><a href="#menus">Menu:</a> <a href="#menu_project">Project</a> » Add…</a></h4>
 
-<p>The Add Project wizard guides you to add an <a href="#project_add_existing">existing working copy</a> 
-to Work Bench or create a <a href="#project_add_new">new working copy</a>.
-</p>
+<p>The Add Project wizard guides you through the step necessary to add a project to SCM Workbench.</p>
 
-<ul>
-<li><a name="project_add_existing">Use existing working copy:</a></li>
-<ol>
+<figure>
+    <img src="scm-workbench_files/wb_project_add_methods.png" />
+    <figcaption>Add project methods</figcaption>
+</figure>
 
-<li><p>To use a existing working copy click the corresponding radio button and click Next.
-<img src="scm-workbench_files/wb_project_add_start_existing.png" />
-</p>
-</li>
+<p>Choose how you wish to add a project.</p>
+<p>Note: The Git and Mercurial options will only appear it SCM WOrkbench found the git and hg commands.</p>
 
-<li><p>Enter the path to the working copy. Use the Browse button to choose using a folder picker dialog.
-</p>
-<p>The repository URL will be shown when you have entered the path to a working copy.
-</p>
-<p>Click Next to proceed.
-</p>
-<p>
-<img src="scm-workbench_files/wb_project_add_select_wc.png" />
-</p>
-</li>
 
-<li><p>Enter the name that you want Work Bench to use for this project.
-<p>Click Finish to complete adding the project.
-</p>
-<p><img src="scm-workbench_files/wb_project_add_project_name.png" />
-</p>
-</li>
+<h5>Scan for existing projects</h5>
 
-</ol>
-<li><a name="project_add_new">Create new working copy:</a></li>
-<ol>
-<li><p>To create a new working copy click the corresponding radio button and click Next.
-</p>
-<p><img src="scm-workbench_files/wb_project_add_start_existing.png" />
-</p>
-</li>
+<figure>
+    <img src="scm-workbench_files/wb_project_add_scan_results.png" />
+    <figcaption>Scan for existing projects</figcaption>
+</figure>
 
-<li><p>Enter the URL of the Subversion repository. The URL is typically
+<p>Workbench will start scanning from your home folder ($HOME on macOS and Unix, %USERPROFILE% on Windows) looking for projects.</p>
+
+<p>The list only contains projects that have not been already added to Workbench.</p>
+
+<p>Each entry in the list is the folder on disk prefixed with the type of SCM that supported it.</p>
+
+<p>Once you see the project you want to add highlight it and click Next which will
+take you to the wizard page to set the project's name.
+You do not have to wait for the scan to complete.</p>
+
+<h5>Browse for an existing project</h5>
+
+<figure>
+    <img src="scm-workbench_files/wb_project_add_browse_existing.png" />
+    <figcaption>Browse for an existing project</figcaption>
+</figure>
+
+<p>Enter the path to the project that you wish to add.
+The Browse button pops up a file picker dialog to help locate the project.</p>
+
+<p>If there is a problem with the path you will see feedback on the wizard page.</p>
+
+<h5>Clone Git repository</h5>
+
+<figure>
+    <img src="scm-workbench_files/wb_project_add_clone_git.png" />
+    <figcaption>Clone Git repository</figcaption>
+</figure>
+
+<h5>Clone Mercurial (hg) repository</h5>
+
+<figure>
+    <img src="scm-workbench_files/wb_project_add_clone_hg.png" />
+    <figcaption>Clone Hg repository</figcaption>
+</figure>
+
+
+<h5>Checkout Subversion (svn) repository</h5>
+
+<figure>
+    <img src="scm-workbench_files/wb_project_add_clone_svn.png" />
+    <figcaption>Checkout svn repository</figcaption>
+</figure>
+
+<p>Enter the URL of the Subversion repository. The URL is typically
 publish by the Subversion repository administrators. 
 </p>
 
@@ -521,32 +543,42 @@ publish by the Subversion repository administrators.
 repository.
 </p>
 
-<p>
-<img src="scm-workbench_files/wb_project_add_url.png" />
-</p>
-</li>
 
-<li><p>Enter the path of the new working copy. Use the Browse button to choose using a folder picker dialog.
-</p>
-<p>Click Next to proceed.
-</p>
+<h5>Create an empty Git repository</h5>
 
-<p>
-<img src="scm-workbench_files/wb_project_add_new_wc.png" />
-</p>
-</li>
-
-<li><p>Enter the name that you want Work Bench to use for this project.
-<p>Click Finish to complete adding the project.
-</p>
-<p><img src="scm-workbench_files/wb_project_add_project_name_new.png" />
-</p>
-</li>
+<figure>
+    <img src="scm-workbench_files/wb_project_add_init_git.png" />
+    <figcaption>Init empty Git repository</figcaption>
+</figure>
 
 
-</ol>
-</ul>
+<h5>Create an empty Mercurial (hg) repository</h5>
 
+<figure>
+    <img src="scm-workbench_files/wb_project_add_init_hg.png" />
+    <figcaption>Init empty Hg repository</figcaption>
+</figure>
+
+<h5>Project Folder</h5>
+
+<figure>
+    <img src="scm-workbench_files/wb_project_add_project_folder.png" />
+    <figcaption>Project Folder location</figcaption>
+</figure>
+
+<p>Enter the path where you want Workbench to store the project files.
+The Browse button pops up a file picker dialog to help choose the location.
+</p>
+
+<h5>Project Name</h5>
+
+<figure>
+    <img src="scm-workbench_files/wb_project_add_project_name.png" />
+    <figcaption>Name the project</figcaption>
+</figure>
+
+<p>Enter the name that you want Workbench to use for this project.</p>
+<p>Click Finish to complete adding the project.</p>
 
 <h4><a name="project_settings"><a href="#menus">Menu:</a> <a href="#menu_project">Project</a> » Settings…</a></h4>
 
@@ -598,7 +630,7 @@ repository.
 <p>Start a command shell which has the selected folder as its current working directory.
 </p>
 
-<p>The <A href="#file_preferences">Preferences</a> allow you to customise how the Command Shell command works.
+<p>The <a href="#file_preferences">Preferences</a> allow you to customise how the Command Shell command works.
 </p>
 
 <h4><a name="action_file_browser"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » File Browser</a></h4>
@@ -606,12 +638,12 @@ repository.
 <p>Start a file browser at the selected folder.
 </p>
 
-<p>The <A href="#file_preferences">Preferences</a> allow you to customise how the File Browser command works.
+<p>The <a href="#file_preferences">Preferences</a> allow you to customise how the File Browser command works.
 </p>
 
 <h4><a name="action_edit"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Edit</a></h4>
 
-<p>Edit the selected file using the editor configured in the <A href="#file_preferences">Preferences</a>.
+<p>Edit the selected file using the editor configured in the <a href="#file_preferences">Preferences</a>.
 </p>
 
 <h4><a name="action_open"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Open</a></h4>
@@ -655,7 +687,7 @@ against your version.
 <p>
 Show the differences between the selected files and their versions at the point this branch was made.
 In other words show the work that has been done in this branch.
-<br>
+<br />
 An error message is displayed if the active project is not associated with a branch.
 </p>
 
@@ -663,7 +695,7 @@ An error message is displayed if the active project is not associated with a bra
 
 <p>
 Show the differences between the selected files and their latest versions in the main line of development this branch was copied from.
-<br>
+<br/>
 An error message is displayed if the active project is not associated with a branch.
 </p>
 
@@ -707,7 +739,7 @@ line in the file. For each line the author, date and revision is listed.
 a file.
 </p>
 
-<h4><a name="action_log_history"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Log history…</a></h4>
+<h4><a name="action_log_history"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Log history…</a></h4>
 
 <p>List the log history of the selected files or folder. You can choose to
 show all the log messages, the last few messages or the messages since a particular
@@ -732,7 +764,7 @@ differences between your copy of the file and the choosen revision.
 between the pair of selected revisitions.
 </p>
 
-<h4><a name="action_information"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Information…</a></h4>
+<h4><a name="action_information"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Information…</a></h4>
 
 <p>Show information about the selected files or folder. The information about the
 entry, any lock held and working copy details.
@@ -742,7 +774,7 @@ entry, any lock held and working copy details.
 <p><img src="scm-workbench_files/wb_info_dialog.png" />
 </p>
 
-<h4><a name="action_properties"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Properties…</a></h4>
+<h4><a name="action_properties"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Properties…</a></h4>
 
 <p>Show the Subversion properties of the selected files or folder.
 </p>
@@ -760,7 +792,7 @@ your own property and value.
 </p>
 
 
-<h4><a name="action_update"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Update</a></h4>
+<h4><a name="action_update"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Update</a></h4>
 
 <p>Update the selected files or folder from the Subversion repository.
 The update will proceed in the background allowing you to do something else in Work Bench.
@@ -769,12 +801,12 @@ The update will proceed in the background allowing you to do something else in W
 <p>The status bar will show the progress of the update.
 </p>
 
-<h4><a name="action_checkout"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Checkout</a></h4>
+<h4><a name="action_checkout"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Checkout</a></h4>
 
 <p>Checkout files and folders from the repository to populate the working copy.
 </p>
 
-<h4><a name="action_checkin"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Checkin…</a></h4>
+<h4><a name="action_checkin"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Checkin…</a></h4>
 
 <p>Search the selected files or folder for changes to checkin and display the
 results in a Checkin Window.
@@ -783,7 +815,7 @@ results in a Checkin Window.
 <p>This is the same Checkin window is described that the Report Changes command creates.
 </p>
 
-<h4><a name="action_lock"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Lock…</a></h4>
+<h4><a name="action_lock"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Lock…</a></h4>
 
 <p>Take out a lock against the selected files. The dialog box allows
 a lock comment to be entered. If the lock is already held by another
@@ -791,14 +823,14 @@ user and you wish to override the other users lock check the Force
 option.
 </p>
 
-<h4><a name="action_unlock"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Unlock…</a></h4>
+<h4><a name="action_unlock"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Unlock…</a></h4>
 
 <p>Revoke a lock against the selected files. The dialog box allows you
 to confirm that you wish to unlock the file. You can unlock a file that
 is locked by another user by checking the Force option.
 </p>
 
-<h4><a name="action_new_file"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> New File…</a></h4>
+<h4><a name="action_new_file"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » New File…</a></h4>
 
 <p>Pop up a dialog that allows you to name a new file and choose a template to initialised it from.
 </p>
@@ -806,7 +838,7 @@ is locked by another user by checking the Force option.
 <p>The new file is scheduler for addition to the repository.
 </p>
 
-<h4><a name="action_make_directory"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Make directory…</a></h4>
+<h4><a name="action_make_directory"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Make directory…</a></h4>
 
 <p>Pop up a dialog that allows you to name a new directory.
 </p>
@@ -814,7 +846,7 @@ is locked by another user by checking the Force option.
 <p>The new directory is scheduler for addition to the repository.
 </p>
 
-<h4><a name="action_add"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Add</a></h4>
+<h4><a name="action_add"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Add</a></h4>
 
 <p>Schedule the selected files or folder to be added to the repository.
 </p>
@@ -823,7 +855,7 @@ is locked by another user by checking the Force option.
 Use force to override some of the checks Subversion makes and allow the addition to proceed.
 </p>
 
-<h4><a name="action_rename"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Rename</a></h4>
+<h4><a name="action_rename"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Rename</a></h4>
 
 <p>The Rename command can work on controlled and uncontrolled files.
 </p>
@@ -834,7 +866,7 @@ Use force to override some of the checks Subversion makes and allow the addition
 <p>Work Bench can rename controlled files that have been added or modified.
 </p>
 
-<h4><a name="action_delete"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Delete…</a></h4>
+<h4><a name="action_delete"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Delete…</a></h4>
 
 <p>The Delete command can work on controlled and uncontrolled files.
 </p>
@@ -845,7 +877,7 @@ Use force to override some of the checks Subversion makes and allow the addition
 <p>A dialog pops up to confirm the deletion.
 </p>
 
-<h4><a name="action_revert"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Revert…</a></h4>
+<h4><a name="action_revert"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Revert…</a></h4>
 
 <p>The Revert command allows you to undo additions and modification to files.
 </p>
@@ -856,7 +888,7 @@ Use force to override some of the checks Subversion makes and allow the addition
 <p>A dialog pops up to confirm the revertion.
 </p>
 
-<h4><a name="action_clean_up"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Clean up</a></h4>
+<h4><a name="action_clean_up"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Clean up</a></h4>
 
 <p>If Work Bench or a Subversion command did not complete it is possible to leave the working copy in a locked
 state (state L).
@@ -866,7 +898,7 @@ state (state L).
 unfinished operations.
 </p>
 
-<h4><a name="action_create_tag"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Create tag…</a></h4>
+<h4><a name="action_create_tag"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Create tag…</a></h4>
 
 <p>Create a tag of the current folder in the project's tags folder.</p>
 
@@ -874,7 +906,7 @@ unfinished operations.
 <tt>Projects</tt> menu <a href="#project_update">Update project…</a> dialog.
 </p>
 
-<h4><a name="action_create_tag"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> »</a> Create branch…</a></h4>
+<h4><a name="action_create_tag"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Create branch…</a></h4>
 
 <p>Create a branch of the current folder in the project's branches folder.</p>
 
@@ -944,7 +976,7 @@ changes.</p>
 
 <p>
 Creates a list of all changes in and below the current folder that were made in the current branch.
-<br>
+<br/>
 An error message is displayed if the active project is not associated with a branch or if no
 changes were made to that branch in or below the current folder.
 </p>
