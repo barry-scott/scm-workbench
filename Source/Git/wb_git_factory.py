@@ -167,6 +167,7 @@ class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         self.url_upstream.textChanged.connect( self._fieldsChanged )
 
         self.setup_upstream.stateChanged.connect( self.url_upstream.setEnabled )
+        self.setup_upstream.stateChanged.connect( self._fieldsChanged )
 
         #------------------------------------------------------------
         self.pull_rebase = QtWidgets.QCheckBox( T_('git pull --rebase') )
