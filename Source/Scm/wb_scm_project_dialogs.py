@@ -254,8 +254,9 @@ class WbWizardPage(QtWidgets.QWizardPage):
         self.feedback.setObjectName( 'feedback' )
         self.feedback.setReadOnly( True )
         line_spacing = self.feedback.fontMetrics().lineSpacing()
-        self.feedback.setMinimumHeight( 2*line_spacing )
-        self.feedback.setMaximumHeight( 2*line_spacing )
+        # why do we need 4 times for 2 lines?
+        self.feedback.setMinimumHeight( 4*line_spacing )
+        self.feedback.setMaximumHeight( 4*line_spacing )
 
         self.grid_layout = wb_dialog_bases.WbGridLayout()
         self.setLayout( self.grid_layout )
