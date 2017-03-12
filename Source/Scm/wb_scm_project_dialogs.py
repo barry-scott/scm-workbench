@@ -193,13 +193,6 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
         self.setTitle( T_('Add Project') )
         self.setSubTitle( T_('Where is the Project?') )
 
-        self.radio_git_init = QtWidgets.QRadioButton(  )
-        self.radio_hg_init = QtWidgets.QRadioButton(  )
-
-        self.radio_git_clone = QtWidgets.QRadioButton(  )
-        self.radio_hg_clone = QtWidgets.QRadioButton(  )
-        self.radio_svn_checkout = QtWidgets.QRadioButton(  )
-
         self.radio_browse_existing = QtWidgets.QRadioButton( T_('Browse for an existing project') )
         self.radio_scan_for_existing = QtWidgets.QRadioButton( T_('Scan for existing projects') )
 
