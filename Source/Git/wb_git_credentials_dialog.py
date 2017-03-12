@@ -22,7 +22,7 @@ class WbGitCredentialsDialog(wb_dialog_bases.WbDialog):
 
         super().__init__( parent )
 
-        self.setWindowTitle( T_('Git Credentials') )
+        self.setWindowTitle( T_('Git Credentials - %s') % (' '.join( app.app_name_parts ),) )
 
         self.url = QtWidgets.QLabel()
         self.username = QtWidgets.QLineEdit()

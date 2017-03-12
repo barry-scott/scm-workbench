@@ -94,7 +94,7 @@ class WbTagNameDialog(wb_dialog_bases.WbDialog):
 
         super().__init__( parent )
 
-        self.setWindowTitle( T_('Add Tag') )
+        self.setWindowTitle( T_('Add Git Tag - %s') % (' '.join( app.app_name_parts ),) )
 
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )

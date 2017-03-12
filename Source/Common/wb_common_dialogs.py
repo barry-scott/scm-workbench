@@ -24,7 +24,7 @@ class WbRenameFilenameDialog(wb_dialog_bases.WbDialog):
 
         super().__init__( parent )
 
-        self.setWindowTitle( T_('Rename') )
+        self.setWindowTitle( T_('Rename - %s') % (' '.join( app.app_name_parts ),) )
 
         self.old_name = None
 
@@ -63,7 +63,7 @@ class WbNewFolderDialog(wb_dialog_bases.WbDialog):
 
         super().__init__( parent )
 
-        self.setWindowTitle( T_('New Folder') )
+        self.setWindowTitle( T_('New Folder - %s') % (' '.join( app.app_name_parts ),) )
 
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )

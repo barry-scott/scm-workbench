@@ -90,7 +90,9 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.ui_component = GitCommitWindowComponents( self.app.getScmFactory( 'git' ) )
 
-        self.setWindowTitle( T_('Commit %s') % (git_project.projectName(),) )
+        self.setWindowTitle( T_('Commit %(project_name)s - %(app_name)s') %
+                                    {'project_name': git_project.projectName()
+                                    ,'app_name': ' '.join( app.app_name_parts )} )
         self.setWindowIcon( self.app.getAppQIcon() )
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model

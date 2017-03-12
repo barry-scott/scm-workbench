@@ -81,7 +81,9 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
         self.ui_component = HgCommitWindowComponents( self.app.getScmFactory( 'hg' ) )
 
-        self.setWindowTitle( T_('Commit %s') % (hg_project.projectName(),) )
+        self.setWindowTitle( T_('Commit %(project_name)s - %(app_name)s') %
+                                {'project_name': hg_project.projectName()
+                                ,'app_name': ' '.join( app.app_name_parts )} )
         self.setWindowIcon( self.app.getAppQIcon() )
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model

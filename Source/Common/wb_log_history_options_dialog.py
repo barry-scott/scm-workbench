@@ -30,6 +30,8 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
 
         super().__init__( parent )
 
+        self.setWindowTitle( T_('Commit Log History Options - %s') % (' '.join( app.app_name_parts ),) )
+
         self.use_limit = QtWidgets.QCheckBox( T_('Show only') )
         self.use_until = QtWidgets.QCheckBox( T_('Show Until') )
         self.use_since = QtWidgets.QCheckBox( T_('Show Since') )

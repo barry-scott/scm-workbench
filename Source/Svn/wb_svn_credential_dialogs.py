@@ -17,10 +17,10 @@ from PyQt5 import QtCore
 import wb_dialog_bases
 
 class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
-    def __init__( self, parent, realm, username, may_save ):
+    def __init__( self, app, parent, realm, username, may_save ):
         super().__init__( parent )
 
-        self.setWindowTitle( T_('SVN Credentials') )
+        self.setWindowTitle( T_('Svn Credentials - %s') % (' '.join( app.app_name_parts ),) )
 
         self.username = QtWidgets.QLineEdit( username )
         self.password = QtWidgets.QLineEdit()

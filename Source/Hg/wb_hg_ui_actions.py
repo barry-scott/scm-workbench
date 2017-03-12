@@ -308,7 +308,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return ''
 
         if not self.__hg_credential_cache.hasCredentials( url ):
-            dialog = wb_hg_credential_dialogs.WbHgGetLoginDialog( self.main_window, url, realm )
+            dialog = wb_hg_credential_dialogs.WbHgGetLoginDialog( self.app, self.main_window, url, realm )
             if not dialog.exec_():
                 return ''
 

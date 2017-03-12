@@ -29,6 +29,8 @@ class WbScmPreferencesDialog(wb_dialog_bases.WbTabbedDialog):
 
         super().__init__( parent=parent, size=(75, 20) )
 
+        self.setWindowTitle( T_('Preferences - %s') % (' '.join( app.app_name_parts ),) )
+
     def completeTabsInit( self ):
         self.tabs = QtWidgets.QTabWidget()
         for tab_class in (ProjectsTab, EditorTab, ShellTab, LogHistoryTab, FontTab):
@@ -56,8 +58,7 @@ class ProjectsTab(wb_dialog_bases.WbTabBase):
         if self.prefs.new_projects_folder is not None:
             self.new_projects_folder.setText( str(self.prefs.new_projects_folder) )
 
-        else:
-            # show the default
+        else:            # show the default
             self.new_projects_folder.setText( str(wb_platform_specific.getHomeFolder()) )
 
         self.browse_folder = QtWidgets.QPushButton( T_('Browse...') )
@@ -148,7 +149,7 @@ class ShellTab(wb_dialog_bases.WbTabBase):
 
 class LogHistoryTab(wb_dialog_bases.WbTabBase):
     def __init__( self, app ):
-        super().__init__( app, T_('Log History') )
+        super().__init__( app, T_('Commit Log History - %s') % (' '.join( app.app_name_parts ),) )
 
         if self.app is None:
             self.prefs = None

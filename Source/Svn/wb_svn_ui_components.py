@@ -201,7 +201,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     def svnGetLogin( self, realm, username, may_save ):
         # used as a pysvn callback for callback_get_login
-        dialog = wb_svn_credential_dialogs.WbSvnGetLoginDialog( self.app.top_window, realm, username, may_save )
+        dialog = wb_svn_credential_dialogs.WbSvnGetLoginDialog( self.app, self.app.top_window, realm, username, may_save )
         if dialog.exec_():
             return  (True
                     ,dialog.getUsername()

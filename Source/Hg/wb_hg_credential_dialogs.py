@@ -17,10 +17,10 @@ from PyQt5 import QtCore
 import wb_dialog_bases
 
 class WbHgGetLoginDialog(wb_dialog_bases.WbDialog):
-    def __init__( self, parent, url, realm ):
+    def __init__( self, app, parent, url, realm ):
         super().__init__( parent )
 
-        self.setWindowTitle( T_('Mercurial Credentials') )
+        self.setWindowTitle( T_('Mercurial Credentials - %s') % (' '.join( app.app_name_parts ),) )
 
         self.username = QtWidgets.QLineEdit( '' )
         self.password = QtWidgets.QLineEdit()

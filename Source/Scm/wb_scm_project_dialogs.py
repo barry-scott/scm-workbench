@@ -34,6 +34,8 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.all_factories = app.all_factories
         super().__init__()
 
+        self.setWindowTitle( T_('Add Project Wizard - %s') % (' '.join( app.app_name_parts ),) )
+
         em = self.app.fontMetrics().width( 'm' )
         self.setMinimumWidth( 60*em )
 
@@ -436,7 +438,7 @@ class PageAddProjectBrowseExisting(WbWizardPage):
 
         w.setScmType( scm_type )
 
-        self.feedback.setText( '' )
+        self.feedback.setPlainText( '' )
         return True
 
     def validatePage( self ):
