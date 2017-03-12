@@ -125,7 +125,7 @@ class WbScmApp(wb_app.WbApp):
             self.__code_font = QtGui.QFont( p.face, p.point_size )
 
     # place fix style changes in this list
-    app_style_sheet = [] # type: List[str]
+    app_style_sheet = ['QPlainTextEdit#feedback {background-color: #edeeef; color: #cc0000}'] # type: List[str]
 
     def setAppStyles( self ) -> None:
         style_sheet_pieces = self.app_style_sheet[:]
