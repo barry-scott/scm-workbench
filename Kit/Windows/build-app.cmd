@@ -20,6 +20,7 @@ if "%1" == "--cli" set APPMODE=--cli
 
 set PKG_DIST_DIR=%BUILDER_TOP_DIR%\Kit\Windows\app.tmp
 set SRC_DIR=%BUILDER_TOP_DIR%\Source
+set DOC_DIR=%BUILDER_TOP_DIR%\Docs
 
 set DIST_DIR=%PKG_DIST_DIR%
 
@@ -56,11 +57,15 @@ popd >NUL
 
 rem copy in the docs
 
-mkdir %DEST_DIR%\Documentation
-copy %SRC_DIR%\Docs\scm-workbench.html %DEST_DIR%\Documentation
-copy %SRC_DIR%\Docs\scm-workbench_files\*.png %DEST_DIR%\Documentation
+mkdir %DIST_DIR%\Documentation
+    if errorlevel 1 goto :error
 
-rem rem rem rem 
+copy %DOC_DIR%\scm-workbench.html %DIST_DIR%\Documentation
+    if errorlevel 1 goto :error
+copy %DOC_DIR%\scm-workbench_files\*.png %DIST_DIR%\Documentation
+    if errorlevel 1 goto :error
+
+rem rem rem rem
 
 pushd %DIST_DIR%\PyWinAppRes\Lib\site-packages\PyQt5
     if errorlevel 1 goto :error
