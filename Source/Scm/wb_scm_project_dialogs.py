@@ -35,7 +35,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         super().__init__()
 
         em = self.app.fontMetrics().width( 'm' )
-        self.setMinimumWidth( 100*em )
+        self.setMinimumWidth( 50*em )
 
         # ------------------------------------------------------------
         self.page_id_start = 1
