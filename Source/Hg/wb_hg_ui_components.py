@@ -41,7 +41,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.all_visible_table_columns = (tm.col_status, tm.col_name, tm.col_date)
 
         if shutil.which( hglib.HGPATH ) is None:
-            self.log.error( T_('Murcurial "hg" command line tool not found') )
+            self.log.error( T_('Mercurial "hg" command line tool not found') )
             return None
 
         try:
@@ -112,7 +112,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     #------------------------------------------------------------
     def about( self ):
         if shutil.which( hglib.HGPATH ) is None:
-            return ['Murcurial "hg" command line tool not found']
+            return ['Mercurial "hg" command line tool not found']
 
         else:
             return [wb_hg_project.HgVersion()]

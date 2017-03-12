@@ -88,7 +88,7 @@ class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         return self.all_supported_schemes
 
     def radioButtonLabel( self ):
-        return T_('Clone Murcurial (hg) repository')
+        return T_('Clone Mercurial (hg) repository')
 
     def verifyScmUrl( self ):
         # if this works we have an hg repo
@@ -112,4 +112,4 @@ class PageAddProjectHgInit(wb_scm_project_dialogs.PageAddProjectScmInitBase):
         return 'hg'
 
     def radioButtonLabel( self ):
-        return T_('Create an empty Murcurial (hg) repository')
+        return T_('Create an empty Mercurial (hg) repository')
