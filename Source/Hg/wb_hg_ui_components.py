@@ -128,11 +128,12 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.all_menus.append( m )
 
         addMenu( m, T_('Diff TIP vs. Working'), act.treeTableActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
-
         m.addSeparator()
         addMenu( m, T_('Annotate'), act.tableActionHgAnnotate_Bg, act.enablerTableHgAnnotate )
         m.addSeparator()
         addMenu( m, T_('Status'), act.treeActionHgStatus_Bg )
+        m.addSeparator()
+        addMenu( m, T_('Commit History…'), act.treeTableActionHgLogHistory_Bg, act.enablerHgLogHistory, 'toolbar_images/history.png' )
 
 
         # ----------------------------------------
@@ -149,8 +150,8 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Commit…'), act.treeActionHgCommit, act.enablerHgCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), act.treeActionHgPush_Bg, act.enablerHgPush, 'toolbar_images/push.png' )
-        addMenu( m, T_('Pull…'), act.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
+        addMenu( m, T_('Push'), act.treeActionHgPush_Bg, act.enablerHgPush, 'toolbar_images/push.png' )
+        addMenu( m, T_('Pull'), act.treeActionHgPull_Bg, icon_name='toolbar_images/pull.png' )
 
         if hasattr( self, 'treeActionHgDebug1' ):
             m = mb.addMenu( T_('&Hg Debug') )

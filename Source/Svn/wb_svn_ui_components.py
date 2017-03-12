@@ -88,10 +88,6 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Annotate'), act.tableActionSvnAnnotate_Bg, act.enablerTableSvnAnnotate )
 
         m.addSeparator()
-        addMenu( m, T_('Add Folder…'), act.treeActionSvnAdd_Bg, act.enablerTreeSvnAdd )
-        addMenu( m, T_('New Folder…'), act.treeActionSvnMkdir_Bg, act.enablerTreeSvnMkdir )
-
-        m.addSeparator()
         addMenu( m, T_('Information'), act.treeTableActionSvnInfo_Bg, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
         addMenu( m, T_('Properties'), act.treeTableActionSvnProperties_Bg, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
 
@@ -105,6 +101,10 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         addMenu( m, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerTableSvnAdd, 'toolbar_images/add.png' )
         addMenu( m, T_('Rename…'), act.tableActionSvnRename_Bg, act.main_window.table_view.enablerTableFilesExists )
+
+        m.addSeparator()
+        addMenu( m, T_('Add Folder…'), act.treeActionSvnAdd_Bg, act.enablerTreeSvnAdd )
+        addMenu( m, T_('New Folder…'), act.treeActionSvnMkdir_Bg, act.enablerTreeSvnMkdir )
 
         m.addSeparator()
         addMenu( m, T_('Revert…'), act.tableActionSvnRevert_Bg, act.enablerTableSvnRevert, 'toolbar_images/revert.png' )

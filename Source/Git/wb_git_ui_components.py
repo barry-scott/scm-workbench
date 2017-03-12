@@ -160,8 +160,8 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Commit…'), act.treeActionGitCommit, act.enablerGitCommit, 'toolbar_images/commit.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Push…'), act.treeActionGitPush_Bg, act.enablerGitPush, 'toolbar_images/push.png' )
-        addMenu( m, T_('Pull…'), act.treeActionGitPull_Bg, act.enablerGitPull, 'toolbar_images/pull.png' )
+        addMenu( m, T_('Push'), act.treeActionGitPush_Bg, act.enablerGitPush, 'toolbar_images/push.png' )
+        addMenu( m, T_('Pull'), act.treeActionGitPull_Bg, act.enablerGitPull, 'toolbar_images/pull.png' )
 
         if hasattr( self, 'treeActionGitDebug1' ):
             m = mb.addMenu( T_('&Git Debug') )
