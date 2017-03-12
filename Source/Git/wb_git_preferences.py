@@ -27,7 +27,7 @@ import wb_dialog_bases
 class GitPreferences(PreferencesNode):
     xml_attribute_info = (('program', pathlib.Path),)
 
-    def __init__( self, program=None, new_projects_folder=None ):
+    def __init__( self, program=None ):
         super().__init__()
 
         assert program is None or isinstance( program, str )

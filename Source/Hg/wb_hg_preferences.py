@@ -26,16 +26,13 @@ import wb_platform_specific
 import wb_dialog_bases
 
 class HgPreferences(PreferencesNode):
-    xml_attribute_info = (('program', pathlib.Path), ('new_projects_folder', pathlib.Path))
+    xml_attribute_info = (('program', pathlib.Path),)
 
-    def __init__( self, program=None, new_projects_folder=None ):
+    def __init__( self, program=None ):
         super().__init__()
 
         assert program is None or isinstance( program, str )
         self.program = program
-
-        assert new_projects_folder is None or isinstance( new_projects_folder, str )
-        self.new_projects_folder = new_projects_folder
 
 def setupPreferences( scheme_nodes ):
     (scheme_nodes
