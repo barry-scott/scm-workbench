@@ -149,7 +149,7 @@ class ShellTab(wb_dialog_bases.WbTabBase):
 
 class LogHistoryTab(wb_dialog_bases.WbTabBase):
     def __init__( self, app ):
-        super().__init__( app, T_('Commit Log History - %s') % (' '.join( app.app_name_parts ),) )
+        super().__init__( app, T_('Commit Log History') )
 
         if self.app is None:
             self.prefs = None
