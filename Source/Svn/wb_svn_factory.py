@@ -134,6 +134,9 @@ class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBas
         self.setTitle( T_('Add Svn Project') )
         self.setSubTitle( T_('Checkout Svn repository') )
 
+        self.grid_layout.addRow( T_('Svn Repository URL'), self.url )
+        self.grid_layout.addRow( '', self.feedback )
+
     def getScmType( self ):
         return 'svn'
 
@@ -147,3 +150,9 @@ class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBas
         # if this works we have an svn repo
         # pysvn.ls( [<url>], depth=empty? )
         return False
+
+    def isCompleteScmSpecific( self ):
+        return True
+
+    def validatePageScmSpecific( self ):
+        pass
