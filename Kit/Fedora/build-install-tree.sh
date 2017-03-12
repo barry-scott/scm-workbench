@@ -8,7 +8,8 @@ BUILD_ROOT=${1:? build root}
 BIN=${2? bin folder}
 LIB=${3? lib folder}
 MAN1=${4? man1 folder}
-DESKTOPFILES=${5? desktop files folder}
+DOC=${5? doc folder}
+DESKTOPFILES=${6? desktop files folder}
 
 mkdir -p ${BUILD_ROOT}${BIN} ${BUILD_ROOT}${LIB} ${BUILD_ROOT}${MAN1} ${BUILD_ROOT}${DESKTOPFILES}
 
@@ -47,5 +48,9 @@ for LIBSRC in \
 do
     cp ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
 done
+
+cat <<EOF >>${ROOT_LIB_DIR}/wb_platform_unix_specific.py
+doc_dir = "${DOC_DIR}"
+EOF
 
 cp ${BUILDER_TOP_DIR}/Source/wb.png ${BUILD_ROOT}${LIB}/scm-workbench.png

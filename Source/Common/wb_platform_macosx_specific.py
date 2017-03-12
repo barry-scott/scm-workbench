@@ -54,6 +54,9 @@ def getPreferencesDir():
 def getLocalePath():
     return pathlib.Path( os.environ.get( 'PYTHONHOME', getAppDir() ) ) / 'locale'
 
+def getDocUserGuide():
+    return app_dir / 'Documentation/scm-workbench.html'
+
 def getNullDevice():
     return pathlib.Path( '/dev/null' )
 

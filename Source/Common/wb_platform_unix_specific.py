@@ -18,6 +18,7 @@ import pathlib
 
 __all_name_parts = None
 app_dir = None
+doc_dir = None
 
 def setupPlatformSpecific( all_name_parts, argv0 ):
     global __all_name_parts
@@ -53,6 +54,9 @@ def getPreferencesDir():
 def getLocalePath():
     return getAppDir() / 'locale'
 
+def getDocUserGuide():
+    return pathlib.Path( doc_dir ) / 'emacs-documentation.html'
+
 def getNullDevice():
     return pathlib.Path( '/dev/null' )
 
@@ -70,3 +74,6 @@ def isInvalidFilename( filename ):
         return True
 
     return False
+
+# build will add definition of app_dir
+# build will add definition of doc_dir

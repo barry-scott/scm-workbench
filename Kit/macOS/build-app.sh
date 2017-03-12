@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 echo "Info: build-app.sh"
+DOCS_DIR=${BUILDER_TOP_DIR}/Docs
 SRC_DIR=${BUILDER_TOP_DIR}/Source
 KIT_DIR=${BUILDER_TOP_DIR}/Kit/macOS
 
@@ -43,7 +44,15 @@ ${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base $
 
 pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 
-# fixup 3. only keep the frameworks that we need, saving space
+#
+#   Copy in the docs
+#
+mkdir Resources/Documentation
+cp ${DOCS_DIR}/scm-workbench.html Resources/Documentation
+mkdir Resources/Documentation/scm-workbench_files
+cp ${DOCS_DIR}/scm-workbench_files/*.png Resources/Documentation/scm-workbench_files
+
+# fixup 1. only keep the frameworks that we need, saving space
 # Resources/lib/python3.5/lib-dynload/PyQt5 - QtXxx.so
 mkdir \
     Resources/lib/python3.5/PyQt5/tmp
@@ -77,11 +86,11 @@ do
         Resources/lib/python3.5/PyQt5/Qt/lib
 done
 
-# fixup 4. remove the unused frameworks
+# fixup 2. remove the unused frameworks
 rm -rf Resources/lib/python3.5/PyQt5/tmp
 rm -rf Resources/lib/python3.5/PyQt5/Qt/lib/tmp
 
-# fixup 5. remove qml stuff
+# fixup 3. remove qml stuff
 rm -rf Resources/lib/python3.5/PyQt5/Qt/qml
 rm -rf Resources/lib/python3.5/PyQt5/Qt/translations
 rm -rf Resources/lib/python3.5/PyQt5/Qt/qsci

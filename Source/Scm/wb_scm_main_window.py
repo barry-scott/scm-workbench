@@ -390,6 +390,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Delete'), self.projectActionDelete, self.enablerIsProject )
 
         m = mb.addMenu( T_('&Help' ) )
+        self._addMenu( m, T_("&User Guide…"), self.appActionUserGuide )
         self._addMenu( m, T_("&About…"), self.appActionAbout, role=QtWidgets.QAction.AboutRole )
 
     def __setupTreeContextMenu( self ):
@@ -526,6 +527,20 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if pref_dialog.exec_():
             pref_dialog.savePreferences()
             self.app.writePreferences()
+
+    def appActionUserGuide( self ):
+        user_guide = wb_platform_specific.getDocUserGuide()
+        if not user_guide.exists():
+            self.log.error( 'Expected user guide %r to exist' % (user_guide,) )
+            return
+
+        # replace \ on windows with / for a good URL.
+        url = user_guide.as_uri()
+        url = QtCore.QUrl( url )
+
+        rc = QtGui.QDesktopServices.openUrl( url )
+        if not rc:
+            self.log.error( 'Failed to open documentation for URL %r' % (url,) )
 
     def appActionViewLog( self ):
         wb_shell_commands.EditFile( self.app, wb_platform_specific.getHomeFolder(), [wb_platform_specific.getLogFilename()] )

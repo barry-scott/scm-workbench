@@ -54,6 +54,12 @@ pushd %SRC_DIR%\Git
     if errorlevel 1 goto :error
 popd >NUL
 
+rem copy in the docs
+
+mkdir %DEST_DIR%\Documentation
+copy %SRC_DIR%\Docs\scm-workbench.html %DEST_DIR%\Documentation
+copy %SRC_DIR%\Docs\scm-workbench_files\*.png %DEST_DIR%\Documentation
+
 rem rem rem rem 
 
 pushd %DIST_DIR%\PyWinAppRes\Lib\site-packages\PyQt5

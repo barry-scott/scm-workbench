@@ -73,6 +73,9 @@ def getProgramFilesDir():
 def getLocalePath():
     return getAppDir() / 'locale'
 
+def getDocUserGuide():
+    return app_dir / 'Documentation' / 'scm-workbench.html'
+
 def getNullDevice():
     return pathlib.Path( 'NUL' )
 
