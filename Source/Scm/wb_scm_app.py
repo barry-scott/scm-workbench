@@ -29,6 +29,7 @@ import wb_hg_factory
 import wb_svn_factory
 
 from PyQt5 import QtGui
+from PyQt5 import QtWidgets
 
 if getattr( typing, 'TYPE_CHECKING', False ):
     import datetime
@@ -125,10 +126,19 @@ class WbScmApp(wb_app.WbApp):
             self.__code_font = QtGui.QFont( p.face, p.point_size )
 
     # place fix style changes in this list
-    app_style_sheet = ['QPlainTextEdit#feedback {background-color: #edeeef; color: #cc0000}'] # type: List[str]
+    app_style_sheet = [] # type: List[str]
 
     def setAppStyles( self ) -> None:
         style_sheet_pieces = self.app_style_sheet[:]
+
+        # get the feedback background-color that matches a dialog background
+        dialog = QtWidgets.QDialog()
+        palette = dialog.palette()
+        feedback_bg = palette.color( palette.Active, palette.Window ).name()
+
+        style_sheet_pieces.append( 'QPlainTextEdit#feedback {background-color: %s; color: #cc00cc}' % (feedback_bg,) )
+
+        # set the users UI font
         if self.prefs.font_ui.face is not None:
             style_sheet_pieces.append( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
 
