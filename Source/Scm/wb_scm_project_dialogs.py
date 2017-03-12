@@ -35,7 +35,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         super().__init__()
 
         em = self.app.fontMetrics().width( 'm' )
-        self.setMinimumWidth( 50*em )
+        self.setMinimumWidth( 60*em )
 
         # ------------------------------------------------------------
         self.page_id_start = 1
@@ -246,14 +246,24 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
         assert False
 
 #--------------------------------------------------
-class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
+class WbWizardPage(QtWidgets.QWizardPage):
     def __init__( self ):
         super().__init__()
 
-        self.feedback = QtWidgets.QLabel( '' )
+        self.feedback = QtWidgets.QPlainTextEdit( '' )
+        self.feedback.setObjectName( 'feedback' )
+        self.feedback.setReadOnly( True )
+        line_spacing = self.feedback.fontMetrics().lineSpacing()
+        self.feedback.setMinimumHeight( 2*line_spacing )
+        self.feedback.setMaximumHeight( 2*line_spacing )
 
         self.grid_layout = wb_dialog_bases.WbGridLayout()
         self.setLayout( self.grid_layout )
+
+
+class PageAddProjectScmCloneBase(WbWizardPage):
+    def __init__( self ):
+        super().__init__()
 
         self.url = QtWidgets.QLineEdit( '' )
         self.url.textChanged.connect( self._fieldsChanged )
@@ -271,7 +281,7 @@ class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
         if not self.isCompleteScmSpecific():
             return False
 
-        self.feedback.setText( '' )
+        self.feedback.setPlainText( '' )
         return True
 
     def isCompleteScmSpecific( self ):
@@ -281,20 +291,20 @@ class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
         url = url_ctrl.text().strip()
 
         if ':' not in url or '/' not in url:
-            self.feedback.setText( fill_in_msg )
+            self.feedback.setPlainText( fill_in_msg )
             return False
 
         result = urllib.parse.urlparse( url )
         scheme = result.scheme.lower()
         all_supported_schemes = self.allSupportedSchemes()
         if scheme not in all_supported_schemes:
-            self.feedback.setText( T_('Scheme %(scheme)s is not supported. Use one of %(all_supported_schemes)s') %
+            self.feedback.setPlainText( T_('Scheme %(scheme)s is not supported. Use one of %(all_supported_schemes)s') %
                                     {'scheme': scheme
                                     ,'all_supported_schemes': ', '.join( all_supported_schemes )} )
             return False
 
         if result.netloc == '' or result.path == '':
-            self.feedback.setText( fill_in_msg )
+            self.feedback.setPlainText( fill_in_msg )
             return False
 
         return True
@@ -316,20 +326,15 @@ class PageAddProjectScmCloneBase(QtWidgets.QWizardPage):
         raise NotImplementedError()
 
 #------------------------------------------------------------
-class PageAddProjectScmInitBase(QtWidgets.QWizardPage):
+class PageAddProjectScmInitBase(WbWizardPage):
     def __init__( self ):
         super().__init__()
-
-        self.grid_layout = wb_dialog_bases.WbGridLayout()
-        self.setLayout( self.grid_layout )
 
         self.project_folder = QtWidgets.QLineEdit()
         self.project_folder.textChanged.connect( self.__fieldsChanged )
 
         self.browse_button = QtWidgets.QPushButton( T_('Browse...') )
         self.browse_button.clicked.connect( self.__pickDirectory )
-
-        self.feedback = QtWidgets.QLabel( '' )
 
         self.grid_layout.addRow( T_('Project folder'), self.project_folder, self.browse_button )
         self.grid_layout.addRow( '', self.feedback )
@@ -352,22 +357,22 @@ class PageAddProjectScmInitBase(QtWidgets.QWizardPage):
     def isValidPath( self ):
         path =  self.project_folder.text().strip()
         if path == '':
-            self.feedback.setText( T_('Fill in the project folder') )
+            self.feedback.setPlainText( T_('Fill in the project folder') )
             return False
 
         path = pathlib.Path( path )
 
         if path.exists():
-            self.feedback.setText( T_('%s already exists pick another folder name') % (path,) )
+            self.feedback.setPlainText( T_('%s already exists pick another folder name') % (path,) )
             return False
 
         else:
             if path.parent.exists():
-                self.feedback.setText( T_('%s will be created') % (path,) )
+                self.feedback.setPlainText( T_('%s will be created') % (path,) )
                 return True
 
             else:
-                self.feedback.setText( T_('%s cannot be used as it does not exist') % (path.parent,) )
+                self.feedback.setPlainText( T_('%s cannot be used as it does not exist') % (path.parent,) )
                 return False
 
     def validatePage( self ):
@@ -388,14 +393,12 @@ class PageAddProjectScmInitBase(QtWidgets.QWizardPage):
             self.project_folder.setText( str( w.getProjectFolder() ) )
 
 #------------------------------------------------------------
-class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
+class PageAddProjectBrowseExisting(WbWizardPage):
     def __init__( self ):
         super().__init__()
 
         self.setTitle( T_('Add SCM Project') )
-        self.setSubTitle( T_('Browse for the SCM repository working copy') )
-
-        self.feedback = QtWidgets.QLabel( '' )
+        self.setSubTitle( T_('Browse for the SCM project folder') )
 
         self.browse_button = QtWidgets.QPushButton( T_('Browse...') )
         self.browse_button.clicked.connect( self.__pickDirectory )
@@ -403,13 +406,8 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
         self.project_folder = QtWidgets.QLineEdit( '' )
         self.project_folder.textChanged.connect( self.__fieldsChanged )
 
-        layout = QtWidgets.QGridLayout()
-        layout.addWidget( QtWidgets.QLabel( T_('SCM Working Copy') ), 0, 0 )
-        layout.addWidget( self.project_folder, 0, 1 )
-        layout.addWidget( self.browse_button, 0, 2 )
-        layout.addWidget( self.feedback, 1, 1 )
-
-        self.setLayout( layout )
+        self.grid_layout.addRow( T_('Project folder'), self.project_folder, self.browse_button )
+        self.grid_layout.addRow( '', self.feedback )
 
     def nextId( self ):
         return self.wizard().page_id_name
@@ -428,11 +426,11 @@ class PageAddProjectBrowseExisting(QtWidgets.QWizardPage):
 
         scm_type = w.detectScmTypeForFolder( path )
         if scm_type is None:
-            self.feedback.setText( T_('%s is not a project folder') % (path,) )
+            self.feedback.setPlainText( T_('%s is not a project folder') % (path,) )
             return False
 
         if path in w.all_existing_project_paths:
-            self.feedback.setText( T_('Project folder %s has already been added') % (path,) )
+            self.feedback.setPlainText( T_('Project folder %s has already been added') % (path,) )
             return False
 
         w.setScmType( scm_type )
@@ -615,7 +613,7 @@ class ScanForScmRepositoriesThread(QtCore.QThread):
         self.page.scanComplete.emit()
 
 #------------------------------------------------------------
-class PageAddProjectFolder(QtWidgets.QWizardPage):
+class PageAddProjectFolder(WbWizardPage):
     def __init__( self ):
         super().__init__()
 
@@ -627,14 +625,8 @@ class PageAddProjectFolder(QtWidgets.QWizardPage):
         self.project_folder = QtWidgets.QLineEdit()
         self.project_folder.textChanged.connect( self._fieldsChanged )
 
-        self.feedback = QtWidgets.QLabel( '' )
-
-        layout = QtWidgets.QGridLayout()
-        layout.addWidget( QtWidgets.QLabel( T_('Project folder') ), 0, 0 )
-        layout.addWidget( self.project_folder, 0, 1 )
-        layout.addWidget( self.feedback, 1, 1 )
-
-        self.setLayout( layout )
+        self.grid_layout.addRow( T_('Project folder'), self.project_folder )
+        self.grid_layout.addRow( '', self.feedback )
 
     def nextId( self ):
         return self.wizard().page_id_name
@@ -664,22 +656,22 @@ class PageAddProjectFolder(QtWidgets.QWizardPage):
     def isValidPath( self ):
         path =  self.project_folder.text().strip()
         if path == '':
-            self.feedback.setText( T_('Fill in the project folder') )
+            self.feedback.setPlainText( T_('Fill in the project folder') )
             return False
 
         path = pathlib.Path( path )
 
         if path.exists():
-            self.feedback.setText( T_('%s already exists pick another folder name') % (path,) )
+            self.feedback.setPlainText( T_('%s already exists pick another folder name') % (path,) )
             return False
 
         else:
             if path.parent.exists():
-                self.feedback.setText( T_('%s will be created') % (path,) )
+                self.feedback.setPlainText( T_('%s will be created') % (path,) )
                 return True
 
             else:
-                self.feedback.setText( T_('%s cannot be used as it does not exist') % (path.parent,) )
+                self.feedback.setPlainText( T_('%s cannot be used as it does not exist') % (path.parent,) )
                 return False
 
     def validatePage( self ):
@@ -694,23 +686,17 @@ class PageAddProjectFolder(QtWidgets.QWizardPage):
             self.project_folder.setText( str( w.getProjectFolder() ) )
 
 #------------------------------------------------------------
-class PageAddProjectName(QtWidgets.QWizardPage):
+class PageAddProjectName(WbWizardPage):
     def __init__( self ):
         super().__init__()
 
         self.setSubTitle( T_('Name the project') )
 
-        self.feedback = QtWidgets.QLabel( '' )
-
         self.name = QtWidgets.QLineEdit( '' )
         self.name.textChanged.connect( self.__nameChanged )
 
-        layout = QtWidgets.QGridLayout()
-        layout.addWidget( QtWidgets.QLabel( T_('Project name') ), 0, 0 )
-        layout.addWidget( self.name, 0, 1 )
-        layout.addWidget( self.feedback, 1, 1 )
-
-        self.setLayout( layout )
+        self.grid_layout.addRow( T_('Project name'), self.name )
+        self.grid_layout.addRow( '', self.feedback )
 
     def nextId( self ):
         return -1
@@ -732,9 +718,10 @@ class PageAddProjectName(QtWidgets.QWizardPage):
         name = self.name.text().strip()
 
         if name.lower() in self.wizard().all_existing_project_names:
-            self.feedback.setText( T_('Project name %s is already in use') % (name,) )
+            self.feedback.setPlainText( T_('Project name %s is already in use') % (name,) )
             return False
 
+        self.feedback.setPlainText( '' )
         return name != ''
 
     def validatePage( self ):
