@@ -11,7 +11,13 @@ MAN1=${4? man1 folder}
 DOC=${5? doc folder}
 DESKTOPFILES=${6? desktop files folder}
 
-mkdir -p ${BUILD_ROOT}${BIN} ${BUILD_ROOT}${LIB} ${BUILD_ROOT}${MAN1} ${BUILD_ROOT}${DESKTOPFILES}
+echo "Info: BIN ${BIN}"
+echo "Info: LIB ${LIB}"
+echo "Info: MAN1 ${MAN1}"
+echo "Info: DOC ${DOC}"
+echo "Info: DESTTOPFILES ${DESTTOPFILES}"
+
+mkdir -p ${BUILD_ROOT}${BIN} ${BUILD_ROOT}${LIB} ${BUILD_ROOT}${MAN1} ${BUILD_ROOT}${DOC} ${BUILD_ROOT}${DESKTOPFILES}
 
 gzip -c ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.1 > ${BUILD_ROOT}${MAN1}/scm-workbench.1.gz
 cp ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.desktop ${BUILD_ROOT}${DESKTOPFILES}
@@ -49,8 +55,10 @@ do
     cp ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
 done
 
-cat <<EOF >>${ROOT_LIB_DIR}/wb_platform_unix_specific.py
-doc_dir = "${DOC_DIR}"
+cat <<EOF >>${BUILD_ROOT}${LIB}/wb_platform_unix_specific.py
+doc_dir = "${DOC}"
 EOF
 
 cp ${BUILDER_TOP_DIR}/Source/wb.png ${BUILD_ROOT}${LIB}/scm-workbench.png
+
+find ${BUILD_ROOT} -ls

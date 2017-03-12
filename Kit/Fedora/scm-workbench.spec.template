@@ -60,9 +60,9 @@ cd ${BUILDER_TOP_DIR}/Kit/Fedora
 %{_datarootdir}
 
 %changelog
+* Sun Mar 12 2017 barry scott <barry@barrys-emacs.org> - 0.8.2-1
+- add docs
 * Wed Jul 27 2016 barry scott <barry@barrys-emacs.org> - 0.5.0-1
 - First version
 * Wed Jul 27 2016 barry scott <barry@barrys-emacs.org> - 0.7.1-1
 - require GitPython
-* Sun 12 Mar 2017 barry scott <barry@barrys-emacs.org> - 0.8.2-1
-- add docs
