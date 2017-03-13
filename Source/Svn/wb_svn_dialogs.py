@@ -86,3 +86,60 @@ class WbRevertFolderDialog(wb_dialog_bases.WbDialog):
 
     def getDepth( self ):
         return self.depth.getDepth()
+
+class WbLockFileDialog(wb_dialog_bases.WbDialog):
+    def __init__( self, app, parent ):
+        self.app = app
+
+        super().__init__( parent )
+
+        self.setWindowTitle( T_('Lock files') )
+
+        self.details = QtWidgets.QPlainTextEdit( '' )
+        self.message = QtWidgets.QPlainTextEdit( '' )
+
+        self.force = QtWidgets.QCheckBox( T_('force files to be locked') )
+        self.force.setCheckState( QtCore.Qt.Unchecked )
+
+        em = self.fontMetrics().width( 'M' )
+
+        self.addNamedDivider( 'Files to Lock' )
+        self.addRow( None, self.details, min_width=60*em )
+        self.addNamedDivider( 'Lock Message' )
+        self.addRow( None, self.message )
+        self.addRow( T_('Force'), self.force )
+        self.addButtons()
+
+    def setAllFilenames( self, all_filenames ):
+        self.details.setPlainText( '\n'.join( str(f) for f in all_filenames ) )
+
+    def getMessage( self ):
+        return self.message.toPlainText()
+
+    def getForce( self ):
+        return self.force.checkState() == QtCore.Qt.Checked
+
+class WbUnlockFileDialog(wb_dialog_bases.WbDialog):
+    def __init__( self, app, parent ):
+        self.app = app
+
+        super().__init__( parent )
+
+        self.setWindowTitle( T_('UnLock files') )
+
+        self.details = QtWidgets.QPlainTextEdit( '' )
+        self.force = QtWidgets.QCheckBox( T_('force files to be unlocked') )
+        self.force.setCheckState( QtCore.Qt.Unchecked )
+
+        em = self.fontMetrics().width( 'M' )
+
+        self.addNamedDivider( 'Files to Unlock' )
+        self.addRow( None, self.details, min_width=60*em )
+        self.addRow( T_('Force'), self.force )
+        self.addButtons()
+
+    def setAllFilenames( self, all_filenames ):
+        self.details.setPlainText( '\n'.join( str(f) for f in all_filenames ) )
+
+    def getForce( self ):
+        return self.force.checkState() == QtCore.Qt.Checked

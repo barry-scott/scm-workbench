@@ -39,6 +39,9 @@ argv = [
         '../toolbar_images/revert.png',
         '../toolbar_images/delete.png',
 
+        '../toolbar_images/lock.png',
+        '../toolbar_images/unlock.png',
+
         '../toolbar_images/diff.png',
         '../toolbar_images/history.png',
 

@@ -438,6 +438,12 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         file_state = tree_node.project.getFileState( tree_node.relativePath() )
         return file_state.isConflicted()
 
+    def enablerTableSvnLock( self ):
+        return self._enablerTableSvnIsControlled()
+
+    def enablerTableSvnUnlock( self ):
+        return self._enablerTableSvnIsControlled()
+
     def enablerTableSvnDiffBaseVsWorking( self ):
         if not self.main_window.isScmTypeActive( 'svn' ):
             return False
@@ -609,6 +615,42 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
 
     @thread_switcher
+    def tableActionSvnLock_Bg( self, checked=None ):
+        dialog = wb_svn_dialogs.WbLockFileDialog( self.app, self.main_window )
+
+        def execute_function( svn_project, filename ):
+            self.log.infoheader( 'Locking %s… ' % (filename,) )
+            try:
+                svn_project.cmdLock( filename, dialog.getMessage(), dialog.getForce() )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+
+        def are_you_sure( all_filenames ):
+            dialog.setAllFilenames( all_filenames )
+            return dialog.exec_()
+
+        yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
+
+    @thread_switcher
+    def tableActionSvnUnlock_Bg( self, checked=None ):
+        dialog = wb_svn_dialogs.WbUnlockFileDialog( self.app, self.main_window )
+
+        def execute_function( svn_project, filename ):
+            self.log.infoheader( 'Unlocking %s… ' % (filename,) )
+            try:
+                svn_project.cmdUnlock( filename, dialog.getForce() )
+
+            except wb_svn_project.ClientError as e:
+                svn_project.logClientError( e )
+
+        def are_you_sure( all_filenames ):
+            dialog.setAllFilenames( all_filenames )
+            return dialog.exec_()
+
+        yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
+
+    @thread_switcher
     def tableActionSvnDelete_Bg( self, checked=None ):
         def execute_function( svn_project, filename ):
             file_state = svn_project.getFileState( filename )
@@ -627,7 +669,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 except IOError as e:
                     self.log.error( 'Error deleting %s' % (filename,) )
                     self.log.error( str(e) )
-
 
         def are_you_sure( all_filenames ):
             return wb_common_dialogs.WbAreYouSureDelete( self.main_window, all_filenames )

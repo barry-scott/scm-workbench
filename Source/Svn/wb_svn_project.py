@@ -212,7 +212,9 @@ class SvnProject:
         client_error = [e.args[0]]
         if len(e.args) >= 2:
             for message, _ in e.args[1]:
-                client_error.append( message )
+                # avoid duplicate error lines
+                if message != e.args[0]:
+                    client_error.append( message )
 
         return client_error
 
@@ -364,6 +366,12 @@ class SvnProject:
         info = self.client().info2( self.pathForSvn( filename ), depth=self.svn_depth_empty )
         # info is list of (path, entry)
         return info[0][1]
+
+    def cmdLock( self, filename, message, force ):
+        self.client().lock( self.pathForSvn( filename ), message, force=force )
+
+    def cmdUnlock( self, filename, force ):
+        self.client().unlock( self.pathForSvn( filename ), force=force )
 
     def cmdCommit( self, message, all_filenames=None ):
         if all_filenames is None:
@@ -522,9 +530,12 @@ class SvnProject:
             self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
             return
 
-        if action in [pysvn.wc_notify_action.failed_lock
-                     ,pysvn.wc_notify_action.failed_unlock]:
-            self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
+        if action == pysvn.wc_notify_action.failed_lock:
+            self.app.log.error( T_('Failed to lock') )
+            return
+
+        if action == pysvn.wc_notify_action.failed_unlock:
+            self.app.log.error( T_('Failed to unlock') )
             return
 
         # see if we want to handle this action
