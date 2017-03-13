@@ -1,0 +1,60 @@
+/*
+ *  scm-workbench.css
+ *  - styles used in the user guide
+ */
+h1, h2, h3, h4
+    {color: #000099;	background-color: lightskyblue}
+
+body
+    {counter-reset: figcaption h2}
+h2
+    {counter-reset: h3}
+h3
+    {counter-reset: h4}
+h4
+    {counter-reset: h5}
+h5
+    {counter-reset: h6}
+
+figcaption:before
+    {counter-increment: figcaption; content: "Fig " counter(figcaption) ". "}
+
+h2:before
+    {counter-increment: h2; content: counter(h2) ". "}
+h3:before
+    {counter-increment: h3; content: counter(h2) "." counter(h3) ". "}
+h4:before
+    {counter-increment: h4; content: counter(h2) "." counter(h3) "." counter(h4) ". "}
+h5:before
+    {counter-increment: h5; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) ". "}
+h6:before
+    {counter-increment: h6; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) ". "}
+
+h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.nocount:before
+    { content: ""; counter-increment: none } 
+
+p
+    { width: 40em; }
+li
+    { width: 35em; }
+pre
+    {color: #0000cc; background-color: #eeeeee; position: relative; left: 40px; margin-right: 80px;
+	border-style: solid; border-color: black; border-width: thin;}
+tt
+    {color: #dd0000;}
+
+figcaption
+    { font-family: sans-serif; font-size: smaller }
+
+td.menu_active
+    {background-color: #4444ff; color: white;}
+td a:link
+    {background-color: white; color: black; width: 100%; display: block; text-decoration: none;}
+td a:unvisited
+    {background-color: white; color: black; width: 100%; display: block; text-decoration: none;}
+td a:visited
+    {background-color: white; color: black; width: 100%; display: block; text-decoration: none;}
+td a:hover
+    {background-color: #4444ff; color: white; width: 100%; display: block; text-decoration: none;}
+div.menu_dropdown
+    {border-style: solid; border-color: black; border-width: thin; white-space: nowrap;}

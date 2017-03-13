@@ -4,79 +4,31 @@
 <head>
 <title>SCM Workbench - User Guide</title>
 <meta charset="UTF-8" /> 
+<link rel="stylesheet" type="text/css" href="scm-workbench.css" />
 <link rev="made" href="mailto:barry@barrys-emacs.org" />
-<style>
-h1, h2, h3, h4
-    {color: #000099;	background-color: lightskyblue}
-
-body
-    {counter-reset: figcaption h2}
-h2
-    {counter-reset: h3}
-h3
-    {counter-reset: h4}
-h4
-    {counter-reset: h5}
-h5
-    {counter-reset: h6}
-
-figcaption:before
-    {counter-increment: figcaption; content: "Fig " counter(figcaption) ". "}
-
-h2:before
-    {counter-increment: h2; content: counter(h2) ". "}
-h3:before
-    {counter-increment: h3; content: counter(h2) "." counter(h3) ". "}
-h4:before
-    {counter-increment: h4; content: counter(h2) "." counter(h3) "." counter(h4) ". "}
-h5:before
-    {counter-increment: h5; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) ". "}
-h6:before
-    {counter-increment: h6; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) ". "}
-
-h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.nocount:before
-    { content: ""; counter-increment: none } 
-
-p
-    { width: 40em; }
-li
-    { width: 35em; }
-pre
-    {color: #0000cc; background-color: #eeeeee; position: relative; left: 40px; margin-right: 80px;
-	border-style: solid; border-color: black; border-width: thin;}
-tt
-    {color: #dd0000;}
-
-figcaption
-    { font-family: sans-serif; font-size: smaller }
-
-td.menu_active
-    {background-color: #4444ff; color: white;}
-td a:link
-    {background-color: white; color: black; width: 100%; display: block; text-decoration: none;}
-td a:unvisited
-    {background-color: white; color: black; width: 100%; display: block; text-decoration: none;}
-td a:visited
-    {background-color: white; color: black; width: 100%; display: block; text-decoration: none;}
-td a:hover
-    {background-color: #4444ff; color: white; width: 100%; display: block; text-decoration: none;}
-div.menu_dropdown
-    {border-style: solid; border-color: black; border-width: thin; white-space: nowrap;}
-
-</style>
 </head>
 <body>
 <h1>SCM Workbench - User Guide</h1>
 
 <p>User guide for the Source Control Mangement (SCM) Workbench.</p>
 
+<p><b>User Guide Sections</b></p>
+
+<ul>
+<li><a href="scm-workbench.html">Scm Workbench</a> - gettings started and common shared features.</li>
+<li><a href="scm-workbench-git.html">Git in Scm Workbench</a> - git specific menus and features.</li>
+<li><a href="scm-workbench-hg.html">Mercurial (hg) in Scm Workbench</a> - Mercurial specific menus and features.</li>
+<li><a href="scm-workbench-svn.html">Subversion (svn)in Scm Workbench</a> - Subversion specific menus and features.</li>
+</ul>
+
 <p><b>Table of Contents</b></p>
 
 <ul>
-<li><a href="#getting_started">1. Getting started</a></li>
-<li><a href="#main_window">2. SCM Workbench Window</a></li>
-<li><a href="#menus">3. Workbench Menus</a></li>
-<li><a href="#how_to">4. How to…</a></li>
+<li><a href="#getting_started">Getting started</a></li>
+<li><a href="#main_window">SCM Workbench Window</a></li>
+<li><a href="#menus">Workbench Common Menus</a></li>
+<li><a href="#project_add">Add Project Wizard</a></li>
+<li><a href="#project_settings">Project settings</a></li>
 </ul>
 
 <h2><a name="getting_started">Getting started</a></h2>
@@ -96,7 +48,7 @@ Hg using program /usr/bin/hg
 Git using program /usr/bin/git
 </pre>
 
-<p>More details, like version information, is shown in the <tt>Help</tt> » <tt>About…</tt> <a href="#help_about">menu</a>.</p>
+<p>More details, like version information, is shown in the <a href="#help_about">Help » About…</a> menu.</p>
 
 <h4>Subversion (svn)</h4>
 <p>Subversion is always supported by the builtin pysvn code.</p>
@@ -234,115 +186,14 @@ push and checkin commands.</p>
 <td valign="top">
     <div class="menu_dropdown">
     <table><!-- Help -->
+    <tr><td><a href="#help_user_guide">User Guide…</a></td></tr>
     <tr><td><a href="#help_about">About…</a></td></tr>
     </table></div></td>
 </tr></table>
 <figcaption>Common menus.</figcaption>
 </figure>
 
-<figure>
-<table>
-<tr><td class="menu_active">Svn Information</td>
-    <td class="menu_active">Svn Actions</td></tr>
-<td valign="top">
-    <div class="menu_dropdown">
-    <table><!-- Svn Information -->
-    <tr><td><a href="#svn_action_diff_base">Diff Base vs. Working</a></td></tr>
-    <tr><td><a href="#svn_action_diff_head">Diff HEAD vs. Working</a></td></tr>
-    <tr><td><a href="#svn_action_annotate">Annotate</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#svn_action_information">Information</a></td></tr>
-    <tr><td><a href="#svn_action_properties">Properties</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#svn_action_log_history">Log history</a></td></tr>
-    <tr><td><a href="#svn_action_status">Status</a></td></tr>
-    </table></div></td>
-<td valign="top">
-    <div class="menu_dropdown">
-    <table><!-- Svn Actions -->
-    <tr><td><a href="#svn_action_add">Add</a></td></tr>
-    <tr><td><a href="#svn_action_rename">Rename…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#svn_action_add_folder">Add Folder…</a></td></tr>
-    <tr><td><a href="#svn_action_new_folder">New Folder…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#svn_action_revert">Revert…</a></td></tr>
-    <tr><td><a href="#svn_action_delete">Delete…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#svn_action_checkin">Checkin…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#svn_action_update">Update</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#svn_action_clean_up">Clean up</a></td></tr>
-    </table></div></td>
-</table>
-<figcaption>Subversion menus.</figcaption>
-</figure>
 
-<figure>
-<table>
-<tr><td class="menu_active">Git Information</td>
-    <td class="menu_active">Git Actions</td></tr>
-<td valign="top">
-    <div class="menu_dropdown">
-    <table><!-- Git Information -->
-    <tr><td><a href="#git_action_diff_head_vs_working">Diff HEAD vs. Working</a></td></tr>
-    <tr><td><a href="#git_action_diff_staged_vs_working">Diff Staged vs. Working</a></td></tr>
-    <tr><td><a href="#git_action_diff_head_vs_staged">Diff HEAD vs. Staged</a></td></tr>
-    <tr><td><a href="#git_action_annotate">Annotate</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#git_action_status">Status</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#git_action_commit_history">Commit history</a></td></tr>
-    </table></div></td>
-<td valign="top">
-    <div class="menu_dropdown">
-    <table><!-- Git Actions -->
-    <tr><td><a href="#git_action_stage">Stage</a></td></tr>
-    <tr><td><a href="#git_action_unstage">Unstage</a></td></tr>
-    <tr><td><a href="#git_action_revert">Revert…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#git_action_rename">Rename…</a></td></tr>
-    <tr><td><a href="#git_action_delete">Delete…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#git_action_push">Push</a></td></tr>
-    <tr><td><a href="#git_action_pull">Pull</a></td></tr>
-    </table></div></td>
-</table>
-<figcaption>Git menus.</figcaption>
-</figure>
-
-<figure>
-<table>
-<tr><td class="menu_active">Hg Information</td>
-    <td class="menu_active">Hg Actions</td></tr>
-<td valign="top">
-    <div class="menu_dropdown">
-    <table><!-- Hg Information -->
-    <tr><td><a href="#hg_action_diff_tip_vs_working">Diff TIP vs. Working</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_annotate">Annotate</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_status">Status</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_commit_history…">Commit history</a></td></tr>
-    </table></div></td>
-<td valign="top">
-    <div class="menu_dropdown">
-    <table><!-- Hg Actions -->
-    <tr><td><a href="#hg_action_add">Add</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_revert">Revert…</a></td></tr>
-    <tr><td><a href="#hg_action_delete">Delete…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_commit">Commit…</a></td></tr>
-    <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_push">Push</a></td></tr>
-    <tr><td><a href="#hg_action_pull">Pull</a></td></tr>
-    </table></div></td>
-</table>
-<figcaption>Mercurial menus.</figcaption>
-</figure>
 
 <h3><a href="#menus">Menu:</a> File</h3>
 <h4><a name="file_preferences"><a href="#menus">Menu:</a> File » Preferences…</a></h4>
@@ -354,7 +205,7 @@ push and checkin commands.</p>
 </figure>
 <p>Enter the default folder to create new projects under.</p>
 
-<h5>Editor preferences</h5>
+<h5><a name="prefs_editor">Editor preferences</a></h5>
 <figure>
     <img src="scm-workbench_files/wb_prefs_editor.png" />
     <figcaption>Editor Preferences</figcaption>
@@ -365,7 +216,7 @@ The Browse button pops up a file picker dialog to help locate the editor program
 <p>Any command line arguments can be entered in the "Editor Arguments" text box.
 </p>
 
-<h5>Shell preferences:</h5>
+<h5><a name="prefs_shell">Shell preferences</a></h5>
 <figure>
     <img src="scm-workbench_files/wb_prefs_shell.png" />
     <figcaption>Shell Preferences</figcaption>
@@ -438,6 +289,12 @@ The Browse button pops up a file picker dialog to help locate the hg program.</p
 
 <p>There are no Subversion specific preferences at this time.</p>
 
+<h4><a name="file_view_log"><a href="#menus">Menu:</a> <a href="#menu_file">File</a> » View log</a></h4>
+
+<p>All the messages that you see in the main windows are also write to a log file.
+This menu allows quick access to that log file.
+</p>
+
 <h4><a name="file_exit"><a href="#menus">Menu:</a> File » Exit</a></h4>
 
 <p>Quit SCM Workbench. All open SCM Workbench windows will be closed.
@@ -457,7 +314,7 @@ The Browse button pops up a file picker dialog to help locate the hg program.</p
 
 <p>Show Controlled and Not Changed files that are part of the project in the list panel.</p>
 
-<h4><a name="view_show_unchanged"><a href="#menus">Menu:</a> <a href="#menu_view">View</a> » Show Uncontrolled files</a></h4>
+<h4><a name="view_show_uncontrol"><a href="#menus">Menu:</a> <a href="#menu_view">View</a> » Show Uncontrolled files</a></h4>
 
 <p>Show Uncontrolled files that are not part of the project in the list panel.
 </p>
@@ -468,7 +325,44 @@ The Browse button pops up a file picker dialog to help locate the hg program.</p
 list panel. Ignored files are configured in the project specific config file: .gitignore, .hgignore and .svn/config.
 </p>
 
+<h4><a name="view_unified_diff"><a href="#menus">Menu:</a> <a href="#menu_view">View</a> » Unified Diff</a></h4>
 
+<p>Use the textual unified diff format when presenting differences.
+</p>
+
+<h4><a name="view_side_by_side_diff"><a href="#menus">Menu:</a> <a href="#menu_view">View</a> » Side-by-side Diff</a></h4>
+
+<p>Use the graphical side-by-side diff format when presenting differences.
+</p>
+
+<p>Note: This presentation is not used when showing the differences for a folder of files, unified diff is used.</p>
+
+
+<h4><a name="folder_action_command_shell"><a href="#menus">Menu:</a><a href="#menu_actions">Folder Actions</a> » Command Shell</a></h4>
+
+<p>Start a command shell which has the selected folder as its current working directory.
+</p>
+
+<p>The <a href="#prefs_shell">Shell Preferences</a> allow you to customise how the Command Shell command works.
+</p>
+
+<h4><a name="folder_action_file_browser"><a href="#menus">Menu:</a> <a href="#menu_actions">Folder Actions</a> » File Browser</a></h4>
+
+<p>Start a file browser at the selected folder.
+</p>
+
+<p>The <a href="#prefs_shell">Shell Preferences</a> allow you to customise how the File Browser command works.
+</p>
+
+<h4><a name="file_action_edit"><a href="#menus">Menu:</a> <a href="#menu_actions">File Actions</a> » Edit</a></h4>
+
+<p>Edit the selected file using the text editor configured in the <a href="#prefs_editor">Editor Preferences</a>.
+</p>
+
+<h4><a name="file_action_open"><a href="#menus">Menu:</a> <a href="#menu_actions">File Actions</a> » Open</a></h4>
+
+<p>Open the selected file using the standard operating system method.</p>
+<p>For example open for an HTML file will open it in your web browser.</p>
 
 <h3><a href="#menus">Menu:</a> <a name="menu_project">Project</a></h3>
 <h4><a name="project_add"><a href="#menus">Menu:</a> <a href="#menu_project">Project</a> » Add…</a></h4>
@@ -482,7 +376,6 @@ list panel. Ignored files are configured in the project specific config file: .g
 
 <p>Choose how you wish to add a project.</p>
 <p>Note: The Git and Mercurial options will only appear it SCM WOrkbench found the git and hg commands.</p>
-
 
 <h5>Scan for existing projects</h5>
 
@@ -600,6 +493,16 @@ The Browse button pops up a file picker dialog to help choose the location.
     <figcaption>Svn Project Settings</figcaption>
 </figure>
 
+<p>SCM Workbench can optionally add the names of TAGs to the log history command output.
+Enable Tag URL and fill in the path to the tags URL for your repository.</p>
+
+<p>The last element of the URL can be "*" to have Workbench substitute the name
+from the next element after trunk.</p>
+
+<p>Note: SCM Workbench uses the revision of the TAG to work out where in the history list the TAG should be shown.
+This works very well if TAGs are created from the HEAD of trunk.
+</p>
+
 <h4><a name="project_delete"><a href="#menus">Menu:</a> <a href="#menu_project">Project</a> » Delete…</a></h4>
 
 <p>Pop up a dialog to confirm the deletion of the selected project.
@@ -609,395 +512,17 @@ The Browse button pops up a file picker dialog to help choose the location.
 </p>
 
 <h3><a href="#menus">Menu:</a> Help</h3>
+
+<h4><a name="help_user_guide"><a href="#menus">Menu:</a> Help » User Guide…</a></h4>
+
+<p>Open this user guide in the systems web browser.
+</p>
+
 <h4><a name="help_about"><a href="#menus">Menu:</a> Help » About…</a></h4>
 
 <p>Pop up a dialog that shows the version of SCM Workbench, Git, Hg, PySVN, PyQt5 and Python used.
 </p>
 
-<!-- QQQ --->
-
-
-
-
-
-
-
-
-<h3><a href="#menus">Menu:</a> <a name="menu_actions">Actions</a></h3>
-
-<h4><a name="action_command_shell"><a href="#menus">Menu:</a><a href="#menu_actions">Actions</a> » Command Shell</a></h4>
-
-<p>Start a command shell which has the selected folder as its current working directory.
-</p>
-
-<p>The <a href="#file_preferences">Preferences</a> allow you to customise how the Command Shell command works.
-</p>
-
-<h4><a name="action_file_browser"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » File Browser</a></h4>
-
-<p>Start a file browser at the selected folder.
-</p>
-
-<p>The <a href="#file_preferences">Preferences</a> allow you to customise how the File Browser command works.
-</p>
-
-<h4><a name="action_edit"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Edit</a></h4>
-
-<p>Edit the selected file using the editor configured in the <a href="#file_preferences">Preferences</a>.
-</p>
-
-<h4><a name="action_open"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Open</a></h4>
-
-<p>Open the selected file using the stanard operating system method
-(Windows and Mac OS X only).
-</p>
-
-<h4><a name="action_diff_base"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Diff WC vs. BASE…</a></h4>
-<p>Show the differences between the selected files and the checked out BASE version.
-In other words show the work you have done.
-</p>
-
-<p>
-<img src="scm-workbench_files/wb_diff_window.png" />
-</p>
-
-<p>The differences windows shows changed lines and changes within a line.
-</p>
-
-<p>By default the diff window has collapsed the folds to hide unmodified text.
-</p>
-
-<p>Use the + and - buttons to toggle the collapsing.
-</p>
-<p>The a.b button toggles the showing of white-space. Useful when looking for
-changes in TAB and SPACE characters.</p>
-
-<p>The up and down arrow buttons move you backwards and forwards through each change in the diff window.
-</p>
-
-<h4><a name="action_diff_head"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Diff WC vs. HEAD…</a></h4>
-
-<p>Show the differences between the selected files and the current version in
-the repository. In other words show the work other people have checked in
-against your version.
-</p>
-
-<h4><a name="action_diff_branch_base"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Diff WC vs. branch origin BASE…</a></h4>
-
-<p>
-Show the differences between the selected files and their versions at the point this branch was made.
-In other words show the work that has been done in this branch.
-<br />
-An error message is displayed if the active project is not associated with a branch.
-</p>
-
-<h4><a name="action_diff_branch_head"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Diff WC vs. branch origin HEAD…</a></h4>
-
-<p>
-Show the differences between the selected files and their latest versions in the main line of development this branch was copied from.
-<br/>
-An error message is displayed if the active project is not associated with a branch.
-</p>
-
-<h4><a name="action_conflict"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Conflict</a></h4>
-
-<p>The Conflict menu items help you work with a file has conflicts between your edits and the version updated
-from the repository.
-</p>
-
-<h4><a name="action_conflict"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » <a href="#menu_actions">Conflict</a>  » Diff Conflict Old vs. Mine…</a></h4>
-
-<p>Diff between the Old version of the file and your current working copy version.
-</p>
-
-<h4><a name="action_conflict"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » <a href="#menu_actions">Conflict</a>  » Diff Conflict Mine vs. New…</a></h4>
-
-<p>Diff between your current working copy version and the New version of the file.
-</p>
-
-<h4><a name="action_conflict"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » <a href="#menu_actions">Conflict</a>  » Diff Conflict Old vs. New…</a></h4>
-
-<p>Diff between the Old version of the file and the New version of the file.
-</p>
-
-<h4><a name="action_conflict"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » <a href="#menu_actions">Conflict</a>  » Resolved Conflict</a></h4>
-
-<p>Tell Subversion that you have resolved the conflict.
-</p>
-
-<h4><a name="action_annotate"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Annotate…</a></h4>
-
-<p>Show an annotated listing of the selected file showing the origin of each
-line in the file. For each line the author, date and revision is listed.
-</p>
-
-<p>
-<img src="scm-workbench_files/wb_annotate_window.png" />
-</p>
-
-<p>Use this command to discover when a line of interest was introduced into
-a file.
-</p>
-
-<h4><a name="action_log_history"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Log history…</a></h4>
-
-<p>List the log history of the selected files or folder. You can choose to
-show all the log messages, the last few messages or the messages since a particular
-date.
-</p>
-
-<p><img src="scm-workbench_files/wb_log_history_dialog.png" />
-</p>
-
-<p>The Log History window shows an abbreviated listing of all the log messages.
-Select a log message to display the full log message and the changed paths.
-</p>
-
-<p><img src="scm-workbench_files/wb_log_history_window.png" />
-</p>
-
-<p>By selecting a single revision you can click the Diff button to view the
-differences between your copy of the file and the choosen revision.
-</p>
-
-<p>By selecting two revisions you can click the Diff button to view the differences
-between the pair of selected revisitions.
-</p>
-
-<h4><a name="action_information"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Information…</a></h4>
-
-<p>Show information about the selected files or folder. The information about the
-entry, any lock held and working copy details.
-</p>
-
-
-<p><img src="scm-workbench_files/wb_info_dialog.png" />
-</p>
-
-<h4><a name="action_properties"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Properties…</a></h4>
-
-<p>Show the Subversion properties of the selected files or folder.
-</p>
-
-<p><img src="scm-workbench_files/wb_props_dialog.png" />
-</p>
-
-<p>In the dialog box you can change the properties. The known Subversion
-properties are all listed and any user defined. Change the check boxes to
-add or remove a property. Fill in the bottom pair of text boxes to define
-your own property and value.
-</p>
-
-<p>In the example above a user defined proptery named "foo" has been added with the value "bar".
-</p>
-
-
-<h4><a name="action_update"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Update</a></h4>
-
-<p>Update the selected files or folder from the Subversion repository.
-The update will proceed in the background allowing you to do something else in Work Bench.
-</p>
-
-<p>The status bar will show the progress of the update.
-</p>
-
-<h4><a name="action_checkout"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Checkout</a></h4>
-
-<p>Checkout files and folders from the repository to populate the working copy.
-</p>
-
-<h4><a name="action_checkin"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Checkin…</a></h4>
-
-<p>Search the selected files or folder for changes to checkin and display the
-results in a Checkin Window.
-</p>
-
-<p>This is the same Checkin window is described that the Report Changes command creates.
-</p>
-
-<h4><a name="action_lock"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Lock…</a></h4>
-
-<p>Take out a lock against the selected files. The dialog box allows
-a lock comment to be entered. If the lock is already held by another
-user and you wish to override the other users lock check the Force
-option.
-</p>
-
-<h4><a name="action_unlock"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Unlock…</a></h4>
-
-<p>Revoke a lock against the selected files. The dialog box allows you
-to confirm that you wish to unlock the file. You can unlock a file that
-is locked by another user by checking the Force option.
-</p>
-
-<h4><a name="action_new_file"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » New File…</a></h4>
-
-<p>Pop up a dialog that allows you to name a new file and choose a template to initialised it from.
-</p>
-
-<p>The new file is scheduler for addition to the repository.
-</p>
-
-<h4><a name="action_make_directory"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Make directory…</a></h4>
-
-<p>Pop up a dialog that allows you to name a new directory.
-</p>
-
-<p>The new directory is scheduler for addition to the repository.
-</p>
-
-<h4><a name="action_add"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Add</a></h4>
-
-<p>Schedule the selected files or folder to be added to the repository.
-</p>
-
-<p>When adding a folder a dialog pops up that allows you to set the force option.
-Use force to override some of the checks Subversion makes and allow the addition to proceed.
-</p>
-
-<h4><a name="action_rename"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Rename</a></h4>
-
-<p>The Rename command can work on controlled and uncontrolled files.
-</p>
-
-<p>Pop up a dialog that allows you to change the name of the selected files and folders.
-</p>
-
-<p>Work Bench can rename controlled files that have been added or modified.
-</p>
-
-<h4><a name="action_delete"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Delete…</a></h4>
-
-<p>The Delete command can work on controlled and uncontrolled files.
-</p>
-
-<p>Uncontrolled files are deleted. Controlled files are scheduled for deletion for the repository.
-</p>
-
-<p>A dialog pops up to confirm the deletion.
-</p>
-
-<h4><a name="action_revert"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Revert…</a></h4>
-
-<p>The Revert command allows you to undo additions and modification to files.
-</p>
-
-<p>Added files are left as uncontrolled files. Edits to modified files are lost after a Revert.
-</p>
-
-<p>A dialog pops up to confirm the revertion.
-</p>
-
-<h4><a name="action_clean_up"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Clean up</a></h4>
-
-<p>If Work Bench or a Subversion command did not complete it is possible to leave the working copy in a locked
-state (state L).
-</p>
-
-<p>Use the Clean Up command to clean up the working copy, removing locks and resuming
-unfinished operations.
-</p>
-
-<h4><a name="action_create_tag"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Create tag…</a></h4>
-
-<p>Create a tag of the current folder in the project's tags folder.</p>
-
-<p>The tags folder can be configured via the
-<tt>Projects</tt> menu <a href="#project_update">Update project…</a> dialog.
-</p>
-
-<h4><a name="action_create_tag"><a href="#menus">Menu:</a> <a href="#menu_actions">Actions</a> » Create branch…</a></h4>
-
-<p>Create a branch of the current folder in the project's branches folder.</p>
-
-<p>The branches folder can be configured via the
-<tt>Projects</tt> menu <a href="#project_update">Update project…</a> dialog.
-</p>
-
-<h3><a href="#menus">Menu:</a> Reports</h3>
-<h4><a name="report_wc_locks"><a href="#menus">Menu:</a> Reports » Working copy Locks…</a></h4>
-
-<p>Search the selected Working Copy folder and all its sub-folders for locks and display
-any found in a new window.
-</p>
-
-<p>The Working Copy Lock Report window allows you to Lock and Unlock the files as
-well as a set of other useful commands. Use the toolbar buttons or Context-Menu to
-access commands.
-</p>
-
-<h4><a name="report_repos_locks"><a href="#menus">Menu:</a> Reports » Repository Locks…</a></h4>
-
-<p>Search the selected folder and all its sub-folders in the repository for
-locks and display any found in a new window.
-</p>
-
-<p>The Repository Lock Report window allows you to Lock and Unlock the files as
-well as a set of other useful commands. Use the toolbar buttons or Context-Menu to
-access commands.
-</p>
-
-<h4><a name="report_changes"><a href="#menus">Menu:</a> Reports » Changes…</a></h4>
-
-<p>Search the selected Working Copy folder and all its sub-folders for
-changes and display any found in a new window.
-</p>
-
-<p>
-<img src="scm-workbench_files/wb_checkin_window.png" />
-</p>
-
-<p>The Check in window allows you to Check in the changes found to the repository.
-</p>
-
-<p>You can also use commands from this window like Diff, Properties, Annotate
-and Log History to confirm that the changes are as you expect and help
-you write a suitable log message.
-</p>
-
-<p>Work Bench remembers the last log message you entered and can insert it for
-you when you click the Insert Last Message button.
-</p>
-
-<p>Use the exclude button to exclude a file from being checked in. Use the include
-button to reverse an exclusion.
-</p>
-
-<h4><a name="report_updates"><a href="#menus">Menu:</a> Reports » Updates…</a></h4>
-
-<p>Search the selected folder and all its sub-folders in the repository for
-changes and display any found in a new window.
-</p>
-
-<p>By using the exclude and include buttons you can update a subset of the available
-changes.</p>
-
-<h4><a name="report_branch_changes"><a href="#menus">Menu:</a> Reports » Branch changes…</a></h4>
-
-<p>
-Creates a list of all changes in and below the current folder that were made in the current branch.
-<br/>
-An error message is displayed if the active project is not associated with a branch or if no
-changes were made to that branch in or below the current folder.
-</p>
-
-<h2><a name="how_to">How to…</a></h2>
-
-<h3>Adding TAGs to the History command</h3>
-<p>SCM Workbench can optionally add the names of TAGs to the history command output.
-</p>
-<p>Note: SCM Workbench uses the revision of the TAG to work out where in the history list the TAG should be shown.
-This works very well if TAGs are created from the HEAD of trunk.
-</p>
-
-<h4>Setup a project to list TAGs</h4>
-<ol>
-<li>Select the project name</li>
-<li>Right-Click (Ctrl-Click on the Mac) on the project and choose the <tt>Update Project</tt> menu item.</li>
-<li>If the subversion repositories has TAGs check the <tt>Enable</tt> next to <tt>Subversion Tags URL</tt>.
-SCM Workbench will fill in the typical TAGs URL. Edit the URL if the repository uses different conventions.</li>
-<li>Click OK</li>
-</ol>
-
+<hr />
 </body>
 </html>
