@@ -48,7 +48,8 @@ pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 #   Copy in the docs
 #
 mkdir Resources/Documentation
-cp ${DOCS_DIR}/scm-workbench.html Resources/Documentation
+cp ${DOCS_DIR}/scm-workbench*.html Resources/Documentation
+cp ${DOCS_DIR}/scm-workbench.css Resources/Documentation
 mkdir Resources/Documentation/scm-workbench_files
 cp ${DOCS_DIR}/scm-workbench_files/*.png Resources/Documentation/scm-workbench_files
 
