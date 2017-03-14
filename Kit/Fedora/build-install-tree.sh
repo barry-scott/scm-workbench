@@ -20,11 +20,6 @@ set -x
 
 mkdir -p ${BUILD_ROOT}${BIN} ${BUILD_ROOT}${LIB} ${BUILD_ROOT}${MAN1} ${BUILD_ROOT}${DOC} ${BUILD_ROOT}${DESKTOPFILES}
 
-# show the built tree
-pushd ${BUILD_ROOT}
-find . -ls
-popd
-
 gzip -c ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.1 > ${BUILD_ROOT}${MAN1}/scm-workbench.1.gz
 cp ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.desktop ${BUILD_ROOT}${DESKTOPFILES}
 
@@ -61,21 +56,10 @@ do
     cp ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
 done
 
-# show the built tree
-pushd ${BUILD_ROOT}
-find . -ls
-popd
-
-cp ${BUILDER_TOP_DIR}/Docs/scm-workbench.html ${BUILD_ROOT}${DOC}
-mkdir -p ${BUILD_ROOT}${DOC}/scm-workbench_files
-cp ${BUILDER_TOP_DIR}/Docs/scm-workbench_files/*.png ${BUILD_ROOT}${DOC}/scm-workbench_files
+${BUILDER_TOP_DIR}/Docs/build-docs.py ${BUILD_ROOT}${DOC}
 
 cat <<EOF >>${BUILD_ROOT}${LIB}/wb_platform_unix_specific.py
 doc_dir = "${DOC}"
 EOF
 
 cp ${BUILDER_TOP_DIR}/Source/wb.png ${BUILD_ROOT}${LIB}/scm-workbench.png
-
-# show the built tree
-cd ${BUILD_ROOT}
-find . -ls
