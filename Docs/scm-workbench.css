@@ -2,8 +2,14 @@
  *  scm-workbench.css
  *  - styles used in the user guide
  */
-h1, h2, h3, h4
-    {color: #000099;	background-color: lightskyblue}
+h1
+    {color: #000099}
+
+h1 img
+    {vertical-align: middle}
+
+h2, h3, h4
+    {color: #000099;	border-top: 1px solid grey;}
 
 body
     {counter-reset: figcaption h2}
