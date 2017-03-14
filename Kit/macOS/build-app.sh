@@ -47,11 +47,7 @@ pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 #
 #   Copy in the docs
 #
-mkdir Resources/Documentation
-cp ${DOCS_DIR}/scm-workbench*.html Resources/Documentation
-cp ${DOCS_DIR}/scm-workbench.css Resources/Documentation
-mkdir Resources/Documentation/scm-workbench_files
-cp ${DOCS_DIR}/scm-workbench_files/*.png Resources/Documentation/scm-workbench_files
+${DOCS_DIR}/build-docs.py Resources/Documentation
 
 # fixup 1. only keep the frameworks that we need, saving space
 # Resources/lib/python3.5/lib-dynload/PyQt5 - QtXxx.so
