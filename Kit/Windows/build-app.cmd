@@ -56,16 +56,8 @@ pushd %SRC_DIR%\Git
 popd >NUL
 
 rem copy in the docs
-
-mkdir %DIST_DIR%\Documentation
+%DOC_DIR%\build-docs.py %DIST_DIR%\Documentation
     if errorlevel 1 goto :error
-
-copy %DOC_DIR%\scm-workbench.html %DIST_DIR%\Documentation
-    if errorlevel 1 goto :error
-copy %DOC_DIR%\scm-workbench_files\*.png %DIST_DIR%\Documentation
-    if errorlevel 1 goto :error
-
-rem rem rem rem
 
 pushd %DIST_DIR%\PyWinAppRes\Lib\site-packages\PyQt5
     if errorlevel 1 goto :error
