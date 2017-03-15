@@ -138,6 +138,9 @@ class WbScmApp(wb_app.WbApp):
 
         style_sheet_pieces.append( 'QPlainTextEdit#feedback {background-color: %s; color: #cc00cc}' % (feedback_bg,) )
 
+        style_sheet_pieces.append( 'QPlainTextEdit:read-only {background-color: %s}' % (feedback_bg,) )
+        style_sheet_pieces.append( 'QLineEdit:read-only {background-color: %s}' % (feedback_bg,) )
+
         # set the users UI font
         if self.prefs.font_ui.face is not None:
             style_sheet_pieces.append( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
