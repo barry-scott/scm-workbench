@@ -418,7 +418,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 box.exec_()
 
     def treeActionSvnStatus( self ):
-        pass
+        self.log.info( 'Not implemented yet' )
 
     #------------------------------------------------------------
     #
