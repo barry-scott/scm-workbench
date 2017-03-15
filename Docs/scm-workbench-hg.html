@@ -18,14 +18,21 @@
 <li><a href="scm-workbench.html">Scm Workbench</a> - gettings started and common shared features.</li>
 <li><a href="scm-workbench-git.html">Git in Scm Workbench</a> - git specific menus and features.</li>
 <li><a href="scm-workbench-hg.html">Mercurial (hg) in Scm Workbench</a> - Mercurial specific menus and features.</li>
-<li><a href="scm-workbench-svn.html">Subversion (svn)in Scm Workbench</a> - Subversion specific menus and features.</li>
+<li><a href="scm-workbench-svn.html">Subversion (svn) in Scm Workbench</a> - Subversion specific menus and features.</li>
 </ul>
 
 <p><b>Table of Contents</b></p>
 
 <ul>
+<li><a href="#project_settings">Hg Project settings</a></li>
 <li><a href="#menus">Hg Specific Menus</a></li>
 </ul>
+
+<h2><a name="project_settings">Hg Project settings</a></h2>
+<figure>
+    <img src="scm-workbench_files/wb_project_settings_hg.png" />
+    <figcaption>Hg Project Settings</figcaption>
+</figure>
 
 <h2><a name="menus">Hg Menus</a></h2>
 
@@ -60,6 +67,113 @@
 </table>
 <figcaption>Mercurial menus.</figcaption>
 </figure>
+
+
+<h3><a href="#menus">Menu:</a> <a name="menu_hg_information">Hg Information</a></h3>
+
+<h4><a name="hg_action_diff_tip_vs_working">Diff TIP vs. Working</a></h4>
+
+<p>Show the differences between the selected files and the checked out TIP version.
+In other words show the work you have done.
+</p>
+
+<figure>
+    <img src="scm-workbench_files/wb_diff_window.png" />
+    <figcaption>Diff Window</figcaption>
+</figure>
+
+<h4><a name="hg_action_annotate">Annotate</a></h4>
+
+<p>Show an annotated listing of the selected file showing the origin of each
+line in the file. For each line the author, date and revision is listed.
+</p>
+
+<figure>
+    <img src="scm-workbench_files/wb_hg_annotate_window.png" />
+    <figcaption>Hg Annotate</figcaption>
+</figure>
+
+<p>Use this command to discover when a line of interest was introduced into
+a file with the commit details.
+</p>
+
+<h4><a name="hg_action_status">Status</a></h4>
+
+<p>Show the state of the local repository.</p>
+
+<h4><a name="hg_action_commit_history…">Commit history</a></h4>
+
+<p>List the commit log of the selected files or folder. You can choose to
+show all the commit messages, the last few messages or the messages between some dates.
+</p>
+
+<figure>
+    <img src="scm-workbench_files/wb_commit_log_history_options_dialog.png" />
+    <figcaption>Commit log history options</figcaption>
+</figure>
+
+<p>The Commit Log window shows an abbreviated listing of all the log messages.
+Select a log message to display the full log message and the changed paths.
+</p>
+
+<figure>
+    <img src="scm-workbench_files/wb_hg_commit_log_window.png" />
+    <figcaption>Commit log Window</figcaption>
+</figure>
+
+<p>By selecting a single revision you can click the Diff button to view the
+differences between your copy of the file and the choosen revision.
+</p>
+
+<p>By selecting two revisions you can click the Diff button to view the differences
+between the pair of selected revisitions.
+</p>
+
+<h3><a href="#menus">Menu:</a> <a name="menu_hg_actions">Hg Actions</a></h3>
+
+<h4><a name="hg_action_add">Add</a></h4>
+
+<p>Schedule the selected files to be added to the repository.
+</p>
+
+<h4><a name="hg_action_revert">Revert…</a></h4>
+
+<p>The Revert command allows you to undo additions and modification to files.
+</p>
+
+<p>Added files are left as uncontrolled files. Edits to modified files are lost after a Revert.
+</p>
+
+<p>A dialog pops up to confirm the revertion.
+</p>
+
+<h4><a name="hg_action_delete">Delete…</a></h4>
+
+<p>The Delete command can work on controlled and uncontrolled files.
+</p>
+
+<p>Uncontrolled files are deleted. Controlled files are scheduled for deletion for the repository.
+</p>
+
+<p>A dialog pops up to confirm the deletion.
+</p>
+
+<h4><a name="hg_action_commit">Commit…</a></h4>
+
+<p>Pop up the Commit Window which allows you to craft the commit.</p>
+
+<figure>
+    <img href="scm-workbench_files/wb_hg_commit_window.png" />
+    <figcaption>Hg Commit Window</figcaption>
+</figure>
+
+<h4><a name="hg_action_push">Push</a></h4>
+
+<p>Push all local commits that are not in the remote repository.</p>
+
+<h4><a name="hg_action_pull">Pull</a></h4>
+
+<p>Pull all commits from the remote repository that are not available locally.</p>
 
 <hr />
 </body>

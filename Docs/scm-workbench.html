@@ -18,7 +18,7 @@
 <li><a href="scm-workbench.html">Scm Workbench</a> - gettings started and common shared features.</li>
 <li><a href="scm-workbench-git.html">Git in Scm Workbench</a> - git specific menus and features.</li>
 <li><a href="scm-workbench-hg.html">Mercurial (hg) in Scm Workbench</a> - Mercurial specific menus and features.</li>
-<li><a href="scm-workbench-svn.html">Subversion (svn)in Scm Workbench</a> - Subversion specific menus and features.</li>
+<li><a href="scm-workbench-svn.html">Subversion (svn) in Scm Workbench</a> - Subversion specific menus and features.</li>
 </ul>
 
 <p><b>Table of Contents</b></p>
@@ -33,7 +33,13 @@
 
 <h2><a name="getting_started">Getting started</a></h2>
 
-<h3>Optional software</h3>
+<ol>
+<li>Make sure you have all the <a href="#optional_software">Optional software</a> you need installed.</li>
+<li>Configure the <a href="#file_preferences">Preferences</a> to you taste. For example which editor to use.</li>
+<li>Add projects using the <a href="#project_add">Add Project Wizard</a></li>
+</ol>
+
+<h3><a name="optional_software">Optional software</a></h3>
 
 <p>SCM Workbench depends on you installing optional software to support some features.</p>
 
@@ -194,8 +200,7 @@ push and checkin commands.</p>
 </figure>
 
 
-
-<h3><a href="#menus">Menu:</a> File</h3>
+<h3><a href="#menus">Menu:</a> <a name="menu_file">File</a></h3>
 <h4><a name="file_preferences"><a href="#menus">Menu:</a> File » Preferences…</a></h4>
 
 <h5>Projects preferences</h5>
@@ -222,7 +227,7 @@ The Browse button pops up a file picker dialog to help locate the editor program
     <figcaption>Shell Preferences</figcaption>
 </figure>
 
-<p>Choose the "Terminal Program" you wish to use for the <a href="#action_command_shell">Command Shell</a> command.
+<p>Choose the "Terminal Program" you wish to use for the <a href="#folder_action_command_shell">Command Shell</a> command.
 The available choices depend on your operating system:
 </p>
 <ul>
@@ -235,7 +240,7 @@ The available choices depend on your operating system:
 For Unix and macOS the terminal init command it sourced into the shell, which allow environment variables to be set.
 </p>
 
-<p>Choose the "File Browser Program" you wish to use for the <a href="#action_file_browser">File Browser</a> command.
+<p>Choose the "File Browser Program" you wish to use for the <a href="#folder_action_file_browser">File Browser</a> command.
 The available choices depend on your operating system:
 </p>
 <ul>
@@ -337,8 +342,9 @@ list panel. Ignored files are configured in the project specific config file: .g
 
 <p>Note: This presentation is not used when showing the differences for a folder of files, unified diff is used.</p>
 
+<h3><a href="#menus">Menu:</a> <a name="menu_folder_actions">Folder Actions</a></h3>
 
-<h4><a name="folder_action_command_shell"><a href="#menus">Menu:</a><a href="#menu_actions">Folder Actions</a> » Command Shell</a></h4>
+<h4><a name="folder_action_command_shell"><a href="#menus">Menu:</a><a href="#menu_folder_actions">Folder Actions</a> » Command Shell</a></h4>
 
 <p>Start a command shell which has the selected folder as its current working directory.
 </p>
@@ -346,7 +352,7 @@ list panel. Ignored files are configured in the project specific config file: .g
 <p>The <a href="#prefs_shell">Shell Preferences</a> allow you to customise how the Command Shell command works.
 </p>
 
-<h4><a name="folder_action_file_browser"><a href="#menus">Menu:</a> <a href="#menu_actions">Folder Actions</a> » File Browser</a></h4>
+<h4><a name="folder_action_file_browser"><a href="#menus">Menu:</a> <a href="#menu_folder_actions">Folder Actions</a> » File Browser</a></h4>
 
 <p>Start a file browser at the selected folder.
 </p>
@@ -354,12 +360,14 @@ list panel. Ignored files are configured in the project specific config file: .g
 <p>The <a href="#prefs_shell">Shell Preferences</a> allow you to customise how the File Browser command works.
 </p>
 
-<h4><a name="file_action_edit"><a href="#menus">Menu:</a> <a href="#menu_actions">File Actions</a> » Edit</a></h4>
+<h3><a href="#menus">Menu:</a> <a name="menu_file_actions">File Actions</a></h3>
+
+<h4><a name="file_action_edit"><a href="#menus">Menu:</a> <a href="#menu_file_actions">File Actions</a> » Edit</a></h4>
 
 <p>Edit the selected file using the text editor configured in the <a href="#prefs_editor">Editor Preferences</a>.
 </p>
 
-<h4><a name="file_action_open"><a href="#menus">Menu:</a> <a href="#menu_actions">File Actions</a> » Open</a></h4>
+<h4><a name="file_action_open"><a href="#menus">Menu:</a> <a href="#menu_file_actions">File Actions</a> » Open</a></h4>
 
 <p>Open the selected file using the standard operating system method.</p>
 <p>For example open for an HTML file will open it in your web browser.</p>
@@ -473,33 +481,14 @@ The Browse button pops up a file picker dialog to help choose the location.
 
 <h4><a name="project_settings"><a href="#menus">Menu:</a> <a href="#menu_project">Project</a> » Settings…</a></h4>
 
-<h5>Git Project settings</h5>
-<figure>
-    <img src="scm-workbench_files/wb_project_settings_git.png" />
-    <figcaption>Git Project Settings</figcaption>
-</figure>
+<p>The details of project settings are described in in SCM specific documentation:</p>
 
-<h5>Hg Project settings</h5>
-<figure>
-    <img src="scm-workbench_files/wb_project_settings_hg.png" />
-    <figcaption>Hg Project Settings</figcaption>
-</figure>
+<ul>
+<li><a href="scm-workbench-git.html#project_settings">Git Project settings</a></li>
+<li><a href="scm-workbench-hg.html#project_settings">Hg Project settings</a></li>
+<li><a href="scm-workbench-svn.html#project_settings">Svn Project settings</a></li>
+</ul>
 
-<h5>Svn Project settings</h5>
-<figure>
-    <img src="scm-workbench_files/wb_project_settings_svn.png" />
-    <figcaption>Svn Project Settings</figcaption>
-</figure>
-
-<p>SCM Workbench can optionally add the names of TAGs to the log history command output.
-Enable Tag URL and fill in the path to the tags URL for your repository.</p>
-
-<p>The last element of the URL can be "*" to have Workbench substitute the name
-from the next element after trunk.</p>
-
-<p>Note: SCM Workbench uses the revision of the TAG to work out where in the history list the TAG should be shown.
-This works very well if TAGs are created from the HEAD of trunk.
-</p>
 
 <h4><a name="project_delete"><a href="#menus">Menu:</a> <a href="#menu_project">Project</a> » Delete…</a></h4>
 
