@@ -22,7 +22,7 @@ elif sys.argv[1] == '--strict-test':
 
 else:
     output_dir = pathlib.Path( sys.argv[1] )
-    testing = 'no'
+    testing = None
 
 output_files_dir = output_dir / 'scm-workbench_files'
 
