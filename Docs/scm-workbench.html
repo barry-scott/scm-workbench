@@ -37,62 +37,8 @@
 <li>Make sure you have all the <a href="#optional_software">Optional software</a> you need installed.</li>
 <li>Configure the <a href="#file_preferences">Preferences</a> to you taste. For example which editor to use.</li>
 <li>Add projects using the <a href="#project_add">Add Project Wizard</a></li>
+<li>Explore the menus and toolbars to see what you can do.</li>
 </ol>
-
-<h3><a name="optional_software">Optional software</a></h3>
-
-<p>SCM Workbench depends on you installing optional software to support some features.</p>
-
-<p>SCM Workbench will search for the optional software when it starts up.
-If You have install git or hg and SCM Workbench does not find software you can configure the location in the Preferences…</p>
-
-<p>When SCM Workbench starts up it reports the location of the optional software it found.</p>
-<pre>
-Starting Scm Workbench
-Reading preferences
-Hg using program /usr/bin/hg
-Git using program /usr/bin/git
-</pre>
-
-<p>More details, like version information, is shown in the <a href="#help_about">Help » About…</a> menu.</p>
-
-<h4>Subversion (svn)</h4>
-<p>Subversion is always supported by the builtin pysvn code.</p>
-
-<h4>Git</h4>
-<p>Git support requires that you install the git command for your operating system.</p>
-<ul>
-<li>Windows - recommended <a href="https://git-scm.com/download/win">Git installer</a>.</li>
-<li>macOS - Apple ships Git 2.10.1 on macOS Sierra. However you can install a newer version using
-<a href="https://brew.sh/">homebrow</a> or <a href="https://www.macports.org/">MacPorts</a>.</li>
-<li>Linux - use your distributions package manager to install git.</li>
-</ul>
-
-<h4>Mercurial (hg)</h4>
-<p>Mercurial support that you install the hg command for your operating system.</p>
-
-<ul>
-<li>Windows - recommended <a href="https://www.mercurial-scm.org/downloads">Mercurial Inno Setup installer</a>.</li>
-<li>macOS - install Mercurial from either <a href="https://brew.sh/">homebrow</a> or <a href="https://www.macports.org/">MacPorts</a>.</li>
-<li>Linux - use your distributions package manager to install hg.</li>
-</ul>
-
-<h4>Setup a Project</h4>
-<p>SCM Workbench requires you to add a <em>Project</em> for each of the Git, Mercurial (hg) or Subversion (svn) project that you wish to work on.
-</p>
-<p>From the <tt>Project</tt> menu select <tt>Add…</tt> to start the <a href="#project_add">Add Project Wizard</a>.
-</p>
-
-<h3>Checkout the source files</h3>
-<p>After the Add project wizard has setup a new project for you checkout the sources.
-</p>
-<p>Select the project on the tree control and then select the menu <tt>Actions</tt> <tt>Checkout</tt>.
-</p>
-
-<h3>Working with files</h3>
-<p>The <tt>Action</tt> menu will list all the commands that apply to the selected item in the tree control
-or the list control. You can also Right-Click (Ctrl-Click on the Mac) to get a pop-up menu.
-</p>
 
 <h2><a name="main_window">Workbench Window</a></h2>
 
@@ -509,6 +455,45 @@ The Browse button pops up a file picker dialog to help choose the location.
 
 <p>Pop up a dialog that shows the version of SCM Workbench, Git, Hg, PySVN, PyQt5 and Python used.
 </p>
+
+
+<h2><a name="optional_software">Optional software</a></h2>
+
+<p>SCM Workbench depends on you installing optional software to support some features.</p>
+
+<p>SCM Workbench will search for the optional software when it starts up.
+If You have install git or hg and SCM Workbench does not find software you can configure the location in the Preferences…</p>
+
+<p>When SCM Workbench starts up it reports the location of the optional software it found.</p>
+<pre>
+Starting Scm Workbench
+Reading preferences
+Hg using program /usr/bin/hg
+Git using program /usr/bin/git
+</pre>
+
+<p>More details, like version information, is shown in the <a href="#help_about">Help » About…</a> menu.</p>
+
+<h3>Subversion (svn)</h3>
+<p>Subversion is always supported by the builtin pysvn code.</p>
+
+<h3>Git</h3>
+<p>Git support requires that you install the git command for your operating system.</p>
+<ul>
+<li>Windows - recommended <a href="https://git-scm.com/download/win">Git installer</a>.</li>
+<li>macOS - Apple ships Git 2.10.1 on macOS Sierra. However you can install a newer version using
+<a href="https://brew.sh/">homebrow</a> or <a href="https://www.macports.org/">MacPorts</a>.</li>
+<li>Linux - use your distributions package manager to install git.</li>
+</ul>
+
+<h3>Mercurial (hg)</h3>
+<p>Mercurial support that you install the hg command for your operating system.</p>
+
+<ul>
+<li>Windows - recommended <a href="https://www.mercurial-scm.org/downloads">Mercurial Inno Setup installer</a>.</li>
+<li>macOS - install Mercurial from either <a href="https://brew.sh/">homebrow</a> or <a href="https://www.macports.org/">MacPorts</a>.</li>
+<li>Linux - use your distributions package manager to install hg.</li>
+</ul>
 
 <hr />
 </body>
