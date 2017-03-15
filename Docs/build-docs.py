@@ -9,16 +9,20 @@ def copyFile( src, dst_dir ):
     shutil.copy( str( src ), str( dst ) )
 
 if len(sys.argv) != 2:
-    print( 'Usage: %s --test|<docs-folder>' % (sys.argv[0],) )
+    print( 'Usage: %s --test|--strict-test<docs-folder>' % (sys.argv[0],) )
     sys.exit( 1 )
 
 if sys.argv[1] == '--test':
     output_dir = pathlib.Path( 'tmp' )
-    testing = True
+    testing = 'lazy'
+
+elif sys.argv[1] == '--strict-test':
+    output_dir = pathlib.Path( 'tmp' )
+    testing = 'strict'
 
 else:
     output_dir = pathlib.Path( sys.argv[1] )
-    testing = False
+    testing = 'no'
 
 output_files_dir = output_dir / 'scm-workbench_files'
 
@@ -35,10 +39,21 @@ for src in docs_dir.glob( 'scm-workbench*.html' ):
 copyFile( docs_dir / 'scm-workbench.css', output_dir )
 copyFile( src_dir / 'wb.png', output_files_dir )
 
+for src in (docs_dir / 'scm-workbench_files').glob( '*.png' ):
+    copyFile( src, output_files_dir )
+
 for src in (src_dir / 'toolbar_images').glob( '*.png' ):
     copyFile( src, output_files_dir )
 
-if testing:
+if testing is not None:
+    import check_docs
+    cwd = pathlib.Path.cwd()
+    os.chdir( str(output_dir) )
+    if check_docs.Main().main( sys.argv ) != 0 and testing == 'strict':
+        sys.exit( 1 )
+
+    os.chdir( str(cwd) )
+
     index = output_dir / 'scm-workbench.html'
     if sys.platform == 'win32':
         import ctypes
