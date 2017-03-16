@@ -683,9 +683,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # take account of any changes in the top window
         yield from self.top_window.updateTableView_Bg()
 
-        # enabled states may have changed
-        self.top_window.updateActionEnabledStates()
-
     def __commitClosed( self ):
         if self.app.hasSingleton( self.commit_key ):
             self.app.popSingleton( self.commit_key )

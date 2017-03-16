@@ -535,9 +535,6 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # take account of any changes
         yield from self.main_window.updateTableView_Bg()
 
-        # enabled states may have changed
-        self.main_window.updateActionEnabledStates()
-
     def __commitClosed( self ):
         if self.app.hasSingleton( self.commit_key ):
             self.app.popSingleton( self.commit_key )
