@@ -206,6 +206,9 @@ class WbApp(wb_logging.AppLoggingMixin,
     def logWidget( self ):
         return self.__wb_log.logWidget()
 
+    def clearLogMessages( self ):
+        self.__wb_log.clearLog()
+
     # called to parse option supported by the derived class
     def optionParse( self, args ):
         return False
