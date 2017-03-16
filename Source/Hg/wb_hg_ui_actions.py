@@ -507,8 +507,8 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         hg_project = self.selectedHgProject()
 
         commit_dialog = wb_hg_commit_dialog.WbHgCommitDialog( self.app, hg_project )
-        commit_dialog.commitAccepted.connect( self.__commitAccepted )
-        commit_dialog.commitClosed.connect( self.app.wrapWithThreadSwitcher( self.__commitClosed_Bg ) )
+        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
+        commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user
         commit_dialog.show()
@@ -518,8 +518,9 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    def __commitAccepted( self ):
-        commit_dialog = self.app.getSingleton( self.commit_key )
+    @thread_switcher
+    def __commitAccepted_Bg( self ):
+        commit_dialog = self.app.popSingleton( self.commit_key )
 
         hg_project = self.selectedHgProject()
         message = commit_dialog.getMessage()
@@ -528,17 +529,18 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         headline = message.split('\n')[0]
         self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
 
-        # close will emit the commitCLose signal
+        # close will emit the commitClose signal
         commit_dialog.close()
-
-    def __commitClosed_Bg( self ):
-        commit_dialog = self.app.popSingleton( self.commit_key )
 
         # take account of any changes
         yield from self.main_window.updateTableView_Bg()
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
+
+    def __commitClosed( self ):
+        if self.app.hasSingleton( self.commit_key ):
+            self.app.popSingleton( self.commit_key )
 
     #============================================================
     #

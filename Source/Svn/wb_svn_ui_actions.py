@@ -778,7 +778,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         svn_project = self.selectedSvnProject()
 
         commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
-        commit_dialog.commitAccepted.connect( self.__commitAccepted )
+        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
         commit_dialog.commitClosed.connect( self.__commitClosed )
 
         # show to the user
@@ -789,9 +789,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-    def __commitAccepted( self ):
-        self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg )()
-
     @thread_switcher
     def __commitAccepted_Bg( self ):
         svn_project = self.selectedSvnProject()
@@ -801,8 +798,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         message = commit_dialog.getMessage()
         all_commit_files = commit_dialog.getAllCommitIncludedFiles()
 
-        # hide the dialog
-        commit_dialog.hide()
+        # close with cause the commitClosed signal to be emitted
+        commit_dialog.close()
 
         msg = T_('Check in %s') % (svn_project.projectName(),)
         self.log.infoheader( msg )
@@ -826,23 +823,15 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.setStatusAction( T_('Ready') )
         self.progress.end()
 
-        # close with cause the commitClosed signal to be emitted
-        commit_dialog.close()
-
-    def __commitClosed( self ):
-        self.app.wrapWithThreadSwitcher( self.__svn_commitClosed_Bg )()
-
-    @thread_switcher
-    def __svn_commitClosed_Bg( self ):
-        commit_dialog = self.app.popSingleton( self.commit_key )
-
         # take account of any changes
         yield from self.top_window.updateTableView_Bg()
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
-        del commit_dialog
+    def __commitClosed( self ):
+        if self.app.hasSingleton( self.commit_key ):
+            self.app.popSingleton( self.commit_key )
 
     #============================================================
     #
