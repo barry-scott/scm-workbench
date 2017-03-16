@@ -34,6 +34,11 @@
     <figcaption>Hg Project Settings</figcaption>
 </figure>
 
+<h3>Name</h3>
+
+<p>The name of the project can be changed by editing the "Name" field.
+You must pick a name that is not in use by another project.</p>
+
 <h2><a name="menus">Hg Menus</a></h2>
 
 <figure>
@@ -49,7 +54,7 @@
     <tr><td><hr /></td></tr>
     <tr><td><a href="#hg_action_status">Status</a></td></tr>
     <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_commit_history…">Commit history</a></td></tr>
+    <tr><td><a href="#hg_action_commit_history">Commit history</a></td></tr>
     </table></div></td>
 <td valign="top">
     <div class="menu_dropdown">
@@ -59,7 +64,7 @@
     <tr><td><a href="#hg_action_revert">Revert…</a></td></tr>
     <tr><td><a href="#hg_action_delete">Delete…</a></td></tr>
     <tr><td><hr /></td></tr>
-    <tr><td><a href="#hg_action_commit">Commit…</a></td></tr>
+    <tr><td><a href="#hg_action_commit">Commit</a></td></tr>
     <tr><td><hr /></td></tr>
     <tr><td><a href="#hg_action_push">Push</a></td></tr>
     <tr><td><a href="#hg_action_pull">Pull</a></td></tr>
@@ -101,7 +106,7 @@ a file with the commit details.
 
 <p>Show the state of the local repository.</p>
 
-<h4><a name="hg_action_commit_history…">Commit history</a></h4>
+<h4><a name="hg_action_commit_history">Commit history</a></h4>
 
 <p>List the commit log of the selected files or folder. You can choose to
 show all the commit messages, the last few messages or the messages between some dates.
@@ -117,8 +122,8 @@ Select a log message to display the full log message and the changed paths.
 </p>
 
 <figure>
-    <img src="scm-workbench_files/wb_hg_commit_log_window.png" />
-    <figcaption>Commit log Window</figcaption>
+    <img src="scm-workbench_files/wb_hg_commit_history_window.png" />
+    <figcaption>Commit history window</figcaption>
 </figure>
 
 <p>By selecting a single revision you can click the Diff button to view the
@@ -158,14 +163,21 @@ between the pair of selected revisitions.
 <p>A dialog pops up to confirm the deletion.
 </p>
 
-<h4><a name="hg_action_commit">Commit…</a></h4>
+<h4><a name="hg_action_commit">Commit</a></h4>
 
 <p>Pop up the Commit Window which allows you to craft the commit.</p>
 
 <figure>
-    <img href="scm-workbench_files/wb_hg_commit_window.png" />
-    <figcaption>Hg Commit Window</figcaption>
+    <img src="scm-workbench_files/wb_hg_new_commit_window.png" />
+    <figcaption>New Commit Window</figcaption>
 </figure>
+
+<p>You can also use commands from this window like Edit, Open, Diff
+and Log History to confirm that the changes are as you expect and help
+you write a suitable log message.
+</p>
+
+<p>The commit will only be allowed if there are changes and the Commit Log Message is filled in.</p>
 
 <h4><a name="hg_action_push">Push</a></h4>
 

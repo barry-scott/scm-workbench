@@ -9,7 +9,7 @@ h1 img
     {vertical-align: middle}
 
 h2, h3, h4
-    {color: #000099;	border-top: 1px solid grey;}
+    {color: #000099; border-top: 1px solid grey;}
 
 body
     {counter-reset: figcaption h2}
@@ -40,14 +40,19 @@ h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.n
     { content: ""; counter-increment: none } 
 
 p
-    { width: 40em; }
+    { width: 50em; }
 li
-    { width: 35em; }
+    { width: 45em}
 pre
     {color: #0000cc; background-color: #eeeeee; position: relative; left: 40px; margin-right: 80px;
 	border-style: solid; border-color: black; border-width: thin;}
 tt
     {color: #dd0000;}
+
+ul
+    { padding-left: 1em }
+ol
+    { padding-left: 1.5em }
 
 figcaption
     { font-family: sans-serif; font-size: smaller }

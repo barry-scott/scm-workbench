@@ -34,6 +34,13 @@
     <figcaption>Svn Project Settings</figcaption>
 </figure>
 
+<h3>Name</h3>
+
+<p>The name of the project can be changed by editing the "Name" field.
+You must pick a name that is not in use by another project.</p>
+
+<h3>Tag URL</h3>
+
 <p>SCM Workbench can optionally add the names of TAGs to the log history command output.
 Enable Tag URL and fill in the path to the tags URL for your repository.</p>
 
@@ -203,8 +210,8 @@ Select a commit message to display the full commit message and the changed paths
 </p>
 
 <figure>
-    <img src="scm-workbench_files/wb_svn_commit_log_window.png" />
-    <figcaption>Commit log Window</figcaption>
+    <img src="scm-workbench_files/wb_svn_commit_history_window.png" />
+    <figcaption>Commit history window</figcaption>
 </figure>
 
 <p>By selecting a single revision you can click the Diff button to view the
@@ -279,8 +286,21 @@ between the pair of selected revisitions.
 results in a Checkin Window.
 </p>
 
-<p>This is the same Checkin window is described that the Report Changes command creates.
+<figure>
+    <img src="scm-workbench_files/wb_svn_new_commit_window.png" />
+    <figcaption>Svn Check in Window</figcaption>
+</figure>
+
+<p>The Check in window allows you to commit the changes found.
 </p>
+
+<p>You can also use commands from this window like Edit, Open, Diff
+and Log History to confirm that the changes are as you expect and help
+you write a suitable log message.
+</p>
+
+<p>The commit will only be allowed if there are changes and the
+Commit Log Message is filled in.</p>
 
 <h4><a name="svn_action_update"><a href="#menus">Menu:</a> Svn Actions » Update</a></h4>
 
@@ -361,33 +381,6 @@ locks and display any found in a new window.
 <p>The Repository Lock Report window allows you to Lock and Unlock the files as
 well as a set of other useful commands. Use the toolbar buttons or Context-Menu to
 access commands.
-</p>
-
-<h4><a name="report_changes"><a href="#menus">Menu:</a> Reports » Changes…</a></h4>
-
-<p>Search the selected Working Copy folder and all its sub-folders for
-changes and display any found in a new window.
-</p>
-
-<figure>
-    <img src="scm-workbench_files/wb_svn_checkin_window.png" />
-    <figcaption>Svn Checking Window</figcaption>
-</figure>
-
-<p>The Check in window allows you to Check in the changes found to the repository.
-</p>
-
-<p>You can also use commands from this window like Diff, Properties, Annotate
-and Log History to confirm that the changes are as you expect and help
-you write a suitable log message.
-</p>
-
-<p>SCM Workbench remembers the last log message you entered and can insert it for
-you when you click the Insert Last Message button.
-</p>
-
-<p>Use the exclude button to exclude a file from being checked in. Use the include
-button to reverse an exclusion.
 </p>
 
 <h4><a name="report_updates"><a href="#menus">Menu:</a> Reports » Updates…</a></h4>

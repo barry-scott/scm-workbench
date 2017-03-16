@@ -34,6 +34,16 @@
     <figcaption>Git Project Settings</figcaption>
 </figure>
 
+<h3>Name</h3>
+
+<p>The name of the project can be changed by editing the "Name" field.
+You must pick a name that is not in use by another project.</p>
+
+<h3>Name and Email address for commits</h3>
+
+<p>Git needs your name and email address for each commit you make.</p>
+<p>The Git Global config user.name and user.email is used unless
+overridden by the Repository local config user.name and user.email.</p>
 
 <h2><a name="menus">Git Menus</a></h2>
 
@@ -62,6 +72,8 @@
     <tr><td><hr /></td></tr>
     <tr><td><a href="#git_action_rename">Rename…</a></td></tr>
     <tr><td><a href="#git_action_delete">Delete…</a></td></tr>
+    <tr><td><hr /></td></tr>
+    <tr><td><a href="#git_action_commit">Commit</a></td></tr>
     <tr><td><hr /></td></tr>
     <tr><td><a href="#git_action_push">Push</a></td></tr>
     <tr><td><a href="#git_action_pull">Pull</a></td></tr>
@@ -132,17 +144,47 @@ Select a log message to display the full log message and the changed paths.
 </p>
 
 <figure>
-    <img src="scm-workbench_files/wb_git_commit_log_window.png" />
-    <figcaption>Commit log Window</figcaption>
+    <img src="scm-workbench_files/wb_git_commit_history_window.png" />
+    <figcaption>Commit History Window</figcaption>
 </figure>
 
-<p>By selecting a single revision you can click the Diff button to view the
-differences between your copy of the file and the choosen revision.
+<h5>Exploring the history</h5>
+
+<p>By selecting a single commit you can click the Diff button to view the
+differences between your copy of the file and the choosen commit.
 </p>
 
-<p>By selecting two revisions you can click the Diff button to view the differences
-between the pair of selected revisitions.
+<p>By selecting two commits you can click the Diff button to view the differences
+between the pair of selected commits.
 </p>
+
+<p>By selecting a file in the CHanged Files list you can click the Diff button
+to show the differences in that one file for the selected commit.</p>
+
+<h5>Rebasing the commit history</h5>
+
+<p>Unpushed commits are drawing in <span style="color: rbg( 192, 0, 192 )">purple</span> and may be rebased.</p>
+
+<p>The rebase options are availble from the context menu (right-click menu).</p>
+
+<p>There are three rebase operations supported:</p>
+<ul>
+<li>Reword commit message - select one unpushed commit and choose this option.</li>
+<li>Squash commits together - select two or more consequtice commits and choose this option.</li>
+<li>Drop commit - select unpushed commits and choose this option.</li>
+</ul>
+
+<p>The Rebase dialog shows the rebase commands that will be executed.</p>
+
+<figure>
+    <img src="scm-workbench_files/wb_git_rebase_reword_dialog.png" />
+    <figcaption>Rebase reword dialog</figcaption>
+</figure>
+
+<p>For the Reword and Squash options a new commit message can be edited.</p>
+
+<p>If Git cannot perform the rebase the errors are shown in the main windows message
+panel and the errors are also shown in a pop up dialog.</p>
 
 <h3><a href="#menus">Menu:</a> <a name="menu_hg_actions">Git Actions</a></h3>
 
@@ -185,6 +227,20 @@ between the pair of selected revisitions.
 
 <p>A dialog pops up to confirm the deletion.
 </p>
+
+<h4><a name="git_action_commit">Commit</a></h4>
+
+<figure>
+    <img src="scm-workbench_files/wb_git_new_commit_window.png" />
+    <figcaption>New Commit Window</figcaption>
+</figure>
+
+<p>You can also use commands from this window like Edit, Open, Diff
+and Log History to confirm that the changes are as you expect and help
+you write a suitable log message.
+</p>
+
+<p>The commit will only be allowed if there are changes and the Commit Log Message is filled in.</p>
 
 <h4><a name="git_action_push">Push</a></h4>
 
