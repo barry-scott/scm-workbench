@@ -91,30 +91,19 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         self.removeRow( row, QtCore.QModelIndex() )
 
-    event_counter = 0
-
     @thread_switcher
     def refreshTree_Bg( self ):
-        WbScmTreeModel.event_counter += 1
-        event = WbScmTreeModel.event_counter
-
-        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() ----- self.selected_node %r' % (event, self.selected_node) )
         if self.selected_node is None:
             return
-
-        if self._debug.isEnabled():
-            self.app.log.stack( 'Who called refreshTree_Bg instance %d' % (event,) )
 
         scm_project = self.selected_node.scm_project_tree_node.project
         self.app.top_window.setStatusAction( T_('Update status of %s') % (scm_project.projectName(),) )
         yield self.app.switchToBackground
-        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() in Bg self.selected_node %r' % (event, self.selected_node) )
 
         # update the project data
         scm_project.updateState()
 
         yield self.app.switchToForeground
-        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() in Fg self.selected_node %r' % (event, self.selected_node) )
 
         self.app.top_window.setStatusAction()
 
@@ -125,8 +114,6 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         tree_node.update( scm_project.tree )
 
         self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
-
-        self._debug( '%d:WbScmTreeModel.refreshTree_Bg() done' % (event,) )
 
     def getFirstProjectIndex( self ):
         if self.invisibleRootItem().rowCount() == 0:
