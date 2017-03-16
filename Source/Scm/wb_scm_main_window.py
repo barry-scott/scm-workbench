@@ -280,7 +280,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     singleton_update_branches_running = False
 
     def __updateBranches( self ):
-        WbScmMainWindow.singleton_update_table_running = True
+        if WbScmMainWindow.singleton_update_branches_running:
+            return
+
+        WbScmMainWindow.singleton_update_branches_running = True
 
         scm_project = self.table_view.selectedScmProject()
         self.branches_ctrl.clear()
@@ -289,10 +292,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.branches_ctrl.addItems( all_branch_names )
             self.branches_ctrl.setCurrentIndex( all_branch_names.index( scm_project.getBranchName() ) )
 
-        WbScmMainWindow.singleton_update_table_running = False
+        WbScmMainWindow.singleton_update_branches_running = False
 
     def branchChanged( self, index ):
-        if WbScmMainWindow.singleton_update_table_running:
+        if WbScmMainWindow.singleton_update_branches_running:
             return
 
         if index < 0 or index >= self.branches_ctrl.count():
@@ -316,15 +319,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         WbScmMainWindow.singleton_update_table_running = True
 
-        self._debug( 'updateTableView_Bg start' )
-
         self.__updateBranches()
 
         # need to turn sort on and off to have the view sorted on an update
         self.tree_view.setSortingEnabled( False )
 
         # load in the latest status
-        self._debug( 'updateTableView_Bg calling refreshTree_Bg' )
         yield from self.tree_model.refreshTree_Bg()
 
         # sort filter is now invalid
@@ -338,7 +338,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # enabled states will have changed
         self.timer_update_enable_states.start( 0 )
-        self._debug( 'updateTableView_Bg done' )
 
         WbScmMainWindow.singleton_update_table_running = False
 
@@ -614,7 +613,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         if close:
             self.close()
-
 
     #------------------------------------------------------------
     #
