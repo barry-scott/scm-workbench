@@ -56,10 +56,11 @@ ${PYTHON} -u ${BUILDER_TOP_DIR}/Source/Scm/make_wb_scm_version.py \
     ${BUILDER_TOP_DIR}/Builder/version.dat \
     ${KIT_BASENAME}/Source/Scm/wb_scm_version.py
 
-# package until fedora does
-mkdir -p ${KIT_BASENAME}/Import/GitPython
-(cd ~/wc/git/GitPython; git archive --format=tar --prefix=GitPython/ master) | tar xf - -C ${KIT_BASENAME}/Import
-rm -rf ${KIT_BASENAME}/Import/GitPython/git/ext
+# xml-preferences is not packaged by Fedora yet - put in Common
+mkdir ${KIT_BASENAME}/Source/Common/xml_preferences
+cp \
+    /usr/lib/python3.5/site-packages/xml_preferences/__init__.py \
+     ${KIT_BASENAME}/Source/Common/xml_preferences
 
 # make the source kit
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}

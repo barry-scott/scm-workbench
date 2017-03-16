@@ -56,6 +56,17 @@ do
     cp ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
 done
 
+for MOD in xml_preferences
+do
+    if [ -e ${BUILDER_TOP_DIR}/Source/Common/${MOD} ]
+    then
+        mkdir ${BUILD_ROOT}${LIB}/${MOD}
+        cp -r ${BUILDER_TOP_DIR}/Source/Common/${MOD} ${BUILD_ROOT}${LIB}
+    fi
+done
+
+rm -f ${BUILD_ROOT}${LIB}/make*.py
+
 ${BUILDER_TOP_DIR}/Docs/build-docs.py ${BUILD_ROOT}${DOC}
 
 cat <<EOF >>${BUILD_ROOT}${LIB}/wb_platform_unix_specific.py

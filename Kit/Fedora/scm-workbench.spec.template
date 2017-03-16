@@ -16,9 +16,13 @@ BuildRequires:  gettext
 Requires:       python3 >= 3.5
 Requires:       python3-qt5 >= 5.7
 Requires:       subversion >= 1.9
+Requires:       python3-pysvn >= 1.9.2
 Requires:       git-core >= 2.7
-Requires:       python3-hglib >= 2.0
-Requires:       python3-GitPython >= 2.1.0
+Requires:       python3-hglib >= 2.3
+Requires:       python3-GitPython >= 2.1.1
+Requires:       python3-pytz >= 2016.6
+Requires:       python3-qscintilla-qt5 >= 2.9
+Requires:       python3-tzlocal >= 1.2
 
 %global __python %{__python3}
 
