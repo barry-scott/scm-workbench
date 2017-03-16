@@ -18,16 +18,16 @@ src_dir = builder_top_dir / 'Source'
 docs_dir = builder_top_dir / 'Docs'
 web_site_dir = builder_top_dir / 'WebSite'
 root_dir = web_site_dir / 'root'
-kits_dir = root_dir / 'kits'
 
 # output paths
 output_dir = pathlib.Path( 'tmp' )
+output_kits_dir = output_dir / 'kits'
 user_guide_dir = output_dir / 'user-guide'
 
 shutil.rmtree( str( output_dir ) )
 
 output_dir.mkdir( parents=True, exist_ok=True )
-kits_dir.mkdir( parents=True, exist_ok=True )
+output_kits_dir.mkdir( parents=True, exist_ok=True )
 
 for src in root_dir.glob( '*.html' ):
     copyFile( src, output_dir )
@@ -44,7 +44,7 @@ for kit_fmt in ('SCM-Workbench-%s-setup.exe',
                 'SCM-Workbench-%s.dmg',
                 'scm-workbench-%s-1.fc25.noarch.rpm',
                 'scm-workbench-%s-1.fc25.src.rpm'):
-    copyFile( built_kits_dir / (kit_fmt % (version,)), kits_dir )
+    copyFile( built_kits_dir / (kit_fmt % (version,)), output_kits_dir )
 
 with open( str( output_dir / 'index.html' ), encoding='utf-8' ) as f:
     index = f.read()
