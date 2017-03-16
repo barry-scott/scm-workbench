@@ -73,11 +73,18 @@ then
     gdb -x .gdbinit ${PYTHON}
 
 else
-    # run Python with the path that it has when started by macOS as an App
-    if [ -e ${PYTHONW} ]
-    then
-        PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHONW} wb_scm_main.py $*
-    else
-        PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHON} wb_scm_main.py $*
-    fi
+    case "$( uname )" in
+    Darwin)
+        # run Python with the path that it has when started by macOS as an App
+        if [ -e ${PYTHONW} ]
+        then
+            PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHONW} wb_scm_main.py $*
+        else
+            PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHON} wb_scm_main.py $*
+        fi
+        ;;
+    *)
+        ${PYTHON} wb_scm_main.py $*
+        ;;
+    esac
 fi
