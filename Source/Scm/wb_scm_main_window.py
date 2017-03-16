@@ -369,6 +369,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Unified diff'), self.setDiffUnified, checker=self.checkerDiffUnified, group=self.diff_group )
         self._addMenu( m, T_('Side by side diff'), self.setDiffSideBySide, checker=self.checkerDiffSideBySide, group=self.diff_group )
 
+        m.addSeparator()
+        self._addMenu( m, T_('Clear Log Messages'), self.appActionClearLogMessages )
+
         m = mb.addMenu( T_('F&older Actions') )
         self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
         self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
@@ -613,6 +616,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         if close:
             self.close()
+
+    def appActionClearLogMessages( self ):
+        self.app.clearLogMessages()
 
     #------------------------------------------------------------
     #
