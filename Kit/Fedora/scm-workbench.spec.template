@@ -62,7 +62,7 @@ cd ${BUILDER_TOP_DIR}/Kit/Fedora
 %{_datarootdir}
 
 %changelog
-* Thu 16 Mar 2017 barry scott <barry@barrys-emacs.org> - 0.8.5-1
+* Thu Mar 16 2017 barry scott <barry@barrys-emacs.org> - 0.8.5-1
 - fix warnings about duplicate files
 * Sun Mar 12 2017 barry scott <barry@barrys-emacs.org> - 0.8.2-1
 - add docs
