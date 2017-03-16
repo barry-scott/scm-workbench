@@ -45,6 +45,9 @@ for src in (docs_dir / 'scm-workbench_files').glob( '*.png' ):
 for src in (src_dir / 'toolbar_images').glob( '*.png' ):
     copyFile( src, output_files_dir )
 
+print( 'Docs built into %s' % (output_dir,) )
+
+
 if testing is not None:
     import check_docs
     cwd = pathlib.Path.cwd()

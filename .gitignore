@@ -9,8 +9,9 @@ wb_scm_images.py
 wb_scm_version.py
 wb_diff_images.py
 
-# ignore Docs test build folder
+# ignore Docs and WebSite build folders
 Docs/tmp/
+WebSite/tmp/
 
 # ignore macOS build folders
 Kit/macOS/.eggs/

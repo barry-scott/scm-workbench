@@ -6,7 +6,7 @@ echo "Info: build-dmg.sh - start"
 # the .py is bash compatible
 . ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_version.py
 
-export PKG_NAME=SCM-Workbench-V${major}.${minor}.${patch}
+export PKG_NAME=SCM-Workbench-${major}.${minor}.${patch}
 export APP_PATH="dmg.tmp/${PKG_NAME}/${APP_NAME}.app"
 
 MOUNT_POINT="/Volumes/${APP_NAME}"
