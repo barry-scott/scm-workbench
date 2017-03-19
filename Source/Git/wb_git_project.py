@@ -446,7 +446,16 @@ class GitProject:
     def cmdRevert( self, rev, filename ):
         self._debug( 'cmdRevert( %r, %r )' % (rev, filename) )
 
-        self.repo().git.checkout( rev, filename )
+        try:
+            self.repo().git.checkout( rev, filename )
+
+        except GitCommandError as e:
+            if e.stderr is not None:
+                # stderr unfortuently is prefixed with "\n  stderr: '"
+                self.app.log.error( e.stderr.split( "'", 1 )[1][:-1] )
+            else:
+                self.app.log.error( str(e) )
+
         self.__stale_index = True
 
     def cmdDelete( self, filename ):
