@@ -54,7 +54,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     #------------------------------------------------------------
     def addProjectPreInitWizardHandler( self, name, url, wc_path ):
-        self.log.infoheader( T_('Initialise Hg repository in %s') % (url, wc_path) )
+        self.log.infoheader( T_('Initialise Hg repository in %s') % (wc_path,) )
         self.setStatusAction( T_('Init %(project)s') %
                                     {'project': name} )
         self.progress.start( T_('No progress available for hg') )

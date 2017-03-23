@@ -73,13 +73,13 @@ class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('ssh', 'https', 'http')
 
     def __init__( self, wizard ):
-        super().__init__()
+        super().__init__( wizard )
 
         self.setTitle( T_('Add Hg Project') )
         self.setSubTitle( T_('Clone Hg repository') )
 
         self.grid_layout.addRow( T_('Hg Repository URL'), self.url )
-        self.grid_layout.addRow( '', self.feedback )
+        self.grid_layout.addFeedbackWidget()
 
     def getScmType( self ):
         return 'hg'
@@ -95,15 +95,12 @@ class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         # hg identify <URL>
         return False
 
-    def isCompleteScmSpecific( self ):
-        return True
-
     def validatePageScmSpecific( self ):
         pass
 
 class PageAddProjectHgInit(wb_scm_project_dialogs.PageAddProjectScmInitBase):
     def __init__( self, wizard ):
-        super().__init__()
+        super().__init__( wizard )
 
         self.setTitle( T_('Add Hg Project') )
         self.setSubTitle( T_('Init Hg repository') )

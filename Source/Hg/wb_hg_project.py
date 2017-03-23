@@ -81,7 +81,9 @@ class HgProject:
     def cmdInit( self, wc_path, out_handler, err_handler, prompt_handler, auth_failed_handler ):
         assert self.prefs_project is None
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-            self.repo().init( self.pathForHg( wc_path ) )
+            # init() has a bug it passes u'init' not b'init'
+            args = hglib.util.cmdbuilder( b'init', self.pathForHg( wc_path ) )
+            self.repo().rawcommand( args )
 
     def scmType( self ):
         return 'hg'

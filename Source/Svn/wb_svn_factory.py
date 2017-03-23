@@ -47,7 +47,7 @@ class WbSvnFactory(wb_scm_factory_abc.WbScmFactoryABC):
         return SvnProjectSettingsDialog( app, main_window, prefs_project, scm_project )
 
     def projectDialogClonePages( self, wizard ):
-        return [PageAddProjectSvnCheckout()]
+        return [PageAddProjectSvnCheckout( wizard )]
 
     def projectDialogInitPages( self, wizard ):
         return []
@@ -128,14 +128,14 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
 class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('https', 'http')
 
-    def __init__( self ):
-        super().__init__()
+    def __init__( self, wizard ):
+        super().__init__( wizard )
 
         self.setTitle( T_('Add Svn Project') )
         self.setSubTitle( T_('Checkout Svn repository') )
 
         self.grid_layout.addRow( T_('Svn Repository URL'), self.url )
-        self.grid_layout.addRow( '', self.feedback )
+        self.grid_layout.addFeedbackWidget()
 
     def getScmType( self ):
         return 'svn'
@@ -150,9 +150,6 @@ class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBas
         # if this works we have an svn repo
         # pysvn.ls( [<url>], depth=empty? )
         return False
-
-    def isCompleteScmSpecific( self ):
-        return True
 
     def validatePageScmSpecific( self ):
         pass

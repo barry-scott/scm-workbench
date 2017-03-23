@@ -209,6 +209,23 @@ class GitProject:
 
         return tracking_branch.commit
 
+    def getRemote( self, name ):
+        try:
+            return self.repo().remote( name )
+
+        except ValueError:
+            return None
+
+    def cmdAddRemote( self, name, url ):
+        git.Remote.create( self.repo(), name, url )
+
+    def cmdDeleteRemote( self, name ):
+        git.Remote.remove( self.repo(), name )
+
+    def cmdUpdateRemote( self, name, url ):
+        remote = self.getRemote( name )
+        remote.set_url( url, remote.url )
+
     def numStagedFiles( self ):
         return self.__num_staged_files
 

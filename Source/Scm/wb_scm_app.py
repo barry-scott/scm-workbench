@@ -140,6 +140,7 @@ class WbScmApp(wb_app.WbApp):
 
         style_sheet_pieces.append( 'QPlainTextEdit:read-only {background-color: %s}' % (feedback_bg,) )
         style_sheet_pieces.append( 'QLineEdit:read-only {background-color: %s}' % (feedback_bg,) )
+        style_sheet_pieces.append( 'QLineEdit[valid=false] {border: 1px solid #cc00cc; border-radius: 3px; padding: 5px}' )
 
         # set the users UI font
         if self.prefs.font_ui.face is not None:
