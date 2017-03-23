@@ -311,8 +311,6 @@ class PageAddProjectScmInitBase(WbWizardPage):
     def __init__( self, wizard_state ):
         super().__init__( wizard_state )
 
-        print( 'qqq wizard %r' % (wizard_state,) )
-
         v = wb_dialog_bases.WbValidateNewFolder(
                     T_('Pick a folder for the project') )
         self.project_folder = self.scmSpecificLineEdit( '', validator=v )
