@@ -3,6 +3,8 @@ Scm
 
 Git
 - need upstream pull support completed
+- need to add git stash support
+- need to offer to use stash save/stash pop automatically around git rebase commands
 
 Svn
 - most features supported to the level for PySVN WorkBench
