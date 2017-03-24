@@ -5,4 +5,4 @@ SCM Workbench is a GUI to easily work with Git, Mercurial (hg) and Subversion (s
 
 Visit the main `http://scm-workbench.barrys-emacs.org <http://scm-workbench.barrys-emacs.org>`_ site for full details.
 
-See Sources/Scm/README.txt for information on running SCM Wrokbench from source.
+See Sources/Scm/README.txt for information on running SCM Workbench from source.
