@@ -27,7 +27,7 @@ all_supported_schemes = ('ssh', 'git', 'https', 'http')
 
 class WbGitFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def __init__( self ):
-        pass
+        self.__git_debug = False
 
     def scmName( self ):
         return 'git'
@@ -37,6 +37,33 @@ class WbGitFactory(wb_scm_factory_abc.WbScmFactoryABC):
 
     def scmPresentationLongName( self ):
         return 'Git'
+
+    def extraLoggers( self ):
+        return ['git.cmd']
+
+    def optionParse( self, args ):
+        if args[1] == '--git-debug':
+            self.__git_debug = True
+            del args[ 1 ]
+            return True
+
+        return False
+
+    def extraDebugEnabled( self ):
+        return self.__git_debug
+
+    def setupAppDebug( self ):
+        # turn on GitPython debug as required
+        import git
+        import logging
+
+        if self.__git_debug:
+            git.Git.GIT_PYTHON_TRACE = 'full'
+            git_log = logging.getLogger( 'git.cmd' )
+            git_log.setLevel( logging.DEBUG )
+
+        else:
+            git.Git.GIT_PYTHON_TRACE = False
 
     def uiComponents( self ):
         return wb_git_ui_components.GitMainWindowComponents( self )

@@ -24,9 +24,7 @@ import wb_scm_preferences
 import wb_scm_debug
 import wb_scm_images
 
-import wb_git_factory
-import wb_hg_factory
-import wb_svn_factory
+import wb_scm_factories
 
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
@@ -36,16 +34,21 @@ if getattr( typing, 'TYPE_CHECKING', False ):
 
 class WbScmApp(wb_app.WbApp):
     def __init__( self, args:List[str] ) -> None:
-        self.__git_debug = False
         self.__all_singletons = {}  # type: Dict[str, None]
         self.__code_font = None     # type: QtGui.QFont
 
-        self.all_factories = dict( [(f.scmName(), f)
-                                    for f in [wb_git_factory.WbGitFactory()
-                                             ,wb_hg_factory.WbHgFactory()
-                                             ,wb_svn_factory.WbSvnFactory()]] )
+        all_factories, all_messages = wb_scm_factories.allScmFactories()
+        # convert to a dict
+        self.all_factories = dict( [(f.scmName(), f) for f in all_factories] )
 
-        super().__init__( ('Scm', 'Workbench'), args, debug_class=wb_scm_debug.WbScmDebug, extra_loggers=['git.cmd'],  )
+        extra_loggers = []
+        for factory in self.all_factories.values():
+            extra_loggers.extend( factory.extraLoggers() )
+
+        super().__init__( ('Scm', 'Workbench'), args, debug_class=wb_scm_debug.WbScmDebug, extra_loggers=extra_loggers,  )
+
+        for msg in all_messages:
+            self.log.info( msg )
 
     def formatDatetime( self, datetime_or_timestamp:Union[float, 'datetime.datetime'] ) -> str:
         dt = wb_date.localDatetime( datetime_or_timestamp )
@@ -80,29 +83,22 @@ class WbScmApp(wb_app.WbApp):
         return list( self.__all_singletons.values() )
 
     def optionParse( self, args:List[str] ):
-        if args[1] == '--git-debug':
-            self.__git_debug = True
-            del args[ 1 ]
-            return True
+        for factory in self.all_factories.values():
+            if factory.optionParse( args ):
+                return True
 
         return False
 
     def extraDebugEnabled( self ) -> bool:
-        # tells wb_logging to turn on debug for git.cmd
-        return self.__git_debug
+        for factory in self.all_factories.values():
+            if factory.extraDebugEnabled():
+                return True
+
+        return False
 
     def setupAppDebug( self ) -> None:
-        # turn on GitPython debug as required
-        import git
-        import logging
-
-        if self.__git_debug:
-            git.Git.GIT_PYTHON_TRACE = 'full'
-            git_log = logging.getLogger( 'git.cmd' )
-            git_log.setLevel( logging.DEBUG )
-
-        else:
-            git.Git.GIT_PYTHON_TRACE = False
+        for factory in self.all_factories.values():
+            factory.setupAppDebug()
 
     def createPreferencesManager( self ):
         return wb_scm_preferences.PreferencesManager(

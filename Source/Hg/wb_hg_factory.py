@@ -31,6 +31,18 @@ class WbHgFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def scmPresentationLongName( self ):
         return 'Mercurial (HG)'
 
+    def optionParse( self, args ):
+        return False
+
+    def extraLoggers( self ):
+        return []
+
+    def extraDebugEnabled( self ):
+        return False
+
+    def setupAppDebug( self ):
+        pass
+
     def uiComponents( self ):
         return wb_hg_ui_components.HgMainWindowComponents( self )
 

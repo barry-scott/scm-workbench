@@ -256,7 +256,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             return self.all_ui_components[ project.scm_type ].createProject( project )
 
         else:
-            self.app.log.error( 'Unsupported project type %r' % (project.scm,) )
+            self.app.log.error( 'Unsupported project type %r' % (project.scm_type,) )
             return None
 
     def __setupTreeViewAndModel( self ):

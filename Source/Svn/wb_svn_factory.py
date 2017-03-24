@@ -37,6 +37,18 @@ class WbSvnFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def scmPresentationLongName( self ):
         return 'Subversion (SVN)'
 
+    def extraLoggers( self ):
+        return []
+
+    def optionParse( self, args ):
+        return False
+
+    def extraDebugEnabled( self ):
+        return False
+
+    def setupAppDebug( self ):
+        pass
+
     def uiComponents( self ):
         return wb_svn_ui_components.SvnMainWindowComponents( self )
 
