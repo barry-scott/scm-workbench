@@ -25,6 +25,7 @@ import wb_git_project
 import wb_git_status_view
 import wb_git_commit_dialog
 import wb_git_annotate
+import wb_git_stash_dialogs
 
 from wb_background_thread import thread_switcher
 
@@ -83,6 +84,17 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         else:
             return False
+
+    def enablerGitStashSave( self ):
+         return self.enablerGitCommit()
+
+    def enablerGitStashPop( self ):
+        # enable if any files staged
+        git_project = self.selectedGitProject()
+        if git_project is None:
+            return False
+
+        return len(git_project.cmdStashList()) > 0
 
     def enablerGitDiffHeadVsWorking( self ):
         return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffHeadVsWorking )
@@ -391,6 +403,33 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if is_end:
             self.log.info( status )
 
+    #------------------------------------------------------------
+    @thread_switcher
+    def treeActionGitStashSave_Bg( self, checked=None ):
+        git_project = self.selectedGitProject()
+
+        git_project.cmdStashSave()
+
+        # take account of the change
+        yield from self.top_window.updateTableView_Bg()
+        self.top_window.updateActionEnabledStates()
+
+    @thread_switcher
+    def treeActionGitStashPop_Bg( self, checked=None ):
+        git_project = self.selectedGitProject()
+
+        all_stashes = git_project.cmdStashList()
+
+        pick_stash = wb_git_stash_dialogs.WbGitStashPick( self.app, self.main_window, all_stashes )
+        if pick_stash.exec_():
+            self.log.infoheader( 'Git stash apply %s' % (pick_stash.getStashId(),) )
+            git_project.cmdStashPop( pick_stash.getStashId() )
+
+            # take account of the change
+            yield from self.top_window.updateTableView_Bg()
+            self.top_window.updateActionEnabledStates()
+
+    #------------------------------------------------------------
     def treeActionGitStatus( self ):
         git_project = self.selectedGitProject()
 
@@ -733,7 +772,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 self.main_window.all_included_files.discard( entry.relativePath() )
 
         # take account of the changes
-        self.top_window.updateTableView_Bg()
+        yield from self.top_window.updateTableView_Bg()
 
     def checkerActionCommitInclude( self ):
         all_file_states = self.tableSelectedAllFileStates()

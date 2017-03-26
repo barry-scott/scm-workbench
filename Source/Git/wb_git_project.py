@@ -52,7 +52,6 @@ def initCallbackServer( app ):
             app.log.info( 'Cannot find %s' % (callback,) )
             # assume in development environment
             callback = wb_platform_specific.getAppDir() / 'scm_workbench_git_callback.cmd'
-
     else:
         callback = wb_platform_specific.getAppDir() / 'scm-workbench-git-callback'
 
@@ -121,7 +120,7 @@ class GitProject:
 
         except GitCommandError:
             for line in progress.allErrorLines():
-                app.log.error( line )
+                self.app.log.error( line )
 
             return False
 
@@ -809,6 +808,83 @@ class GitProject:
                 self.app.log.error( line )
 
             raise
+
+    def cmdStashSave( self, message=None ):
+        cmd = ['git', 'stash', 'save']
+        if message is not None:
+            cmd.append( message )
+
+        rc, stdout, stderr = self.repo().git.execute(
+                    cmd,
+                    with_extended_output=True,
+                    with_exceptions=False,
+                    universal_newlines=False,   # GitPython bug will TB if true
+                    stdout_as_string=True )
+        self._debug( 'git stash save -> rc %d' % (rc,) )
+        if rc != 0:
+            for line in stderr.split( '\n' ):
+                line = line.strip()
+                self.app.log.error( line )
+
+        return rc == 0
+
+    def cmdStashPop( self, stash_id ):
+        cmd = ['git', 'stash', 'pop', stash_id]
+        rc, stdout, stderr = self.repo().git.execute(
+                    cmd,
+                    with_extended_output=True,
+                    with_exceptions=False,
+                    universal_newlines=False,   # GitPython bug will TB if true
+                    stdout_as_string=True )
+        self._debug( 'git stash apply %s -> rc %d' % (stash_id, rc) )
+        if rc != 0:
+            for line in stderr.split( '\n' ):
+                line = line.strip()
+                self.app.log.error( line )
+
+        return rc == 0
+
+    def cmdStashList( self ):
+        rc, stdout, stderr = self.repo().git.execute(
+                    ['git', 'stash', 'list'],
+                    with_extended_output=True,
+                    with_exceptions=False,
+                    universal_newlines=False,   # GitPython bug will TB if true
+                    stdout_as_string=True )
+        self._debug( 'git stash list -> rc %d' % (rc,) )
+        if rc != 0:
+            for line in stderr.split( '\n' ):
+                line = line.strip()
+                self.app.log.error( line )
+            return []
+
+        all_stashs = []
+
+        for line in stdout.split( '\n' ):
+            line = line.strip()
+            if line == '':
+                continue
+
+            stash_id, stash_branch, stash_message = line.split( ': ', 2 )
+            for branch_prefix in ('WIP on ', 'On '):
+                if stash_branch.startswith( branch_prefix ):
+                    stash_branch = stash_branch[len(branch_prefix):]
+                    break
+
+            all_stashs.append( WbGitStashInfo( stash_id, stash_branch, stash_message ) )
+
+        return all_stashs
+
+
+class WbGitStashInfo:
+    def __init__( self, stash_id, stash_branch, stash_message ):
+        self.stash_id = stash_id
+        self.stash_branch = stash_branch
+        self.stash_message = stash_message
+
+    def __repr__( self ):
+        return ('<WbGitStashInfo: id=%s branch=%s msg=%s>' %
+                (self.stash_id, self.stash_branch, self.stash_message))
 
 
 class WbGitFileState:

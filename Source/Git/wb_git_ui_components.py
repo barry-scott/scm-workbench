@@ -163,6 +163,10 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Push'), act.treeActionGitPush_Bg, act.enablerGitPush, 'toolbar_images/push.png' )
         addMenu( m, T_('Pull'), act.treeActionGitPull_Bg, act.enablerGitPull, 'toolbar_images/pull.png' )
 
+        m.addSeparator()
+        addMenu( m, T_('Stash Save'), act.treeActionGitStashSave_Bg, act.enablerGitStashSave )
+        addMenu( m, T_('Stash Pop…'), act.treeActionGitStashPop_Bg, act.enablerGitStashPop )
+
         if hasattr( self, 'treeActionGitDebug1' ):
             m = mb.addMenu( T_('&Git Debug') )
             self.all_menus.append( m )
