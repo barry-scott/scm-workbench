@@ -829,7 +829,7 @@ class GitProject:
         return rc == 0
 
     def cmdStashPop( self, stash_id ):
-        cmd = ['git', 'stash', 'pop', stash_id]
+        cmd = ['git', 'stash', 'pop', '--quiet', stash_id]
         rc, stdout, stderr = self.repo().git.execute(
                     cmd,
                     with_extended_output=True,
@@ -837,6 +837,11 @@ class GitProject:
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
         self._debug( 'git stash apply %s -> rc %d' % (stash_id, rc) )
+
+        for line in stdout.split( '\n' ):
+            line = line.strip()
+            self.app.log.info( line )
+
         if rc != 0:
             for line in stderr.split( '\n' ):
                 line = line.strip()
