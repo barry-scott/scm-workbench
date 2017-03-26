@@ -408,11 +408,18 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def treeActionGitStashSave_Bg( self, checked=None ):
         git_project = self.selectedGitProject()
 
-        git_project.cmdStashSave()
+        head_commit = git_project.getHeadCommit()
+        default_message = T_('%(commit_id)s change at %(date)s') % {
+                                'commit_id': git_project.getShortCommitId( head_commit.hexsha ),
+                                'date': head_commit.committed_datetime.strftime( '%a %d %b %H:%M:%S %z %Y' )}
 
-        # take account of the change
-        yield from self.top_window.updateTableView_Bg()
-        self.top_window.updateActionEnabledStates()
+        stash_save = wb_git_stash_dialogs.WbGitStashSave( self.app, self.main_window, default_message )
+        if stash_save.exec_():
+            git_project.cmdStashSave( stash_save.getMessage() )
+
+            # take account of the change
+            yield from self.top_window.updateTableView_Bg()
+            self.top_window.updateActionEnabledStates()
 
     @thread_switcher
     def treeActionGitStashPop_Bg( self, checked=None ):

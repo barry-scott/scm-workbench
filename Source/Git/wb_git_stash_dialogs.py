@@ -15,9 +15,31 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_table_view
+import wb_dialog_bases
 
 def U_( s: str ) -> str:
     return s
+
+class WbGitStashSave(wb_dialog_bases.WbDialog):
+    def __init__( self, app, parent, default_message ):
+        self.app = app
+
+        super().__init__( parent )
+
+        self.setWindowTitle( T_('Stash save - %s') % (' '.join( app.app_name_parts ),) )
+
+        self.message = wb_dialog_bases.WbLineEdit( default_message )
+
+        em = self.fontMetrics().width( 'M' )
+        self.addRow( T_('Save message'), self.message, min_width=em*50 )
+        self.addButtons()
+
+    def getMessage( self ):
+        value = self.message.value()
+        if value == '':
+            return None
+
+        return value
 
 class WbGitStashPick(QtWidgets.QDialog):
     def __init__( self, app, main_window, all_stashes ):

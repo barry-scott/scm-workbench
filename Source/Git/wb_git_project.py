@@ -184,6 +184,9 @@ class GitProject:
     def getHeadCommit( self ):
         return self.repo().head.ref.commit
 
+    def getShortCommitId( self, commit_id, size=7 ):
+        return self.repo().git.rev_parse( commit_id, short=size )
+
     def switchToBranch( self, branch ):
         self.cmdCheckout( branch )
 
