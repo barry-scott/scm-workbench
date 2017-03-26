@@ -398,6 +398,9 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         all_rebase_commands.append( ('pick', node.commitIdString(), node.commitMessageHeadline()) )
         all_commit_messages.append( node )
 
+        # put messgaes in from last to first
+        all_commit_messages.reverse()
+
         all_commit_text = []
         for node in all_commit_messages:
             message = node.commitMessage()
