@@ -13,7 +13,9 @@
 
 '''
 from PyQt5 import QtPrintSupport    # import missed by py2app
+type(QtPrintSupport)                # ref to keep pylint happy
 from PyQt5 import Qsci
+
 #------------------------------------------------------------------------------------------
 _colour_names = {
     'white':    '#ffffff',
@@ -135,10 +137,10 @@ class WbScintilla(Qsci.QsciScintilla):
                 self.SendScintilla( self.SCI_STYLESETFONT, style_number, value.encode( 'utf-8' ) )
 
             elif name == 'fore':
-                self.SendScintilla( self.SCI_STYLESETFORE, style_number, parseColourToRgbInt( value ) ) 
+                self.SendScintilla( self.SCI_STYLESETFORE, style_number, parseColourToRgbInt( value ) )
 
             elif name == 'back':
-                self.SendScintilla( self.SCI_STYLESETBACK, style_number, parseColourToRgbInt( value ) ) 
+                self.SendScintilla( self.SCI_STYLESETBACK, style_number, parseColourToRgbInt( value ) )
 
             else:
                 assert False, 'Unknown name %r in css %r' % (name, css)
@@ -230,7 +232,7 @@ class WbScintilla(Qsci.QsciScintilla):
         return self.SendScintilla( self.SCI_GETFOLDEXPANDED, line )
 
     def showLines( self, line_start, line_end ):
-        self.SendScintilla( self.SCI_SHOWLINES, line_start, line_end ) 
+        self.SendScintilla( self.SCI_SHOWLINES, line_start, line_end )
 
     def hideLines( self, line_start, line_end ):
         self.SendScintilla( self.SCI_HIDELINES, line_start, line_end )

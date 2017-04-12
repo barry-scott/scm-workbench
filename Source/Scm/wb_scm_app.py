@@ -13,8 +13,6 @@
 import typing
 from typing import List, Union, Any
 
-import sys
-
 import wb_app
 import wb_date
 import wb_platform_specific
@@ -30,6 +28,7 @@ from PyQt5 import QtGui
 from PyQt5 import QtWidgets
 
 if getattr( typing, 'TYPE_CHECKING', False ):
+    #pylint: disable=unused-import
     import datetime
 
 class WbScmApp(wb_app.WbApp):

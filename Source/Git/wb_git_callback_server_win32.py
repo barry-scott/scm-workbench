@@ -10,7 +10,6 @@
     wb_git_callback_server_win32.py
 
 '''
-import sys
 import ctypes
 import threading
 

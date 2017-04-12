@@ -11,14 +11,12 @@
     wb_date.py
 
 '''
-import sys
-
 #
 #   pytz using pkg_resource but pkg_resource is not working
 #   from py2app built application for macOS.
 #
 #   This hack works around the problem.
-#   
+#
 import datetime
 import pytz
 import tzlocal

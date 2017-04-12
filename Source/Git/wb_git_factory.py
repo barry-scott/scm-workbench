@@ -129,7 +129,7 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
         self.config_local_user_name = self.scmSpecificCheckBoxLineEdit( value != '', value, validator=v )
 
         value = self.config_local.get_value( 'user', 'email', '' )
-        v = wb_dialog_bases.WbValidateUserEmail( 
+        v = wb_dialog_bases.WbValidateUserEmail(
                         T_('Fill in the user.email with a valid email address: user@domain') )
         self.config_local_user_email = self.scmSpecificCheckBoxLineEdit( value != '', value, validator=v )
 
@@ -219,6 +219,7 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
                 # add remote upstream
                 self.scm_project.cmdAddRemote( 'upstream', self.url_upstream.value() )
 
+                import git
                 remote = git.Remote( self.scm_project.repo(), 'upstream' )
                 remote.add_url( self.url_upstream.value() )
 

@@ -12,10 +12,8 @@
 '''
 import ctypes
 import os
-import string
 import subprocess
 import tempfile
-import ctypes
 import shutil
 
 import wb_platform_win32_specific

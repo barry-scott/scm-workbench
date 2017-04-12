@@ -11,7 +11,6 @@
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 
 import wb_tracked_qwidget
 

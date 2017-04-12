@@ -11,7 +11,6 @@
 
 '''
 import pathlib
-import sys
 import tempfile
 import pysvn
 
@@ -110,7 +109,6 @@ class SvnProject:
         self.tree = SvnProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = SvnProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
-        # protect agsint 
         if not self.projectPath().exists():
             self.app.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
                             {'name': self.projectName()
@@ -352,7 +350,7 @@ class SvnProject:
                                     url_or_path=url,
                                     revision=pysvn.Revision( pysvn.opt_revision_kind.number, rev_num ) )
 
-        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' )
 
         return all_content_lines
 
@@ -466,7 +464,7 @@ class SvnProject:
         top_url = self.cmdInfo( self.projectPath() )['URL']
 
         # replace wild_part dirs from the filename_url
-        assert( filename_url[0:len(top_url)] == top_url )
+        assert filename_url[0:len(top_url)] == top_url
 
         suffix_parts = filename_url[len(top_url)+1:].split('/')
         tags_url_parts.extend( suffix_parts[0:wild_parts] )
@@ -655,7 +653,7 @@ class WbSvnFileState:
                                     url_or_path=str(path),
                                     revision=self.__project.svn_rev_base )
 
-        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' )
 
         return all_content_lines
 
@@ -665,7 +663,7 @@ class WbSvnFileState:
                                     url_or_path=str(path),
                                     revision=self.__project.svn_rev_head )
 
-        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' )
 
         return all_content_lines
 
@@ -675,7 +673,7 @@ class WbSvnFileState:
                                     url_or_path=str(path),
                                     revision=revision )
 
-        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' ) 
+        all_content_lines = wb_read_file.contentsAsUnicode( all_content_lines ).split( '\n' )
 
         return all_content_lines
 

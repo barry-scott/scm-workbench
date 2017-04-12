@@ -11,7 +11,6 @@
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_main_window
@@ -115,7 +114,6 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.h_filter_widget = QtWidgets.QWidget()
         self.h_filter_widget.setLayout( self.h_filter_layout )
 
-        row = 0
         self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Filter:') ), 0 )
         self.h_filter_layout.addWidget( self.filter_text, 1 )
 

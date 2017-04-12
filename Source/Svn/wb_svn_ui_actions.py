@@ -10,9 +10,10 @@
     wb_svn_ui_actions.py
 
 '''
+import pathlib
+import pysvn
+􏼠
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
 
 import wb_log_history_options_dialog
 import wb_ui_actions
@@ -24,9 +25,6 @@ import wb_svn_properties_dialog
 import wb_svn_dialogs
 import wb_svn_commit_dialog
 import wb_svn_annotate
-
-import pysvn
-import pathlib
 
 from wb_background_thread import thread_switcher
 
@@ -395,7 +393,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                                                 ,'filename': filename
                                                 ,'rev': rev.number} )
                     else:
-                        self.log.info( S_('Updated %(project)s:%(filename)s to revision %(rev)d, %(count)d new update', 
+                        self.log.info( S_('Updated %(project)s:%(filename)s to revision %(rev)d, %(count)d new update',
                                           'Updated %(project)s:%(filename)s to revision %(rev)d, %(count)d new updates', count) %
                                                 {'project': svn_project.projectName()
                                                 ,'filename': filename
@@ -406,10 +404,10 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
             files_in_conflict = self.progress.getInConflictCount()
             if files_in_conflict > 0:
-                box = QtWidgets.QMessageBox( 
+                box = QtWidgets.QMessageBox(
                         QtWidgets.QMessageBox.Information,
                         T_('Warning'),
-                        S_("%d file is in conflict", 
+                        S_("%d file is in conflict",
                            "%d files are in conflict",
                             files_in_conflict) %
                                 (files_in_conflict,),
@@ -884,8 +882,6 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         all_file_states = self.tableSelectedAllFileStates()
         if len(all_file_states) == 0:
             return False
-
-        tv = self.main_window.table_view
 
         for entry in all_file_states:
             if entry.relativePath() not in self.main_window.all_included_files:

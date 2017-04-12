@@ -11,16 +11,16 @@
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 def warningMessage( name ):
-    box = QtWidgets.QMessageBox( 
+    #QQQ: need a parent?
+    box = QtWidgets.QMessageBox(
             QtWidgets.QMessageBox.Information,
             T_('Warning'),
             T_('Enter a value for %s') % (name,),
             QtWidgets.QMessageBox.Close,
-            parent=self )
+            parent=None )
     box.exec_()
 
 
@@ -225,14 +225,14 @@ class FilePropertiesDialog(PropertiesDialogBase):
         self.property_ctrls[ prop ].checkbox.setEnabled( False )
 
         prop = 'svn:eol-style'
-        self.property_ctrls[ prop ] = SinglePropertyChoice( self, prop, prop in self.prop_dict, 
+        self.property_ctrls[ prop ] = SinglePropertyChoice( self, prop, prop in self.prop_dict,
                                         self.prop_dict.get( prop, 'native' ), ['native','CRLF','LF','CR'] )
         prop = 'svn:mime-type'
-        self.property_ctrls[ prop ] = SinglePropertyText( self, prop, prop in self.prop_dict, 
+        self.property_ctrls[ prop ] = SinglePropertyText( self, prop, prop in self.prop_dict,
                                         self.prop_dict.get( prop, '' ) )
 
         prop = 'svn:keywords'
-        self.property_ctrls[ prop ] = SinglePropertyText( self, prop, prop in self.prop_dict, 
+        self.property_ctrls[ prop ] = SinglePropertyText( self, prop, prop in self.prop_dict,
                                         self.prop_dict.get( prop, '' ) )
 
 class FolderPropertiesDialog(PropertiesDialogBase):
@@ -244,8 +244,8 @@ class FolderPropertiesDialog(PropertiesDialogBase):
 
     def initKnownProperties( self ):
         prop = 'svn:ignore'
-        self.property_ctrls[ prop ] = SinglePropertyMultiLine( self, prop, prop in self.prop_dict, 
+        self.property_ctrls[ prop ] = SinglePropertyMultiLine( self, prop, prop in self.prop_dict,
                                         self.prop_dict.get( prop, '' ) )
         prop = 'svn:externals'
-        self.property_ctrls[ prop ] = SinglePropertyMultiLine( self, prop, prop in self.prop_dict, 
+        self.property_ctrls[ prop ] = SinglePropertyMultiLine( self, prop, prop in self.prop_dict,
                                         self.prop_dict.get( prop, '' ) )

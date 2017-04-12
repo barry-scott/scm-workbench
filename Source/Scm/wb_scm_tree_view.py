@@ -11,8 +11,6 @@
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
 
 class WbScmTreeView(QtWidgets.QTreeView):
     def __init__( self, app, main_window ):

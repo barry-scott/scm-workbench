@@ -16,7 +16,6 @@ import pathlib
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
-from PyQt5 import QtCore
 
 import wb_pick_path_dialogs
 import wb_shell_commands
@@ -270,16 +269,6 @@ class FontTab(wb_dialog_bases.WbTabBase):
         p.point_size = self.code_point_size
 
     def validate( self ):
-        valid = True
-
-        if not valid:
-            wx.MessageBox(
-                T_('You must enter a valid something'),
-                T_('Warning'),
-                wx.OK | wx.ICON_EXCLAMATION,
-                self )
-            return False
-
         return True
 
     def onSelectFontUserInterface( self, *args ):

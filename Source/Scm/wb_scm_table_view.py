@@ -10,8 +10,6 @@
     wb_scm_table_model.py
 
 '''
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_scm_table_model

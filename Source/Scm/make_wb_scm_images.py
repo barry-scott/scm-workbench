@@ -78,6 +78,8 @@ def main( argv ):
         f.write( footer )
 
 header = '''
+#pylint disable=too-many-lines
+
 from PyQt5 import QtGui
 
 def getQImage( name ):
@@ -95,6 +97,7 @@ images_by_filename = {}
 '''
 
 footer = '''
+# end
 '''
 
 if __name__ == '__main__':

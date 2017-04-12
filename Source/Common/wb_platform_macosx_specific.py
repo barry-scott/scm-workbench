@@ -13,14 +13,13 @@
 
 '''
 import os
-import types
 import pathlib
-
 
 __all_name_parts = None
 app_dir = None
 
 def setupPlatformSpecific( all_name_parts, argv0 ):
+    #pylint disable=global-statement
     global __all_name_parts
     __all_name_parts = all_name_parts
 

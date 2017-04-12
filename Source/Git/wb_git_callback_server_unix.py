@@ -95,14 +95,7 @@ class WbGitCallbackServer(threading.Thread):
 
         try:
             for fifo_name in (client_fifo, server_fifo):
-                make = True
                 if fifo_name.exists():
-                    if not fifo_name.is_fifo():
-                        fifo_name.unlink()
-
-                    elif fifo_name.stat().st_size == 0:
-                        make = False
-
                     error_msg = 'failed to unlink fifo - %s'
                     fifo_name.unlink()
 

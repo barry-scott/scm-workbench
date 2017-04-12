@@ -39,12 +39,12 @@ def gitInit( app, progress_handler, wc_path ):
 __callback_server = None
 git_extra_environ = {}
 def initCallbackServer( app ):
+    #pylint disable=global-statement
     global __callback_server
     assert __callback_server is None, 'Cannot call initCallbackServer twice'
 
     __callback_server = wb_git_callback_server.WbGitCallbackServer( app )
 
-    devel_fallback = False
     __callback_server.start()
     if sys.platform == 'win32':
         callback  = wb_platform_specific.getAppDir() / 'scm-workbench-git-callback.exe'

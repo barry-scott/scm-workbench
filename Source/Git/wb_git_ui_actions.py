@@ -13,10 +13,6 @@
 import sys
 import pathlib
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-
 import wb_log_history_options_dialog
 import wb_ui_actions
 import wb_common_dialogs
@@ -86,7 +82,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return False
 
     def enablerGitStashSave( self ):
-         return self.enablerGitCommit()
+        return self.enablerGitCommit()
 
     def enablerGitStashPop( self ):
         # enable if any files staged
@@ -539,8 +535,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
 
     def _actionGitRename( self, git_project, filename ):
-        filestate = git_project.getFileState( filename )
-
         rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
         rename.setName( filename.name )
 
@@ -716,8 +710,8 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         git_project = commit_dialog.getGitProject()
         message = commit_dialog.getMessage()
-        all_commit_files = commit_dialog.getAllCommitIncludedFiles()
-        # qqq TODO: cmdCommit does not support all_commit_files yet
+        #QQQ:all_commit_files = commit_dialog.getAllCommitIncludedFiles()
+        #QQQ: cmdCommit does not support all_commit_files yet
         commit_id = git_project.cmdCommit( message )
 
         headline = message.split('\n')[0]
@@ -785,8 +779,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         all_file_states = self.tableSelectedAllFileStates()
         if len(all_file_states) == 0:
             return False
-
-        tv = self.main_window.table_view
 
         for entry in all_file_states:
             if entry.relativePath() not in self.main_window.all_included_files:
@@ -929,6 +921,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def diffFileChanges( self ):
         mw = self.main_window
 
+        #QQQ:return an object - pylint does not do this
         type_, filename, old_filename = mw.changes_model.changesNode( mw.current_file_selection[0] )
 
         commit_new = mw.log_model.commitForRow( mw.current_commit_selections[0] )
@@ -959,4 +952,3 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     def annotateLogHistory( self ):
         self.log.error( 'annotateLogHistory TBD' )
-

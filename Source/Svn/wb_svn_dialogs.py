@@ -7,11 +7,10 @@
 
  ====================================================================
 
-    wb_common_dialogs.PY
+    wb_svn_dialog.py
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_dialog_bases

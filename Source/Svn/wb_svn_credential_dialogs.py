@@ -11,7 +11,6 @@
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_dialog_bases
@@ -47,7 +46,7 @@ class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
         self.addButtons()
 
     def nameTextChanged( self, text ):
-         self.ok_button.setEnabled( self.getUsername() != '' and self.getPassword() != '' )
+        self.ok_button.setEnabled( self.getUsername() != '' and self.getPassword() != '' )
 
     def getUsername( self ):
         return self.username.text().strip()

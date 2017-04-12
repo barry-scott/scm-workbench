@@ -11,7 +11,7 @@
     wb_scm_factory_abc.py
 
 '''
-from typing import List, Tuple, Sequence
+from typing import List, Tuple
 
 from abc import ABCMeta, abstractmethod
 

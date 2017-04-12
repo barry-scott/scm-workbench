@@ -10,13 +10,8 @@
     wb_diff_view.py
 
 '''
-import sys
-import os
-import itertools
-
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
-from PyQt5 import QtCore
 
 import wb_tracked_qwidget
 
@@ -58,11 +53,11 @@ class WbDiffViewText(WbDiffViewBase):
 
         self.all_text_formats = {}
         for style, fg_colour, bg_colour in self.all_style_colours:
-            format = QtGui.QTextCharFormat()
-            format.setFont( self.code_font )
-            format.setForeground( QtGui.QBrush( QtGui.QColor( str(fg_colour) ) ) )
-            format.setBackground( QtGui.QBrush( QtGui.QColor( str(bg_colour) ) ) )
-            self.all_text_formats[ style ] = format
+            char_format = QtGui.QTextCharFormat()
+            char_format.setFont( self.code_font )
+            char_format.setForeground( QtGui.QBrush( QtGui.QColor( str(fg_colour) ) ) )
+            char_format.setBackground( QtGui.QBrush( QtGui.QColor( str(bg_colour) ) ) )
+            self.all_text_formats[ style ] = char_format
 
         self.text_edit.setReadOnly( True )
 

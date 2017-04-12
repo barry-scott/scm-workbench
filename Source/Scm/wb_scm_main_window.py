@@ -1,4 +1,4 @@
-'''
+􏼠'''
  ====================================================================
  Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
 
@@ -13,13 +13,11 @@
 
 '''
 import sys
-import os
 import time
 import pathlib
-import difflib
 
 # On OS X the packager missing this import
-import sip
+import sip  #pylint: disable=unused-import
 
 import wb_platform_specific
 import wb_shell_commands
@@ -551,7 +549,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         all_about_info = []
         all_about_info.append( '%s %d.%d.%d' %
                                 (' '.join( self.app.app_name_parts )
-                                ,wb_scm_version.major, wb_scm_version.minor
+                                ,wb_scm_version.major
+                                ,wb_scm_version.minor
                                 ,wb_scm_version.patch) )
         all_about_info.append( '(%s)' % (wb_scm_version.commit,) )
         all_about_info.append( '' )
@@ -570,7 +569,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         all_about_info.append( '' )
         all_about_info.append( T_('Copyright Barry Scott (c) %s. All rights reserved') % (wb_scm_version.copyright_years,) )
 
-        box = QtWidgets.QMessageBox( 
+        box = QtWidgets.QMessageBox(
             QtWidgets.QMessageBox.Information,
             T_('About %s') % (' '.join( self.app.app_name_parts ),),
             '\n'.join( all_about_info ),
@@ -580,11 +579,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def errorMessage( self, title, message ):
         box = QtWidgets.QMessageBox(
-            QtWidgets.QMessageBox.Critical,
-            title,
-            message,
-            QtWidgets.QMessageBox.Close,
-            parent=self )
+                    QtWidgets.QMessageBox.Critical,
+                    title,
+                    message,
+                    QtWidgets.QMessageBox.Close,
+                    parent=self )
         box.exec_()
 
     def closeEvent( self, event ):
@@ -637,8 +636,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
                 yield self.app.switchToBackground
                 add_project = ui_components.addProjectInitWizardHandler_Bg( w.getProjectFolder() )
-                yield self.app.switchToForeground
 
+                yield self.app.switchToForeground
                 # post is a good place to finalise progress and status
                 ui_components.addProjectPostInitWizardHandler()
 
@@ -791,7 +790,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         folder = self.table_view.selectedAbsoluteFolder()
         if folder is None:
-             self.folder_text.clear()
+            self.folder_text.clear()
 
         else:
             try:

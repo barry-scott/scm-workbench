@@ -10,8 +10,6 @@
     wb_diff_frame.py
 
 '''
-import sys
-
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -142,16 +140,16 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         return True
 
     def enablerFoldsExpand( self ):
-        return true
+        return True
 
     def enablerFoldsCollapsed( self ):
-        return true
+        return True
 
     def enablerDiffPrev( self ):
-        return true
+        return True
 
     def enablerDiffNext( self ):
-        return true
+        return True
 
     #------------------------------------------------------------
     def setChangeCounts( self, current_change_number=None, total_change_number=None ):
@@ -201,20 +199,6 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.panel_left.ed.showAllFolds( show )
         self.panel_right.ed.showAllFolds( show )
 
-    def handleZoomChanged( self ):
-        zoom = evt.GetEventObject().GetZoom()
-        self.setZoom( zoom )
-        
-    def SetZoom( self, zoom ):
-        if zoom != self.panel_left.ed.GetZoom():
-            self.panel_left.ed.SetZoom( zoom )
-
-        if zoom != self.panel_right.ed.GetZoom():
-            self.panel_right.ed.SetZoom( zoom )
-
-        self.panel_left.ed.diff_line_numbers.SetZoom( zoom )
-        self.panel_right.ed.diff_line_numbers.SetZoom( zoom )
-            
 #----------------------------------------------------------------------
 class DiffWidget(QtWidgets.QWidget):
     def __init__( self, app, parent_win, title, name=None ):
@@ -314,7 +298,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
     def wheelEvent( self, event ):
         super().wheelEvent( event )
 
-        assert( self.text_body_other )
+        assert self.text_body_other
         self.syncScroll.emit()
 
     def setProcessKeyHandler( self, handler ):

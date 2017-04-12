@@ -20,12 +20,10 @@ import queue
 import xml_preferences
 
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_platform_specific
 import wb_logging
-import wb_shell_commands
 import wb_background_thread
 
 qt_event_type_names = {}

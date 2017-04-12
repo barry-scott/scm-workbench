@@ -83,7 +83,6 @@ def pickFolder( parent, orig_folder ):
 
 if __name__ == '__main__':
     import sys
-    import pathlib
 
     app = QtWidgets.QApplication( ['foo'] )
 

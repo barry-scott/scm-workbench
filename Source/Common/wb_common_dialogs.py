@@ -11,8 +11,6 @@
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
 
 import wb_platform_specific
 
@@ -38,7 +36,7 @@ class WbRenameFilenameDialog(wb_dialog_bases.WbDialog):
         self.addButtons()
 
     def nameTextChanged( self, text ):
-         self.ok_button.setEnabled( self.getName() != self.old_name )
+        self.ok_button.setEnabled( self.getName() != self.old_name )
 
     def setName( self, name ):
         self.old_name = name

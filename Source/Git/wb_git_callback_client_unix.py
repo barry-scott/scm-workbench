@@ -21,7 +21,6 @@ import sys
 import os
 import os.path
 import pwd
-import stat
 import tempfile
 import select
 

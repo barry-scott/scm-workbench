@@ -15,10 +15,6 @@ VERSION_STRING = "Uncontrolled"
 
 import sys
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-
 import wb_main
 import wb_app
 

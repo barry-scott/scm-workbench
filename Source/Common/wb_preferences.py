@@ -48,7 +48,7 @@ class RGBA:
             raise ValueError( 'expecting #RRGGBBAA hex colour not %r' % (text,) )
 
     def __str__( self ):
-        return '#%2.2x%2.2x%2.2x%2.2x'(self.R, self.G, self.B, self.A)
+        return '#%2.2x%2.2x%2.2x%2.2x' % (self.R, self.G, self.B, self.A)
 
     def __repr__( self ):
         return '<RGBA R:%d G:%d B:%d, A:%d>' % (self.R, self.G, self.B, self.A)

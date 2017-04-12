@@ -10,12 +10,9 @@
     wb_scm_project_dialogs.py
 
 '''
-import sys
-import os
 import pathlib
 
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_dialog_bases

@@ -20,7 +20,7 @@ import wb_scm_factory_abc
 
 class WbHgFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def __init__( self ):
-        pass
+        super().__init__()
 
     def scmName( self ):
         return 'hg'

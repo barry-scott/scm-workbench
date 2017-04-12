@@ -14,7 +14,6 @@ import urllib.parse
 import pathlib
 
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 class WbDialog(QtWidgets.QDialog):

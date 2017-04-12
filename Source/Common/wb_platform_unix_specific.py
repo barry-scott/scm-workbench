@@ -13,7 +13,6 @@
 
 '''
 import os
-import types
 import pathlib
 
 __all_name_parts = None

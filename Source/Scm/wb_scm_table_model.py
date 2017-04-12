@@ -219,7 +219,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     return name + '@'
 
                 else:
-                    # name can be a 
+                    # name can be a
                     return name
 
             elif col == self.col_date:

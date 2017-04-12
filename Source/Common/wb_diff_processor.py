@@ -63,7 +63,7 @@ class DiffOneSideProcessor:
 
     def getCurrentChangeLine( self ):
         return self.changed_lines[ self.current_changed_block ]
-        
+
     def updateCurrentChangeMarker( self, line ):
         if self.current_change_marker != -1:
             self.diff_line_numbers.changeLineStyle( self.current_change_marker, self.diff_line_numbers.style_line_numbers )
@@ -78,7 +78,7 @@ class DiffOneSideProcessor:
         self.diff_line_numbers.insertStyledText( '%5d\n' % (self.line_number,),
                         self.diff_line_numbers.style_line_numbers )
 
-    def _addBlankLineNumber( self, isChange=1 ):
+    def _addBlankLineNumber( self ):
         self.diff_line_numbers.insertStyledText( '%5s\n' % '',
                         self.diff_line_numbers.style_line_numbers )
 
@@ -186,7 +186,7 @@ class DiffProcessor:
     def showCurrentChange( self ):
         for proc in (self.processor_left, self.processor_right):
             proc.showCurrentChange()
-        
+
     def moveNextChange( self ):
         for proc in (self.processor_left, self.processor_right):
             proc.moveNextChange()

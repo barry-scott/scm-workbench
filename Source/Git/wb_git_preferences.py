@@ -16,12 +16,10 @@ import pathlib
 import git
 
 from PyQt5 import QtWidgets
-from PyQt5 import QtCore
 
-from xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError
+from xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode
 
 import wb_pick_path_dialogs
-import wb_platform_specific
 import wb_dialog_bases
 
 class GitPreferences(PreferencesNode):

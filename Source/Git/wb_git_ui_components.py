@@ -10,25 +10,18 @@
     wb_git_ui_components.py
 
 '''
-import os
-import sys
 import time
 import shutil
 import urllib.parse
 
-import wb_log_history_options_dialog
 import wb_preferences
 import wb_ui_components
 
-import wb_git_ui_actions
 import wb_git_project
 import wb_git_credentials_dialog
 
 import git
 import git.exc
-
-from wb_background_thread import thread_switcher
-
 
 #
 #   Add tool bars and menu for use in the Main Window
@@ -232,7 +225,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Diff Staged vs. Working'), act.treeActionGitDiffStagedVsWorking, act.enablerGitDiffStagedVsWorking, 'toolbar_images/diff.png' )
 
     def getGitCredentials( self, prompt ):
-        self.app.runInForeground( self.__get_git_credentials, (prompt,) )
+        self.app.runInForeground( self.__getGitCredentials, (prompt,) )
 
     def __getGitCredentials( self, prompt ):
         # the prompt contains a url enclosed in "'".

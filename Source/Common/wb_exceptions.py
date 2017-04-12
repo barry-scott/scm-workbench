@@ -41,9 +41,11 @@ class TryWrapper:
         self.function = function
 
     def __call__( self, *params, **keywords ):
+        #pylint: broad-except
         try:
             result = self.function( *params, **keywords )
             return result
+
         except Exception:
             self.log.exception( 'TryWrapper<%s.%s>\n' %
                 (self.function.__module__, self.function.__name__ ) )

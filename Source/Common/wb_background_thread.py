@@ -85,7 +85,7 @@ class BackgroundThread(threading.Thread):
 #
 #   deferRunInForeground
 #       - used to move a callback made in the background
-#         into the foreground with the args provided in the 
+#         into the foreground with the args provided in the
 #         background call back.
 #
 #   threadSwitcher - call function that is allowed to yield to move between threads.
@@ -162,6 +162,7 @@ class ThreadSwitchScheduler:
     def __call__( self, *args, **kwds ):
         self._debugThreading( 'ThreadSwitchScheduler(%d:%s): start %r( %r, %r )' % (self.instance_id, self.reason, self.function, args, kwds) )
 
+        #pylint disable=bare-except
         try:
             # call the function
             result = self.function( *args, **kwds )

@@ -11,8 +11,6 @@
 
 
 '''
-import pytz
-
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
@@ -254,6 +252,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         if len(self.current_file_selection) == 0:
             return
 
+        #QQQ: what is missing here?
         node = self.changes_model.changesNode( self.current_file_selection[0] )
 
 class WbLogTableView(wb_table_view.WbTableView):

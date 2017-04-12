@@ -15,7 +15,6 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import pysvn
-import wb_svn_utils
 
 class InfoDialog(QtWidgets.QDialog):
     def __init__( self, app, parent, rel_path, abs_path, info ):
@@ -108,7 +107,8 @@ class InfoDialog(QtWidgets.QDialog):
             self.addRow( T_('Schedule:'), T_('replace') )
 
         else:
-            self.addRow( T_('Schedule:'), unicode(wc_info['schedule']))
+            #QQQ: is str needed?
+            self.addRow( T_('Schedule:'), str(wc_info['schedule']))
 
         if wc_info['copyfrom_url']:
             self.addRow( T_('Copied From URL:'), wc_info['copyfrom_url'] )
@@ -139,9 +139,8 @@ class InfoDialog(QtWidgets.QDialog):
         label_ctrl = QtWidgets.QLabel( label )
         label_ctrl.setAlignment( QtCore.Qt.AlignRight )
 
-        # cannot set the controls readonly as that prevent copy of the text
         if '\n' in value:
-            value_ctrl = QtWidgets.QEdit()
+            value_ctrl = QtWidgets.QPlainTextEdit()
 
         else:
             value_ctrl = QtWidgets.QLineEdit()

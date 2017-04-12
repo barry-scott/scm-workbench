@@ -11,9 +11,7 @@
 
 '''
 import sys
-import re
 import difflib
-import wb_exceptions
 import wb_read_file
 
 # define what "junk" means
