@@ -12,7 +12,7 @@
 '''
 import pathlib
 import pysvn
-􏼠
+
 from PyQt5 import QtWidgets
 
 import wb_log_history_options_dialog
