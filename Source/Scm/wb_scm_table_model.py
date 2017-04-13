@@ -335,7 +335,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     offset += 1
 
                 else:
-                    self._debug( 'WbScmTableModel.refreshTable() deleteRows row=%d %r' % (offset, all_old_names[ offset ]) )
+                    self._debug( 'WbScmTableModel.refreshTable() deleteRows row=%d' % (offset,) )
                     # delete the old
                     self.beginRemoveRows( parent, offset, offset )
                     del self.all_files[ offset ]
