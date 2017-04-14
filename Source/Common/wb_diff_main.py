@@ -42,8 +42,7 @@ builtins.__dict__['S_'] = noPluralTranslation
 # U_( 'static string' )
 # already setup in wb_main
 
-class WbDiff_App(wb_app.WbApp,
-                 wb_debug.WbDebug):
+class WbDiff_App(wb_app.WbApp):
     def __init__( self, argv ):
         self._debugDiffEnabled = True
 
@@ -51,8 +50,7 @@ class WbDiff_App(wb_app.WbApp,
         self.file1 = None
         self.file2 = None
 
-        wb_debug.WbDebug.__init__( self )
-        super().__init__( ('Wb', 'Diff'), argv )
+        super().__init__( ('Wb', 'Diff'), argv, wb_debug.WbDebug )
 
         if len(self.all_positional_args) != 2:
             print( 'Error: expection 2 filename arguments' )
@@ -73,7 +71,7 @@ class WbDiff_App(wb_app.WbApp,
         self.file1 = self.all_positional_args[0]
         self.file2 = self.all_positional_args[1]
 
-        return wb_diff_side_by_side_view.DiffSideBySideView( self, None, self.file1, self.file1, self.file2, self.file2 )
+        return wb_diff_side_by_side_view.DiffSideBySideView( self, None, 'wb-diff', self.file1, self.file1, self.file2, self.file2 )
 
 preferences_scheme = (
     wb_preferences.Scheme(

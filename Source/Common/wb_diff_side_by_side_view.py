@@ -33,7 +33,9 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         geometry = prefs.geometry
 
         self.setWindowTitle( title )
-        self.setWindowIcon( self.app.getAppQIcon() )
+        icon = app.getAppQIcon()
+        if icon is not None:
+            self.setWindowIcon( icon )
 
         if geometry is not None:
             geometry = QtCore.QByteArray( geometry.encode('utf-8') )
