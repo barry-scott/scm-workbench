@@ -5,8 +5,6 @@ DOCS_DIR=${BUILDER_TOP_DIR}/Docs
 SRC_DIR=${BUILDER_TOP_DIR}/Source
 KIT_DIR=${BUILDER_TOP_DIR}/Kit/macOS
 
-PYSVN_PATH=$( ${PYTHON} -c 'import pysvn;print(pysvn.__path__[0])' )
-PY_VER=$( ${PYTHON} -c 'import sys;print( "%d.%d" % (sys.version_info.major, sys.version_info.minor) )' )
 DIST_DIR=app.tmp
 
 rm -rf ${DIST_DIR}
