@@ -19,8 +19,8 @@ import shutil
 import wb_platform_win32_specific
 
 __all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
-          ,'GuiDiffFiles', 'ShellDiffFiles', 'EditFile'
-          ,'ShellOpen', 'CommandShell', 'FileBrowser')
+          ,'guiDiffFiles', 'shellDiffFiles', 'editFile'
+          ,'shellOpen', 'commandShell', 'fileBrowser')
 
 def U_( s: str ) -> str:
     return s
@@ -35,7 +35,7 @@ def getTerminalProgramList():
 def getFileBrowserProgramList():
     return ['Explorer']
 
-def EditFile( app, working_dir, all_filenames ):
+def editFile( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Edit %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     p = app.prefs.editor
 
@@ -53,11 +53,11 @@ def EditFile( app, working_dir, all_filenames ):
 
     CreateProcess( app, command_list, working_dir )
 
-def GuiDiffFiles( app, options ):
+def guiDiffFiles( app, options ):
     cmd_list= [app.prefs.getDiffTool().gui_diff_tool, options]
     CreateProcess( app, cmd_list, os.path.curdir )
 
-def ShellDiffFiles( app, options ):
+def shellDiffFiles( app, options ):
     cmd_list = [app.prefs.getDiffTool().shell_diff_tool, options]
     return __run_command_with_output( cmd_list )
 
@@ -98,7 +98,7 @@ def __getShellExecuteErrorMessage( err ):
     else:
         return getErrorMessage( err )
 
-def ShellOpen( app, working_dir, all_filenames ):
+def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     for filename in all_filenames:
         ShellExecuteW = ctypes.windll.shell32.ShellExecuteW
@@ -113,7 +113,7 @@ def ShellOpen( app, working_dir, all_filenames ):
                                 {'filename': filename
                                 ,'error': __getShellExecuteErrorMessage( rc )} )
 
-def CommandShell( app, working_dir ):
+def commandShell( app, working_dir ):
     app.log.infoheader( 'Shell in %s' % (working_dir,) )
     p = app.prefs.shell
 
@@ -213,7 +213,7 @@ def CommandShell( app, working_dir ):
 
     CreateProcess( app, command_list, working_dir )
 
-def FileBrowser( app, working_dir ):
+def fileBrowser( app, working_dir ):
     app.log.infoheader( 'Browse files in %s' % (working_dir,) )
 
     explorer = wb_platform_win32_specific.getWindowsDir() / 'explorer.exe'

@@ -40,6 +40,8 @@ class SvnProject:
 
         self.__notification_of_files_in_conflict = 0
 
+        self.__stale_status = False
+
         self.prefs_project = prefs_project
         self.__client_fg = pysvn.Client()
         self.__client_fg.exception_style = 1
@@ -295,7 +297,7 @@ class SvnProject:
             except IOError as e:
                 self.app.log.error( 'Renamed failed - %s' % (e,) )
 
-        self.__stale_index = True
+        self.__stale_status = True
 
     def cmdDiffFolder( self, folder, head=False ):
         self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )

@@ -542,7 +542,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.log.error( 'Failed to open documentation for URL %r' % (url,) )
 
     def appActionViewLog( self ):
-        wb_shell_commands.EditFile( self.app, wb_platform_specific.getHomeFolder(), [wb_platform_specific.getLogFilename()] )
+        wb_shell_commands.editFile( self.app, wb_platform_specific.getHomeFolder(), [wb_platform_specific.getLogFilename()] )
 
     def appActionAbout( self ):
         all_about_info = []
@@ -812,14 +812,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if folder_path is None:
             return
 
-        wb_shell_commands.CommandShell( self.app, folder_path )
+        wb_shell_commands.commandShell( self.app, folder_path )
 
     def treeActionFileBrowse( self ):
         folder_path = self.table_view.selectedAbsoluteFolder()
         if folder_path is None:
             return
 
-        wb_shell_commands.FileBrowser( self.app, folder_path )
+        wb_shell_commands.fileBrowser( self.app, folder_path )
 
     #------------------------------------------------------------
     #

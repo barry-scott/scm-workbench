@@ -21,8 +21,8 @@ import pathlib
 from PyQt5 import QtCore
 
 __all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
-          ,'GuiDiffFiles', 'ShellDiffFiles', 'EditFile'
-          ,'ShellOpen', 'CommandShell', 'FileBrowser')
+          ,'guiDiffFiles', 'shellDiffFiles', 'editFile'
+          ,'shellOpen', 'commandShell', 'fileBrowser')
 
 __sigchld_handler_installed = False
 
@@ -52,7 +52,7 @@ def getTerminalProgramList():
 def getFileBrowserProgramList():
     return gui_file_browsers[:]
 
-def EditFile( app, working_dir, all_filenames ):
+def editFile( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Edit %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     p = app.prefs.editor
 
@@ -72,17 +72,17 @@ def EditFile( app, working_dir, all_filenames ):
 
     __run_command( app, editor, editor_args, working_dir )
 
-def ShellOpen( app, working_dir, all_filenames ):
+def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
 
     for filename in all_filenames:
         # xdg-open only accepts 1 filename at a time
         __run_command( app, '/usr/bin/xdg-open', [filename], working_dir )
 
-def GuiDiffFiles( app, args ):
+def guiDiffFiles( app, args ):
     __run_command( app, app.prefs.getDiffTool().gui_diff_tool, args. os.getcwd() )
 
-def ShellDiffFiles( app, args ):
+def shellDiffFiles( app, args ):
     return __run_command_with_output( app, app.prefs.getDiffTool().shell_diff_tool, args )
 
 def __titleFromPath( working_dir ):
@@ -99,7 +99,7 @@ def __titleFromPath( working_dir ):
 
     return ' '.join( title )
 
-def CommandShell( app, working_dir ):
+def commandShell( app, working_dir ):
     app.log.infoheader( 'Shell in %s' % (working_dir,) )
     p = app.prefs.shell
 
@@ -153,7 +153,7 @@ def CommandShell( app, working_dir ):
     finally:
         del os.environ['WB_WD']
 
-def FileBrowser( app, working_dir ):
+def fileBrowser( app, working_dir ):
     app.log.infoheader( 'Browse files in %s' % (working_dir,) )
     p = app.prefs.shell
 

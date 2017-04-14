@@ -19,8 +19,8 @@ import tempfile
 import pathlib
 
 __all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
-          ,'GuiDiffFiles', 'ShellDiffFiles', 'EditFile'
-          ,'ShellOpen', 'CommandShell', 'FileBrowser')
+          ,'guiDiffFiles', 'shellDiffFiles', 'editFile'
+          ,'shellOpen', 'commandShell', 'fileBrowser')
 
 __sigchld_handler_installed = False
 
@@ -47,13 +47,13 @@ def getTerminalProgramList():
 def getFileBrowserProgramList():
     return ['Finder']
 
-def GuiDiffFiles( app, args ):
+def guiDiffFiles( app, args ):
     __run_command( app, app.prefs.getDiffTool().gui_diff_tool, args )
 
-def ShellDiffFiles( app, args ):
+def shellDiffFiles( app, args ):
     return __run_command_with_output( app, app.prefs.getDiffTool().shell_diff_tool, args )
 
-def EditFile( app, working_dir, all_filenames ):
+def editFile( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Edit %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     all_filenames = [str(path) for path in all_filenames]
 
@@ -78,7 +78,7 @@ def EditFile( app, working_dir, all_filenames ):
     finally:
         os.chdir( cur_dir )
 
-def ShellOpen( app, working_dir, all_filenames ):
+def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     all_filenames = [str(path) for path in all_filenames]
 
@@ -90,14 +90,14 @@ def ShellOpen( app, working_dir, all_filenames ):
     finally:
         os.chdir( cur_dir )
 
-def CommandShell( app, working_dir ):
+def commandShell( app, working_dir ):
     app.log.infoheader( 'Shell in %s' % (working_dir,) )
     p = app.prefs.shell
     if p.terminal_program == 'iTerm2':
-        CommandShell_iTerm2( app, working_dir )
+        commandShell_iTerm2( app, working_dir )
 
     else:
-        CommandShell_Terminal( app, working_dir )
+        commandShell_Terminal( app, working_dir )
 
 def __titleFromPath( working_dir ):
     title = []
@@ -113,7 +113,7 @@ def __titleFromPath( working_dir ):
 
     return ' '.join( title )
 
-def CommandShell_iTerm2( app, working_dir ):
+def commandShell_iTerm2( app, working_dir ):
     p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
@@ -145,7 +145,7 @@ end tell
 
     __run_command( app, u'/usr/bin/osascript', [f.name] )
 
-def CommandShell_Terminal( app, working_dir ):
+def commandShell_Terminal( app, working_dir ):
     p = app.prefs.shell
 
     # calc a title that is leaf to root so that the leaf shows up in a task bar first
@@ -181,7 +181,7 @@ def CommandShell_Terminal( app, working_dir ):
 
     __run_command( app, u'/usr/bin/open', [f.name] )
 
-def FileBrowser( app, working_dir ):
+def fileBrowser( app, working_dir ):
     app.log.infoheader( 'Browse files in %s' % (working_dir,) )
     __run_command( app, u'/usr/bin/open', [u'-a', u'Finder', working_dir] )
 

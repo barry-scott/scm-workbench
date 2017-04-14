@@ -734,7 +734,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             yield self.switchToForeground
 
         except wb_svn_project.ClientError as e:
-            svn_project.logClientError( e, 'Cannot get annotations for %s:%s' % (project.path, filename) )
+            svn_project.logClientError( e, 'Cannot get annotations for %s:%s' % (svn_project.projectPath(), filename) )
 
             yield self.switchToForeground
             return
@@ -751,7 +751,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             all_commit_logs = svn_project.cmdCommitLogForAnnotateFile( filename, rev_max, rev_min )
 
         except wb_svn_project.ClientError as e:
-            svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (project.path, filename) )
+            svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (svn_project.projectPath(), filename) )
             all_commit_logs = []
 
         yield self.switchToForeground

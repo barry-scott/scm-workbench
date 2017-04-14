@@ -265,12 +265,12 @@ class WbScmTableView(wb_table_view.WbTableView):
     def tableActionOpen( self ):
         all_filenames = self._tableSelectedExistingFiles()
         if len(all_filenames) > 0:
-            wb_shell_commands.ShellOpen( self.app, self.table_model.absoluteNodePath(), all_filenames )
+            wb_shell_commands.shellOpen( self.app, self.table_model.absoluteNodePath(), all_filenames )
 
     def tableActionEdit( self ):
         all_filenames = self._tableSelectedExistingFiles()
         if len(all_filenames) > 0:
-            wb_shell_commands.EditFile( self.app, self.table_model.absoluteNodePath(), all_filenames )
+            wb_shell_commands.editFile( self.app, self.table_model.absoluteNodePath(), all_filenames )
 
     def _tableSelectedExistingFiles( self ):
         folder_path = self.table_model.absoluteNodePath()

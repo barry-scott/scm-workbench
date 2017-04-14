@@ -19,6 +19,7 @@ class WbMainWindowComponents:
         self.main_window = None
         self.table_view = None
         self.app = None
+        self.log = None
         self.debugLog = None
 
         self.setStatusGeneral = None
