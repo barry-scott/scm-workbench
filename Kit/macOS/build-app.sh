@@ -5,6 +5,8 @@ DOCS_DIR=${BUILDER_TOP_DIR:? run builder_init}/Docs
 SRC_DIR=${BUILDER_TOP_DIR}/Source
 KIT_DIR=${BUILDER_TOP_DIR}/Kit/macOS
 
+PYSVN_PATH=$( ${PYTHON} -c 'import pysvn;print(pysvn.__path__[0])' )
+
 DIST_DIR=app.tmp
 
 rm -rf ${DIST_DIR}
@@ -41,6 +43,11 @@ export PYTHONPATH=${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${S
 ${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip 2>&1 | tee py2app.log
 
 pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
+
+# py2app corrupts the dylibs - macOS report they are truncated
+# replace with the original versions
+cp ${PYSVN_PATH}/*.dylib Frameworks
+${PYTHON} ${KIT_DIR}/build_fix_install_rpath.py fix Frameworks/libsvn*.dylib
 
 #
 #   Copy in the docs

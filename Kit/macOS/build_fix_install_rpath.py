@@ -6,14 +6,9 @@ import re
 
 class FixInstallRPath:
     def __init__( self ):
-        BUILDER_QTDIR = os.environ[ 'BUILDER_QTDIR' ]
         executable_frameworks = '@executable_path/../Frameworks'
 
         self.all_rpath_replacements = [
-            (   ['%s/clang_64/lib' % (BUILDER_QTDIR,)
-                ,'@loader_path/Qt/lib'
-                ,'@loader_path/../../lib'],
-                executable_frameworks),
             (   ['/Library/Frameworks/Python.framework/Versions/%(PYVER)s/lib/python%(PYVER)s/site-packages/pysvn' %
                         {'PYVER': '%d.%d' % (sys.version_info.major, sys.version_info.minor)}],
                 executable_frameworks),
