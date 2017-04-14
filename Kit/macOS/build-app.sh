@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 echo "Info: build-app.sh"
-DOCS_DIR=${BUILDER_TOP_DIR}/Docs
+DOCS_DIR=${BUILDER_TOP_DIR:? run builder_init}/Docs
 SRC_DIR=${BUILDER_TOP_DIR}/Source
 KIT_DIR=${BUILDER_TOP_DIR}/Kit/macOS
 
@@ -48,19 +48,19 @@ pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 ${DOCS_DIR}/build-docs.py Resources/Documentation
 
 # fixup 1. only keep the frameworks that we need, saving space
-# Resources/lib/python3.5/lib-dynload/PyQt5 - QtXxx.so
+# Resources/lib/python3.N/lib-dynload/PyQt5 - QtXxx.so
 mkdir \
-    Resources/lib/python3.5/PyQt5/tmp
+    Resources/lib/python${PYTHON_VERSION}/PyQt5/tmp
 mv \
-    Resources/lib/python3.5/PyQt5/Qt?*.so \
-    Resources/lib/python3.5/PyQt5/tmp
+    Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt?*.so \
+    Resources/lib/python${PYTHON_VERSION}/PyQt5/tmp
 
-# Resources/lib/python3.5/PyQt5/Qt/lib - QtXxx.framework
+# Resources/lib/python3.N/PyQt5/Qt/lib - QtXxx.framework
 mkdir \
-    Resources/lib/python3.5/PyQt5/Qt/lib/tmp
+    Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/lib/tmp
 mv \
-    Resources/lib/python3.5/PyQt5/Qt/lib/Qt*.framework \
-    Resources/lib/python3.5/PyQt5/Qt/lib/tmp
+    Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/lib/Qt*.framework \
+    Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/lib/tmp
 
 for LIBNAME in \
     QtCore \
@@ -74,21 +74,21 @@ for LIBNAME in \
 do
     echo "Info: framework used ${LIBNAME}"
     mv \
-            Resources/lib/python3.5/PyQt5/tmp/${LIBNAME}.so \
-            Resources/lib/python3.5/PyQt5
+            Resources/lib/python${PYTHON_VERSION}/PyQt5/tmp/${LIBNAME}.so \
+            Resources/lib/python${PYTHON_VERSION}/PyQt5
     mv \
-        Resources/lib/python3.5/PyQt5/Qt/lib/tmp/${LIBNAME}.framework \
-        Resources/lib/python3.5/PyQt5/Qt/lib
+        Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/lib/tmp/${LIBNAME}.framework \
+        Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/lib
 done
 
 # fixup 2. remove the unused frameworks
-rm -rf Resources/lib/python3.5/PyQt5/tmp
-rm -rf Resources/lib/python3.5/PyQt5/Qt/lib/tmp
+rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/tmp
+rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/lib/tmp
 
 # fixup 3. remove qml stuff
-rm -rf Resources/lib/python3.5/PyQt5/Qt/qml
-rm -rf Resources/lib/python3.5/PyQt5/Qt/translations
-rm -rf Resources/lib/python3.5/PyQt5/Qt/qsci
+rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/qml
+rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/translations
+rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/qsci
 
 #
 #   add in the git-callback client
