@@ -58,18 +58,18 @@ class WbDebugSpeedOption(WbDebugOption):
 class WbDebug:
     def __init__( self, log ):
         self._log = log
-        self._debugSpeed = WbDebugSpeedOption( self._log, 'SPEED' )
-        self._debugApp = self.addDebugOption( 'APP' )
-        self._debugThreading = self.addDebugOption( 'THREADING' )
-        self._debugMainWindow = self.addDebugOption( 'MAIN WINDOW' )
-        self._debugTreeModel = self.addDebugOption( 'TREE MODEL' )
-        self._debugTreeModelNode = self.addDebugOption( 'TREE MODEL NODE' )
-        self._debugTableModel = self.addDebugOption( 'TABLE MODEL' )
-        self._debugDiff = self.addDebugOption( 'DIFF' )
+        self.debugLogSpeed = WbDebugSpeedOption( self._log, 'SPEED' )
+        self.debugLogApp = self.addDebugOption( 'APP' )
+        self.debugLogThreading = self.addDebugOption( 'THREADING' )
+        self.debugLogMainWindow = self.addDebugOption( 'MAIN WINDOW' )
+        self.debugLogTreeModel = self.addDebugOption( 'TREE MODEL' )
+        self.debugLogTreeModelNode = self.addDebugOption( 'TREE MODEL NODE' )
+        self.debugLogTableModel = self.addDebugOption( 'TABLE MODEL' )
+        self.debugLogDiff = self.addDebugOption( 'DIFF' )
 
     def setDebug( self, str_options ):
         for option in [s.strip().lower() for s in str_options.split(',')]:
-            name = '_debug%s' % (''.join( s.capitalize() for s in option.lower().split('-') ),)
+            name = 'debugLog%s' % (''.join( s.capitalize() for s in option.lower().split('-') ),)
             if hasattr( self, name ):
                 getattr( self, name ).enable( True )
 

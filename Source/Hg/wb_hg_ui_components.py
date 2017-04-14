@@ -115,7 +115,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return [wb_hg_project.HgVersion()]
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debug_options._debugHgUi
+        self.debugLog = self.main_window.app.debug_options.debugLogHgUi
 
     def setupMenuBar( self, mb, addMenu ):
         act = self.ui_actions

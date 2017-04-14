@@ -25,7 +25,7 @@ import wb_tracked_qwidget
 
 class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, parent, title, file_left, header_left, file_right, header_right, ):
-        super().__init__( app, app._debug_options._debugDiff, parent=parent )
+        super().__init__( app, app.debug_options.debugLogDiff, parent=parent )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         prefs = self.app.prefs.diff_window
@@ -227,7 +227,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
     syncScroll = QtCore.pyqtSignal()
 
     def __init__( self, app, parent, name=None ):
-        self._debug = app._debug_options._debugDiff
+        self.debugLog = app.debug_options.debugLogDiff
         self.name = name    # used for debug
         self.text_body_other = None
 
@@ -317,15 +317,15 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
     def onSyncScroll( self ):
         line_number = self.getFirstVisibleLine()
-        self._debug( 'onSyncScroll (%s) first line is %d' % (self.name, line_number) )
+        self.debugLog( 'onSyncScroll (%s) first line is %d' % (self.name, line_number) )
 
-        self._debug( 'onSyncScroll (%s) set first line %d' % (self.diff_line_numbers.name, line_number) )
+        self.debugLog( 'onSyncScroll (%s) set first line %d' % (self.diff_line_numbers.name, line_number) )
         self.diff_line_numbers.setFirstVisibleLine( line_number )
 
-        self._debug( 'onSyncScroll (%s) set first line %d' % (self.text_body_other.name, line_number) )
+        self.debugLog( 'onSyncScroll (%s) set first line %d' % (self.text_body_other.name, line_number) )
         self.text_body_other.setFirstVisibleLine( line_number )
 
-        self._debug( 'onSyncScroll (%s) set first line %d' % (self.text_body_other.diff_line_numbers.name, line_number) )
+        self.debugLog( 'onSyncScroll (%s) set first line %d' % (self.text_body_other.diff_line_numbers.name, line_number) )
         self.text_body_other.diff_line_numbers.setFirstVisibleLine( line_number )
 
     def setMirrorEditor( self, text_body_other ):

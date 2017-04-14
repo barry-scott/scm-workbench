@@ -20,11 +20,20 @@ class WbMainWindowActions:
         self.scm_type = scm_type
         self.factory = factory
 
+        self.setStatusGeneral = None
+        self.setStatusAction = None
+        self.progress = None
+        self.switchToForeground = None
+        self.switchToBackground = None
+        self.deferRunInForeground = None
+
         self.top_window = None
         self.main_window = None
         self.table_view = None
         self.app = None
-        self._debug = None
+        self.log = None
+
+        self.debugLog = None
 
     # ---- called from ui_component ----
     def setTopWindow( self, top_window ):
@@ -54,7 +63,7 @@ class WbMainWindowActions:
         self.setupDebug()
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debug_options._debugMainWindow
+        self.debugLog = self.main_window.app.debug_options.debugLogMainWindow
 
     def tableSelectedAllFileStates( self ):
         if self.table_view is None:

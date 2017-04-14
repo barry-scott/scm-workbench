@@ -142,7 +142,7 @@ class WbScmApp(wb_app.WbApp):
             style_sheet_pieces.append( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
 
         style_sheet = '\n'.join( style_sheet_pieces )
-        self._debugApp( style_sheet )
+        self.debugLogApp( style_sheet )
         self.setStyleSheet( style_sheet )
 
     def createMainWindow( self ):

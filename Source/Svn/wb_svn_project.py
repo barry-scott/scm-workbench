@@ -35,8 +35,8 @@ class SvnProject:
         self.app = app
         self.ui_components = ui_components
 
-        self._debug = self.app._debug_options._debugSvnProject
-        self._debugUpdateTree = self.app._debug_options._debugSvnUpdateTree
+        self.debugLog = self.app.debug_options.debugLogSvnProject
+        self.debugLogUpdateTree = self.app.debug_options.debugLogSvnUpdateTree
 
         self.__notification_of_files_in_conflict = 0
 
@@ -101,7 +101,7 @@ class SvnProject:
         return self.__num_uncommitted_files
 
     def updateState( self ):
-        self._debug( 'updateState() is_stale %r' % (self.__stale_status,) )
+        self.debugLog( 'updateState() is_stale %r' % (self.__stale_status,) )
 
         self.__stale_status = False
 
@@ -166,10 +166,10 @@ class SvnProject:
                 self.__num_uncommitted_files += 1
 
     def __updateTree( self, path, is_dir ):
-        self._debugUpdateTree( '__updateTree path %r' % (path,) )
+        self.debugLogUpdateTree( '__updateTree path %r' % (path,) )
         node = self.tree
 
-        self._debugUpdateTree( '__updateTree path.parts %r' % (path.parts,) )
+        self.debugLogUpdateTree( '__updateTree path.parts %r' % (path.parts,) )
 
         if is_dir:
             parts = path.parts[:]
@@ -178,14 +178,14 @@ class SvnProject:
             parts = path.parts[0:-1]
 
         for index, name in enumerate( parts ):
-            self._debugUpdateTree( '__updateTree name %r at node %r' % (name, node) )
+            self.debugLogUpdateTree( '__updateTree name %r at node %r' % (name, node) )
 
             if not node.hasFolder( name ):
                 node.addFolder( name, SvnProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
 
             node = node.getFolder( name )
 
-        self._debugUpdateTree( '__updateTree addFile %r to node %r' % (path, node) )
+        self.debugLogUpdateTree( '__updateTree addFile %r to node %r' % (path, node) )
         if not is_dir:
             node.addFileByName( path )
 
@@ -249,35 +249,35 @@ class SvnProject:
         return self.client().checkout( url, str( wc_path ) )
 
     def cmdCleanup( self ):
-        self._debug( 'cmdCleanup()' )
+        self.debugLog( 'cmdCleanup()' )
         self.client().cleanup( str( self.projectPath() ) )
 
     def cmdMkdir( self, filename ):
-        self._debug( 'cmdMkdir()' )
+        self.debugLog( 'cmdMkdir()' )
         self.client().mkdir( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdAdd( self, filename, depth=None, force=False ):
-        self._debug( 'cmdAdd( %r )' % (filename,) )
+        self.debugLog( 'cmdAdd( %r )' % (filename,) )
 
         self.client().add( self.pathForSvn( filename ), depth=depth, force=force )
         self.__stale_status = True
 
     def cmdRevert( self, filename, depth=None ):
-        self._debug( 'cmdRevert( %r, %r )' % (filename, depth) )
-        self._debug( 'cmdRevert 2 ( %r, %r )' % (self.pathForSvn( filename ), depth) )
+        self.debugLog( 'cmdRevert( %r, %r )' % (filename, depth) )
+        self.debugLog( 'cmdRevert 2 ( %r, %r )' % (self.pathForSvn( filename ), depth) )
 
         self.client().revert( self.pathForSvn( filename ), depth=depth )
         self.__stale_status = True
 
     def cmdResolved( self, filename ):
-        self._debug( 'cmdResolved( %r )' % (filename,) )
+        self.debugLog( 'cmdResolved( %r )' % (filename,) )
 
         self.client().resolved( self.pathForSvn( filename ) )
         self.__stale_status = True
 
     def cmdDelete( self, filename ):
-        self._debug( 'cmdDelete( %r )' % (filename,) )
+        self.debugLog( 'cmdDelete( %r )' % (filename,) )
         self.client().remove( self.pathForSvn( filename ) )
         self.__stale_status = True
 
@@ -298,7 +298,7 @@ class SvnProject:
         self.__stale_index = True
 
     def cmdDiffFolder( self, folder, head=False ):
-        self._debug( 'cmdDiffFolder( %r )' % (folder,) )
+        self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )
         abs_folder = self.pathForSvn( folder )
 
         if head:
@@ -319,7 +319,7 @@ class SvnProject:
         return diff_text
 
     def cmdDiffRevisionVsRevision( self, filename, old_rev, new_rev ):
-        self._debug( 'cmdDiffRevisionVsRevision( %r )' % (filename,) )
+        self.debugLog( 'cmdDiffRevisionVsRevision( %r )' % (filename,) )
         abs_filename = self.pathForSvn( filename )
 
         diff_text = self.client().diff(
@@ -391,7 +391,7 @@ class SvnProject:
         return 'r%d' % (all_revisions[0].revision.number,)
 
     def cmdUpdate( self, filename, revision, depth ):
-        self._debug( 'cmdUpdate( %r, %r, %r )' % (filename, revision, depth) )
+        self.debugLog( 'cmdUpdate( %r, %r, %r )' % (filename, revision, depth) )
         all_revisions = self.client().update(
                 self.pathForSvn( filename ),
                 revision=revision,
@@ -726,10 +726,10 @@ class SvnProjectTreeNode:
         return name in self.__all_folders
 
     def _dumpTree( self, indent ):
-        self.project._debug( 'dump: %*s%r' % (indent, '', self) )
+        self.project.debugLog( 'dump: %*s%r' % (indent, '', self) )
 
         for file in sorted( self.__all_files ):
-            self.project._debug( 'dump %*s   file: %r' % (indent, '', file) )
+            self.project.debugLog( 'dump %*s   file: %r' % (indent, '', file) )
 
         for folder in sorted( self.__all_folders ):
             self.__all_folders[ folder ]._dumpTree( indent+4 )

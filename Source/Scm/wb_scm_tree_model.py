@@ -44,8 +44,8 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
     def __init__( self, app, table_model ):
         assert table_model is not None
         self.app = app
-        self._debug = self.app._debug_options._debugTreeModel
-        self._debugNode = self.app._debug_options._debugTreeModelNode
+        self.debugLog = self.app.debug_options.debugLogTreeModel
+        self.debugLogNode = self.app.debug_options.debugLogTreeModelNode
 
         self.table_model = table_model
 
@@ -53,7 +53,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
         self.all_scm_projects = {}
 
-        self._debug( 'WbScmTreeModel.__init__ self.selected_node = None' )
+        self.debugLog( 'WbScmTreeModel.__init__ self.selected_node = None' )
         self.selected_node = None
 
     def loadNextProject( self, index ):
@@ -176,31 +176,31 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         return super().flags( index ) & ~QtCore.Qt.ItemIsEditable
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'selectionChanged:   selected %r' % ([(index.row(), index.column()) for index in selected.indexes()],) )
-        self._debug( 'selectionChanged: deselected %r' % ([(index.row(), index.column()) for index in deselected.indexes()],) )
+        self.debugLog( 'selectionChanged:   selected %r' % ([(index.row(), index.column()) for index in selected.indexes()],) )
+        self.debugLog( 'selectionChanged: deselected %r' % ([(index.row(), index.column()) for index in deselected.indexes()],) )
         super().selectionChanged( selected, deselected )
-        self._debug( 'selectionChanged calling selectionChanged_Bg' )
+        self.debugLog( 'selectionChanged calling selectionChanged_Bg' )
         self.app.wrapWithThreadSwitcher( self.selectionChanged_Bg, 'treeModel selectionChanged' )( selected, deselected )
 
     @thread_switcher
     def selectionChanged_Bg( self, selected, deselected ):
-        self._debug( 'selectionChanged_Bg()' )
+        self.debugLog( 'selectionChanged_Bg()' )
         all_selected = selected.indexes()
-        self._debug( 'selectionChanged_Bg() all_selected %r' % ([(index.row(), index.column()) for index in all_selected],) )
+        self.debugLog( 'selectionChanged_Bg() all_selected %r' % ([(index.row(), index.column()) for index in all_selected],) )
         if len( all_selected ) == 0:
             self.selected_node = None
-            self._debug( 'selectionChanged_Bg() nothing selected self.selected_node = None' )
+            self.debugLog( 'selectionChanged_Bg() nothing selected self.selected_node = None' )
             return
 
         index = selected.indexes()[0]
-        self._debug( 'selectionChanged() index row %r col %r' % (index.row(), index.column()) )
+        self.debugLog( 'selectionChanged() index row %r col %r' % (index.row(), index.column()) )
         selected_node = self.itemFromIndex( index )
 
         if selected_node is None:
-            self._debug( 'selectionChanged() cannot get item' )
+            self.debugLog( 'selectionChanged() cannot get item' )
             return
 
-        self._debug( 'selectionChanged() selected_node %r' % (selected_node,) )
+        self.debugLog( 'selectionChanged() selected_node %r' % (selected_node,) )
 
         need_to_refresh = False
         if self.selected_node is not None:
@@ -209,11 +209,11 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
             if old_project != new_project:
                 need_to_refresh = True
 
-        self._debug( 'selectionChanged() self.selected_node = %r' % (selected_node,) )
+        self.debugLog( 'selectionChanged() self.selected_node = %r' % (selected_node,) )
         self.selected_node = selected_node
 
         if need_to_refresh:
-            self._debug( 'selectionChanged() calling refreshTree_Bg' )
+            self.debugLog( 'selectionChanged() calling refreshTree_Bg' )
             yield from self.refreshTree_Bg()
 
             self.app.top_window.setStatusAction()
@@ -230,7 +230,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 class ProjectTreeNode(QtGui.QStandardItem):
     def __init__( self, model, scm_project_tree_node ):
         self.model = model
-        self._debug = self.model._debugNode
+        self.debugLog = self.model.debugLogNode
 
         self.scm_project_tree_node = scm_project_tree_node
 
@@ -246,18 +246,18 @@ class ProjectTreeNode(QtGui.QStandardItem):
         # replace the old scm_project_tree_node with the new one from updateStatus()
         self.scm_project_tree_node = scm_project_tree_node
 
-        self._debug( '%*sProjectTreeNode.update name %s' % (indent, '', self.text()) )
+        self.debugLog( '%*sProjectTreeNode.update name %s' % (indent, '', self.text()) )
 
-        self._debug( '%*sProjectTreeNode.update all_folders %r' % (indent, '', list( scm_project_tree_node.getAllFolderNames() )) )
+        self.debugLog( '%*sProjectTreeNode.update all_folders %r' % (indent, '', list( scm_project_tree_node.getAllFolderNames() )) )
 
         # do the deletes first
         all_row_names = set()
         row = 0
         while row < self.rowCount():
             item = self.child( row )
-            self._debug( '%*sProjectTreeNode.update row %d child %s' % (indent, '', row, item.text()) )
+            self.debugLog( '%*sProjectTreeNode.update row %d child %s' % (indent, '', row, item.text()) )
             if not scm_project_tree_node.hasFolder( item.text() ):
-                self._debug( '%*sProjectTreeNode.update remove row %d child %s' % (indent, '', row, item.text()) )
+                self.debugLog( '%*sProjectTreeNode.update remove row %d child %s' % (indent, '', row, item.text()) )
                 self.removeRow( row )
 
             else:
@@ -273,5 +273,5 @@ class ProjectTreeNode(QtGui.QStandardItem):
         all_to_add = all_new_row_names - all_row_names
         # sort to make sure order is not swapped
         for name in sorted( all_to_add ):
-            self._debug( '%*sProjectTreeNode.update add name %s' % (indent, '', name,) )
+            self.debugLog( '%*sProjectTreeNode.update add name %s' % (indent, '', name,) )
             self.appendRow( ProjectTreeNode( self.model, self.scm_project_tree_node.getFolder( name ) ) )

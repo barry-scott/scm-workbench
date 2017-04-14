@@ -39,6 +39,7 @@ def U_( s: str ) -> str:
 class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory, view ):
         self.view = view
+        self.changed_files_context_menu = None
         super().__init__( 'git', factory )
 
     def setupToolBarAtRight( self, addToolBar, addTool ):
@@ -163,9 +164,9 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     focus_is_in_names = ('commits', 'changes')
     def __init__( self, app, title ):
         self.app = app
-        self._debug = self.app._debug_options._debugLogHistory
+        self.debugLog = self.app.debug_options.debugLogLogHistory
 
-        super().__init__( app, app._debug_options._debugMainWindow )
+        super().__init__( app, app.debug_options.debugLogMainWindow )
 
         self.current_commit_selections = []
         self.current_file_selection = []
@@ -264,7 +265,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.__setupTableContextMenus()
 
     def completeInit( self ):
-        self._debug( 'completeInit()' )
+        self.debugLog( 'completeInit()' )
 
         # set focus
         self.log_table.setFocus()
@@ -273,7 +274,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.ui_component.setupMenuBar( mb, self._addMenu )
 
     def __setupTableContextMenus( self ):
-        self._debug( '__setupTableContextMenus' )
+        self.debugLog( '__setupTableContextMenus' )
 
         m = QtWidgets.QMenu( self )
         self.ui_component.setupTableContextMenu( m, self._addMenu )
@@ -571,7 +572,7 @@ class WbLogTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
-        self._debug = main_window._debug
+        self.debugLog = main_window.debugLog
 
         super().__init__()
 
@@ -580,7 +581,7 @@ class WbLogTableView(wb_table_view.WbTableView):
         self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbLogTableView.selectionChanged()' )
+        self.debugLog( 'WbLogTableView.selectionChanged()' )
 
         self.main_window.selectionChangedCommit()
 
@@ -593,7 +594,7 @@ class WbLogTableView(wb_table_view.WbTableView):
         self.main_window.setFocusIsIn( 'commits' )
 
     def tableContextMenu( self, pos ):
-        self._debug( 'tableContextMenu( %r )' % (pos,) )
+        self.debugLog( 'tableContextMenu( %r )' % (pos,) )
         global_pos = self.viewport().mapToGlobal( pos )
 
         self.main_window.ui_component.getTableContextMenu().exec_( global_pos )
@@ -611,7 +612,7 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debug_options._debugLogHistory
+        self.debugLog = self.app.debug_options.debugLogLogHistory
 
         super().__init__()
 
@@ -717,7 +718,7 @@ class WbChangesTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
-        self._debug = main_window._debug
+        self.debugLog = main_window.debugLog
 
         super().__init__()
 
@@ -728,7 +729,7 @@ class WbChangesTableView(wb_table_view.WbTableView):
         self.setShowGrid( False )
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbChangesTableView.selectionChanged()' )
+        self.debugLog( 'WbChangesTableView.selectionChanged()' )
 
         self.main_window.selectionChangedFile()
 
@@ -741,7 +742,7 @@ class WbChangesTableView(wb_table_view.WbTableView):
         self.main_window.setFocusIsIn( 'changes' )
 
     def tableContextMenu( self, pos ):
-        self._debug( 'tableContextMenu( %r )' % (pos,) )
+        self.debugLog( 'tableContextMenu( %r )' % (pos,) )
         global_pos = self.viewport().mapToGlobal( pos )
 
         self.main_window.ui_component.getChangedFilesContextMenu().exec_( global_pos )
@@ -756,7 +757,7 @@ class WbGitChangedFilesModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debug_options._debugLogHistory
+        self.debugLog = self.app.debug_options.debugLogLogHistory
 
         super().__init__()
 

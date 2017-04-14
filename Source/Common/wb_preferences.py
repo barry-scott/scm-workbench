@@ -269,6 +269,7 @@ class PreferencesManager:
 
         self.prefs_filename = filename
         self.preferences_class = preferences_class
+        self.prefs = None
 
     def readPreferences( self ):
         try:

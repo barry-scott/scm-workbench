@@ -54,7 +54,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.__init_state = self.INIT_STATE_INCONSISTENT
 
-        super().__init__( app, app._debug_options._debugMainWindow )
+        super().__init__( app, app.debug_options.debugLogMainWindow )
 
         # need to fix up how this gets translated
         title = T_( ' '.join( self.app.app_name_parts ) )
@@ -168,7 +168,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     @thread_switcher
     def completeInit( self ):
-        self._debug( 'completeInit()' )
+        self.debugLog( 'completeInit()' )
 
         self.tree_view.setFocus()
 
@@ -257,7 +257,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             return None
 
     def __setupTreeViewAndModel( self ):
-        self._debug( '__setupTreeViewAndModel' )
+        self.debugLog( '__setupTreeViewAndModel' )
 
         self.tree_model = wb_scm_tree_model.WbScmTreeModel( self.app, self.table_view.table_model )
 
@@ -379,7 +379,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # --- setup scm_type specific menus
         for scm_type in self.all_ui_components:
-            self._debug( 'calling setupMenuBar for %r' % (scm_type,) )
+            self.debugLog( 'calling setupMenuBar for %r' % (scm_type,) )
             self.all_ui_components[ scm_type ].setupMenuBar( mb, self._addMenu )
 
         # --- setup menus less used common menus
@@ -393,10 +393,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_("&About…"), self.appActionAbout, role=QtWidgets.QAction.AboutRole )
 
     def __setupTreeContextMenu( self ):
-        self._debug( '__setupTreeContextMenu' )
+        self.debugLog( '__setupTreeContextMenu' )
         # --- setup scm_type specific menu
         for scm_type in self.all_ui_components:
-            self._debug( 'calling setupTreeContextMenu for %r' % (scm_type,) )
+            self.debugLog( 'calling setupTreeContextMenu for %r' % (scm_type,) )
 
             m = QtWidgets.QMenu( self )
             m.addSection( T_('Folder Actions') )
@@ -406,11 +406,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.all_ui_components[ scm_type ].setupTreeContextMenu( m, self._addMenu )
 
     def __setupTableContextMenu( self ):
-        self._debug( '__setupTableContextMenu' )
+        self.debugLog( '__setupTableContextMenu' )
 
         # --- setup scm_type specific menu
         for scm_type in self.all_ui_components:
-            self._debug( 'calling setupTableContextMenu for %r' % (scm_type,) )
+            self.debugLog( 'calling setupTableContextMenu for %r' % (scm_type,) )
 
             m = QtWidgets.QMenu( self )
 
@@ -423,7 +423,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def setupToolBar( self ):
         # --- setup scm_type specific tool bars
         for scm_type in self.all_ui_components:
-            self._debug( 'calling setupToolBarAtLeft for %r' % (scm_type,) )
+            self.debugLog( 'calling setupToolBarAtLeft for %r' % (scm_type,) )
             self.all_ui_components[ scm_type ].setupToolBarAtLeft( self._addToolBar, self._addTool )
 
         # --- setup common toolbars
@@ -437,7 +437,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # --- setup scm_type specific tool bars
         for scm_type in self.all_ui_components:
-            self._debug( 'calling setupToolBarAtRight for %r' % (scm_type,) )
+            self.debugLog( 'calling setupToolBarAtRight for %r' % (scm_type,) )
             self.all_ui_components[ scm_type ].setupToolBarAtRight( self._addToolBar, self._addTool )
 
     def setupStatusBar( self, s ):
@@ -508,7 +508,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     #
     #------------------------------------------------------------
     def appActiveHandler( self ):
-        self._debug( 'appActiveHandler()' )
+        self.debugLog( 'appActiveHandler()' )
 
         # avoid double init
         if self.__init_state != self.INIT_STATE_COMPLETE:
@@ -589,7 +589,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.appActionClose( close=False )
 
     def appActionClose( self, close=True ):
-        self._debug( 'appActionClose()' )
+        self.debugLog( 'appActionClose()' )
         scm_project_tree_node = self.selectedScmProjectTreeNode()
 
         prefs = self.app.prefs
@@ -752,7 +752,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     #
     #------------------------------------------------------------
     def treeContextMenu( self, pos ):
-        self._debug( 'treeContextMenu( %r )' % (pos,) )
+        self.debugLog( 'treeContextMenu( %r )' % (pos,) )
         global_pos = self.tree_view.viewport().mapToGlobal( pos )
 
         if self.__ui_active_scm_type is not None:
@@ -767,7 +767,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.updateEnableStates( force_disabled=True )
 
         # set the table view to the selected item in the tree
-        self._debug( 'treeSelectionChanged_Bg calling selectionChanged_Bg' )
+        self.debugLog( 'treeSelectionChanged_Bg calling selectionChanged_Bg' )
         yield from self.tree_model.selectionChanged_Bg( selected, deselected )
 
         self.filter_text.clear()
@@ -776,10 +776,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if( scm_project is not None
         and self.__ui_active_scm_type != scm_project.scmType() ):
             if self.__ui_active_scm_type is not None:
-                self._debug( 'treeSelectionChanged hiding UI for %s' % (self.__ui_active_scm_type,) )
+                self.debugLog( 'treeSelectionChanged hiding UI for %s' % (self.__ui_active_scm_type,) )
                 self.all_ui_components[ self.__ui_active_scm_type ].hideUiComponents()
 
-            self._debug( 'treeSelectionChanged showing UI for %s' % (scm_project.scmType(),) )
+            self.debugLog( 'treeSelectionChanged showing UI for %s' % (scm_project.scmType(),) )
             self.__ui_active_scm_type = scm_project.scmType()
             self.all_ui_components[ self.__ui_active_scm_type ].showUiComponents()
 
@@ -827,7 +827,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     #
     #------------------------------------------------------------
     def tableContextMenu( self, global_pos ):
-        self._debug( 'tableContextMenu( %r )' % (global_pos,) )
+        self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
 
         if self.__ui_active_scm_type is not None:
             self.all_ui_components[ self.__ui_active_scm_type ].getTableContextMenu().exec_( global_pos )

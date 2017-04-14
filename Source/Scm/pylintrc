@@ -23,7 +23,7 @@ persistent=no
 load-plugins=
 
 # Use multiple processes to speed up Pylint.
-jobs=1
+jobs=8
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
@@ -65,7 +65,9 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=nonzero-method,getslice-method,parameter-unpacking,delslice-method,import-star-module-level,dict-view-method,coerce-method,reload-builtin,apply-builtin,oct-method,buffer-builtin,metaclass-assignment,reduce-builtin,unpacking-in-except,standarderror-builtin,old-raise-syntax,using-cmp-argument,long-suffix,no-absolute-import,unichr-builtin,raw_input-builtin,round-builtin,dict-iter-method,cmp-builtin,input-builtin,filter-builtin-not-iterating,indexing-exception,execfile-builtin,cmp-method,setslice-method,map-builtin-not-iterating,old-ne-operator,print-statement,long-builtin,intern-builtin,useless-suppression,unicode-builtin,coerce-builtin,old-octal-literal,range-builtin-not-iterating,hex-method,xrange-builtin,raising-string,file-builtin,suppressed-message,next-method-called,backtick,basestring-builtin,zip-builtin-not-iterating,old-division,missing-docstring,bad-whitespace,bad-continuation,unused-argument,wrong-import-position,too-few-public-methods,locally-disabled
+
+# no-member is disabled until pysvn C extension is updated to support dir()
+disable=nonzero-method,getslice-method,parameter-unpacking,delslice-method,import-star-module-level,dict-view-method,coerce-method,reload-builtin,apply-builtin,oct-method,buffer-builtin,metaclass-assignment,reduce-builtin,unpacking-in-except,standarderror-builtin,old-raise-syntax,using-cmp-argument,long-suffix,no-absolute-import,unichr-builtin,raw_input-builtin,round-builtin,dict-iter-method,cmp-builtin,input-builtin,filter-builtin-not-iterating,indexing-exception,execfile-builtin,cmp-method,setslice-method,map-builtin-not-iterating,old-ne-operator,print-statement,long-builtin,intern-builtin,useless-suppression,unicode-builtin,coerce-builtin,old-octal-literal,range-builtin-not-iterating,hex-method,xrange-builtin,raising-string,file-builtin,suppressed-message,next-method-called,backtick,basestring-builtin,zip-builtin-not-iterating,old-division,missing-docstring,bad-whitespace,bad-continuation,unused-argument,wrong-import-position,too-few-public-methods,locally-disabled,unidiomatic-typecheck,no-self-use,redefined-outer-name,no-member
 
 [REPORTS]
 
@@ -178,61 +180,61 @@ property-classes=abc.abstractproperty
 function-rgx=[a-z_][A-Za-z0-9_]*$
 
 # Naming hint for function names
-function-name-hint=[a-z_][a-z0-9_]*$
+function-name-hint=function-name [a-z_][a-z0-9_]*$
 
 # Regular expression matching correct inline iteration names
 inlinevar-rgx=[a-z_][a-z0-9_]*$
 
 # Naming hint for inline iteration names
-inlinevar-name-hint=[a-z_][a-z0-9_]*$
+inlinevar-name-hint=inlinevar-name [a-z_][a-z0-9_]*$
 
 # Regular expression matching correct variable names
 variable-rgx=[a-z_][a-z0-9_]*$
 
 # Naming hint for variable names
-variable-name-hint=[a-z_][a-z0-9_]*$
+variable-name-hint=variable-name [a-z_][a-z0-9_]*$
 
 # Regular expression matching correct attribute names
-attr-rgx=[a-z_][a-z0-9_]*$
+attr-rgx=[a-z_][a-z0-9_]*$|debugLog[A-Za-z]*$
 
 # Naming hint for attribute names
-attr-name-hint=[a-z_][a-z0-9_]*$
+attr-name-hint=attr-name [a-z_][a-z0-9_]*$
 
 # Regular expression matching correct constant names
 const-rgx=(([a-z_][a-z0-9_]*)|([A-Z_][A-Z0-9_]*)|(__.*__))$
 
 # Naming hint for constant names
-const-name-hint=(([a-z_][a-z0-9_]*)|([A-Z_][A-Z0-9_]*)|(__.*__))$
+const-name-hint=const-name (([a-z_][a-z0-9_]*)|([A-Z_][A-Z0-9_]*)|(__.*__))$
 
 # Regular expression matching correct class attribute names
 class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]*|(__.*__))$
 
 # Naming hint for class attribute names
-class-attribute-name-hint=([a-z_][A-Za-z0-9_]*|(__.*__))$
+class-attribute-name-hint=class-attribute-name ([a-z_][A-Za-z0-9_]*|(__.*__))$
 
 # Regular expression matching correct module names
 module-rgx=(([a-z_][a-z0-9_]*)|([a-zA-Z0-9]+))$
 
 # Naming hint for module names
-module-name-hint=(([a-z_][a-z0-9_]*)|([a-zA-Z0-9]+))$
+module-name-hint=module-name (([a-z_][a-z0-9_]*)|([a-zA-Z0-9]+))$
 
 # Regular expression matching correct class names
 class-rgx=[A-Z_][a-zA-Z0-9]+$
 
 # Naming hint for class names
-class-name-hint=[A-Z_][a-zA-Z0-9]+$
+class-name-hint=class-name [A-Z_][a-zA-Z0-9]+$
 
 # Regular expression matching correct method names
 method-rgx=[a-z_][A-Za-z0-9_]*$
 
 # Naming hint for method names
-method-name-hint=[a-z_][A-Za-z0-9_]*$
+method-name-hint=module name [a-z_][A-Za-z0-9_]*$
 
 # Regular expression matching correct argument names
 argument-rgx=[a-z_][a-z0-9_]*$
 
 # Naming hint for argument names
-argument-name-hint=[a-z_][a-z0-9_]*$
+argument-name-hint=argument-name [a-z_][a-z0-9_]*$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.

@@ -151,11 +151,11 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.setupLogging()
 
         # and debug trace
-        self._debug_options = debug_class( self.log )
+        self.debug_options = debug_class( self.log )
         if debug_config_string is not None:
-            self._debug_options.setDebug( debug_config_string )
+            self.debug_options.setDebug( debug_config_string )
 
-        self._debugApp = self._debug_options._debugApp
+        self.debugLogApp = self.debug_options.debugLogApp
 
         self.setupAppDebug()
 
@@ -230,7 +230,7 @@ class WbApp(wb_logging.AppLoggingMixin,
         return self.__log_stdout
 
     def event( self, event ):
-        self._debugApp( 'Wb_App.event() type() %r  %s' %
+        self.debugLogApp( 'Wb_App.event() type() %r  %s' %
             (event.type(), qt_event_type_names.get( event.type(), '-unknown-' )) )
 
         return QtWidgets.QApplication.event( self, event )
@@ -254,7 +254,7 @@ class WbApp(wb_logging.AppLoggingMixin,
 
             caller = stack[ index ]
             filename = os.path.basename( caller[1] )
-            self._debugApp( 'File: %s:%d, Function: %s' % (filename, caller[2], caller[3]) )
+            self.debugLogApp( 'File: %s:%d, Function: %s' % (filename, caller[2], caller[3]) )
             del caller
 
         del stack
@@ -263,6 +263,6 @@ class WbApp(wb_logging.AppLoggingMixin,
         QtWidgets.QMessageBox.critical( self.main_window, title, body )
 
     def quit( self ):
-        self._debugApp( 'quit()' )
+        self.debugLogApp( 'quit()' )
         self.may_quit = True
         self.main_window.close()

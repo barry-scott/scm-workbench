@@ -41,7 +41,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         super().__init__( 'svn', factory )
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debug_options._debugSvnUi
+        self.debugLog = self.main_window.app.debug_options.debugLogSvnUi
 
     #--- Enablers ---------------------------------------------------------
 

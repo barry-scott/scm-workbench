@@ -55,7 +55,7 @@ class BackgroundThread(threading.Thread):
     def run( self ):
         while self.running:
             function = self.work_queue.get( block=True, timeout=None )
-            self.app._debug_options._debugThreading( 'BackgroundThread.run dispatching %r' % (function,) )
+            self.app.debug_options.debugLogThreading( 'BackgroundThread.run dispatching %r' % (function,) )
 
             try:
                 function()
@@ -64,7 +64,7 @@ class BackgroundThread(threading.Thread):
                 self.app.log.exception( 'function failed on background thread' )
 
     def addWork( self, function, args ):
-        self.app._debug_options._debugThreading( 'BackgroundThread.addWork( %r, %r )' % (function, args) )
+        self.app.debug_options.debugLogThreading( 'BackgroundThread.addWork( %r, %r )' % (function, args) )
         assert self.running
         self.work_queue.put( MarshalledCall( function, args ), block=False, timeout=None )
 
@@ -114,7 +114,7 @@ class BackgroundWorkMixin:
         return DeferRunInForeground( self, function )
 
     def runInBackground( self, function, args ):
-        self._debug_options._debugThreading( 'runInBackground( %r, %r )' % (function, args) )
+        self.debug_options.debugLogThreading( 'runInBackground( %r, %r )' % (function, args) )
         self.background_thread.addWork( function, args )
 
     def runInForeground( self, function, args ):
@@ -133,7 +133,7 @@ class BackgroundWorkMixin:
     switchToBackground = runInBackground
 
     def __runInForeground( self, function ):
-        self._debug_options._debugThreading( '__runInForeground( %r )' % (function,) )
+        self.debug_options.debugLogThreading( '__runInForeground( %r )' % (function,) )
 
         try:
             function()
@@ -155,12 +155,12 @@ class ThreadSwitchScheduler:
         self.app = app
         self.function = function
         self.reason = reason
-        self._debugThreading = self.app._debug_options._debugThreading
+        self.debugLogThreading = self.app.debug_options.debugLogThreading
         ThreadSwitchScheduler.next_instance_id += 1
         self.instance_id = self.next_instance_id
 
     def __call__( self, *args, **kwds ):
-        self._debugThreading( 'ThreadSwitchScheduler(%d:%s): start %r( %r, %r )' % (self.instance_id, self.reason, self.function, args, kwds) )
+        self.debugLogThreading( 'ThreadSwitchScheduler(%d:%s): start %r( %r, %r )' % (self.instance_id, self.reason, self.function, args, kwds) )
 
         #pylint disable=bare-except
         try:
@@ -169,7 +169,7 @@ class ThreadSwitchScheduler:
 
             # did the function run or make a generator?
             if type(result) != types.GeneratorType:
-                self._debugThreading( 'ThreadSwitchScheduler(%d:%s): done (not GeneratorType)' % (self.instance_id, self.reason) )
+                self.debugLogThreading( 'ThreadSwitchScheduler(%d:%s): done (not GeneratorType)' % (self.instance_id, self.reason) )
                 # it ran - we are all done
                 return
 
@@ -180,18 +180,18 @@ class ThreadSwitchScheduler:
             self.app.log.exception( 'ThreadSwitchScheduler(%d:%s)' % (self.instance_id, self.reason) )
 
     def queueNextSwitch( self, generator ):
-        self._debugThreading( 'ThreadSwitchScheduler(%d:%s): generator %r' % (self.instance_id, self.reason, generator) )
+        self.debugLogThreading( 'ThreadSwitchScheduler(%d:%s): generator %r' % (self.instance_id, self.reason, generator) )
         # result tells where to schedule the generator to next
         try:
             where_to_go_next = next( generator )
 
         except StopIteration:
             # no problem all done
-            self._debugThreading( 'ThreadSwitchScheduler(%d:%s): done (StopIteration)' % (self.instance_id, self.reason) )
+            self.debugLogThreading( 'ThreadSwitchScheduler(%d:%s): done (StopIteration)' % (self.instance_id, self.reason) )
             return
 
         # will be one of app.runInForeground or app.runInForeground
-        self._debugThreading( 'ThreadSwitchScheduler(%d:%s): next %r' % (self.instance_id, self.reason, where_to_go_next) )
+        self.debugLogThreading( 'ThreadSwitchScheduler(%d:%s): next %r' % (self.instance_id, self.reason, where_to_go_next) )
         where_to_go_next( self.queueNextSwitch, (generator,) )
 
 #------------------------------------------------------------

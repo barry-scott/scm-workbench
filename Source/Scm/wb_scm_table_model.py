@@ -152,7 +152,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debug_options._debugTableModel
+        self.debugLog = self.app.debug_options.debugLogTableModel
 
         super().__init__()
 
@@ -255,8 +255,8 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         self.refreshTable( scm_project_tree_node )
 
     def refreshTable( self, scm_project_tree_node=None ):
-        self._debug( 'WbScmTableModel.refreshTable( %r ) start' % (scm_project_tree_node,) )
-        self._debug( 'WbScmTableModel.refreshTable() self.scm_project_tree_node %r' % (self.scm_project_tree_node,) )
+        self.debugLog( 'WbScmTableModel.refreshTable( %r ) start' % (scm_project_tree_node,) )
+        self.debugLog( 'WbScmTableModel.refreshTable() self.scm_project_tree_node %r' % (self.scm_project_tree_node,) )
 
         if scm_project_tree_node is None:
             scm_project_tree_node = self.scm_project_tree_node
@@ -286,7 +286,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
         if( self.scm_project_tree_node is None
         or self.scm_project_tree_node.isNotEqual( scm_project_tree_node ) ):
-            self._debug( 'WbScmTableModel.refreshTable() resetModel' )
+            self.debugLog( 'WbScmTableModel.refreshTable() resetModel' )
             self.beginResetModel()
             self.all_files = sorted( all_files.values() )
             self.endResetModel()
@@ -302,7 +302,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
         else:
             parent = QtCore.QModelIndex()
-            self._debug( 'WbScmTableModel.refreshTable() insert/remove' )
+            self.debugLog( 'WbScmTableModel.refreshTable() insert/remove' )
 
             all_new_files = sorted( all_files.values() )
 
@@ -310,32 +310,32 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             all_new_names = [entry.name for entry in all_new_files]
 
             for offset in range( len(self.all_files) ):
-                self._debug( 'old %2d %s' % (offset, all_old_names[ offset ]) )
+                self.debugLog( 'old %2d %s' % (offset, all_old_names[ offset ]) )
 
             for offset in range( len(all_new_files) ):
-                self._debug( 'new %2d %s' % (offset, all_new_names[ offset ]) )
+                self.debugLog( 'new %2d %s' % (offset, all_new_names[ offset ]) )
 
             offset = 0
             while offset < len(all_new_files) and offset < len(self.all_files):
-                self._debug( 'WbScmTableModel.refreshTable() while offset %d %s old %s' %
+                self.debugLog( 'WbScmTableModel.refreshTable() while offset %d %s old %s' %
                         (offset, all_new_files[ offset ].name, self.all_files[ offset ].name) )
                 if all_new_files[ offset ].name == self.all_files[ offset ].name:
                     if all_new_files[ offset ].isNotEqual( self.all_files[ offset ] ):
-                        self._debug( 'WbScmTableModel.refreshTable() emit dataChanged row=%d' % (offset,) )
+                        self.debugLog( 'WbScmTableModel.refreshTable() emit dataChanged row=%d' % (offset,) )
                         self.dataChanged.emit(
                             self.createIndex( offset, self.col_staged ),
                             self.createIndex( offset, self.col_type ) )
                     offset += 1
 
                 elif all_new_files[ offset ].name < self.all_files[ offset ].name:
-                    self._debug( 'WbScmTableModel.refreshTable() insertRows row=%d %r' % (offset, all_new_names[offset]) )
+                    self.debugLog( 'WbScmTableModel.refreshTable() insertRows row=%d %r' % (offset, all_new_names[offset]) )
                     self.beginInsertRows( parent, offset, offset )
                     self.all_files.insert( offset, all_new_files[ offset ] )
                     self.endInsertRows()
                     offset += 1
 
                 else:
-                    self._debug( 'WbScmTableModel.refreshTable() deleteRows row=%d' % (offset,) )
+                    self.debugLog( 'WbScmTableModel.refreshTable() deleteRows row=%d' % (offset,) )
                     # delete the old
                     self.beginRemoveRows( parent, offset, offset )
                     del self.all_files[ offset ]
@@ -343,14 +343,14 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     self.endRemoveRows()
 
             if offset < len(self.all_files):
-                self._debug( 'WbScmTableModel.refreshTable() removeRows at end of old row=%d %r' % (offset, all_old_names[ offset: ]) )
+                self.debugLog( 'WbScmTableModel.refreshTable() removeRows at end of old row=%d %r' % (offset, all_old_names[ offset: ]) )
 
                 self.beginRemoveRows( parent, offset, len(self.all_files)-1 )
                 del self.all_files[ offset: ]
                 self.endRemoveRows()
 
             if offset < len(all_new_files):
-                self._debug( 'WbScmTableModel.refreshTable() insertRows at end of new row=%d %r, old row %s' % (offset, all_new_names[offset:], offset) )
+                self.debugLog( 'WbScmTableModel.refreshTable() insertRows at end of new row=%d %r, old row %s' % (offset, all_new_names[offset:], offset) )
 
                 to_insert = len(all_new_files) - offset - 1
                 self.beginInsertRows( parent, offset, offset + to_insert )
@@ -360,7 +360,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             self.all_files = sorted( all_files.values() )
 
         self.scm_project_tree_node = scm_project_tree_node
-        self._debug( 'WbScmTableModel.refreshTable() done self.scm_project_tree_node %r' % (self.scm_project_tree_node,) )
+        self.debugLog( 'WbScmTableModel.refreshTable() done self.scm_project_tree_node %r' % (self.scm_project_tree_node,) )
 
     def selectedScmProjectTreeNode( self ):
         return self.scm_project_tree_node

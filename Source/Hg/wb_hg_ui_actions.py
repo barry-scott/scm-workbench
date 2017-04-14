@@ -20,7 +20,7 @@ import wb_common_dialogs
 import wb_hg_commit_dialog
 import wb_hg_project
 import wb_hg_status_view
-import wb_hg_credential_dialogs 
+import wb_hg_credential_dialogs
 import wb_hg_annotate
 
 from wb_background_thread import thread_switcher
@@ -40,7 +40,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.__hg_credential_cache = HgCredentialCache()
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debug_options._debugHgUi
+        self.debugLog = self.main_window.app.debug_options.debugLogHgUi
 
     #------------------------------------------------------------
     #
@@ -203,7 +203,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         return scm_project
 
     def treeActionHgDiffSmart( self ):
-        self._debug( 'treeActionHgDiffSmart()' )
+        self.debugLog( 'treeActionHgDiffSmart()' )
 
     def treeActionHgDiffHeadVsWorking( self ):
         tree_node = self.selectedHgProjectTreeNode()
@@ -363,11 +363,11 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from self.__tableActionChangeRepo_Bg( self.__actionHgDelete, self.__areYouSureDelete )
 
     def tableActionHgDiffSmart( self ):
-        self._debug( 'tableActionHgDiffSmart()' )
+        self.debugLog( 'tableActionHgDiffSmart()' )
         self.table_view.tableActionViewRepo( self.__actionHgDiffSmart )
 
     def tableActionHgDiffHeadVsWorking( self ):
-        self._debug( 'tableActionHgDiffHeadVsWorking()' )
+        self.debugLog( 'tableActionHgDiffHeadVsWorking()' )
         self.table_view.tableActionViewRepo( self.__actionHgDiffHeadVsWorking )
 
     def __actionHgAdd( self, hg_project, filename ):

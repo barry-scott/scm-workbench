@@ -75,7 +75,7 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.hg_project = hg_project
         self.table_view = None
 
-        super().__init__( app, app._debug_options._debugMainWindow )
+        super().__init__( app, app.debug_options.debugLogMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         self.ui_component = HgCommitWindowComponents( self.app.getScmFactory( 'hg' ) )
@@ -167,7 +167,7 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.message.textChanged.connect( self.enableOkButton )
 
     def completeInit( self ):
-        self._debug( 'completeInit()' )
+        self.debugLog( 'completeInit()' )
 
         # set focus
         self.message.setFocus()
@@ -198,7 +198,7 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.ui_component.setupMenuBar( mb, self._addMenu )
 
     def __setupTableContextMenu( self ):
-        self._debug( '__setupTableContextMenu' )
+        self.debugLog( '__setupTableContextMenu' )
 
         # --- setup scm_type specific menu
 

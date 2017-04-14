@@ -44,7 +44,7 @@ builtins.__dict__['S_'] = noPluralTranslation
 
 class WbDiff_App(wb_app.WbApp):
     def __init__( self, argv ):
-        self._debugDiffEnabled = True
+        self.debugLogDiffEnabled = True
 
         self.log = self
         self.file1 = None

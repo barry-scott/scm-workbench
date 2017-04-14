@@ -28,12 +28,14 @@ def U_( s: str ) -> str:
 class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, ui_component, title ):
         self.app = app
-        self._debug = self.app._debug_options._debugAnnotate
+        self.debugLog = self.app.debug_options.debugLogAnnotate
 
-        super().__init__( app, app._debug_options._debugMainWindow )
+        super().__init__( app, app.debug_options.debugLogMainWindow )
 
         self.current_commit_selections = []
         self.current_file_selection = []
+
+        self.current_annotations = None
 
         self.ui_component = ui_component
 
@@ -91,7 +93,7 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         self.__setupTableContextMenu()
 
     def completeInit( self ):
-        self._debug( 'completeInit()' )
+        self.debugLog( 'completeInit()' )
 
         # set focus
         self.annotate_table.setFocus()
@@ -107,7 +109,7 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         self.ui_component.setupMenuBar( mb, self._addMenu )
 
     def __setupTableContextMenu( self ):
-        self._debug( '__setupTableContextMenu' )
+        self.debugLog( '__setupTableContextMenu' )
 
         # --- setup scm_type specific menu
 
@@ -152,12 +154,12 @@ class WbAnnotateTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
-        self._debug = main_window._debug
+        self.debugLog = main_window.debugLog
 
         super().__init__( spacing_scale=1.1, alternate_row_shading=False )
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbLogTableView.selectionChanged()' )
+        self.debugLog( 'WbLogTableView.selectionChanged()' )
 
         # allow the table to redraw the selected row highlights
         super().selectionChanged( selected, deselected )
@@ -180,7 +182,7 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debug_options._debugAnnotate
+        self.debugLog = self.app.debug_options.debugLogAnnotate
 
         super().__init__()
 

@@ -56,9 +56,9 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
     focus_is_in_names = ('commits', 'changes')
     def __init__( self, app, title ):
         self.app = app
-        self._debug = self.app._debug_options._debugLogHistory
+        self.debugLog = self.app.debug_options.debugLogLogHistory
 
-        super().__init__( app, app._debug_options._debugMainWindow )
+        super().__init__( app, app.debug_options.debugLogMainWindow )
 
         self.current_commit_selections = []
         self.current_file_selection = []
@@ -148,7 +148,7 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.__setupTableContextMenu()
 
     def completeInit( self ):
-        self._debug( 'completeInit()' )
+        self.debugLog( 'completeInit()' )
 
         # set focus
         self.log_table.setFocus()
@@ -157,7 +157,7 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.ui_component.setupMenuBar( mb, self._addMenu )
 
     def __setupTableContextMenu( self ):
-        self._debug( '__setupTableContextMenu' )
+        self.debugLog( '__setupTableContextMenu' )
 
         # --- setup scm_type specific menu
 
@@ -208,12 +208,12 @@ class WbLogHistoryTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
-        self._debug = main_window._debug
+        self.debugLog = main_window.debugLog
 
         super().__init__()
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbLogTableView.selectionChanged()' )
+        self.debugLog( 'WbLogTableView.selectionChanged()' )
 
         self.main_window.selectionChangedCommit()
 
@@ -237,7 +237,7 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debug_options._debugLogHistory
+        self.debugLog = self.app.debug_options.debugLogLogHistory
 
         super().__init__()
 
@@ -328,12 +328,12 @@ class WbChangesTableView(wb_table_view.WbTableView):
     def __init__( self, main_window ):
         self.main_window = main_window
 
-        self._debug = main_window._debug
+        self.debugLog = main_window.debugLog
 
         super().__init__()
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbChangesTableView.selectionChanged()' )
+        self.debugLog( 'WbChangesTableView.selectionChanged()' )
 
         self.main_window.selectionChangedFile()
 
@@ -355,7 +355,7 @@ class WbSvnChangedFilesModel(QtCore.QAbstractTableModel):
     def __init__( self, app ):
         self.app = app
 
-        self._debug = self.app._debug_options._debugLogHistory
+        self.debugLog = self.app.debug_options.debugLogLogHistory
 
         super().__init__()
 

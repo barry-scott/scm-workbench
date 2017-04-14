@@ -71,19 +71,15 @@ def initCallbackServer( app ):
     app.log.info( "Setup Workbench's GIT callback program" )
 
 def setCallbackCredentialsHandler( handler ):
-    global __callback_server
     __callback_server.setCallbackCredentialsHandler( handler )
 
 def setCallbackRebaseSequenceHandler( handler ):
-    global __callback_server
     __callback_server.setCallbackRebaseSequenceHandler( handler )
 
 def setCallbackRebaseEditorHandler( handler ):
-    global __callback_server
     __callback_server.setCallbackRebaseEditorHandler( handler )
 
 def setCallbackReply( code, value ):
-    global __callback_server
     __callback_server.setReply( code, value )
 
 class GitProject:
@@ -91,8 +87,8 @@ class GitProject:
         self.app = app
         self.ui_components = ui_components
 
-        self._debug = self.app._debug_options._debugGitProject
-        self._debugTree = self.app._debug_options._debugGitUpdateTree
+        self.debugLog = self.app.debug_options.debugLogGitProject
+        self.debugLogTree = self.app.debug_options.debugLogGitUpdateTree
 
         self.prefs_project = prefs_project
         # repo will be setup on demand - this speeds up start up especically on macOS
@@ -235,14 +231,14 @@ class GitProject:
         return self.__num_modified_files
 
     def saveChanges( self ):
-        self._debug( 'saveChanges() __stale_index %r' % (self.__stale_index,) )
+        self.debugLog( 'saveChanges() __stale_index %r' % (self.__stale_index,) )
 
         if self.__stale_index:
             self.updateState()
             self.__stale_index = False
 
     def updateState( self ):
-        self._debug( 'updateState() repo=%s' % (self.projectPath(),) )
+        self.debugLog( 'updateState() repo=%s' % (self.projectPath(),) )
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -338,25 +334,25 @@ class GitProject:
 
     def __updateTree( self, path ):
         assert isinstance( path, pathlib.Path ), 'path %r' % (path,)
-        self._debugTree( '__updateTree path %r' % (path,) )
+        self.debugLogTree( '__updateTree path %r' % (path,) )
         node = self.tree
 
-        self._debugTree( '__updateTree path.parts %r' % (path.parts,) )
+        self.debugLogTree( '__updateTree path.parts %r' % (path.parts,) )
 
         for index, name in enumerate( path.parts[0:-1] ):
-            self._debugTree( '__updateTree name %r at node %r' % (name,node) )
+            self.debugLogTree( '__updateTree name %r at node %r' % (name,node) )
 
             if not node.hasFolder( name ):
                 node.addFolder( name, GitProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
 
             node = node.getFolder( name )
 
-        self._debugTree( '__updateTree addFile %r to node %r' % (path, node) )
+        self.debugLogTree( '__updateTree addFile %r to node %r' % (path, node) )
         node.addFileByName( path )
         self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
-        if self._debugTree.isEnabled():
+        if self.debugLogTree.isEnabled():
             self.tree._dumpTree( 0 )
 
     #------------------------------------------------------------
@@ -451,19 +447,19 @@ class GitProject:
             self.app.log.error( str(e) )
 
     def cmdStage( self, filename ):
-        self._debug( 'cmdStage( %r )' % (filename,) )
+        self.debugLog( 'cmdStage( %r )' % (filename,) )
 
         self.repo().git.add( filename )
         self.__stale_index = True
 
     def cmdUnstage( self, rev, filename ):
-        self._debug( 'cmdUnstage( %r )' % (filename,) )
+        self.debugLog( 'cmdUnstage( %r )' % (filename,) )
 
         self.repo().git.reset( 'HEAD', filename, mixed=True )
         self.__stale_index = True
 
     def cmdRevert( self, rev, filename ):
-        self._debug( 'cmdRevert( %r, %r )' % (rev, filename) )
+        self.debugLog( 'cmdRevert( %r, %r )' % (rev, filename) )
 
         try:
             self.repo().git.checkout( rev, filename )
@@ -505,30 +501,30 @@ class GitProject:
         rebase_commands = '\n'.join( all_text )
 
         def rebaseHandler( filename ):
-            if self._debug.isEnabled():
+            if self.debugLog.isEnabled():
                 with open( filename, 'r', encoding='utf-8' ) as f:
                     for line in f:
-                        self._debug( 'Old Rebase: %r' % (line,) )
+                        self.debugLog( 'Old Rebase: %r' % (line,) )
 
             with open( filename, 'w', encoding='utf-8' ) as f:
-                if self._debug.isEnabled():
+                if self.debugLog.isEnabled():
                     for line in all_text:
-                        self._debug( 'New Rebase: %r' %(line,) )
+                        self.debugLog( 'New Rebase: %r' %(line,) )
 
                 f.write( rebase_commands )
 
             return 0, ''
 
         def newCommitMessage( filename ):
-            if self._debug.isEnabled():
+            if self.debugLog.isEnabled():
                 with open( filename, 'r', encoding='utf-8' ) as f:
                     for line in f:
-                        self._debug( 'Old Commit Message: %r' % (line,) )
+                        self.debugLog( 'Old Commit Message: %r' % (line,) )
 
             with open( filename, 'w', encoding='utf-8' ) as f:
-                if self._debug.isEnabled():
+                if self.debugLog.isEnabled():
                     for line in new_commit_message.split('\n'):
-                        self._debug( 'New Commit Message: %r' % (line,) )
+                        self.debugLog( 'New Commit Message: %r' % (line,) )
 
                 f.write( new_commit_message )
 
@@ -549,7 +545,7 @@ class GitProject:
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self._debug( 'git rebase --interactive %s -> rc %d' % (commit_id, rc) )
+        self.debugLog( 'git rebase --interactive %s -> rc %d' % (commit_id, rc) )
 
         if rc != 0:
             # assume need to abort rebase on failure
@@ -823,7 +819,7 @@ class GitProject:
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self._debug( 'git stash save -> rc %d' % (rc,) )
+        self.debugLog( 'git stash save -> rc %d' % (rc,) )
         if rc != 0:
             for line in stderr.split( '\n' ):
                 line = line.strip()
@@ -839,7 +835,7 @@ class GitProject:
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self._debug( 'git stash apply %s -> rc %d' % (stash_id, rc) )
+        self.debugLog( 'git stash apply %s -> rc %d' % (stash_id, rc) )
 
         for line in stdout.split( '\n' ):
             line = line.strip()
@@ -859,7 +855,7 @@ class GitProject:
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self._debug( 'git stash list -> rc %d' % (rc,) )
+        self.debugLog( 'git stash list -> rc %d' % (rc,) )
         if rc != 0:
             for line in stderr.split( '\n' ):
                 line = line.strip()
@@ -1237,10 +1233,10 @@ class GitProjectTreeNode:
         return name in self.__all_folders
 
     def _dumpTree( self, indent ):
-        self.project._debug( 'dump: %*s%r' % (indent, '', self) )
+        self.project.debugLog( 'dump: %*s%r' % (indent, '', self) )
 
         for file in sorted( self.__all_files ):
-            self.project._debug( 'dump %*s   file: %r' % (indent, '', file) )
+            self.project.debugLog( 'dump %*s   file: %r' % (indent, '', file) )
 
         for folder in sorted( self.__all_folders ):
             self.__all_folders[ folder ]._dumpTree( indent+4 )

@@ -89,7 +89,7 @@ class WbStashesTableView(wb_table_view.WbTableView):
 
         super().__init__()
 
-        self._debug = self.main_window._debug
+        self.debugLog = self.main_window.debugLog
 
         self.setShowGrid( False )
 
@@ -104,7 +104,7 @@ class WbStashesTableView(wb_table_view.WbTableView):
         self.setColumnWidth( WbGitStashesModel.col_message, em*50 )
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbStashesTableView.selectionChanged()' )
+        self.debugLog( 'WbStashesTableView.selectionChanged()' )
 
         stash_id = None
         for index in selected.indexes():

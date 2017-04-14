@@ -17,12 +17,12 @@ class WbScmTreeView(QtWidgets.QTreeView):
         self.app = app
         self.main_window = main_window
 
-        self._debug = main_window._debug
+        self.debugLog = main_window.debugLog
 
         super().__init__()
 
     def selectionChanged( self, selected, deselected ):
-        self._debug( 'WbScmTreeView.selectionChanged()' )
+        self.debugLog( 'WbScmTreeView.selectionChanged()' )
 
         # allow the tree to redraw the selected row highlights
         super().selectionChanged( selected, deselected )

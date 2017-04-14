@@ -19,14 +19,14 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def __init__( self, app, debug_fn, parent=None ):
         self.app = app
         self.log = self.app.log
-        self._debug = app._debug_options._debugMainWindow
+        self.debugLog = app.debug_options.debugLogMainWindow
 
         super().__init__( parent )
 
         self.icon_size = QtCore.QSize( 32, 32 )
 
         # list of all the WbActionState for the menus and toolbars
-        self.__action_state_manager = WbActionStateManager( self._debug )
+        self.__action_state_manager = WbActionStateManager( self.debugLog )
 
         self.__focus_is_in = self.focus_is_in_names[0]
 
@@ -136,7 +136,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
 
 class WbActionStateManager:
     def __init__( self, debug_fn ):
-        self._debug = debug_fn
+        self.debugLog = debug_fn
 
         self.__all_action_enablers = []
         self.__all_action_checkers = []
@@ -154,7 +154,7 @@ class WbActionStateManager:
             return
 
         self.__update_running = True
-        self._debug( 'WbActionState.update running' )
+        self.debugLog( 'WbActionState.update running' )
 
         # use a cache to avoid calling state queries more then once on any one update
         cache = {}
@@ -164,7 +164,7 @@ class WbActionStateManager:
         for checker in self.__all_action_checkers:
             checker.setState( cache, force_disabled=False )
 
-        self._debug( 'WbActionState.update done' )
+        self.debugLog( 'WbActionState.update done' )
         self.__update_running = False
 
 class WbActionSetStateBase:

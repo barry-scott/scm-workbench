@@ -19,7 +19,14 @@ class WbMainWindowComponents:
         self.main_window = None
         self.table_view = None
         self.app = None
-        self._debug = None
+        self.debugLog = None
+
+        self.setStatusGeneral = None
+        self.setStatusAction = None
+        self.progress = None
+        self.switchToForeground = None
+        self.switchToBackground = None
+        self.deferRunInForeground = None
 
         self.all_menus = []
         self.all_toolbars = []
@@ -61,7 +68,7 @@ class WbMainWindowComponents:
         self.ui_actions.setMainWindow( main_window, table_view )
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debug_options._debugMainWindow
+        self.debugLog = self.main_window.app.debug_options.debugLogMainWindow
 
     def getAllPerferenceTabs( self ):
         return []
@@ -106,4 +113,3 @@ class WbMainWindowComponents:
     # ------------------------------------------------------------
     def isScmTypeActive( self ):
         return self.main_window.isScmTypeActive( self.scm_type )
-

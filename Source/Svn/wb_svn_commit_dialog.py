@@ -71,7 +71,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.svn_project = svn_project
         self.table_view = None
 
-        super().__init__( app, app._debug_options._debugMainWindow )
+        super().__init__( app, app.debug_options.debugLogMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         self.ui_component = SvnCommitWindowComponents( self.app.getScmFactory( 'svn' ) )
@@ -163,7 +163,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.message.textChanged.connect( self.enableOkButton )
 
     def completeInit( self ):
-        self._debug( 'completeInit()' )
+        self.debugLog( 'completeInit()' )
 
         # set focus
         self.message.setFocus()
@@ -194,7 +194,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.ui_component.setupMenuBar( mb, self._addMenu )
 
     def __setupTableContextMenu( self ):
-        self._debug( '__setupTableContextMenu' )
+        self.debugLog( '__setupTableContextMenu' )
 
         # --- setup scm_type specific menu
 

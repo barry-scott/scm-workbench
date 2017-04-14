@@ -14,7 +14,7 @@ class FakeApp:
     def __init__( self ):
         pass
 
-    def _debugGitProject( self, msg ):
+    def debugLogGitProject( self, msg ):
         print( 'debug: %s' % (msg,) )
 
 

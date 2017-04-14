@@ -47,8 +47,8 @@ class HgProject:
         self.app = app
         self.ui_components = ui_components
 
-        self._debug = self.app._debug_options._debugHgProject
-        self._debugTree = self.app._debug_options._debugHgUpdateTree
+        self.debugLog = self.app.debug_options.debugLogHgProject
+        self.debugLogTree = self.app.debug_options.debugLogHgUpdateTree
 
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
@@ -197,25 +197,25 @@ class HgProject:
                 self.__num_modified_files += 1
 
     def __updateTree( self, path ):
-        self._debugTree( '__updateTree path %r' % (path,) )
+        self.debugLogTree( '__updateTree path %r' % (path,) )
         node = self.tree
 
-        self._debugTree( '__updateTree path.parts %r' % (path.parts,) )
+        self.debugLogTree( '__updateTree path.parts %r' % (path.parts,) )
 
         for index, name in enumerate( path.parts[0:-1] ):
-            self._debugTree( '__updateTree name %r at node %r' % (name,node) )
+            self.debugLogTree( '__updateTree name %r at node %r' % (name,node) )
 
             if not node.hasFolder( name ):
                 node.addFolder( name, HgProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
 
             node = node.getFolder( name )
 
-        self._debugTree( '__updateTree addFile %r to node %r' % (path, node) )
+        self.debugLogTree( '__updateTree addFile %r to node %r' % (path, node) )
         node.addFileByName( path )
         self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
-        if self._debugTree.isEnabled():
+        if self.debugLogTree.isEnabled():
             self.tree._dumpTree( 0 )
 
     #------------------------------------------------------------
@@ -447,13 +447,13 @@ class HgProject:
             self.__treeToDict( child, all_entries )
 
     def cmdPull( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-        self._debug( 'cmdPull()' )
+        self.debugLog( 'cmdPull()' )
 
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
             self.repo().pull( update=True )
 
     def cmdPush( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
-        self._debug( 'cmdPush()' )
+        self.debugLog( 'cmdPush()' )
 
         with WbHgIoHandler( self, out_handler, err_handler, prompt_handler, auth_failed_handler ):
             self.repo().push()
@@ -509,14 +509,14 @@ class WbHgIoHandler:
     def __init__( self, project, cb_output, cb_error, cb_prompt, cb_auth_failed ):
         self.__repo = project.repo()
         self.__app = project.app
-        self.__debug = project._debug
+        self.__debug = project.debugLog
 
         self.__cb_prompt = cb_prompt
         self.__cb_auth_failed = cb_auth_failed
         self.__output_buffer = WbHgOutBuffer( cb_output )
         self.__error_buffer = WbHgOutBuffer( cb_error )
 
-        self.__traceProtocol = self.__app._debug_options._debugHgProtocolTrace
+        self.__traceProtocol = self.__app.debug_options.debugLogHgProtocolTrace
 
     def __enter__( self ):
         if self.__traceProtocol.isEnabled():
@@ -816,10 +816,10 @@ class HgProjectTreeNode:
         return name in self.__all_folders
 
     def _dumpTree( self, indent ):
-        self.project._debugTree( 'dump: %*s%r' % (indent, '', self) )
+        self.project.debugLogTree( 'dump: %*s%r' % (indent, '', self) )
 
         for file in sorted( self.__all_files ):
-            self.project._debugTree( 'dump %*s   file: %r' % (indent, '', file) )
+            self.project.debugLogTree( 'dump %*s   file: %r' % (indent, '', file) )
 
         for folder in sorted( self.__all_folders ):
             self.__all_folders[ folder ]._dumpTree( indent+4 )

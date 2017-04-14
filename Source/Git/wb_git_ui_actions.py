@@ -38,7 +38,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         super().__init__( 'git', factory )
 
     def setupDebug( self ):
-        self._debug = self.main_window.app._debug_options._debugGitUi
+        self.debugLog = self.main_window.app.debug_options.debugLogGitUi
 
     #------------------------------------------------------------
     #
@@ -231,7 +231,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         return scm_project
 
     def treeActionGitDiffSmart( self ):
-        self._debug( 'treeActionGitDiffSmart()' )
+        self.debugLog( 'treeActionGitDiffSmart()' )
 
     def treeActionGitDiffStagedVsWorking( self ):
         tree_node = self.selectedGitProjectTreeNode()
@@ -448,9 +448,9 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # ------------------------------------------------------------
     @thread_switcher
     def tableActionGitStage_Bg( self, checked=None ):
-        self._debug( 'tableActionGitStage_Bg start' )
+        self.debugLog( 'tableActionGitStage_Bg start' )
         yield from self._tableActionChangeRepo_Bg( self._actionGitStage )
-        self._debug( 'tableActionGitStage_Bg done' )
+        self.debugLog( 'tableActionGitStage_Bg done' )
 
     @thread_switcher
     def tableActionGitUnstage_Bg( self, checked=None ):
@@ -469,19 +469,19 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from self._tableActionChangeRepo_Bg( self._actionGitRename )
 
     def tableActionGitDiffSmart( self ):
-        self._debug( 'tableActionGitDiffSmart()' )
+        self.debugLog( 'tableActionGitDiffSmart()' )
         self.table_view.tableActionViewRepo( self._actionGitDiffSmart )
 
     def tableActionGitDiffStagedVsWorking( self ):
-        self._debug( 'tableActionGitDiffStagedVsWorking()' )
+        self.debugLog( 'tableActionGitDiffStagedVsWorking()' )
         self.table_view.tableActionViewRepo( self._actionGitDiffStagedVsWorking )
 
     def tableActionGitDiffHeadVsStaged( self ):
-        self._debug( 'tableActionGitDiffHeadVsStaged()' )
+        self.debugLog( 'tableActionGitDiffHeadVsStaged()' )
         self.table_view.tableActionViewRepo( self._actionGitDiffHeadVsStaged )
 
     def tableActionGitDiffHeadVsWorking( self ):
-        self._debug( 'tableActionGitDiffHeadVsWorking()' )
+        self.debugLog( 'tableActionGitDiffHeadVsWorking()' )
         self.table_view.tableActionViewRepo( self._actionGitDiffHeadVsWorking )
 
     @thread_switcher
@@ -501,11 +501,11 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from commit_log_view.showCommitLogForFile_Bg( git_project, filename, options )
 
     def _actionGitStage( self, git_project, filename ):
-        self._debug( '_actionGitStage( %r, %s )' )
+        self.debugLog( '_actionGitStage( %r, %s )' )
         git_project.cmdStage( filename )
 
     def _actionGitUnstage( self, git_project, filename ):
-        self._debug( '_actionGitUnstage( %r, %s )' )
+        self.debugLog( '_actionGitUnstage( %r, %s )' )
         git_project.cmdUnstage( 'HEAD', filename )
 
     def _actionGitRevert( self, git_project, filename ):
@@ -596,14 +596,14 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     @thread_switcher
     def _tableActionChangeRepo_Bg( self, execute_function, are_you_sure_function=None ):
-        self._debug( '_tableActionChangeRepo_Bg start' )
+        self.debugLog( '_tableActionChangeRepo_Bg start' )
 
         yield from self.table_view.tableActionViewRepo_Bg( execute_function, are_you_sure_function, self._tableActionChangeRepo_finalise_Bg )
-        self._debug( '_tableActionChangeRepo_Bg done' )
+        self.debugLog( '_tableActionChangeRepo_Bg done' )
 
     @thread_switcher
     def _tableActionChangeRepo_finalise_Bg( self, git_project ):
-        self._debug( '_tableActionChangeRepo_finalise_Bg' )
+        self.debugLog( '_tableActionChangeRepo_finalise_Bg' )
         git_project.saveChanges()
 
         # take account of the change
