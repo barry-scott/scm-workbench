@@ -11,18 +11,14 @@
 
 '''
 from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 import wb_main_window
 import wb_tracked_qwidget
-import wb_common_dialogs
 
 import wb_scm_table_view
 
 import wb_ui_components
-
-from wb_background_thread import thread_switcher
 
 #
 #   add tool bars and menu for use in the commit window
@@ -114,7 +110,6 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.h_filter_widget = QtWidgets.QWidget()
         self.h_filter_widget.setLayout( self.h_filter_layout )
 
-        row = 0
         self.h_filter_layout.addWidget( QtWidgets.QLabel( T_('Filter:') ), 0 )
         self.h_filter_layout.addWidget( self.filter_text, 1 )
 

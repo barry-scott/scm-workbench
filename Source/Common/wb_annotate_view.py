@@ -60,7 +60,6 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
         #----------------------------------------
         self.commit_message = QtWidgets.QPlainTextEdit()
         self.commit_message.setFont( self.app.getCodeFont() )
-        h = self.commit_message.fontMetrics().lineSpacing()
         self.commit_message.setReadOnly( True )
 
         #----------------------------------------

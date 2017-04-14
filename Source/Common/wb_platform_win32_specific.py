@@ -18,6 +18,10 @@ import pathlib
 import ctypes
 import ctypes.wintypes
 
+__all__ = ('setupPlatformSpecific', 'getAppDir', 'getPreferencesDir'
+          ,'getLocalePath', 'getDocUserGuide', 'getNullDevice'
+          ,'getHomeFolder', 'getDefaultExecutableFolder', 'isInvalidFilename')
+
 CSIDL_APPDATA = 0x1a        # Application Data
 CSIDL_WINDOWS = 0x24        # windows folder
 CSIDL_PROGRAM_FILES = 0x26  # program files folder

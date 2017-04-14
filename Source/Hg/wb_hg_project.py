@@ -394,16 +394,16 @@ class HgProject:
 
     def __addCommitChangeInformation( self, all_commit_logs ):
         # now calculate what was added, deleted and modified in each commit
-        for offset in range( len(all_commit_logs) ):
-            new_tree = all_commit_logs[ offset ].commitTree()
-            old_tree = all_commit_logs[ offset ].commitPreviousTree()
+        for commit_log in all_commit_logs:
+            new_tree = commit_log.commitTree()
+            old_tree = commit_log.commitPreviousTree()
 
             all_new = {}
             self.__treeToDict( new_tree, all_new )
             new_set = set(all_new)
 
             if old_tree is None:
-                all_commit_logs[ offset ]._addChanges( new_set, set(), [], set() )
+                commit_log._addChanges( new_set, set(), [], set() )
 
             else:
                 all_old = {}
@@ -436,7 +436,7 @@ class HgProject:
                     and all_new[ key ] != all_old[ key ] ):
                         all_modified.add( key )
 
-                all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_renamed, all_modified )
+                commit_log._addChanges( all_added, all_deleted, all_renamed, all_modified )
 
     def __treeToDict( self, tree, all_entries ):
         for blob in tree:
@@ -692,12 +692,6 @@ class WbHgFileState:
 
     def getTextLinesHead( self ) -> List[str]:
         return self.getTextLinesForRevision( 'tip' )
-        text = self.__project.cmdCat( self.__filepath )
-        all_lines = text.split('\n')
-        if all_lines[-1] == '':
-            return all_lines[:-1]
-        else:
-            return all_lines
 
     def getTextLinesForRevision( self, rev ) -> List[str]:
         if type( rev ) == int:

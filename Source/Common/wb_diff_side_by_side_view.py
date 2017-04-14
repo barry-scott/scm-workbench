@@ -16,7 +16,6 @@ from PyQt5 import QtCore
 
 import wb_scintilla
 
-import wb_diff_images
 import wb_diff_difflib
 import wb_diff_processor
 

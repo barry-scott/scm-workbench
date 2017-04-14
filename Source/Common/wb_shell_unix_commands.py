@@ -10,8 +10,6 @@
     wb_shell_unix_commands.py
 
 '''
-from PyQt5 import QtCore
-
 import os
 import signal
 import subprocess
@@ -19,6 +17,12 @@ import types
 import shlex
 import tempfile
 import pathlib
+
+from PyQt5 import QtCore
+
+__all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
+          ,'GuiDiffFiles', 'ShellDiffFiles', 'EditFile'
+          ,'ShellOpen', 'CommandShell', 'FileBrowser')
 
 __sigchld_handler_installed = False
 
@@ -39,7 +43,7 @@ def __sigchld_handler( signum, frame ):
             if pid == 0:
                 break
 
-    except OSError as e:
+    except OSError:
         pass
 
 def getTerminalProgramList():
@@ -225,7 +229,7 @@ def __run_command_with_output( app, cmd, args ):
                     )
 
         output = proc.stdout.read()
-        rc = proc.wait()
+        wwproc.wait()
 
     except EnvironmentError as e:
         return 'error running %s %s: %s' % (cmd, ' '.join( args ), str(e))

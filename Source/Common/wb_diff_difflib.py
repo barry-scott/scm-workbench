@@ -16,10 +16,10 @@ import wb_read_file
 
 # define what "junk" means
 
-def IS_LINE_JUNK(line, pat=None):
+def isLineJunk(line, pat=None):
     return False
 
-def IS_CHARACTER_JUNK(ch, ws=" \t"):
+def isCharacterJunk(ch, ws=" \t"):
     return False
 
 class Difference:
@@ -53,7 +53,7 @@ class Difference:
         # don't synch up unless the lines have a similarity score of at
         # least cutoff; best_ratio tracks the best score seen so far
         best_ratio, cutoff = 0.51, 0.52
-        cruncher = difflib.SequenceMatcher(IS_CHARACTER_JUNK)
+        cruncher = difflib.SequenceMatcher(isCharacterJunk)
         eqi, eqj = None, None   # 1st indices of equal lines (if any)
 
         # search for the pair that matches best without being identical
@@ -105,7 +105,6 @@ class Difference:
 
             cruncher.set_seqs( aelt, belt )
             for tag, ai1, ai2, bj1, bj2 in cruncher.get_opcodes():
-                la, lb = ai2 - ai1, bj2 - bj1
                 if tag == 'replace':
                     self.text_body.addChangedLineReplace( aelt[ai1:ai2], belt[bj1:bj2] )
                 elif tag == 'delete':
@@ -163,7 +162,7 @@ class Difference:
         lines_left = [eolRemoval( line ) for line in lines_left]
         lines_right = [eolRemoval( line ) for line in lines_right]
 
-        matcher = difflib.SequenceMatcher( IS_LINE_JUNK, lines_left, lines_right )
+        matcher = difflib.SequenceMatcher( isLineJunk, lines_left, lines_right )
         for tag, left_lo, left_hi, right_lo, right_hi in matcher.get_opcodes():
             if tag == 'replace':
                 self.fancy_replace( lines_left, left_lo, left_hi, lines_right, right_lo, right_hi )

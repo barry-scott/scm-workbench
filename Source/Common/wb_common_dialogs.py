@@ -72,7 +72,6 @@ class WbNewFolderDialog(wb_dialog_bases.WbDialog):
 
     def nameTextChanged( self, text ):
         folder_name = self.getFolderName()
-        name_set = set( folder_name )
         enable = True
         if folder_name == '':
             enable = False

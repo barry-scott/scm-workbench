@@ -18,6 +18,10 @@ import shutil
 
 import wb_platform_win32_specific
 
+__all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
+          ,'GuiDiffFiles', 'ShellDiffFiles', 'EditFile'
+          ,'ShellOpen', 'CommandShell', 'FileBrowser')
+
 def U_( s: str ) -> str:
     return s
 
@@ -107,7 +111,7 @@ def ShellOpen( app, working_dir, all_filenames ):
             else:
                 app.log.error( T_('Unable to shell open %(filename)s - %(error)s') %
                                 {'filename': filename
-                                ,'error': __getShellExecuteErrorMessage()} )
+                                ,'error': __getShellExecuteErrorMessage( rc )} )
 
 def CommandShell( app, working_dir ):
     app.log.infoheader( 'Shell in %s' % (working_dir,) )
@@ -115,7 +119,7 @@ def CommandShell( app, working_dir ):
 
     abs_terminal_program = shutil.which( '%s.exe' % (p.terminal_program,) )
     if abs_terminal_program is None:
-        self.app.log.error( 'Cannot find %s.exe' % (p.terminal_program,) )
+        app.log.error( 'Cannot find %s.exe' % (p.terminal_program,) )
 
     if p.terminal_program == 'cmd':
         # calc a title that is leaf to root so that the leaf shows up in a task bar first
@@ -182,7 +186,7 @@ def CommandShell( app, working_dir ):
         rcfile = working_dir / 'wb-shell.bash.tmp'
 
         cmd_lines = [
-            'echo -e "\e]0;%s\007"\n' % (' '.join( title ),),
+            'echo -e "\\e]0;%s\\007"\n' % (' '.join( title ),),
             'unset PYTHONPATH\n',
             'if [ -e "$HOME/.bashrc" ]\n',
             'then\n',
@@ -329,16 +333,16 @@ def ensureDirectory( app, working_dir ):
     if not working_dir.exists():
         try:
             working_dir.mkdir( parents=True )
-            app.log.info( T_('Created directory %s') % (current_dir,) )
+            app.log.info( T_('Created directory %s') % (working_dir,) )
 
         except IOError as e:
             app.log.error( T_('Create directory %(dir)s - %(error)s') %
-                            {'dir': current_dir
+                            {'dir': working_dir
                             ,'error': e} )
             return 0
 
     elif not working_dir.is_dir():
-        app.log.error( T_('%s is not a directory') % (current_dir,) )
+        app.log.error( T_('%s is not a directory') % (working_dir,) )
         return 0
 
     return 1

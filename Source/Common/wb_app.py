@@ -16,7 +16,6 @@ import sys
 import os
 import inspect
 import gettext
-import queue
 import xml_preferences
 
 from PyQt5 import QtWidgets
@@ -169,7 +168,7 @@ class WbApp(wb_logging.AppLoggingMixin,
         for path in sys.path:
             self.log.info( 'sys.path: %r' % (path,) )
 
-        for var in sorted( os.environ.keys() ):
+        for var in sorted( os.environ ):
             self.log.info( 'Environment %s=%s' % (var, os.environ[ var ]) )
 
         self.log.info( 'app_dir %s' % (wb_platform_specific.getAppDir(),) )

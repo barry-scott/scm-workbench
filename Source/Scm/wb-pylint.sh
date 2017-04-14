@@ -24,5 +24,10 @@ do
     fi
 done
 
-python3-pylint --rcfile pylintrc wb_*.py ../Common/*.py ../Git/*.py ../Svn/*.py ../Hg/*.py | tee pylint.log
+make -f linux.mak
+pushd ../Common
+make -f linux.mak
+popd
+
+python3-pylint --rcfile pylintrc wb_*.py ../Common/wb*.py ../Git/wb*.py ../Svn/wb*.py ../Hg/wb*.py | tee pylint.log
 echo "Info: log file pylint.log ($( wc -l <pylint.log ))"

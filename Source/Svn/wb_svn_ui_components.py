@@ -10,21 +10,12 @@
     wb_svn_ui_components.py.py
 
 '''
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-
 import wb_ui_components
 
 import wb_svn_project
-import wb_svn_commit_dialog
-import wb_svn_info_dialog
 import wb_svn_credential_dialogs
-import wb_svn_annotate
 
 import pysvn
-
-from wb_background_thread import thread_switcher
 
 #
 #   Add tool bars and menu for use in the Main Window

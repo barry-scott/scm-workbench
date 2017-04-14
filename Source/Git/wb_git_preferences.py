@@ -17,7 +17,7 @@ import git
 
 from PyQt5 import QtWidgets
 
-from xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode
+from xml_preferences import SchemeNode, PreferencesNode
 
 import wb_pick_path_dialogs
 import wb_dialog_bases

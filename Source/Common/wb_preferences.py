@@ -14,9 +14,8 @@
 from typing import Sequence, Union, Any, Iterable
 
 import pathlib
-import sys
 
-from xml_preferences import XmlPreferences, Scheme, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError
+from xml_preferences import XmlPreferences, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError
 
 import wb_config
 
@@ -75,8 +74,8 @@ class Preferences(PreferencesNode):
         self.main_window = None                 # type: MainWindow
         self.diff_window = None                 # type: MainWindow
         self.last_position_bookmark = None      # type: Bookmark
-        self.all_bookmarks = None               # type: Dict[str, Bookmark]
-        self.all_projects = None                # type: Dict[str, Project]
+        self.all_bookmarks = {}                 # type: Dict[str, Bookmark]
+        self.all_projects = {}                  # type: Dict[str, Project]
 
     def getProject( self, name:str ) -> 'Project':
         return self.all_projects[ name ]

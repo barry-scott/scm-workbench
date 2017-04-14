@@ -42,8 +42,7 @@ class WbTrackedModeless:
 
 class WbTrackedModelessQWidget(QtWidgets.QWidget, WbTrackedModeless):
     def __init__( self ):
-        # Warning: Qwidget.__init__ will call WbTrackedModeless.__init__
-        QtWidgets.QWidget.__init__( self, None )
+        super().__init__( None )
 
     def closeEvent( self, event ):
         WbTrackedModeless.closeEvent( self, event )

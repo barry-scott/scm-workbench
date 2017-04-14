@@ -18,6 +18,10 @@ import shlex
 import tempfile
 import pathlib
 
+__all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
+          ,'GuiDiffFiles', 'ShellDiffFiles', 'EditFile'
+          ,'ShellOpen', 'CommandShell', 'FileBrowser')
+
 __sigchld_handler_installed = False
 
 def setupCommands():
@@ -34,7 +38,7 @@ def __sigchld_handler( signum, frame ):
             if pid == 0:
                 break
 
-    except OSError as e:
+    except OSError:
         pass
 
 def getTerminalProgramList():
@@ -205,7 +209,7 @@ def __run_command_with_output( app, cmd, args ):
                     )
 
         output = proc.stdout.read()
-        rc = proc.wait()
+        proc.wait()
         return output
 
     except EnvironmentError as e:

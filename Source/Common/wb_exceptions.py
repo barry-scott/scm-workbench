@@ -41,7 +41,6 @@ class TryWrapper:
         self.function = function
 
     def __call__( self, *params, **keywords ):
-        #pylint: broad-except
         try:
             result = self.function( *params, **keywords )
             return result

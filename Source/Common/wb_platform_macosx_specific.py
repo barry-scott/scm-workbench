@@ -15,6 +15,10 @@
 import os
 import pathlib
 
+__all__ = ('setupPlatformSpecific', 'getAppDir', 'getPreferencesDir'
+          ,'getLocalePath', 'getDocUserGuide', 'getNullDevice'
+          ,'getHomeFolder', 'getDefaultExecutableFolder', 'isInvalidFilename')
+
 __all_name_parts = None
 app_dir = None
 

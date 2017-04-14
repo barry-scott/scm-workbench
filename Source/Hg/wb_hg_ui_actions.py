@@ -13,10 +13,6 @@
 import sys
 import pathlib
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-
 import wb_log_history_options_dialog
 import wb_ui_actions
 import wb_common_dialogs
@@ -132,7 +128,6 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         # enable if any files modified
         hg_project = self.selectedHgProject()
 
-        can_commit = False
         if hg_project is None:
             return False
 

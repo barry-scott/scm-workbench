@@ -10,15 +10,12 @@
     wb_hg_ui_components.py.py
 
 '''
-import wb_log_history_options_dialog
+import shutil
+
+import hglib
 
 import wb_ui_components
 import wb_hg_project
-
-import hglib
-import shutil
-
-from wb_background_thread import thread_switcher
 
 
 class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
@@ -61,8 +58,8 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
     # runs on the background thread
     def addProjectInitWizardHandler_Bg( self, wc_path ):
+        hg_project = wb_hg_project.HgProject( self.app, None, self )
         try:
-            hg_project = wb_hg_project.HgProject( self.app, None, self )
             hg_project.cmdInit( wc_path,
                 self.deferRunInForeground( self.ui_actions.hgOutputHandler ),
                 self.deferRunInForeground( self.ui_actions.hgErrorHandler ),
@@ -71,7 +68,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return True
 
         except hglib.error.ServerError as e:
-            self.app.log.error( T_('Failed to init Hg repo %r') % (project.path,) )
+            self.app.log.error( T_('Failed to init Hg repo %r') % (hg_project.path,) )
             self.app.log.error( T_('hg error: %s') % (e,) )
             return False
 
@@ -99,7 +96,7 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return True
 
         except hglib.error.ServerError as e:
-            self.app.log.error( T_('Failed to clone Hg repo from %(url)s into %(path)s') % 
+            self.app.log.error( T_('Failed to clone Hg repo from %(url)s into %(path)s') %
                                 {'url': url
                                 ,'path': wc_path} )
             self.app.log.error( 'hg error: %s' % (e,) )
@@ -208,4 +205,3 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         m.addSection( T_('Diff') )
         addMenu( m, T_('Diff HEAD vs. Working'), act.treeActionHgDiffHeadVsWorking, act.enablerHgDiffHeadVsWorking, 'toolbar_images/diff.png' )
-

@@ -11,7 +11,6 @@
 
 '''
 import sys
-import wb_platform_specific
 
 if sys.platform == 'win32':
     from wb_git_callback_server_win32 import *

@@ -19,11 +19,6 @@ import pathlib
 # On OS X the packager missing this import
 import sip  #pylint: disable=unused-import
 
-import wb_platform_specific
-import wb_shell_commands
-import wb_background_thread
-
-ellipsis = '…'
 
 from PyQt5 import Qt
 from PyQt5 import QtWidgets
@@ -38,10 +33,14 @@ import wb_scm_tree_model
 import wb_scm_project_dialogs
 import wb_scm_progress
 
-import wb_shell_commands
 import wb_main_window
 import wb_preferences
 import wb_tracked_qwidget
+import wb_platform_specific
+import wb_shell_commands
+import wb_background_thread
+
+ellipsis = '…'
 
 from wb_background_thread import thread_switcher
 

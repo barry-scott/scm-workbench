@@ -27,6 +27,7 @@ all_supported_schemes = ('ssh', 'git', 'https', 'http')
 
 class WbGitFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def __init__( self ):
+        super().__init__()
         self.__git_debug = False
 
     def scmName( self ):
