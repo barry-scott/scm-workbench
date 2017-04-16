@@ -134,10 +134,8 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
             return None
 
     def scmSpecificHasChanged( self ):
-        rc = ((self.prefs_project.tags_url is not None) != self.check_tag_url.isChecked()
+        return ((self.prefs_project.tags_url is not None) != self.check_tag_url.isChecked()
                or self.prefs_project.tags_url != self.getTagsUrl())
-        print( 'QQQ rc %r' % (rc,) )
-        return rc
 
 class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
     all_supported_schemes = ('https', 'http')
