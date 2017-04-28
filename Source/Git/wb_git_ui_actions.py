@@ -337,7 +337,12 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                                 {'project_name': git_project.projectName()
                                 ,'branch': git_project.getTrackingBranchName()} )
 
-        commit_id = git_project.getHeadCommit().hexsha
+        commit_id = git_project.getTrackingBranchCommit()
+        if commit_id is None:
+            commit_id = git_project.getHeadCommit().hexsha
+
+        else:
+            commit_id = commit_id.hexsha
 
         yield self.switchToBackground
 
