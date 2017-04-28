@@ -344,6 +344,8 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         else:
             commit_id = commit_id.hexsha
 
+        num_unpushed = len( git_project.getUnpushedCommits() )
+
         yield self.switchToBackground
 
         try:
@@ -351,7 +353,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 self.deferRunInForeground( self.pullProgressHandler ),
                 self.deferRunInForeground( self.pullInfoHandler ) )
 
-            for commit in git_project.cmdCommitLogAfterCommitId( commit_id ):
+            for commit in git_project.cmdCommitLogAfterCommitId( commit_id )[num_unpushed:]:
                 self.log.info( 'pulled "%s" id %s' % (commit.commitMessageHeadline(), commit.commitIdString()) )
 
         except wb_git_project.GitCommandError as e:
