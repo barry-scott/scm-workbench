@@ -15,7 +15,7 @@ from typing import Sequence, Union, Any, Iterable
 
 import pathlib
 
-from xml_preferences import XmlPreferences, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError
+from xml_preferences import XmlPreferences, SchemeNode, PreferencesNode, PreferencesMapNode, ParseError, Scheme
 
 import wb_config
 
