@@ -139,7 +139,7 @@ class GitProject:
         return self.prefs_project.name != other.prefs_project.name
 
     def __repr__( self ):
-        return '<GitProject: %s>' % (self.prefs_project.name,)
+        return '<GitProject: %s (id:%d>' % (self.prefs_project.name, id(self))
 
     def pathForGit( self, path ):
         assert isinstance( path, pathlib.Path )

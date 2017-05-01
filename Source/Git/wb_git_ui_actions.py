@@ -65,7 +65,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         focus = self.main_window.focusIsIn()
 
         if focus == 'tree':
-            return True
+            return False
 
         elif focus == 'table':
             all_file_states = self.tableSelectedAllFileStates()
@@ -82,7 +82,18 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return False
 
     def enablerGitStashSave( self ):
-        return self.enablerGitCommit()
+        # enable if any files staged
+        git_project = self.selectedGitProject()
+        if git_project is None:
+            return False
+
+        # allow the commit dialog to appear
+        # if there are staged files or modified files
+        # which can be staged using the commit dialog
+        if git_project.numModifiedFiles() == 0:
+            return False
+
+        return True
 
     def enablerGitStashPop( self ):
         # enable if any files staged
@@ -330,7 +341,11 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # ------------------------------------------------------------
     @thread_switcher
     def treeActionGitPull_Bg( self, checked=None ):
-        git_project = self.selectedGitProject().newInstance()
+        git_project = self.selectedGitProject()
+        need_to_stash = git_project.numModifiedFiles() > 0
+
+        git_project = git_project.newInstance()
+
         self.setStatusAction( T_('Pull %s') % (git_project.projectName(),) )
 
         self.app.log.infoheader( T_('Pull %(project_name)s %(branch)s') %
@@ -349,12 +364,21 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield self.switchToBackground
 
         try:
+            if need_to_stash:
+                stash_message = T_('Stashing changes before pull')
+                self.app.log.info( stash_message )
+                git_project.cmdStashSave( stash_message )
+
             git_project.cmdPull(
                 self.deferRunInForeground( self.pullProgressHandler ),
                 self.deferRunInForeground( self.pullInfoHandler ) )
 
             for commit in git_project.cmdCommitLogAfterCommitId( commit_id )[num_unpushed:]:
                 self.log.info( 'pulled "%s" id %s' % (commit.commitMessageHeadline(), commit.commitIdString()) )
+
+            if need_to_stash:
+                self.app.log.info( 'git stash pop' )
+                git_project.cmdStashPop( 'stash@{0}' )
 
         except wb_git_project.GitCommandError as e:
             self.__logGitCommandError( e )
@@ -716,6 +740,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         commit_dialog = self.app.popSingleton( self.commit_key )
 
         git_project = commit_dialog.getGitProject()
+
         message = commit_dialog.getMessage()
         #QQQ:all_commit_files = commit_dialog.getAllCommitIncludedFiles()
         #QQQ: cmdCommit does not support all_commit_files yet
