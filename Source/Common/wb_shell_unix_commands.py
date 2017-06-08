@@ -229,7 +229,7 @@ def __run_command_with_output( app, cmd, args ):
                     )
 
         output = proc.stdout.read()
-        wwproc.wait()
+        proc.wait()
 
     except EnvironmentError as e:
         return 'error running %s %s: %s' % (cmd, ' '.join( args ), str(e))
