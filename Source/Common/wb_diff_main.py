@@ -24,6 +24,8 @@ import wb_debug
 import wb_preferences
 import wb_diff_images
 
+import xml_preferences
+
 def noTranslation( msg ):
     return msg
 
@@ -73,8 +75,9 @@ class WbDiff_App(wb_app.WbApp):
 
         return wb_diff_side_by_side_view.DiffSideBySideView( self, None, 'wb-diff', self.file1, self.file1, self.file2, self.file2 )
 
+
 preferences_scheme = (
-    wb_preferences.Scheme(
+    xml_preferences.Scheme(
         wb_preferences.scheme_nodes
     )
 )
