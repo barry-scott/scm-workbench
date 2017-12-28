@@ -309,11 +309,16 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             all_old_names = [entry.name for entry in self.all_files]
             all_new_names = [entry.name for entry in all_new_files]
 
-            for offset in range( len(self.all_files) ):
-                self.debugLog( 'old %2d %s' % (offset, all_old_names[ offset ]) )
+            all_debug_lines = []
+            for offset, name in enumerate( self.all_files ):
+                all_debug_lines.append( 'old %2d %s' % (offset, name) )
 
-            for offset in range( len(all_new_files) ):
-                self.debugLog( 'new %2d %s' % (offset, all_new_names[ offset ]) )
+            for offset, name in enumerate( all_new_files ):
+                all_debug_lines.append( 'new %2d %s' % (offset, name) )
+
+            if self.debugLog:
+                for line in all_debug_lines:
+                    self.debugLog( line )
 
             offset = 0
             while offset < len(all_new_files) and offset < len(self.all_files):
@@ -339,7 +344,14 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     # delete the old
                     self.beginRemoveRows( parent, offset, offset )
                     del self.all_files[ offset ]
-                    del all_old_names[ offset ]
+                    if offset < len(all_old_names):
+                        del all_old_names[ offset ]
+
+                    else:
+                        self.app.log.error( 'WbScmTableModel.refreshTable deleteRows offset %d too big' % (offset,) )
+                        for line in all_debug_lines:
+                            self.app.log.error( line )
+
                     self.endRemoveRows()
 
             if offset < len(self.all_files):
