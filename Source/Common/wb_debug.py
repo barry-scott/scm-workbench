@@ -30,6 +30,9 @@ class WbDebugOption:
     def isEnabled( self ):
         return self.__enabled
 
+    def __bool__( self ):
+        return self.__enabled
+
     def __call__( self, msg ):
         if self.__enabled:
             self._log.debug( self.__fmt % (msg,) )
