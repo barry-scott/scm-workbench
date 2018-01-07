@@ -105,6 +105,18 @@ class GitProject:
         self.__num_staged_files = 0
         self.__num_modified_files = 0
 
+    def getMasterBranchName( self ):
+        if self.prefs_project.master_branch_name is None:
+            return 'master'
+        else:
+            return self.prefs_project.master_branch_name
+
+    def setMasterBranchName( self, master_branch_name ):
+        if master_branch_name == 'master':
+            self.prefs_project.master_branch_name = None
+        else:
+            self.prefs_project.master_branch_name = master_branch_name
+
     def cloneFrom( self, url, progress_handler ):
         assert self.__repo is None
 

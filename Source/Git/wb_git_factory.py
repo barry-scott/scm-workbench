@@ -100,6 +100,7 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def scmSpecificAddRows( self ):
         remote_origin = self.scm_project.getRemote( 'origin' )
         remote_upstream = self.scm_project.getRemote( 'upstream' )
+        master_branch_name = self.scm_project.getMasterBranchName()
 
         v = wb_dialog_bases.WbValidateUrl( all_supported_schemes,
                     T_('Fill in the origin URL') )
@@ -115,8 +116,16 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
         self.setup_upstream.stateChanged.connect( self.url_upstream.setEnabled )
         self.url_upstream.setEnabled( remote_upstream is not None )
 
+        self.master_branch_check = self.scmSpecificCheckBox( T_('alternate master branch name'), master_branch_name != 'master' )
+        self.master_branch_name = self.scmSpecificLineEdit( master_branch_name )
+        self.master_branch_check.stateChanged.connect( self.master_branch_name.setEnabled )
+        self.master_branch_name.setEnabled( master_branch_name != 'master' )
+
         self.addNamedDivider( 'git remote origin' )
         self.addRow( 'origin URL', self.url_origin )
+        self.addRow( 'master branch', self.master_branch_check )
+        self.addRow( 'branch name', self.master_branch_name )
+
         self.addNamedDivider( 'git remote upstream' )
         self.addRow( 'remote upstream', self.setup_upstream )
         self.addRow( 'upstream URL', self.url_upstream )
@@ -164,7 +173,9 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
              or self.config_global_user_email.hasChanged()
              or self.url_origin.hasChanged()
              or self.setup_upstream.hasChanged()
-             or self.url_upstream.hasChanged())
+             or self.url_upstream.hasChanged()
+             or self.master_branch_check.hasChanged()
+             or self.master_branch_name.hasChanged())
 
     def scmSpecificUpdateProject( self ):
         if( self.config_local_user_name.hasChanged()
@@ -214,6 +225,12 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
                     config.set_value( 'user', 'email', value )
 
             config.release()
+
+        if self.master_branch_check.hasChanged() or self.master_branch_name.hasChanged():
+            if self.master_branch_check.isChecked():
+                self.scm_project.setMasterBranchName( self.master_branch_name.value() )
+            else:
+                self.scm_project.setMasterBranchName( 'master' )
 
         if self.setup_upstream.hasChanged():
             if self.setup_upstream.isChecked():

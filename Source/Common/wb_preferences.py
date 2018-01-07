@@ -182,9 +182,9 @@ class BookmarkCollection(PreferencesMapNode):
         super().__init__()
 
 class Project(PreferencesNode):
-    xml_attribute_info = ('scm_type', ('path', pathlib.Path), 'tags_url')
+    xml_attribute_info = ('scm_type', ('path', pathlib.Path), 'tags_url', 'master_branch_name')
 
-    def __init__( self, name:str, scm_type:str=None, path:pathlib.Path=None, tags_url:str=None ) -> None:
+    def __init__( self, name:str, scm_type:str=None, path:pathlib.Path=None, tags_url:str=None, master_branch_name:str=None ) -> None:
         super().__init__()
 
         assert path is None or isinstance( path, pathlib.Path ), 'path is %r' % (path,)
@@ -194,6 +194,7 @@ class Project(PreferencesNode):
         self.scm_type = scm_type
         self.path = path
         self.tags_url = tags_url
+        self.master_branch_name = master_branch_name
 
     def __lt__( self, other:'Project' ) -> bool:
         return self.name.lower() < other.name.lower()
