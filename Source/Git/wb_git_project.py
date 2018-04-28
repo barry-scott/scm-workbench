@@ -233,11 +233,8 @@ class GitProject:
         git.Remote.remove( self.repo(), name )
 
     def cmdUpdateRemote( self, name, url ):
-        print( 'QQQ GitProject.cmdUpdateRemote( %r, %r )' % (name, url))
         remote = self.getRemote( name )
-        print( 'QQQ remote %r remote.url %r' % (remote, remote.url))
         remote.set_url( url, remote.url )
-        print( 'QQQ remote.url %r' % (remote.url,) )
 
     def numStagedFiles( self ):
         return self.__num_staged_files
