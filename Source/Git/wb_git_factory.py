@@ -204,6 +204,9 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
 
             config.release()
 
+        if self.url_origin.hasChanged():
+            # update remote origin
+            self.scm_project.cmdUpdateRemote( 'origin', self.url_origin.value() )
 
         if( self.config_global_user_name.hasChanged()
         or  self.config_global_user_email.hasChanged() ):
@@ -248,7 +251,8 @@ class GitProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
         elif( self.setup_upstream.isChecked()
         and self.url_upstream.hasChanged() ):
             # update remote upstream
-            self.scm_project.cmdUpdateRemote( self.url_upstream.value(), self.url_upstream.initialValue() )
+            self.scm_project.cmdUpdateRemote( 'upstream', self.url_upstream.value() )
+
 
 
 class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
