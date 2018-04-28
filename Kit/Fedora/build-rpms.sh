@@ -59,7 +59,7 @@ ${PYTHON} -u ${BUILDER_TOP_DIR}/Source/Scm/make_wb_scm_version.py \
 # xml-preferences is not packaged by Fedora yet - put in Common
 mkdir ${KIT_BASENAME}/Source/Common/xml_preferences
 cp \
-    /usr/lib/python3.5/site-packages/xml_preferences/__init__.py \
+    /usr/lib/python${PYTHON_VERSION}/site-packages/xml_preferences/__init__.py \
      ${KIT_BASENAME}/Source/Common/xml_preferences
 
 # make the source kit

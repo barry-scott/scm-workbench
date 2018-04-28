@@ -59,7 +59,7 @@ this kit.
         print( 'Info: Create setup_copy.cmd' )
         kitname = 'SCM-Workbench-%d.%d.%d-setup.exe' % (wb_scm_version.major, wb_scm_version.minor, wb_scm_version.patch)
         f = open( r'setup.tmp\setup_copy.cmd', 'w' )
-        f.write( r'copy setup.tmp\Output\setup.exe %s' '\n' % (kitname,) )
+        f.write( r'copy setup.tmp\Output\mysetup.exe %s' '\n' % (kitname,) )
         f.write( r'dir /s /b %s' '\n' % (kitname,) )
         f.write( 'if "%%1" == "--install" %s\n' % (kitname,) )
         f.close()

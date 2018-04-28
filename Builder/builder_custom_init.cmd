@@ -6,8 +6,8 @@ rem builder_custom_init
 set VC_VER=14.0
 set BUILDER_CFG_PLATFORM=Win64
 set BUILDER_CFG_BUILD_TYPE=Release
-set PYTHON_VERSION=3.5
-set PYTHON_FILE_VERSION=35
+set PYTHON_VERSION=3.6
+set PYTHON_FILE_VERSION=36
 
 rem if Win64 then setup path to include the 64bit CL.exe
 rem when called in place this can fork bomb (lots of CMD.exe in task manager)
