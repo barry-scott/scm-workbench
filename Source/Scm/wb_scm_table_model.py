@@ -33,10 +33,10 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
     # ------------------------------------------------------------
     def setFilterText( self, text ):
         self.filter_text = text
-        # invalidateFilter is documented to update the view with the
+        # invalidateFilter is documented to update the view when the
         # filter conditions are changed but it does not work
         # when filter puts more items into the result
-        self.invalidate()
+        self.invalidateFilter()
 
     # ------------------------------------------------------------
     def filterAcceptsRow( self, source_row, source_parent ):
@@ -322,7 +322,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
             offset = 0
             while offset < len(all_new_files) and offset < len(self.all_files):
-                self.debugLog( 'WbScmTableModel.refreshTable() while offset %d %s old %s' %
+                self.debugLog( 'WbScmTableModel.refreshTable() while offset %d %r old %r' %
                         (offset, all_new_files[ offset ].name, self.all_files[ offset ].name) )
                 if all_new_files[ offset ].name == self.all_files[ offset ].name:
                     if all_new_files[ offset ].isNotEqual( self.all_files[ offset ] ):
