@@ -68,6 +68,13 @@ class WbScmTableView(wb_table_view.WbTableView):
         self.customContextMenuRequested.connect( self.tableContextMenu )
         self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
 
+        # after Qt 5.9.2 the column widths get reset before being shown
+        self.setTableAllColumnWidths()
+
+    def completeInit( self ):
+        self.setTableAllColumnWidths()
+
+    def setTableAllColumnWidths( self ):
         # size columns
         em = self.fontMetrics().width( 'm' )
         self.setColumnWidth( self.table_model.col_include, em*4 )

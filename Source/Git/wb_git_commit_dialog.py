@@ -189,6 +189,10 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.updateTableView()
 
+        # Qt has a habit of resetting the column widths
+        # completeInit will set to the designed width
+        self.table_view.completeInit()
+
         # set splitter position
         table_size_ratio = 0.7
         height = sum( self.v_split.sizes() )

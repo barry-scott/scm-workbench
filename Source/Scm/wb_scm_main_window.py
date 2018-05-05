@@ -187,6 +187,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             # force the UI into shape - like setup of columns in table view
             self.all_ui_components[ self.__ui_active_scm_type ].showUiComponents()
 
+        # Qt has a habit of resetting the column widths
+        # completeInit will set to the designed width
+        self.table_view.completeInit()
+
         # fully initialised and ready to use
         self.__init_state = self.INIT_STATE_COMPLETE
 
