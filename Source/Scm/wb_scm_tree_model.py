@@ -56,13 +56,6 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         self.debugLog( 'WbScmTreeModel.__init__ self.selected_node = None' )
         self.selected_node = None
 
-    def loadNextProject( self, index ):
-        all_projects = sorted( self.app.prefs.getAllProjects() )
-        if index < len(all_projects):
-            self.addProject( all_projects[ index ] )
-
-        return (index+1) < len(all_projects)
-
     def addProject( self, project ):
         scm_project = self.app.top_window.createProject( project )
         if scm_project is None:
