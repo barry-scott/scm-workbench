@@ -9,8 +9,9 @@ def copyFile( src, dst_dir ):
     shutil.copy( str( src ), str( dst ) )
 
 version = sys.argv[1]
-built_kits_dir = pathlib.Path( sys.argv[2] )
-testing = '--test' in sys.argv[3:]
+fedora_version = sys.argv[2]
+built_kits_dir = pathlib.Path( sys.argv[3] )
+testing = '--test' in sys.argv[4:]
 
 # source paths
 builder_top_dir = pathlib.Path( os.environ['BUILDER_TOP_DIR'] )
@@ -40,17 +41,23 @@ if rc != 0:
     print( 'build docs failed' )
     sys.exit( 1 )
 
-for kit_fmt in ('SCM-Workbench-%s-setup.exe',
-                'SCM-Workbench-%s.dmg',
-                'scm-workbench-%s-1.fc25.noarch.rpm',
-                'scm-workbench-%s-1.fc25.src.rpm'):
-    copyFile( built_kits_dir / (kit_fmt % (version,)), output_kits_dir )
+kit_values = {
+    'VERSION': version,
+    'FEDORA_VERSION': fedora_version,
+    }
+
+
+for kit_fmt in ('SCM-Workbench-%(VERSION)s-setup.exe',
+                'SCM-Workbench-%(VERSION)s.dmg',
+                'scm-workbench-%(VERSION)s-1.fc%(FEDORA_VERSION)s.noarch.rpm',
+                'scm-workbench-%(VERSION)s-1.fc%(FEDORA_VERSION)s.src.rpm'):
+    copyFile( built_kits_dir / (kit_fmt % kit_values), output_kits_dir )
 
 with open( str( output_dir / 'index.html' ), encoding='utf-8' ) as f:
     index = f.read()
 
 with open( str( output_dir / 'index.html' ), 'w', encoding='utf-8' ) as f:
-    f.write( index % {'VERSION': version} )
+    f.write( index % kit_values )
 
 if testing:
     index = output_dir / 'index.html'
