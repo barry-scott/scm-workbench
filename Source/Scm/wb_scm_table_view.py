@@ -112,20 +112,16 @@ class WbScmTableView(wb_table_view.WbTableView):
         self.main_window.tableContextMenu( global_pos )
 
     def setShowControlledAndChangedFiles( self, state ):
-        self.table_sortfilter.show_controlled_and_changed = state
-        self.table_sortfilter.invalidate()
+        self.table_sortfilter.setShowControlledAndChangedFiles( state )
 
     def setShowControlledAndNotChangedFiles( self, state ):
-        self.table_sortfilter.show_controlled_and_not_changed = state
-        self.table_sortfilter.invalidate()
+        self.table_sortfilter.setShowControlledAndNotChangedFiles( state )
 
     def setShowUncontrolledFiles( self, state ):
-        self.table_sortfilter.show_uncontrolled = state
-        self.table_sortfilter.invalidate()
+        self.table_sortfilter.setShowUncontrolledFiles( state )
 
     def setShowIgnoredFiles( self, state ):
-        self.table_sortfilter.show_ignored = state
-        self.table_sortfilter.invalidate()
+        self.table_sortfilter.setShowIgnoredFiles( state )
 
     # ------------------------------------------------------------
     def checkerShowControlledAndChangedFiles( self ):

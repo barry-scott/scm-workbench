@@ -31,11 +31,31 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         self.show_ignored = False
 
     # ------------------------------------------------------------
+    def refreshFilter( self ):
+        # call when there is a reason to recalculate the filter
+        self.invalidateFilter()
+
     def setFilterText( self, text ):
         self.filter_text = text
         # invalidateFilter is documented to update the view when the
         # filter conditions are changed but it does not work
         # when filter puts more items into the result
+        self.invalidateFilter()
+
+    def setShowControlledAndChangedFiles( self, state ):
+        self.show_controlled_and_changed = state
+        self.invalidateFilter()
+
+    def setShowControlledAndNotChangedFiles( self, state ):
+        self.show_controlled_and_not_changed = state
+        self.invalidateFilter()
+
+    def setShowUncontrolledFiles( self, state ):
+        self.show_uncontrolled = state
+        self.invalidateFilter()
+
+    def setShowIgnoredFiles( self, state ):
+        self.show_ignored = state
         self.invalidateFilter()
 
     # ------------------------------------------------------------

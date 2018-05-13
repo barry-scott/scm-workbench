@@ -329,7 +329,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         yield from self.tree_model.refreshTree_Bg()
 
         # sort filter is now invalid
-        self.table_view.table_sortfilter.invalidate()
+        self.table_view.table_sortfilter.refreshFilter()
 
         # tall all the singletons to update
         for singleton in self.app.getAllSingletons():
