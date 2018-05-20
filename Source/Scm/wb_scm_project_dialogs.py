@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2018 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -60,19 +60,27 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
 
         # ------------------------------------------------------------
         self.page_id_start = 1
-        self.page_id_browse_existing = 2
-        self.page_id_scan_for_existing = 3
+        self.page_id_folder = 2
+        self.page_id_name = 3
 
-        self.page_id_folder = 4
-        self.page_id_name = 5
+        next_id = 4
 
-        next_id = 6
-
+        self.all_existing_pages = {}
         self.all_clone_pages = {}
         self.all_init_pages = {}
 
+        # first the special "existing" pages
+        for page in (PageAddProjectScanForExisting( self )
+                    ,PageAddProjectBrowseExisting( self )):
+            self.all_existing_pages[ next_id ] = page
+            next_id += 1
+
         for scm_name in sorted( self.all_factories ):
             f = self.all_factories[ scm_name ]
+            for page in f.projectDialogExistingPages( self ):
+                self.all_existing_pages[ next_id ] = page
+                next_id += 1
+
             for page in f.projectDialogClonePages( self ):
                 self.all_clone_pages[ next_id ] = page
                 next_id += 1
@@ -84,19 +92,16 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         # needs all_clone_pages and all_init_pages
         self.page_start = PageAddProjectStart( self )
 
-        self.page_browse_existing = PageAddProjectBrowseExisting( self )
-        self.page_scan_for_existing = PageAddProjectScanForExisting( self )
-
         self.page_folder = PageAddProjectFolder( self )
         self.page_name = PageAddProjectName( self )
 
         self.setPage( self.page_id_start, self.page_start )
 
-        self.setPage( self.page_id_scan_for_existing, self.page_scan_for_existing )
-        self.setPage( self.page_id_browse_existing, self.page_browse_existing )
-
         self.setPage( self.page_id_folder, self.page_folder )
         self.setPage( self.page_id_name, self.page_name )
+
+        for id_, page in sorted( self.all_existing_pages.items() ):
+            self.setPage( id_, page )
 
         for id_, page in sorted( self.all_clone_pages.items() ):
             self.setPage( id_, page )
@@ -193,32 +198,35 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
         self.setTitle( T_('Add Project') )
         self.setSubTitle( T_('Where is the Project?') )
 
-        self.radio_browse_existing = QtWidgets.QRadioButton( T_('Browse for an existing project') )
-        self.radio_scan_for_existing = QtWidgets.QRadioButton( T_('Scan for existing projects') )
-
-        self.radio_scan_for_existing.setChecked( True )
-        self.radio_browse_existing.setChecked( False )
-
         self.grp_show = QtWidgets.QButtonGroup()
-        self.grp_show.addButton( self.radio_scan_for_existing )
-        self.grp_show.addButton( self.radio_browse_existing )
+
+        checked = True
+        self.all_existing_radio = []
+        for id_, page in sorted( wizard_state.all_existing_pages.items() ):
+            radio = QtWidgets.QRadioButton( page.radioButtonLabel() )
+            radio.setChecked( checked )
+            checked = False
+            self.all_existing_radio.append( (id_, radio) )
+            self.grp_show.addButton( radio )
 
         self.all_clone_radio = []
         for id_, page in sorted( wizard_state.all_clone_pages.items() ):
             radio = QtWidgets.QRadioButton( page.radioButtonLabel() )
+            radio.setChecked( False )
             self.all_clone_radio.append( (id_, radio) )
             self.grp_show.addButton( radio )
 
         self.all_init_radio = []
         for id_, page in sorted( wizard_state.all_init_pages.items() ):
             radio = QtWidgets.QRadioButton( page.radioButtonLabel() )
+            radio.setChecked( False )
             self.all_init_radio.append( (id_, radio) )
             self.grp_show.addButton( radio )
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget( QtWidgets.QLabel( '<b>%s</b>' % (T_('Add an existing local project'),) ) )
-        layout.addWidget( self.radio_scan_for_existing )
-        layout.addWidget( self.radio_browse_existing )
+        for id_, radio in self.all_existing_radio:
+            layout.addWidget( radio )
 
         layout.addWidget( QtWidgets.QLabel( '<b>%s</b>' % (T_('Add an external project'),) ) )
         for id_, radio in self.all_clone_radio:
@@ -233,13 +241,7 @@ class PageAddProjectStart(QtWidgets.QWizardPage):
     def nextId( self ):
         w = self.wizard_state
 
-        if self.radio_browse_existing.isChecked():
-            return w.page_id_browse_existing
-
-        if self.radio_scan_for_existing.isChecked():
-            return w.page_id_scan_for_existing
-
-        for id_, radio in self.all_clone_radio + self.all_init_radio:
+        for id_, radio in self.all_existing_radio + self.all_clone_radio + self.all_init_radio:
             if radio.isChecked():
                 return id_
 
@@ -275,6 +277,30 @@ class WbWizardPage(QtWidgets.QWizardPage):
         widget = wb_dialog_bases.WbCheckBox( title, initial_value )
         widget.stateChanged.connect( self._fieldsChanged )
         return widget
+
+class PageAddProjectScmExistingBase(WbWizardPage):
+    def __init__( self, wizard_state ):
+        super().__init__( wizard_state )
+
+
+    def nextId( self ):
+        return self.wizard_state.page_id_name
+
+    def validatePage( self ):
+        w = self.wizard_state
+        w.setScmType( self.getScmType() )
+        w.setAction( w.action_add_existing )
+
+        self.validatePageScmSpecific()
+
+        return True
+
+    def validatePageScmSpecific( self ):
+        # override must call self.wizard_state.setScmUrl( url )
+        raise NotImplementedError()
+
+    def getScmType( self ):
+        raise NotImplementedError()
 
 class PageAddProjectScmCloneBase(WbWizardPage):
     def __init__( self, wizard_state ):
@@ -372,7 +398,7 @@ class WbValidateExistingProjectFolder(wb_dialog_bases.WbValidateLineEditValue):
 
         return True
 
-class PageAddProjectBrowseExisting(WbWizardPage):
+class PageAddProjectBrowseExisting(PageAddProjectScmExistingBase):
     def __init__( self, wizard_state ):
         super().__init__( wizard_state )
 
@@ -387,6 +413,9 @@ class PageAddProjectBrowseExisting(WbWizardPage):
 
         self.grid_layout.addRow( T_('Project folder'), self.project_folder, self.browse_button )
         self.grid_layout.addFeedbackWidget()
+
+    def radioButtonLabel( self ):
+        return T_('Browse for an existing project')
 
     def nextId( self ):
         return self.wizard_state.page_id_name
@@ -411,15 +440,13 @@ class PageAddProjectBrowseExisting(WbWizardPage):
         if w.pickProjectFolder( self ):
             self.project_folder.setText( str( w.getProjectFolder() ) )
 
-class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
+class PageAddProjectScanForExisting(PageAddProjectScmExistingBase):
     foundRepository = QtCore.pyqtSignal( [str, str] )
     scannedOneMoreFolder = QtCore.pyqtSignal()
     scanComplete = QtCore.pyqtSignal()
 
     def __init__( self, wizard_state ):
-        super().__init__()
-
-        self.wizard_state = wizard_state
+        super().__init__( wizard_state )
 
         self.setTitle( T_('Add Project') )
         self.setSubTitle( T_('Pick from the available projects') )
@@ -432,11 +459,8 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         self.wc_list.setSortingEnabled( True )
         self.wc_list.itemSelectionChanged.connect( self.__selectionChanged )
 
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget( self.scan_progress )
-        layout.addWidget( self.wc_list )
-
-        self.setLayout( layout )
+        self.grid_layout.addRow( None, self.scan_progress )
+        self.grid_layout.addRow( None, self.wc_list )
 
         self.thread = None
 
@@ -445,6 +469,9 @@ class PageAddProjectScanForExisting(QtWidgets.QWizardPage):
         self.scanComplete.connect( self.__scanCompleted, type=QtCore.Qt.QueuedConnection )
 
         self.__all_labels_to_scm_info = {}
+
+    def radioButtonLabel( self ):
+        return T_('Scan for existing projects')
 
     def nextId( self ):
         return self.wizard_state.page_id_name
@@ -645,6 +672,7 @@ class PageAddProjectName(WbWizardPage):
         self.setTitle( T_('Add %s Project') % (factory.scmPresentationShortName(),) )
 
         project_folder = w.getProjectFolder()
+        print( 'qqq PageAddProjectName.initializePage() project_folder %r' % (project_folder,) )
 
         self.name.setText( project_folder.name )
 

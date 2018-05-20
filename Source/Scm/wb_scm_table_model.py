@@ -210,7 +210,23 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
     def entry( self, index ):
         return self.all_files[ index.row() ]
 
+    role_to_name = {
+        QtCore.Qt.UserRole: 'UserRole',
+        QtCore.Qt.DisplayRole: 'DisplayRole',
+        QtCore.Qt.ForegroundRole: 'ForegroundRole',
+        }
     def data( self, index, role ):
+        result = self.data_( index, role )
+        if role in self.role_to_name:
+            if isinstance( result, QtGui.QBrush ):
+                colour = result.color()
+                result_p = 'Colour(%d, %d, %d)' % (colour.red(), colour.green(), colour.blue())
+            else:
+                result_p = result
+            self.debugLog( 'WbScmTableModel.data( %r, %r ) -> %r' % (self.all_files[ index.row() ], self.role_to_name[ role ], result_p) )
+        return result
+
+    def data_( self, index, role ):
         if role == QtCore.Qt.UserRole:
             return self.all_files[ index.row() ]
 
@@ -261,6 +277,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             if working != '':
                 return self.__brush_is_changed
 
+            self.debugLog( 'WbScmTableModel.data_() isControlled %r entry %r' % (entry.isControlled(), entry) )
             if not entry.isControlled():
                 return self.__brush_is_uncontrolled
 

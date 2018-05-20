@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2017 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2018 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -35,5 +35,12 @@ def allScmFactories():
 
     except ImportError as e:
         all_messages.append( 'Subversion (svn) is not available - %s' % (e,) )
+
+    try:
+        import wb_p4_factory
+        all_factories.append( wb_p4_factory.WbP4Factory() )
+
+    except ImportError as e:
+        all_messages.append( 'Perforce (P4) is not available - %s' % (e,) )
 
     return all_factories, all_messages

@@ -65,7 +65,6 @@ class GitLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Squash commits together'), self.view.tableActionGitRebaseSquash, self.view.enablerTableGitRebaseSquash )
         addMenu( m, T_('Drop commit'), self.view.tableActionGitRebaseDrop, self.view.enablerTableGitRebaseDrop )
 
-
     def setupChangedFilesContextMenu( self, m, addMenu ):
         self.changed_files_context_menu = m
 

@@ -52,6 +52,9 @@ class WbHgFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def projectSettingsDialog( self, app, main_window, prefs_project, scm_project ):
         return HgProjectSettingsDialog( app, main_window, prefs_project, scm_project )
 
+    def projectDialogExistingPages( self, wizard ):
+        return []
+
     def projectDialogClonePages( self, wizard ):
         return [PageAddProjectHgClone( wizard )]
 
