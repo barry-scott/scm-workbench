@@ -129,7 +129,7 @@ class HgProject:
     def numModifiedFiles( self ):
         return self.__num_modified_files
 
-    def updateState( self ):
+    def updateState( self, tree_leaf ):
         # rebuild the tree
         self.tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = HgProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -779,6 +779,9 @@ class HgProjectTreeNode:
 
     def __repr__( self ):
         return '<HgProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
+
+    def updateTreeNode( self ):
+        pass
 
     def isByPath( self ):
         return self.is_by_path

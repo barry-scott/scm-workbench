@@ -85,6 +85,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
 
     @thread_switcher
     def refreshTree_Bg( self ):
+        self.debugLog( 'refreshTree_Bg() selected_node %r' % (self.selected_node,) )
         if self.selected_node is None:
             return
 
@@ -93,7 +94,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         yield self.app.switchToBackground
 
         # update the project data
-        scm_project.updateState()
+        scm_project.updateState( self.selected_node.scm_project_tree_node.relativePath() )
 
         yield self.app.switchToForeground
 
@@ -106,6 +107,7 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         tree_node.update( scm_project.tree )
 
         self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
+        self.debugLog( 'refreshTree_Bg() Done' )
 
     def getFirstProjectIndex( self ):
         if self.invisibleRootItem().rowCount() == 0:
@@ -212,7 +214,14 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
             self.app.top_window.setStatusAction()
 
         else:
+            self.selected_node.scm_project_tree_node.updateTreeNode()
             self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
+
+            # add new nodes
+            scm_project, tree_node = self.all_scm_projects[ selected_node.scm_project_tree_node.project.tree.name ]
+
+            # reset the table model
+            tree_node.update( scm_project.tree )
 
     def selectedScmProjectTreeNode( self ):
         if self.selected_node is None:

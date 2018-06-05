@@ -95,7 +95,10 @@ class P4Project:
     def numModifiedFiles( self ):
         return self.__num_modified_files
 
-    def updateState( self ):
+    def updateState( self, tree_leaf ):
+        self.debugLog( '-'*80 )
+        self.debugLog( 'updateState( %r ) repo=%s' % (tree_leaf, self.projectPath()) )
+
         # rebuild the tree
         self.tree = P4ProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
         self.flat_tree = P4ProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -108,59 +111,97 @@ class P4Project:
             self.all_file_state = {}
 
         else:
-            self.__calculateStatus()
+            self.__calculateStatus( tree_leaf )
 
-        for path in self.all_file_state:
-            self.__updateTree( path )
+        for path, file_state in self.all_file_state.items():
+            self.__updateTree( path, file_state )
 
         self.dumpTree()
+        self.debugLog( '-'*80 )
 
-    def __calculateStatus( self ):
+    def updateTreeNodeState( self, tree_node ):
+        # incrementally update the file state
+        self.debugLogTree( 'updateTreeNodeState( %r )' % (tree_node,) )
+
+        self.__calculateFolderStatus( tree_node.absolutePath() )
+
+        for path, file_state in self.all_file_state.items():
+            self.__updateTree( path, file_state )
+
+    def __calculateStatus( self, tree_leaf ):
+        self.debugLogTree( '__calculateStatus( %s ) ' % (tree_leaf,) )
         self.all_file_state = {}
 
         repo_root = self.projectPath()
 
         all_folders = set( [repo_root] )
+        abs_path = repo_root / tree_leaf
+
+        while abs_path != repo_root:
+            all_folders.add( abs_path )
+            abs_path = abs_path.parent
+
+        self.debugLogTree( '__calculateStatus() all_folders %r' % (all_folders,) )
+
         while len(all_folders) > 0:
             folder = all_folders.pop()
+            self.debugLogTree( '__calculateStatus() folder %s' % (folder,) )
 
-            for filename in folder.iterdir():
-                abs_path = folder / filename
+            self.__calculateFolderStatus( folder )
 
-                repo_relative = abs_path.relative_to( repo_root )
+    def __calculateFolderStatus( self, folder ):
+        self.debugLogTree( '__calculateFolderStatus( %s )' % (folder,) )
+        repo_root = self.projectPath()
 
-                if abs_path.is_dir():
-                    all_folders.add( abs_path )
+        for filename in folder.iterdir():
+            abs_path = folder / filename
+            self.debugLogTree( '__calculateFolderStatus() abs_path %s' % (abs_path,) )
 
-                    self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
-                    self.all_file_state[ repo_relative ].setIsDir()
-
-                else:
-                    self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
-
-        for fstat in self.repo().run_fstat('-Rc', '-Rh', '%s/...' % (self.pathForP4( repo_root ),) ):
-            abs_path = self.pathForWb( fstat['clientFile'] )
             repo_relative = abs_path.relative_to( repo_root )
 
-            if repo_relative not in self.all_file_state:
-                # filepath has been deleted
+            if abs_path.is_dir():
                 self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
+                self.all_file_state[ repo_relative ].setIsDir()
 
-            self.all_file_state[ repo_relative ].setFStat( fstat )
+                # get the p4 status for this one folder
+                try:
+                    for fstat in self.repo().run_fstat('-Rc', '-Rh', '%s/*' % (self.pathForP4( abs_path ),) ):
+                        abs_path = self.pathForWb( fstat['clientFile'] )
+                        repo_relative = abs_path.relative_to( repo_root )
 
-    def __updateTree( self, path ):
-        self.debugLogTree( '__updateTree path %r' % (path,) )
+                        if repo_relative not in self.all_file_state:
+                            # filepath has been deleted
+                            self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
+
+                        self.all_file_state[ repo_relative ].setFStat( fstat )
+
+                except P4.P4Exception as e:
+                    self.debugLogTree( '__calculateFolderStatus() fstat error %r' % (e,) )
+
+            else:
+                if repo_relative not in self.all_file_state:
+                    self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
+
+    def __updateTree( self, path, file_state ):
+        self.debugLogTree( '__updateTree( %r, %r )' % (path, file_state) )
         node = self.tree
 
         self.debugLogTree( '__updateTree path.parts %r' % (path.parts,) )
 
         for index, name in enumerate( path.parts[0:-1] ):
-            self.debugLogTree( '__updateTree name %r at node %r' % (name,node) )
+            self.debugLogTree( '__updateTree name %r at node %r' % (name, node) )
 
             if not node.hasFolder( name ):
+                self.debugLogTree( '__updateTree addFolder 1 %r to node %r' % (name, node) )
                 node.addFolder( name, P4ProjectTreeNode( self, name, pathlib.Path( *path.parts[0:index+1] ) ) )
 
             node = node.getFolder( name )
+
+        if file_state.isDir():
+            name = file_state.relativePath().name
+            if not node.hasFolder( name ):
+                self.debugLogTree( '__updateTree addFolder 2 %r to node %r' % (name, node) )
+                node.addFolder( name, P4ProjectTreeNode( self, name, file_state.relativePath() ) )
 
         self.debugLogTree( '__updateTree addFile %r to node %r' % (path, node) )
         node.addFileByName( path )
@@ -494,6 +535,9 @@ class WbP4FileState:
     def absolutePath( self ) -> pathlib.Path:
         return self.__project.projectPath() / self.__filepath
 
+    def relativePath( self ):
+        return self.__filepath
+
     # ------------------------------------------------------------
     def isControlled( self ) -> bool:
         return 'depotFile' in self.__fstat
@@ -627,6 +671,9 @@ class P4ProjectTreeNode:
 
     def __repr__( self ):
         return '<P4ProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
+
+    def updateTreeNode( self ):
+        self.project.updateTreeNodeState( self )
 
     def isByPath( self ):
         return self.is_by_path

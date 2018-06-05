@@ -40,7 +40,7 @@ class ScmProjectPlaceholder:
     def projectPath( self ):
         return pathlib.Path( self.prefs_project.path )
 
-    def updateState( self ):
+    def updateState( self, tree_leaf ):
         pass
 
 class ScmProjectPlaceholderTreeNode:

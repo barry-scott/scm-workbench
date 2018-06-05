@@ -102,8 +102,8 @@ class SvnProject:
     def numUncommittedFiles( self ):
         return self.__num_uncommitted_files
 
-    def updateState( self ):
-        self.debugLog( 'updateState() is_stale %r' % (self.__stale_status,) )
+    def updateState( self, tree_leaf ):
+        self.debugLog( 'updateState( %r ) repo=%s' % (tree_leaf, self.projectPath()) )
 
         self.__stale_status = False
 
@@ -690,6 +690,9 @@ class SvnProjectTreeNode:
 
     def __repr__( self ):
         return '<SvnProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
+
+    def updateTreeNode( self ):
+        pass
 
     def isByPath( self ):
         return self.is_by_path

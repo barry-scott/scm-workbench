@@ -246,11 +246,11 @@ class GitProject:
         self.debugLog( 'saveChanges() __stale_index %r' % (self.__stale_index,) )
 
         if self.__stale_index:
-            self.updateState()
+            self.updateState( 'QQQ' )
             self.__stale_index = False
 
-    def updateState( self ):
-        self.debugLog( 'updateState() repo=%s' % (self.projectPath(),) )
+    def updateState( self, tree_leaf ):
+        self.debugLog( 'updateState( %r ) repo=%s' % (tree_leaf, self.projectPath()) )
 
         # rebuild the tree
         self.tree = GitProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
@@ -1208,6 +1208,9 @@ class GitProjectTreeNode:
 
     def __repr__( self ):
         return '<GitProjectTreeNode: project %r, path %s>' % (self.project, self.__path)
+
+    def updateTreeNode( self ):
+        pass
 
     def isByPath( self ):
         return self.is_by_path
