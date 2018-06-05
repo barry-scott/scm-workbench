@@ -672,7 +672,6 @@ class PageAddProjectName(WbWizardPage):
         self.setTitle( T_('Add %s Project') % (factory.scmPresentationShortName(),) )
 
         project_folder = w.getProjectFolder()
-        print( 'qqq PageAddProjectName.initializePage() project_folder %r' % (project_folder,) )
 
         self.name.setText( project_folder.name )
 
