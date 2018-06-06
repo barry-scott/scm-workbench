@@ -114,13 +114,14 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m.addSeparator()
         addMenu( m, T_('Status'), act.treeActionP4Status_Bg )
         m.addSeparator()
-        addMenu( m, T_('Commit History…'), act.treeTableActionP4LogHistory_Bg, act.enablerP4LogHistory, 'toolbar_images/history.png' )
+        addMenu( m, T_('Change History…'), act.treeTableActionP4LogHistory_Bg, act.enablerP4LogHistory, 'toolbar_images/history.png' )
 
 
         # ----------------------------------------
         m = mb.addMenu( T_('&P4 Actions') )
         self.all_menus.append( m )
 
+        addMenu( m, T_('P4 Edit'), act.tableActionP4Edit_Bg, act.enablerP4FilesEdit, 'toolbar_images/add.png' )
         addMenu( m, T_('Add'), act.tableActionP4Add_Bg, act.enablerP4FilesAdd, 'toolbar_images/add.png' )
 
         m.addSeparator()
@@ -153,7 +154,7 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.all_toolbars.append( t )
 
         addTool( t, T_('Diff'), act.treeTableActionP4DiffSmart, act.enablerP4DiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), act.treeTableActionP4LogHistory_Bg, act.enablerP4LogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Change History'), act.treeTableActionP4LogHistory_Bg, act.enablerP4LogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('p4 state') )
@@ -172,14 +173,19 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         act = self.ui_actions
 
-        m.addSection( T_('Diff') )
+        m.addSection( T_('Status') )
         addMenu( m, T_('Diff #head vs. Working'), act.tableActionP4DiffHeadVsWorking, act.enablerP4DiffHeadVsWorking, 'toolbar_images/diff.png' )
         m.addSeparator()
         addMenu( m, T_('Annotate'), act.tableActionP4Annotate_Bg, act.enablerTableP4Annotate )
 
-        m.addSection( T_('P4 Actions') )
-        addMenu( m, T_('Revert'), act.tableActionP4Revert_Bg, act.enablerP4FilesRevert, 'toolbar_images/revert.png' )
+        m.addSection( T_('Status') )
+        addMenu( m, T_('Change History…'), act.treeTableActionP4LogHistory_Bg, act.enablerP4LogHistory, 'toolbar_images/history.png' )
+
+        m.addSection( T_('Actions') )
+        addMenu( m, T_('P4 Edit'), act.tableActionP4Edit_Bg, act.enablerP4FilesEdit, 'toolbar_images/add.png' )
+        addMenu( m, T_('Add'), act.tableActionP4Add_Bg, act.enablerP4FilesAdd, 'toolbar_images/add.png' )
         m.addSeparator()
+        addMenu( m, T_('Revert…'), act.tableActionP4Revert_Bg, act.enablerP4FilesRevert, 'toolbar_images/revert.png' )
         addMenu( m, T_('Delete…'), act.tableActionP4Delete_Bg, act.main_window.table_view.enablerTableFilesExists )
 
     def setupTreeContextMenu( self, m, addMenu ):

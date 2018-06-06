@@ -23,31 +23,25 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.setWindowTitle( title )
         self.setWindowIcon( self.app.getAppQIcon() )
 
-        self.label_outgoing = QtWidgets.QLabel( T_('Outgoing commits') )
-        self.outgoing = QtWidgets.QPlainTextEdit( '' )
-        self.outgoing.setReadOnly( True )
+        self.label_opened_files = QtWidgets.QLabel( T_('Opened files') )
+        self.opened_files = QtWidgets.QPlainTextEdit( '' )
+        self.opened_files.setReadOnly( True )
 
-        self.label_incoming = QtWidgets.QLabel( T_('Incoming commits') )
-        self.incoming = QtWidgets.QPlainTextEdit( '' )
-        self.incoming.setReadOnly( True )
+        self.label_changes_pending = QtWidgets.QLabel( T_('Pending Changes ') )
+        self.changes_pending = QtWidgets.QPlainTextEdit( '' )
+        self.changes_pending.setReadOnly( True )
 
-        self.label_modified = QtWidgets.QLabel( T_('Modified Files') )
-        self.modified = QtWidgets.QPlainTextEdit( '' )
-        self.modified.setReadOnly( True )
-
-        self.label_untracked = QtWidgets.QLabel( T_('Untracked Files') )
-        self.untracked = QtWidgets.QPlainTextEdit( '' )
-        self.untracked.setReadOnly( True )
+        self.label_changes_shelved = QtWidgets.QLabel( T_('Shelved changes ') )
+        self.changes_shelved = QtWidgets.QPlainTextEdit( '' )
+        self.changes_shelved.setReadOnly( True )
 
         self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget( self.label_outgoing )
-        self.layout.addWidget( self.outgoing )
-        self.layout.addWidget( self.label_incoming )
-        self.layout.addWidget( self.incoming )
-        self.layout.addWidget( self.label_modified )
-        self.layout.addWidget( self.modified )
-        self.layout.addWidget( self.label_untracked )
-        self.layout.addWidget( self.untracked )
+        self.layout.addWidget( self.label_opened_files )
+        self.layout.addWidget( self.opened_files )
+        self.layout.addWidget( self.label_changes_pending )
+        self.layout.addWidget( self.changes_pending )
+        self.layout.addWidget( self.label_changes_shelved )
+        self.layout.addWidget( self.changes_shelved )
 
         self.setLayout( self.layout )
 
@@ -55,17 +49,7 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         ex = self.app.fontMetrics().lineSpacing()
         self.resize( 100*em, 50*ex )
 
-    def setStatus( self, all_outgoing_commits, all_incoming_commits, all_modified_files, all_untracked_files ):
-        # new to old
-        all_incoming_commits.reverse()
-        all_outgoing_commits.reverse()
-
-        outgoing_text = '\n'.join( ['"%s": r%d' % (log.messageFirstLine(), log.rev) for log in all_outgoing_commits] )
-        incoming_text = '\n'.join( ['"%s": r%d' % (log.messageFirstLine(), log.rev) for log in all_incoming_commits] )
-        modified_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_modified_files )] )
-        untracked_text = '\n'.join( ['%s: %s' % (status, filename) for status, filename in sorted( all_untracked_files )] )
-
-        self.outgoing.setPlainText( outgoing_text )
-        self.incoming.setPlainText( incoming_text )
-        self.modified.setPlainText( modified_text )
-        self.untracked.setPlainText( untracked_text )
+    def setStatus( self, all_opened_files, all_changes_pending, all_changes_shelved ):
+        self.opened_files.setPlainText( '\n'.join( ['%(change)s: %(action)s %(clientFile)s' % fstat for fstat in all_opened_files] ) )
+        self.changes_pending.setPlainText( '\n'.join( [repr(x) for x in all_changes_pending] ) )
+        self.changes_shelved.setPlainText( '\n'.join( [repr(x) for x in all_changes_shelved] ) )

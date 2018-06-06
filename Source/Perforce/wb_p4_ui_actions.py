@@ -47,6 +47,9 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     #   Enabler handlers
     #
     #------------------------------------------------------------
+    def enablerP4FilesEdit( self ):
+        return self.__enablerP4Files( wb_p4_project.WbP4FileState.canEdit )
+
     def enablerP4FilesAdd( self ):
         return self.__enablerP4Files( wb_p4_project.WbP4FileState.canAdd )
 
@@ -336,16 +339,9 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         yield self.app.switchToBackground
 
-        all_outgoing_commits = p4_project.cmdOutgoingCommits(
-                                    None,   # self.deferRunInForeground( self.p4OutputHandler ),
-                                    self.deferRunInForeground( self.p4ErrorHandler ),
-                                    self.p4CredentialsPrompt,
-                                    self.p4AuthFailed )
-        all_incoming_commits = p4_project.cmdIncomingCommits(
-                                    None,   # self.deferRunInForeground( self.p4OutputHandler ),
-                                    self.deferRunInForeground( self.p4ErrorHandler ),
-                                    self.p4CredentialsPrompt,
-                                    self.p4AuthFailed )
+        all_opened_files = p4_project.cmdOpenedFiles()
+        all_changes_pending = p4_project.cmdChangesPending()
+        all_changes_shelved = p4_project.cmdChangesShelved()
 
         yield self.app.switchToForeground
 
@@ -354,13 +350,19 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
                 T_('Status for %s') % (p4_project.projectName(),) )
 
         commit_status_view.setStatus(
-                    all_outgoing_commits,
-                    all_incoming_commits,
-                    p4_project.getReportModifiedFiles(),
-                    p4_project.getReportUntrackedFiles() )
+                    all_opened_files,
+                    all_changes_pending,
+                    all_changes_shelved )
         commit_status_view.show()
 
     # ------------------------------------------------------------
+    @thread_switcher
+    def tableActionP4Edit_Bg( self, checked=None ):
+        # p4 edit filename ...
+        yield from self.__tableActionChangeRepo_Bg( self.__actionP4Edit )
+
+        self.table_view.tableActionEdit()
+
     @thread_switcher
     def tableActionP4Add_Bg( self, checked=None ):
         yield from self.__tableActionChangeRepo_Bg( self.__actionP4Add )
@@ -380,6 +382,9 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     def tableActionP4DiffHeadVsWorking( self ):
         self.debugLog( 'tableActionP4DiffHeadVsWorking()' )
         self.table_view.tableActionViewRepo( self.__actionP4DiffHeadVsWorking )
+
+    def __actionP4Edit( self, p4_project, filename ):
+        p4_project.cmdEdit( filename )
 
     def __actionP4Add( self, p4_project, filename ):
         p4_project.cmdAdd( filename )

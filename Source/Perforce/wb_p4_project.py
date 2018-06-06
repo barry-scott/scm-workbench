@@ -13,6 +13,7 @@
 from typing import List
 import pathlib
 import sys
+import os
 import pytz
 import datetime
 
@@ -72,6 +73,10 @@ class P4Project:
 
     def getAllBranchNames( self ):
         return [self.getBranchName()]
+
+    def getClientName( self ):
+        all_clients = self.repo().run_client( '-o' )
+        return all_clients[0]['Client']
 
     # return a new P4Project that can be used in another thread
     def newInstance( self ):
@@ -171,7 +176,11 @@ class P4Project:
 
         # get the p4 file status for all the files in this folder
         try:
-            for fstat in self.repo().run_fstat('-Rc', '-Rh', '%s/*' % (self.pathForP4( folder ),) ):
+            for fstat in self.repo().run_fstat('-Rc', '%s/*' % (self.pathForP4( folder ),) ):
+                # not interested in delete files
+                if fstat.get( 'headAction', '' ) == 'delete':
+                    continue
+
                 abs_path = self.pathForWb( fstat['clientFile'] )
                 repo_relative = abs_path.relative_to( repo_root )
 
@@ -288,6 +297,9 @@ class P4Project:
             p4_filepath += rev
         stats, text = self.repo().run_print( p4_filepath )
         return stats, text
+
+    def cmdEdit( self, filename ):
+        self.repo().run_edit( self.pathForP4( filename ) )
 
     def cmdAdd( self, filename ):
         self.repo().run_add( self.pathForP4( filename ) )
@@ -453,6 +465,16 @@ class P4Project:
     def canPush( self ) -> bool:
         return False
 
+    def cmdOpenedFiles( self ):
+        return self.repo().run_opened()
+
+    def cmdChangesPending( self ):
+        cmd = ['-u', os.getlogin(), '-s', 'pending', '-c', self.getClientName()]
+        return self.repo().run_changes( cmd )
+
+    def cmdChangesShelved( self ):
+        cmd = ['-u', os.getlogin(), '-s', 'shelved', '-c', self.getClientName()]
+        return self.repo().run_changes( cmd )
 
 class WbP4LogBasic:
     def __init__( self, data, repo ):
@@ -510,8 +532,8 @@ class WbP4FileState:
             self.__state = ''           # type: str
 
     def __repr__( self ) -> str:
-        return ('<WbP4FileState: %r %r>' %
-                (self.__filepath, self.__state))
+        return ('<WbP4FileState: P: %r S: %r P4: %r>' %
+                (self.__filepath, self.__state, len(self.__fstat)))
 
     def setIsDir( self ) -> None:
         self.__is_dir = True
@@ -570,6 +592,9 @@ class WbP4FileState:
     # ------------------------------------------------------------
     def canCommit( self ) -> bool:
         return  self.isAdded() or self.isOpened() or self.isDeleted()
+
+    def canEdit( self ) -> bool:
+        return self.isControlled() and not self.isOpened()
 
     def canAdd( self ) -> bool:
         return not self.isControlled()
@@ -722,7 +747,7 @@ class P4ProjectTreeNode:
         self.project.debugLogTree( 'dump: %*s%r' % (indent, '', self) )
 
         for file in sorted( self.__all_files ):
-            self.project.debugLogTree( 'dump %*s   file: %r' % (indent, '', file) )
+            self.project.debugLogTree( 'dump %*s   file: %r status: %r' % (indent, '', file, self.getStatusEntry( file )) )
 
         for folder in sorted( self.__all_folders ):
             self.__all_folders[ folder ]._dumpTree( indent+4 )

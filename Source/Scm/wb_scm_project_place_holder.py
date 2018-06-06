@@ -76,3 +76,6 @@ class ScmProjectPlaceholderTreeNode:
 
     def isByPath( self ):
         return False
+
+    def updateTreeNode( self ):
+        return
