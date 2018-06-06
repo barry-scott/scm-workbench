@@ -340,10 +340,11 @@ class P4Project:
         # annotate returns a list that starts with the file info.
         # which we skip. 
         line_num = -1
-        for line_info in self.repo().run_annotate( self.pathForP4( filename ) + rev ):
+        for line_info in self.repo().run_annotate( '-c', self.pathForP4( filename ) + rev ):
             line_num += 1
             if line_num == 0:
                 continue
+
             all_annotate_nodes.append(
                 wb_annotate_node.AnnotateNode( line_num, line_info['data'], line_info['lower'] ) )
 
