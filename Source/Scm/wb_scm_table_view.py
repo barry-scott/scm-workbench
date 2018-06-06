@@ -206,7 +206,7 @@ class WbScmTableView(wb_table_view.WbTableView):
                     yield from execute_function( scm_project, filename )
 
                 else:
-                    self.debugLog( 'tableActionViewRepo_Bg exec call %r' % (execute_function,) )
+                    self.debugLog( 'tableActionViewRepo_Bg exec call %r( %r, %r )' % (execute_function, scm_project, filename) )
                     execute_function( scm_project, filename )
 
             if finalise_function is not None:

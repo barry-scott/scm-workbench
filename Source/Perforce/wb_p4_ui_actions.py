@@ -175,6 +175,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     def tableActionP4LogHistory_Bg( self, checked=None ):
         yield from self.table_view.tableActionViewRepo_Bg( self._actionP4LogHistory_Bg )
 
+    @thread_switcher
     def _actionP4LogHistory_Bg( self, p4_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
@@ -444,6 +445,10 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     # ------------------------------------------------------------
     @thread_switcher
     def treeActionP4LogHistory_Bg( self, checked=None ):
+        folder_path = self.table_view.selectedAbsoluteFolder()
+        if folder_path is None:
+            return
+
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
 
         if not options.exec_():
@@ -455,7 +460,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
                 self.app,
                 T_('Commit Log for %s') % (p4_project.projectName(),) )
 
-        yield from commit_log_view.showChangeLogForRepository_Bg( p4_project, options )
+        yield from commit_log_view.showChangeLogForFolder_Bg( p4_project, folder_path, options )
 
     def enablerTableP4Annotate( self ):
         if not self.main_window.isScmTypeActive( 'p4' ):

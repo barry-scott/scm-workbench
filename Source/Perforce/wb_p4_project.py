@@ -153,6 +153,7 @@ class P4Project:
         self.debugLogTree( '__calculateFolderStatus( %s )' % (folder,) )
         repo_root = self.projectPath()
 
+        # files all the files in the folder
         for filename in folder.iterdir():
             abs_path = folder / filename
             self.debugLogTree( '__calculateFolderStatus() abs_path %s' % (abs_path,) )
@@ -163,24 +164,25 @@ class P4Project:
                 self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
                 self.all_file_state[ repo_relative ].setIsDir()
 
-                # get the p4 status for this one folder
-                try:
-                    for fstat in self.repo().run_fstat('-Rc', '-Rh', '%s/*' % (self.pathForP4( abs_path ),) ):
-                        abs_path = self.pathForWb( fstat['clientFile'] )
-                        repo_relative = abs_path.relative_to( repo_root )
-
-                        if repo_relative not in self.all_file_state:
-                            # filepath has been deleted
-                            self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
-
-                        self.all_file_state[ repo_relative ].setFStat( fstat )
-
-                except P4.P4Exception as e:
-                    self.debugLogTree( '__calculateFolderStatus() fstat error %r' % (e,) )
 
             else:
                 if repo_relative not in self.all_file_state:
                     self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
+
+        # get the p4 file status for all the files in this folder
+        try:
+            for fstat in self.repo().run_fstat('-Rc', '-Rh', '%s/*' % (self.pathForP4( folder ),) ):
+                abs_path = self.pathForWb( fstat['clientFile'] )
+                repo_relative = abs_path.relative_to( repo_root )
+
+                if repo_relative not in self.all_file_state:
+                    # filepath has been deleted
+                    self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
+
+                self.all_file_state[ repo_relative ].setFStat( fstat )
+
+        except P4.P4Exception as e:
+            self.debugLogTree( '__calculateFolderStatus() fstat error %r' % (e,) )
 
     def __updateTree( self, path, file_state ):
         self.debugLogTree( '__updateTree( %r, %r )' % (path, file_state) )
@@ -350,47 +352,52 @@ class P4Project:
     def cmdChangeLogForAnnotateFile( self, filename, all_revs ):
         all_change_logs = {}
 
-        for rev in all_revs:
-            # expecting a list of 1 dict as the result
-            data = self.repo().run_describe( rev )
-            assert len(data) == 1, 'run_describe data %r' % (data,)
-            all_change_logs[ rev ] = WbP4LogBasic( data[0], self.repo() )
+        for desc in self.repo().run_describe( '-s', *all_revs ):
+            all_change_logs[ desc['change'] ] = WbP4LogBasic( desc, self.repo() )
 
         return all_change_logs
 
-    def cmdChangeLogForRepository( self, limit=None, since=None, until=None ):
+    def cmdChangeLogForFolder( self, folder, limit=None, since=None, until=None ):
         repo_root = self.projectPath()
 
         if since is not None and until is not None:
-            cmd = ['-m%d' % (limit,), '%s/...%s,%s' % (repo_root, self.dateRevForP4( since ), self.dateRevForP4( until ))]
+            cmd = ['%s/...%s,%s' % (folder, self.dateRevForP4( since ), self.dateRevForP4( until ))]
 
         elif limit is not None:
-            cmd = ['-m%d' % (limit,), '%s/...' % (repo_root,)]
+            cmd = ['-m', limit, '%s/...' % (folder,)]
 
         else:
-            cmd = ['%s/...' % (repo_root,)]
+            cmd = ['%s/...' % (folder,)]
 
-        all_logs = [WbP4LogFull( data, self.repo() ) for data in self.repo().run_changes( cmd )]
+        try:
+            all_logs = [WbP4LogFull( data, self.repo() )
+                            for data in self.repo().run_changes( cmd )]
+            return all_logs
 
-        return all_logs
+        except P4.P4Exception as e:
+            self.app.log.error( 'p4 changes for %s failed: %r' % (folder, e) )
+            return []
 
     def cmdChangeLogForFile( self, filename, limit=None, since=None, until=None ):
+        repo_root = self.projectPath()
+
         if since is not None and until is not None:
-            date = '%s to %s' % (since, until)
+            cmd = ['%s%s,%s' % (self.pathForP4( filename ), self.dateRevForP4( since ), self.dateRevForP4( until ))]
 
-        elif since is not None:
-            date = '>%s' % (since,)
-
-        elif until is not None:
-            date = '<%s' % (until,)
+        elif limit is not None:
+            cmd = ['-m', limit, self.pathForP4( filename )]
 
         else:
-            date = None
+            cmd = [self.pathForP4( filename )]
 
-        all_logs = [WbP4LogFull( data, self.repo() )
-                    for data in self.repo().log( files=[self.pathForP4( filename )], limit=limit, date=date )]
+        try:
+            all_logs = [WbP4LogFull( data, self.repo() )
+                            for data in self.repo().run_changes( cmd )]
+            return all_logs
 
-        return all_logs
+        except P4.P4Exception as e:
+            self.app.log.error( 'p4 changes for %s failed: %r' % (filename, e) )
+            return []
 
     def cmdTagsForRepository( self ):
         return {}

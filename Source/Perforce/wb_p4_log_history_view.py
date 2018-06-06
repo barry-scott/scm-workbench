@@ -203,13 +203,13 @@ class WbP4LogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         return scm_type == 'p4'
 
     @thread_switcher
-    def showChangeLogForRepository_Bg( self, p4_project, options ):
+    def showChangeLogForFolder_Bg( self, p4_project, folder, options ):
         self.filename = None
         self.p4_project = p4_project
 
         yield self.app.switchToBackground
 
-        self.log_model.loadChangeLogForRepository( self.ui_component.deferedLogHistoryProgress(), p4_project, options.getLimit(), options.getSince(), options.getUntil() )
+        self.log_model.loadChangeLogForFolder( self.ui_component.deferedLogHistoryProgress(), p4_project, folder, options.getLimit(), options.getSince(), options.getUntil() )
 
         yield self.app.switchToForeground
 
@@ -319,9 +319,9 @@ class WbP4LogHistoryModel(QtCore.QAbstractTableModel):
 
         self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
 
-    def loadChangeLogForRepository( self, progress_callback, p4_project, limit, since, until ):
+    def loadChangeLogForFolder( self, progress_callback, p4_project, folder, limit, since, until ):
         self.beginResetModel()
-        self.all_change_nodes = p4_project.cmdChangeLogForRepository( limit, since, until )
+        self.all_change_nodes = p4_project.cmdChangeLogForFolder( folder, limit, since, until )
         self.all_tags_by_rev = p4_project.cmdTagsForRepository()
         self.endResetModel()
 
