@@ -50,6 +50,7 @@ for LIBSRC in \
     ${BUILDER_TOP_DIR}/Source/Common \
     ${BUILDER_TOP_DIR}/Source/Git \
     ${BUILDER_TOP_DIR}/Source/Hg \
+    ${BUILDER_TOP_DIR}/Source/Perforce \
     ${BUILDER_TOP_DIR}/Source/Svn \
     ${BUILDER_TOP_DIR}/Source/Scm
 do
@@ -63,6 +64,11 @@ do
         mkdir ${BUILD_ROOT}${LIB}/${MOD}
         cp -r ${BUILDER_TOP_DIR}/Source/Common/${MOD} ${BUILD_ROOT}${LIB}
     fi
+done
+
+for MOD_FILE in P4.py P4API.cpython-??m-x86_64-linux-gnu.so
+do
+    cp ${BUILDER_TOP_DIR}/Source/Common/${MOD_FILE} ${BUILD_ROOT}${LIB}
 done
 
 rm -f ${BUILD_ROOT}${LIB}/make*.py
