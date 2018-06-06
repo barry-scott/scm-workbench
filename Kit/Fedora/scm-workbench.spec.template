@@ -1,3 +1,5 @@
+%global debug_package %{nil} 
+
 Name:           scm-workbench
 Version:        SPEC-FILE-VERSION
 Release:        1%{?dist}

@@ -96,12 +96,12 @@ sudo \
     mock \
         --root=${MOCK_VERSION_NAME} \
         --rebuild --dnf \
-        --arch=noarch \
+        --arch=x86_64 \
             "tmp/${SRPM_BASENAME}.src.rpm"
 
 sudo ls -l ${MOCK_BUILD_DIR}/RPMS
 
-sudo cp -v "${MOCK_BUILD_DIR}/RPMS/${SRPM_BASENAME}.noarch.rpm" tmp
+sudo cp -v "${MOCK_BUILD_DIR}/RPMS/${SRPM_BASENAME}.x86_64.rpm" tmp
 
 echo "Info: Results:"
 ls -l ${PWD}/tmp
@@ -110,5 +110,5 @@ if [ "$CMD" = "--install" ]
 then
     echo "Info: Installing RPM"
     sudo dnf -y remove ${KITNAME}
-    sudo dnf -y install "tmp/${SRPM_BASENAME}.noarch.rpm"
+    sudo dnf -y install "tmp/${SRPM_BASENAME}.x86_64.rpm"
 fi
