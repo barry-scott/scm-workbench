@@ -164,8 +164,6 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         m.addSection( T_('Info' ) )
         addMenu( m, T_('Information'), act.treeTableActionSvnInfo_Bg, act.enablerTreeTableSvnInfo, 'toolbar_images/info.png' )
         addMenu( m, T_('Properties'), act.treeTableActionSvnProperties_Bg, act.enablerTreeTableSvnProperties, 'toolbar_images/property.png' )
-
-        m.addSection( T_('Status') )
         addMenu( m, T_('Log History'), act.treeTableActionSvnLogHistory_Bg, act.enablerTreeTableSvnLogHistory, 'toolbar_images/history.png' )
 
         m.addSection( T_('Actions') )
