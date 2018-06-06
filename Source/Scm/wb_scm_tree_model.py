@@ -84,8 +84,8 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         self.removeRow( row, QtCore.QModelIndex() )
 
     @thread_switcher
-    def refreshTree_Bg( self ):
-        self.debugLog( 'refreshTree_Bg() selected_node %r' % (self.selected_node,) )
+    def refreshTree_Bg( self, folder=None ):
+        self.debugLog( 'refreshTree_Bg( %r ) selected_node %r' % (folder, self.selected_node) )
         if self.selected_node is None:
             return
 
@@ -94,7 +94,10 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         yield self.app.switchToBackground
 
         # update the project data
-        scm_project.updateState( self.selected_node.scm_project_tree_node.relativePath() )
+        if folder is None:
+            folder = self.selected_node.scm_project_tree_node.relativePath()
+
+        scm_project.updateState( folder )
 
         yield self.app.switchToForeground
 

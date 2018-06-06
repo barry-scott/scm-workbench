@@ -227,17 +227,24 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.tree_view.setCurrentIndex( index )
 
             # load in the project
-            self.log.info( 'Loading selected project' )
+            if bookmark is None:
+                self.log.info( 'Loading selected project' )
+
+            else:
+                self.log.info( 'Loading project - %s' % (bookmark.project_name,) )
 
             # let Qt update the UI
             yield self.app.switchToBackground
             time.sleep( 0.1 )
             yield self.app.switchToForeground
 
-            yield from self.updateTableView_Bg()
+            if bookmark is None:
+                yield from self.updateTableView_Bg()
 
-            if bookmark is not None:
-                self.log.info( 'Restoring bookmark' )
+            else:
+                self.log.info( 'Restoring bookmark - %s' % (bookmark.path,) )
+                yield from self.updateTableView_Bg( bookmark.path )
+
                 # move to bookmarked folder
                 bm_index = self.tree_model.indexFromBookmark( bookmark )
                 if bm_index is not None:
@@ -314,7 +321,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     singleton_update_table_running = False
 
     @thread_switcher
-    def updateTableView_Bg( self ):
+    def updateTableView_Bg( self, folder=None ):
         if WbScmMainWindow.singleton_update_table_running:
             return
 
@@ -326,7 +333,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.tree_view.setSortingEnabled( False )
 
         # load in the latest status
-        yield from self.tree_model.refreshTree_Bg()
+        yield from self.tree_model.refreshTree_Bg( folder )
 
         # sort filter is now invalid
         self.table_view.table_sortfilter.refreshFilter()
