@@ -178,7 +178,7 @@ class P4Project:
         try:
             for fstat in self.repo().run_fstat('-Rc', '%s/*' % (self.pathForP4( folder ),) ):
                 # not interested in delete files
-                if fstat.get( 'headAction', '' ) == 'delete':
+                if fstat.get( 'headAction', '' ) in ('delete', 'move/delete'):
                     continue
 
                 abs_path = self.pathForWb( fstat['clientFile'] )
