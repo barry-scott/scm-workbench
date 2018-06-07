@@ -165,6 +165,3 @@ class PageAddProjectSvnCheckout(wb_scm_project_dialogs.PageAddProjectScmCloneBas
         # if this works we have an svn repo
         # pysvn.ls( [<url>], depth=empty? )
         return False
-
-    def validatePageScmSpecific( self ):
-        pass

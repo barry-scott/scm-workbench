@@ -110,9 +110,6 @@ class PageAddProjectHgClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
         # hg identify <URL>
         return False
 
-    def validatePageScmSpecific( self ):
-        pass
-
 class PageAddProjectHgInit(wb_scm_project_dialogs.PageAddProjectScmInitBase):
     def __init__( self, wizard ):
         super().__init__( wizard )

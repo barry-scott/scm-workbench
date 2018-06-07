@@ -321,6 +321,8 @@ class PageAddProjectGitClone(wb_scm_project_dialogs.PageAddProjectScmCloneBase):
 
         self.wizard().setScmSpecificState( WbGitScmSpecificState( url_upstream, pull_rebase ) )
 
+        return True
+
 class WbGitScmSpecificState:
     def __init__( self, upstream_url, pull_rebase ):
         self.upstream_url = upstream_url
