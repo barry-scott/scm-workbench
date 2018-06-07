@@ -120,10 +120,13 @@ class PageAddProjectP4Existing(wb_scm_project_dialogs.PageAddProjectScmExistingB
         return 'p4'
 
     def validatePageScmSpecific( self ):
+        if self.client_root is None:
+            return False
+
         w = self.wizard_state
         w.setScmUrl( self.client_root )
         w.setProjectFolder( self.client_root )
-        return self.client_root is not None
+        return True
 
 def p4ClientRoot():
     import P4
