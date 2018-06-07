@@ -103,6 +103,8 @@ class PageAddProjectP4Existing(wb_scm_project_dialogs.PageAddProjectScmExistingB
         self.setTitle( T_('Add P4 Project') )
         self.setSubTitle( T_('Existing P4 client') )
 
+        import P4
+
         try:
             self.client_root = p4ClientRoot()
             self.grid_layout.addRow( T_('P4 Client workspace'), self.client_root )
