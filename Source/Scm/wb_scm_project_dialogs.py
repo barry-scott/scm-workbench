@@ -111,7 +111,14 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
 
     def closeEvent( self, event ):
         # tell pages with resources to cleanup
-        self.page_scan_for_existing.freeResources()
+        for page in self.all_existing_pages.values():
+            page.freeResources()
+
+        for page in self.all_clone_pages.values():
+            page.freeResources()
+
+        for page in self.all_init_pages.values():
+            page.freeResources()
 
         super().closeEvent( event )
 
@@ -278,10 +285,12 @@ class WbWizardPage(QtWidgets.QWizardPage):
         widget.stateChanged.connect( self._fieldsChanged )
         return widget
 
+    def freeResources( self ):
+        pass
+
 class PageAddProjectScmExistingBase(WbWizardPage):
     def __init__( self, wizard_state ):
         super().__init__( wizard_state )
-
 
     def nextId( self ):
         return self.wizard_state.page_id_name
@@ -291,9 +300,7 @@ class PageAddProjectScmExistingBase(WbWizardPage):
         w.setScmType( self.getScmType() )
         w.setAction( w.action_add_existing )
 
-        self.validatePageScmSpecific()
-
-        return True
+        return self.validatePageScmSpecific()
 
     def validatePageScmSpecific( self ):
         # override must call self.wizard_state.setScmUrl( url )
@@ -319,12 +326,10 @@ class PageAddProjectScmCloneBase(WbWizardPage):
         w.setAction( w.action_clone )
         w.setScmUrl( self.url.text().strip() )
 
-        self.validatePageScmSpecific()
-
-        return True
+        return self.validatePageScmSpecific()
 
     def validatePageScmSpecific( self ):
-        raise NotImplementedError()
+        return True
 
     def getScmType( self ):
         raise NotImplementedError()

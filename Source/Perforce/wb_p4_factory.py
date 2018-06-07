@@ -94,8 +94,7 @@ class PageAddProjectP4Init(wb_scm_project_dialogs.PageAddProjectScmInitBase):
         return T_('Use an existing Perforce (P4) workspace')
 
     def initializePage( self ):
-        client_root = p4ClientRoot()
-        self.project_folder.setText( client_root )
+        pass
 
 class PageAddProjectP4Existing(wb_scm_project_dialogs.PageAddProjectScmExistingBase):
     def __init__( self, wizard ):
@@ -104,8 +103,13 @@ class PageAddProjectP4Existing(wb_scm_project_dialogs.PageAddProjectScmExistingB
         self.setTitle( T_('Add P4 Project') )
         self.setSubTitle( T_('Existing P4 client') )
 
-        self.client_root = p4ClientRoot()
-        self.grid_layout.addRow( T_('P4 Client workspace'), self.client_root )
+        try:
+            self.client_root = p4ClientRoot()
+            self.grid_layout.addRow( T_('P4 Client workspace'), self.client_root )
+
+        except P4.P4Exception as e:
+            self.client_root = None
+            self.grid_layout.addRow( T_('P4 Error'), e.errors[0] )
 
     def radioButtonLabel( self ):
         return T_('Add existing Perforce (P4) workspace')
@@ -117,6 +121,7 @@ class PageAddProjectP4Existing(wb_scm_project_dialogs.PageAddProjectScmExistingB
         w = self.wizard_state
         w.setScmUrl( self.client_root )
         w.setProjectFolder( self.client_root )
+        return self.client_root is not None
 
 def p4ClientRoot():
     import P4
