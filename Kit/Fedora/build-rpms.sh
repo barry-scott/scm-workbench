@@ -109,6 +109,6 @@ ls -l ${PWD}/tmp
 if [ "$CMD" = "--install" ]
 then
     echo "Info: Installing RPM"
-    sudo dnf -y remove ${KITNAME}
-    sudo dnf -y install "tmp/${SRPM_BASENAME}.x86_64.rpm"
+    sudo dnf -v -y remove ${KITNAME}
+    sudo dnf -v -y install "tmp/${SRPM_BASENAME}.x86_64.rpm"
 fi
