@@ -93,9 +93,37 @@ class Preferences(PreferencesNode):
     def delProject( self, project_name:str ) -> None:
         del self.all_projects[ project_name ]
 
+    def renameProject( self, old_project_name:str, new_project_name:str ) -> None:
+        project = self.getProject( old_project_name )
+        self.delProject( old_project_name )
+
+        project.name = new_project_name
+        self.addProject( project )
+
+        # fix up any favorites that use the old_project_name
+        for favorite in self.all_favorites.values():
+            if favorite.project_name == old_project_name:
+                favorite.project_name = new_project_name
+
     # -- favorites
-    def getFavorite( self, menu:str ) -> 'Favorite':
+    def getFavoriteByMenu( self, menu:str ) -> 'Favorite':
         return self.all_favorites[ menu ]
+
+    def hasFavoriteByProjectAndPath( self, project_name:str, path:pathlib.Path ):
+        for favorite in self.all_favorites.values():
+            if( favorite.project_name == project_name
+            and favorite.path == path ):
+                return True
+
+        return False
+
+    def getFavoriteByProjectAndPath( self, project_name:str, path:pathlib.Path ):
+        for favorite in self.all_favorites.values():
+            if( favorite.project_name == project_name
+            and favorite.path == path ):
+                return favorite
+
+        assert False, 'Favorite does not exist %r - %r' % (project_name, path)
 
     def hasMenu( self, menu:str ) -> Bool:
         return menu in self.all_favorites
@@ -109,6 +137,11 @@ class Preferences(PreferencesNode):
 
     def delFavorite( self, menu:str ) -> None:
         del self.all_favorites[ menu ]
+
+    def renameFavorite( self, old_menu, new_menu ):
+        favorite = self.all_favorites.pop( old_menu )
+        favorite.menu = new_menu
+        self.addFavorite( favorite )
 
 class MainWindow(PreferencesNode):
     xml_attribute_info = ('geometry',)

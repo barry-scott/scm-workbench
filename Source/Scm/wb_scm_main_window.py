@@ -417,7 +417,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         m = mb.addMenu( T_('Favorites') )
         self.__menu_favorites = m
 
-        self._addMenu( m, T_('Add Favorite…'), self.appActionAddFavorite )
+        self._addMenu( m, T_('Add Favorite…'), self.appActionAddFavorite, self.enablerAddFavorite )
+        self._addMenu( m, T_('Remove Favorite…'), self.appActionRemoveFavorite, self.enablerEditOrRemoveFavorite )
+        self._addMenu( m, T_('Edit Favorite…'), self.appActionEditFavorite, self.enablerEditOrRemoveFavorite )
         m.addSeparator()
 
         self.setupMenuFavorites()
@@ -524,8 +526,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     def setupMenuFavorites( self ):
         # clean up the dynamic favorites in the menu
-        all_actions = self.__menu_favorites.actions()
-        for action in all_actions[2:]:
+        all_actions = iter( self.__menu_favorites.actions() )
+
+        # skip the fixed menu item that finish at a separator
+        for action in all_actions:
+            if action.isSeparator():
+                break
+
+        for action in all_actions:
             self.__menu_favorites.removeAction( action )
 
         prefs = self.app.prefs
@@ -535,9 +543,25 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         all_menus_names = [favorite.menu for favorite in all_favorites]
         all_menus_names.sort()
 
+        # keep track of the submenus
+        all_submenus = {}
+
         for menu_name in all_menus_names:
-            favorite = prefs.getFavorite( menu_name )
-            action = self.__menu_favorites.addAction( menu_name )
+            favorite = prefs.getFavoriteByMenu( menu_name )
+
+            submenu = self.__menu_favorites
+
+            menu_levels = menu_name.split( ';' )
+            for level, submenu_name in enumerate( menu_levels[:-1] ):
+                submenu_fullname = ';'.join( menu_levels[0:level+1] )
+                if submenu_fullname in all_submenus:
+                    submenu = all_submenus[ submenu_fullname ]
+
+                else:
+                    submenu = submenu.addMenu( submenu_name )
+                    all_submenus[ submenu_fullname ] = submenu
+
+            action = submenu.addAction( menu_levels[-1] )
             handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
             action.triggered.connect( handler )
             action.setMenuRole( QtWidgets.QAction.NoRole )
@@ -580,6 +604,24 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             return False
 
         return scm_project_tree_node.relativePath() == pathlib.Path( '.' )
+
+    def enablerAddFavorite( self ):
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
+            return False
+
+        return not self.app.prefs.hasFavoriteByProjectAndPath(
+                scm_project_tree_node.project.projectName(),
+                scm_project_tree_node.relativePath() )
+
+    def enablerEditOrRemoveFavorite( self ):
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
+            return False
+
+        return self.app.prefs.hasFavoriteByProjectAndPath(
+                scm_project_tree_node.project.projectName(),
+                scm_project_tree_node.relativePath() )
 
     #------------------------------------------------------------
     #
@@ -637,13 +679,59 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                         scm_project_tree_node.relativePath(),
                         all_existing_menus )
         if add.exec_():
-            self.log.info( add.getMenu() )
             prefs.addFavorite( wb_preferences.Favorite(
                         add.getMenu(),
                         scm_project_tree_node.project.projectName(),
                         scm_project_tree_node.relativePath() ) )
-
             self.setupMenuFavorites()
+            self.app.writePreferences()
+
+    def appActionRemoveFavorite( self ):
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
+            return False
+
+        prefs = self.app.prefs
+
+        favorite = prefs.getFavoriteByProjectAndPath(
+                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.relativePath() )
+
+        default_button = QtWidgets.QMessageBox.No
+
+        title = T_('Confirm Remove Favorite')
+        message = T_('Are you sure you wish to delete favorite %s - %s') % (favorite.project_name, favorite.path)
+
+        rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
+        if rc == QtWidgets.QMessageBox.Yes:
+            # remove from preferences
+            self.app.prefs.delFavorite( favorite.menu )
+            self.setupMenuFavorites()
+            self.app.writePreferences()
+
+    def appActionEditFavorite( self ):
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
+            return
+
+        prefs = self.app.prefs
+
+        favorite = prefs.getFavoriteByProjectAndPath(
+                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.relativePath() )
+        all_favorites = prefs.getAllFavorites()
+
+        all_other_existing_menus = set( [favorite.menu for favorite in all_favorites] )
+        all_other_existing_menus.remove( favorite.menu )
+
+        edit = wb_scm_favorites_dialogs.WbFavoriteEditDialog(
+                        self.app, self,
+                        favorite,
+                        all_other_existing_menus )
+        if edit.exec_():
+            prefs.renameFavorite( favorite.menu, edit.getMenu() )
+            self.setupMenuFavorites()
+            self.app.writePreferences()
 
     def appActionViewLog( self ):
         wb_shell_commands.editFile( self.app, wb_platform_specific.getHomeFolder(), [wb_platform_specific.getLogFilename()] )

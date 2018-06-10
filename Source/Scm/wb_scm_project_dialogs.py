@@ -758,12 +758,8 @@ class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
         prefs = self.app.prefs
 
         if self.name.hasChanged():
-            # remove under the old name
-            prefs.delProject( self.old_project_name )
-
-            # add back in under the updated name
-            self.prefs_project.name = self.name.value()
-            prefs.addProject( self.prefs_project )
+            # rename project
+            prefs.renameProject( self.old_project_name, self.name.value() )
 
         self.scmSpecificUpdateProject()
 
