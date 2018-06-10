@@ -73,10 +73,11 @@ class Preferences(PreferencesNode):
         self.font_code = None                   # type: Font
         self.main_window = None                 # type: MainWindow
         self.diff_window = None                 # type: MainWindow
-        self.last_position_bookmark = None      # type: Bookmark
-        self.all_bookmarks = {}                 # type: Dict[str, Bookmark]
+        self.last_position = None               # type: LastPosition
+        self.all_favorites = {}                 # type: Dict[str, Favorite]
         self.all_projects = {}                  # type: Dict[str, Project]
 
+    # -- projects
     def getProject( self, name:str ) -> 'Project':
         return self.all_projects[ name ]
 
@@ -92,12 +93,22 @@ class Preferences(PreferencesNode):
     def delProject( self, project_name:str ) -> None:
         del self.all_projects[ project_name ]
 
-    def getAllBookmarks( self ) -> Iterable['Bookmark']:
-        return self.all_bookmarks.values()
+    # -- favorites
+    def getFavorite( self, menu:str ) -> 'Favorite':
+        return self.all_favorites[ menu ]
 
-    def addBookmark( self, bookmark:'Bookmark' ) -> None:
-        assert isinstance( bookmark, Bookmark )
-        self.all_bookmarks[ bookmark.name ] = bookmark
+    def hasMenu( self, menu:str ) -> Bool:
+        return menu in self.all_favorites
+
+    def getAllFavorites( self ) -> Iterable['Favorite']:
+        return self.all_favorites.values()
+
+    def addFavorite( self, favorite:'Favorite' ) -> None:
+        assert isinstance( favorite, Favorite )
+        self.all_favorites[ favorite.menu ] = favorite
+
+    def delFavorite( self, menu:str ) -> None:
+        del self.all_favorites[ menu ]
 
 class MainWindow(PreferencesNode):
     xml_attribute_info = ('geometry',)
@@ -164,20 +175,33 @@ class Shell(PreferencesNode):
         self.terminal_init = ''
         self.file_browser = ''
 
-class Bookmark(PreferencesNode):
+class LastPosition(PreferencesNode):
     xml_attribute_info = ('project_name', ('path', pathlib.Path))
 
-    def __init__( self, name:str=None, project_name:str=None, path:pathlib.Path=None ) -> None:
+    def __init__( self, project_name:str=None, path:pathlib.Path=None ) -> None:
         super().__init__()
 
         assert project_name is None or isinstance( project_name, str )
         assert path is None or isinstance( path, pathlib.Path )
 
-        self.name = name
         self.project_name = project_name
         self.path = path
 
-class BookmarkCollection(PreferencesMapNode):
+class Favorite(PreferencesNode):
+    xml_attribute_info = ('project_name', ('path', pathlib.Path))
+
+    def __init__( self, menu:str=None, project_name:str=None, path:pathlib.Path=None ) -> None:
+        super().__init__()
+
+        assert menu is not None or isinstance( menu, str )
+        assert project_name is None or isinstance( project_name, str )
+        assert path is None or isinstance( path, pathlib.Path )
+
+        self.menu = menu
+        self.project_name = project_name
+        self.path = path
+
+class FavoritesCollection(PreferencesMapNode):
     def __init__( self ) -> None:
         super().__init__()
 
@@ -253,10 +277,10 @@ scheme_nodes = (
     <<  (SchemeNode( ProjectCollection, 'projects', store_as='all_projects' )
         << SchemeNode( Project, 'project', key_attribute='name' )
         )
-    <<  (SchemeNode( BookmarkCollection, 'bookmarks', store_as='all_bookmarks' )
-        << SchemeNode( Bookmark, 'bookmark', key_attribute='name')
+    <<  (SchemeNode( FavoritesCollection, 'favorites', store_as='all_favorites' )
+        << SchemeNode( Favorite, 'favorite', key_attribute='menu')
         )
-    <<  SchemeNode( Bookmark, 'last_position_bookmark', default=False )
+    <<  SchemeNode( LastPosition, 'last_position', default=False )
     <<  SchemeNode( Editor, 'editor' )
     <<  SchemeNode( Shell, 'shell' )
     <<  SchemeNode( View, 'view' )

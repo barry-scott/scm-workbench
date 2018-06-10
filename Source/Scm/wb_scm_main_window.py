@@ -1,6 +1,6 @@
 '''
  ====================================================================
- Copyright (c) 2003-2016 Barry A Scott.  All rights reserved.
+ Copyright (c) 2003-2018 Barry A Scott.  All rights reserved.
 
  This software is licensed as described in the file LICENSE.txt,
  which you should have received as part of this distribution.
@@ -32,6 +32,7 @@ import wb_scm_tree_view
 import wb_scm_tree_model
 import wb_scm_project_dialogs
 import wb_scm_progress
+import wb_scm_favorites_dialogs
 
 import wb_main_window
 import wb_preferences
@@ -78,6 +79,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.all_ui_components[ scm_type ].setMainWindow( self, self.table_view )
 
         # setup the chrome
+        self.__menu_favorites = None
+
         self.setupMenuBar( self.menuBar() )
         self.setupToolBar()
         self.setupStatusBar( self.statusBar() )
@@ -211,9 +214,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # if there is a bookmark select that project
         # otherwise select the first project
-        bookmark = self.app.prefs.last_position_bookmark
-        if bookmark is not None:
-            project = self.app.prefs.getProject( bookmark.project_name )
+        last_position = self.app.prefs.last_position
+        if last_position is not None:
+            project = self.app.prefs.getProject( last_position.project_name )
             index = self.tree_model.indexFromProject( project )
 
         else:
@@ -227,31 +230,62 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.tree_view.setCurrentIndex( index )
 
             # load in the project
-            if bookmark is None:
+            if last_position is None:
                 self.log.info( 'Loading selected project' )
 
             else:
-                self.log.info( 'Loading project - %s' % (bookmark.project_name,) )
+                self.log.info( 'Loading project - %s' % (last_position.project_name,) )
 
             # let Qt update the UI
             yield self.app.switchToBackground
             time.sleep( 0.1 )
             yield self.app.switchToForeground
 
-            if bookmark is None:
+            if last_position is None:
                 yield from self.updateTableView_Bg()
 
             else:
-                self.log.info( 'Restoring bookmark - %s' % (bookmark.path,) )
-                yield from self.updateTableView_Bg( bookmark.path )
+                self.log.info( 'Restoring session - %s' % (last_position.path,) )
+                yield from self.updateTableView_Bg( last_position.path )
 
-                # move to bookmarked folder
-                bm_index = self.tree_model.indexFromBookmark( bookmark )
+                # move to last_positioned folder
+                bm_index = self.tree_model.indexFromFavorite( last_position )
                 if bm_index is not None:
                     index = self.tree_sortfilter.mapFromSource( bm_index )
                     self.tree_view.setCurrentIndex( index )
 
             self.tree_view.scrollTo( index )
+
+    @thread_switcher
+    def gotoFavorite_bg( self, favorite ):
+        project = self.app.prefs.getProject( favorite.project_name )
+        if project is None:
+            return
+
+        index = self.tree_model.indexFromProject( project )
+        if index is None:
+            return
+
+        index = self.tree_sortfilter.mapFromSource( index )
+        self.tree_view.setCurrentIndex( index )
+
+        self.log.info( 'Loading project - %s' % (favorite.project_name,) )
+
+        # let Qt update the UI
+        yield self.app.switchToBackground
+        time.sleep( 0.1 )
+        yield self.app.switchToForeground
+
+        self.log.info( 'Opening favorite - %s' % (favorite.path,) )
+        yield from self.updateTableView_Bg( favorite.path )
+
+        # move to favorite folder
+        bm_index = self.tree_model.indexFromFavorite( favorite )
+        if bm_index is not None:
+            index = self.tree_sortfilter.mapFromSource( bm_index )
+            self.tree_view.setCurrentIndex( index )
+
+        self.tree_view.scrollTo( index )
 
     def createProject( self, project ):
         if not project.path.exists():
@@ -380,6 +414,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         m.addSeparator()
         self._addMenu( m, T_('Clear Log Messages'), self.appActionClearLogMessages )
 
+        m = mb.addMenu( T_('Favorites') )
+        self.__menu_favorites = m
+
+        self._addMenu( m, T_('Add Favorite…'), self.appActionAddFavorite )
+        m.addSeparator()
+
+        self.setupMenuFavorites()
+
         m = mb.addMenu( T_('F&older Actions') )
         self._addMenu( m, T_('&Command Shell'), self.treeActionShell, self.enablerFolderExists, 'toolbar_images/terminal.png' )
         self._addMenu( m, T_('&File Browser'), self.treeActionFileBrowse, self.enablerFolderExists, 'toolbar_images/file_browser.png' )
@@ -480,6 +522,32 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         self.status_action.setText( msg )
 
+    def setupMenuFavorites( self ):
+        # clean up the dynamic favorites in the menu
+        all_actions = self.__menu_favorites.actions()
+        for action in all_actions[2:]:
+            self.__menu_favorites.removeAction( action )
+
+        prefs = self.app.prefs
+
+        # add all the favorites
+        all_favorites = prefs.getAllFavorites()
+        all_menus_names = [favorite.menu for favorite in all_favorites]
+        all_menus_names.sort()
+
+        for menu_name in all_menus_names:
+            favorite = prefs.getFavorite( menu_name )
+            action = self.__menu_favorites.addAction( menu_name )
+            handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
+            action.triggered.connect( handler )
+            action.setMenuRole( QtWidgets.QAction.NoRole )
+            action.setStatusTip( 'Goto Favorite %s - %s' % (favorite.project_name, favorite.path) )
+            action.setData( favorite )
+
+    @thread_switcher
+    def gotoFavoriteHandler_bg( self, clicked=None ):
+        yield from self.gotoFavorite_bg( self.sender().data() )
+
     #------------------------------------------------------------
     #
     #   Accessors for main window held state
@@ -552,6 +620,31 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if not rc:
             self.log.error( 'Failed to open documentation for URL %r' % (url,) )
 
+    def appActionAddFavorite( self ):
+        scm_project_tree_node = self.selectedScmProjectTreeNode()
+        if scm_project_tree_node is None:
+            return
+
+        prefs = self.app.prefs
+
+        all_favorites = prefs.getAllFavorites()
+
+        all_existing_menus = set( [favorite.menu for favorite in all_favorites] )
+
+        add = wb_scm_favorites_dialogs.WbFavoriteAddDialog(
+                        self.app, self,
+                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.relativePath(),
+                        all_existing_menus )
+        if add.exec_():
+            self.log.info( add.getMenu() )
+            prefs.addFavorite( wb_preferences.Favorite(
+                        add.getMenu(),
+                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.relativePath() ) )
+
+            self.setupMenuFavorites()
+
     def appActionViewLog( self ):
         wb_shell_commands.editFile( self.app, wb_platform_specific.getHomeFolder(), [wb_platform_specific.getLogFilename()] )
 
@@ -605,15 +698,12 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         prefs = self.app.prefs
         if scm_project_tree_node is not None:
-            bookmark = wb_preferences.Bookmark(
-                        'last position',
+            prefs.last_position = wb_preferences.LastPosition(
                         scm_project_tree_node.project.projectName(),
                         scm_project_tree_node.relativePath() )
 
-            prefs.last_position_bookmark = bookmark
-
         else:
-            prefs.last_position_bookmark = None
+            prefs.last_position = None
 
         win_prefs = self.app.prefs.main_window
         win_prefs.geometry = self.saveGeometry().toHex().data()
