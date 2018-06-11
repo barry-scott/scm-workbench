@@ -23,8 +23,6 @@ Linux)
             export PYTHON_VERSION=${version}
             export PYTHON=/opt/rh/rh-python35/root/usr/bin/python${version}
         fi
-
-        fi
     done
     if [ -e /etc/fedora-release ]
     then
