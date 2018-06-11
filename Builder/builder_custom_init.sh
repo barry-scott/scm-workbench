@@ -15,10 +15,22 @@ Linux)
         if [ -e /usr/bin/python${version} ]
         then
             export PYTHON_VERSION=${version}
+            export PYTHON=/usr/bin/python${version}
             break
+
+        elif [ -e /opt/rh/rh-python35/root/usr/bin/python${version} ]
+        then
+            export PYTHON_VERSION=${version}
+            export PYTHON=/opt/rh/rh-python35/root/usr/bin/python${version}
+        fi
+
         fi
     done
     if [ -e /etc/fedora-release ]
+    then
+        export BUILDER_CFG_PLATFORM=Linux-Fedora
+
+    elif [ -e /etc/centos-release ]
     then
         export BUILDER_CFG_PLATFORM=Linux-Fedora
 

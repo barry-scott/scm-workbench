@@ -20,18 +20,6 @@ else
     ARCH=$( uname -m )
 fi
 
-MOCK_VERSION_NAME=fedora-${VERSION_ID}-${ARCH}
-MOCK_ROOT=$( sudo mock --root=${MOCK_VERSION_NAME} -p )
-
-if [ ! -e "${MOCK_ROOT}" ]
-then
-    echo "Info: Init mock for ${MOCK_VERSION_NAME}"
-    sudo \
-         mock \
-            --root=${MOCK_VERSION_NAME} \
-            --init
-fi
-
 echo "Info: Creating source tarball"
 rm -rf tmp
 mkdir -p tmp
@@ -69,7 +57,25 @@ cp \
 
 # make the source kit
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
+ls -l ${KIT_BASENAME}.tar.gz
 popd
+
+if [ "${CMD}" = "--tarball" ]
+then
+    exit 0
+fi
+
+MOCK_VERSION_NAME=fedora-${VERSION_ID}-${ARCH}
+MOCK_ROOT=$( sudo mock --root=${MOCK_VERSION_NAME} -p )
+
+if [ ! -e "${MOCK_ROOT}" ]
+then
+    echo "Info: Init mock for ${MOCK_VERSION_NAME}"
+    sudo \
+         mock \
+            --root=${MOCK_VERSION_NAME} \
+            --init
+fi
 
 echo "Info: creating ${KITNAME}.spec"
 PYTHONPATH=tmp python3 spec_set_version.py ${KITNAME}.spec ${V}
