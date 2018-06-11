@@ -216,7 +216,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         # otherwise select the first project
         last_position = self.app.prefs.last_position
         if last_position is not None:
-            project = self.app.prefs.getProject( last_position.project_name )
+            project = self.app.prefs.getProjectByPath( last_position.project_path )
             index = self.tree_model.indexFromProject( project )
 
         else:
@@ -234,7 +234,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self.log.info( 'Loading selected project' )
 
             else:
-                self.log.info( 'Loading project - %s' % (last_position.project_name,) )
+                self.log.info( 'Loading project - %s' % (project.name,) )
 
             # let Qt update the UI
             yield self.app.switchToBackground
@@ -258,7 +258,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
     @thread_switcher
     def gotoFavorite_bg( self, favorite ):
-        project = self.app.prefs.getProject( favorite.project_name )
+        project = self.app.prefs.getProjectByPath( favorite.project_path )
         if project is None:
             return
 
@@ -269,7 +269,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         index = self.tree_sortfilter.mapFromSource( index )
         self.tree_view.setCurrentIndex( index )
 
-        self.log.info( 'Loading project - %s' % (favorite.project_name,) )
+        self.log.info( 'Loading project - %s' % (project.name,) )
 
         # let Qt update the UI
         yield self.app.switchToBackground
@@ -561,11 +561,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                     submenu = submenu.addMenu( submenu_name )
                     all_submenus[ submenu_fullname ] = submenu
 
+            project = prefs.getProjectByPath( favorite.project_path )
+
             action = submenu.addAction( menu_levels[-1] )
             handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
             action.triggered.connect( handler )
             action.setMenuRole( QtWidgets.QAction.NoRole )
-            action.setStatusTip( 'Goto Favorite %s - %s' % (favorite.project_name, favorite.path) )
+            action.setStatusTip( 'Goto Favorite %s - %s' % (project.name, favorite.path) )
             action.setData( favorite )
 
     @thread_switcher
@@ -611,7 +613,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             return False
 
         return not self.app.prefs.hasFavoriteByProjectAndPath(
-                scm_project_tree_node.project.projectName(),
+                scm_project_tree_node.project.projectPath(),
                 scm_project_tree_node.relativePath() )
 
     def enablerEditOrRemoveFavorite( self ):
@@ -620,7 +622,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             return False
 
         return self.app.prefs.hasFavoriteByProjectAndPath(
-                scm_project_tree_node.project.projectName(),
+                scm_project_tree_node.project.projectPath(),
                 scm_project_tree_node.relativePath() )
 
     #------------------------------------------------------------
@@ -681,10 +683,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if add.exec_():
             prefs.addFavorite( wb_preferences.Favorite(
                         add.getMenu(),
-                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.project.projectPath(),
                         scm_project_tree_node.relativePath() ) )
             self.setupMenuFavorites()
             self.app.writePreferences()
+            self.updateEnableStates()
 
     def appActionRemoveFavorite( self ):
         scm_project_tree_node = self.selectedScmProjectTreeNode()
@@ -694,13 +697,15 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         prefs = self.app.prefs
 
         favorite = prefs.getFavoriteByProjectAndPath(
-                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.project.projectPath(),
                         scm_project_tree_node.relativePath() )
 
         default_button = QtWidgets.QMessageBox.No
 
         title = T_('Confirm Remove Favorite')
-        message = T_('Are you sure you wish to delete favorite %s - %s') % (favorite.project_name, favorite.path)
+        message = (T_('Are you sure you wish to delete favorite %(project_name)s - %(path)s') %
+                        {'project_name': scm_project_tree_node.project.projectName()
+                        ,'path': favorite.path})
 
         rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
         if rc == QtWidgets.QMessageBox.Yes:
@@ -708,6 +713,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.app.prefs.delFavorite( favorite.menu )
             self.setupMenuFavorites()
             self.app.writePreferences()
+            self.updateEnableStates()
 
     def appActionEditFavorite( self ):
         scm_project_tree_node = self.selectedScmProjectTreeNode()
@@ -717,7 +723,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         prefs = self.app.prefs
 
         favorite = prefs.getFavoriteByProjectAndPath(
-                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.project.projectPath(),
                         scm_project_tree_node.relativePath() )
         all_favorites = prefs.getAllFavorites()
 
@@ -732,6 +738,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             prefs.renameFavorite( favorite.menu, edit.getMenu() )
             self.setupMenuFavorites()
             self.app.writePreferences()
+            self.updateEnableStates()
 
     def appActionViewLog( self ):
         wb_shell_commands.editFile( self.app, wb_platform_specific.getHomeFolder(), [wb_platform_specific.getLogFilename()] )
@@ -787,7 +794,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         prefs = self.app.prefs
         if scm_project_tree_node is not None:
             prefs.last_position = wb_preferences.LastPosition(
-                        scm_project_tree_node.project.projectName(),
+                        scm_project_tree_node.project.projectPath(),
                         scm_project_tree_node.relativePath() )
 
         else:
@@ -877,9 +884,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         if rc == QtWidgets.QMessageBox.Yes:
             # remove from preferences
             self.app.prefs.delProject( project_name )
+            self.setupMenuFavorites()
             self.app.writePreferences()
+            self.updateEnableStates()
 
-            # remove from the tree model under the old name
+            # remove from the tree model
             self.tree_model.delProject( project_name )
 
             # setup on a new selection

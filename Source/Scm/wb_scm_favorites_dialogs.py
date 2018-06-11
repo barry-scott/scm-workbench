@@ -52,9 +52,9 @@ class WbFavoriteAddDialog(WbFavoriteDialogBase):
 
 class WbFavoriteEditDialog(WbFavoriteDialogBase):
     def __init__( self, app, parent, favorite, all_existing_menus ):
-        super().__init__( app, parent, favorite.project_name, favorite.path, all_existing_menus )
+        project = app.prefs.getProjectByPath( favorite.project_path )
+        super().__init__( app, parent, project.name, favorite.path, all_existing_menus )
 
         self.setWindowTitle( T_('Edit Favorite - %s') % (' '.join( app.app_name_parts ),) )
         self.menu.setText( favorite.menu )
         self.menu_text_original = favorite.menu
-

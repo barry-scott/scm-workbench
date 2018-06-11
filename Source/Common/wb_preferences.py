@@ -75,11 +75,29 @@ class Preferences(PreferencesNode):
         self.diff_window = None                 # type: MainWindow
         self.last_position = None               # type: LastPosition
         self.all_favorites = {}                 # type: Dict[str, Favorite]
+        self.all_favorites_by_path = {}
         self.all_projects = {}                  # type: Dict[str, Project]
+        self.all_projects_by_path = {}
+
+    def finaliseNode( self ):
+        # optimise project and favorites lookups
+
+        for project in self.all_projects.values():
+            self.all_projects_by_path[ project.path ] = project
+
+        for favorite in self.all_favorites.values():
+            self.all_favorites_by_path[ favorite.keyPath() ] = favorite
 
     # -- projects
     def getProject( self, name:str ) -> 'Project':
         return self.all_projects[ name ]
+
+    def getProjectByPath( self, path:pathlib.Path ):
+        for project in self.all_projects.values():
+            if project.path == path:
+                return project
+
+        assert False, 'No project with path %r' % (path,)
 
     def getAllProjects( self ) -> Iterable['Project']:
         return self.all_projects.values()
@@ -89,41 +107,38 @@ class Preferences(PreferencesNode):
         assert project.name not in self.all_projects
 
         self.all_projects[ project.name ] = project
+        self.all_projects_by_path[ project.path ] = project
 
     def delProject( self, project_name:str ) -> None:
-        del self.all_projects[ project_name ]
+        project = self.all_projects.pop( project_name )
+        del self.all_projects_by_path[ project.path ]
+
+        # del any favorites that point to this project
+        all_to_del = set()
+        for favorite in self.all_favorites.values():
+            if favorite.project_path == project.path:
+                all_to_del.add( favorite.menu )
+
+        for menu in all_to_del:
+            self.delFavorite( menu )
 
     def renameProject( self, old_project_name:str, new_project_name:str ) -> None:
-        project = self.getProject( old_project_name )
-        self.delProject( old_project_name )
+        # do not call delProject as it removes the favorites
+        project = self.all_projects.pop( old_project_name )
+        del self.all_projects_by_path[ project.path ]
 
         project.name = new_project_name
         self.addProject( project )
-
-        # fix up any favorites that use the old_project_name
-        for favorite in self.all_favorites.values():
-            if favorite.project_name == old_project_name:
-                favorite.project_name = new_project_name
 
     # -- favorites
     def getFavoriteByMenu( self, menu:str ) -> 'Favorite':
         return self.all_favorites[ menu ]
 
-    def hasFavoriteByProjectAndPath( self, project_name:str, path:pathlib.Path ):
-        for favorite in self.all_favorites.values():
-            if( favorite.project_name == project_name
-            and favorite.path == path ):
-                return True
+    def hasFavoriteByProjectAndPath( self, project_path:pathlib.Path, path:pathlib.Path ):
+        return (project_path, path) in self.all_favorites_by_path
 
-        return False
-
-    def getFavoriteByProjectAndPath( self, project_name:str, path:pathlib.Path ):
-        for favorite in self.all_favorites.values():
-            if( favorite.project_name == project_name
-            and favorite.path == path ):
-                return favorite
-
-        assert False, 'Favorite does not exist %r - %r' % (project_name, path)
+    def getFavoriteByProjectAndPath( self, project_path:pathlib.Path, path:pathlib.Path ):
+        return self.all_favorites_by_path[ (project_path, path) ]
 
     def hasMenu( self, menu:str ) -> Bool:
         return menu in self.all_favorites
@@ -134,9 +149,11 @@ class Preferences(PreferencesNode):
     def addFavorite( self, favorite:'Favorite' ) -> None:
         assert isinstance( favorite, Favorite )
         self.all_favorites[ favorite.menu ] = favorite
+        self.all_favorites_by_path[ favorite.keyPath() ] = favorite
 
     def delFavorite( self, menu:str ) -> None:
-        del self.all_favorites[ menu ]
+        favorite = self.all_favorites.pop( menu )
+        del self.all_favorites_by_path[ favorite.keyPath() ]
 
     def renameFavorite( self, old_menu, new_menu ):
         favorite = self.all_favorites.pop( old_menu )
@@ -209,30 +226,33 @@ class Shell(PreferencesNode):
         self.file_browser = ''
 
 class LastPosition(PreferencesNode):
-    xml_attribute_info = ('project_name', ('path', pathlib.Path))
+    xml_attribute_info = (('project_path', pathlib.Path), ('path', pathlib.Path))
 
-    def __init__( self, project_name:str=None, path:pathlib.Path=None ) -> None:
+    def __init__( self, project_path:str=None, path:pathlib.Path=None ) -> None:
         super().__init__()
 
-        assert project_name is None or isinstance( project_name, str )
+        assert project_path is None or isinstance( project_path, pathlib.Path )
         assert path is None or isinstance( path, pathlib.Path )
 
-        self.project_name = project_name
+        self.project_path = project_path
         self.path = path
 
 class Favorite(PreferencesNode):
-    xml_attribute_info = ('project_name', ('path', pathlib.Path))
+    xml_attribute_info = (('project_path', pathlib.Path), ('path', pathlib.Path))
 
-    def __init__( self, menu:str=None, project_name:str=None, path:pathlib.Path=None ) -> None:
+    def __init__( self, menu:str=None, project_path:pathlib.Path=None, path:pathlib.Path=None ) -> None:
         super().__init__()
 
         assert menu is not None or isinstance( menu, str )
-        assert project_name is None or isinstance( project_name, str )
+        assert project_path is None or isinstance( project_path, pathlib.Path )
         assert path is None or isinstance( path, pathlib.Path )
 
         self.menu = menu
-        self.project_name = project_name
+        self.project_path = project_path
         self.path = path
+
+    def keyPath( self ):
+        return (self.project_path, self.path)
 
 class FavoritesCollection(PreferencesMapNode):
     def __init__( self ) -> None:

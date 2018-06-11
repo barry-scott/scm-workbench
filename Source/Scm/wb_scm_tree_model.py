@@ -140,7 +140,9 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
     def indexFromFavorite( self, favorite ):
         item = self.invisibleRootItem()
 
-        for name in [favorite.project_name] + list( favorite.path.parts ):
+        project = self.app.prefs.getProjectByPath( favorite.project_path )
+
+        for name in [project.name] + list( favorite.path.parts ):
             row = 0
             while True:
                 child = item.child( row )
