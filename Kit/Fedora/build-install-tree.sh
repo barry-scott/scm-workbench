@@ -71,6 +71,14 @@ do
     cp ${BUILDER_TOP_DIR}/Source/Common/${MOD_FILE} ${BUILD_ROOT}${LIB}
 done
 
+for MOD_PACKAGE in pytz tzlocal git gitdb smmap
+do
+    if [ -e "${HOME}/.local/lib/python3.5/site-packages/${MOD_PACKAGE}" ]
+    then
+        cp -r "${HOME}/.local/lib/python3.5/site-packages/${MOD_PACKAGE}" ${BUILD_ROOT}${LIB}
+    fi
+done
+
 rm -f ${BUILD_ROOT}${LIB}/make*.py
 
 ${BUILDER_TOP_DIR}/Docs/build-docs.py ${BUILD_ROOT}${DOC}
