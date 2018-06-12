@@ -620,7 +620,7 @@ class WbP4FileState:
 
     def getTextLinesForRevision( self, rev ) -> List[str]:
         if type( rev ) == int:
-            rev = '%d' % (rev,)
+            rev = '@%d' % (rev,)
         # else its a string like 'tip'
 
         stats, text = self.__project.cmdPrint( self.__filepath, rev=rev )
