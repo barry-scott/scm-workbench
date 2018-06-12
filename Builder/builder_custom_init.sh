@@ -46,7 +46,6 @@ Linux)
             export BUILDER_CFG_PLATFORM=Linux-Debian
         fi
     fi
-    export PYTHON=python${PYTHON_VERSION}
     ;;
 *)
     # no need to change

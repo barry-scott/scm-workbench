@@ -25,12 +25,12 @@ cp ${BUILDER_TOP_DIR}/Kit/Fedora/scm-workbench.desktop ${BUILD_ROOT}${DESKTOPFIL
 
 PROG=${BUILD_ROOT}${BIN}/scm-workbench
 cat <<EOF >${PROG}
-#!/usr/bin/python3
+#!${PYTHON}
 import sys
 sys.path.insert( 0, "${LIB}" )
 EOF
 cat ${BUILDER_TOP_DIR}/Source/Scm/wb_scm_main.py >>${PROG}
-chmod +x ${PROG}
+
 unset PROG
 
 PROG=${BUILD_ROOT}${BIN}/scm-workbench-git-callback
