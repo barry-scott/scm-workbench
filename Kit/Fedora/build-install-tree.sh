@@ -57,25 +57,21 @@ do
     cp ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
 done
 
-for MOD in xml_preferences
+LOCAL_SITE_PACKAGES="${HOME}/.local/lib/python3.5/site-packages"
+
+for MOD_PACKAGE in pytz tzlocal git gitdb smmap xml_preferences
 do
-    if [ -e ${BUILDER_TOP_DIR}/Source/Common/${MOD} ]
+    if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ]
     then
-        mkdir ${BUILD_ROOT}${LIB}/${MOD}
-        cp -r ${BUILDER_TOP_DIR}/Source/Common/${MOD} ${BUILD_ROOT}${LIB}
+        cp -r "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ${BUILD_ROOT}${LIB}
     fi
 done
 
 for MOD_FILE in P4.py P4API.cpython-??m-x86_64-linux-gnu.so
 do
-    cp ${BUILDER_TOP_DIR}/Source/Common/${MOD_FILE} ${BUILD_ROOT}${LIB}
-done
-
-for MOD_PACKAGE in pytz tzlocal git gitdb smmap
-do
-    if [ -e "${HOME}/.local/lib/python3.5/site-packages/${MOD_PACKAGE}" ]
+    if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ]
     then
-        cp -r "${HOME}/.local/lib/python3.5/site-packages/${MOD_PACKAGE}" ${BUILD_ROOT}${LIB}
+        cp "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ${BUILD_ROOT}${LIB}
     fi
 done
 
