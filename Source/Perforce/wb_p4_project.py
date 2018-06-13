@@ -27,6 +27,18 @@ _p4_version = 'P4 from PyPI'
 def P4Version():
     return  _p4_version
 
+# Annotate can return errors about RCS that are uninteresting
+# Ignore them
+class SkipRcsErrors(P4.OutputHandler):
+    def __init__( self ):
+        super().__init__()
+
+    def outputMessage( self, e ):
+        if 'RCS checkout' in str(e):
+            return self.HANDLED
+
+        return self.REPORT
+
 class P4Project:
     def __init__( self, app, prefs_project, ui_components ):
         self.app = app
@@ -34,6 +46,8 @@ class P4Project:
 
         self.debugLog = self.app.debug_options.debugLogP4Project
         self.debugLogTree = self.app.debug_options.debugLogP4UpdateTree
+
+        self.skip_rcs_errors_handler = SkipRcsErrors()
 
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
@@ -355,7 +369,7 @@ class P4Project:
         # annotate returns a list that starts with the file info.
         # which we skip. 
         line_num = -1
-        for line_info in self.repo().run_annotate( '-c', self.pathForP4( filename ) + rev ):
+        for line_info in self.repo().run_annotate( '-c', self.pathForP4( filename ) + rev, handler=self.skip_rcs_errors_handler ):
             line_num += 1
             if line_num == 0:
                 continue
