@@ -161,13 +161,14 @@ class Preferences(PreferencesNode):
         self.addFavorite( favorite )
 
 class MainWindow(PreferencesNode):
-    xml_attribute_info = ('geometry',)
+    xml_attribute_info = ('geometry', 'title')
 
     def __init__( self ) -> None:
         super().__init__()
 
         self.geometry = None    # type: str
         self.all_colours = {}   # type: Dict[str, Colour]
+        self.title = None
 
     def getFrameGeometry( self ) -> str:
         return self.geometry

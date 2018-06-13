@@ -57,10 +57,14 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         super().__init__( app, app.debug_options.debugLogMainWindow )
 
-        # need to fix up how this gets translated
-        title = T_( ' '.join( self.app.app_name_parts ) )
 
         win_prefs = self.app.prefs.main_window
+        if win_prefs.title is not None:
+            title = win_prefs.title
+
+        else:
+            # need to fix up how this gets translated
+            title = T_( ' '.join( self.app.app_name_parts ) )
 
         self.setWindowTitle( title )
         self.setWindowIcon( self.app.getAppQIcon() )
