@@ -111,7 +111,9 @@ def commandShell( app, working_dir ):
 
         if len( p.terminal_init ) > 0:
             f.write( ". '%s'\n" % (p.terminal_init,) )
-        f.write( 'exec "$SHELL" -i\n' )
+
+        # create an interactive login shell
+        f.write( 'exec "$SHELL" --login -i\n' )
         f.close()
         # chmod +x
         os.chmod( f.name, 0o700 )
@@ -137,7 +139,7 @@ def commandShell( app, working_dir ):
     try:
         if p.terminal_program == 'konsole':
             __run_command( app, p.terminal_program,
-                ['--title',  title, '--workdir', working_dir, '-e', '/bin/bash', '-l', f.name],
+                ['--title',  title, '--workdir', working_dir, '-e', '/bin/bash', f.name],
                 working_dir )
 
         elif p.terminal_program in ('gnome-terminal', 'xfce4-terminal'):
