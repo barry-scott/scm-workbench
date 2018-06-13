@@ -60,6 +60,9 @@ class P4Project:
             global _p4_version
             _p4_version = self.__repo.identify().split('\n')[-2]
 
+        if not self.__repo.connected():
+            self.__repo.connect()
+
         return self.__repo
 
     def scmType( self ):
