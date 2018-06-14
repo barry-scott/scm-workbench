@@ -39,6 +39,17 @@ class SkipRcsErrors(P4.OutputHandler):
 
         return self.REPORT
 
+class SkipFstatEmpty(P4.OutputHandler):
+    def __init__( self ):
+        super().__init__()
+
+    def outputMessage( self, e ):
+        # warning from fstat line file not in clien t view are EV_EMPTY
+        if e.generic == P4.P4.EV_EMPTY:
+            return self.HANDLED
+
+        return self.REPORT
+
 class P4Project:
     def __init__( self, app, prefs_project, ui_components ):
         self.app = app
@@ -46,8 +57,6 @@ class P4Project:
 
         self.debugLog = self.app.debug_options.debugLogP4Project
         self.debugLogTree = self.app.debug_options.debugLogP4UpdateTree
-
-        self.skip_rcs_errors_handler = SkipRcsErrors()
 
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
@@ -193,7 +202,7 @@ class P4Project:
 
         # get the p4 file status for all the files in this folder
         try:
-            for fstat in self.repo().run_fstat('-Rc', '%s/*' % (self.pathForP4( folder ),) ):
+            for fstat in self.repo().run_fstat('-Rc', '%s/*' % (self.pathForP4( folder ),), handler=SkipFstatEmpty() ):
                 # not interested in delete files
                 if fstat.get( 'headAction', '' ) in ('delete', 'move/delete'):
                     continue
@@ -370,7 +379,7 @@ class P4Project:
         # annotate returns a list that starts with the file info.
         # which we skip. 
         line_num = -1
-        for line_info in self.repo().run_annotate( '-c', self.pathForP4( filename ) + rev, handler=self.skip_rcs_errors_handler ):
+        for line_info in self.repo().run_annotate( '-c', self.pathForP4( filename ) + rev, handler=SkipRcsErrors() ):
             line_num += 1
             if line_num == 0:
                 continue
