@@ -208,6 +208,7 @@ class P4Project:
                 self.all_file_state[ repo_relative ].setFStat( fstat )
 
         except P4.P4Exception as e:
+            self.app.log.error( 'P4 fstat error: %s' % (e,) )
             self.debugLogTree( '__calculateFolderStatus() fstat error %r' % (e,) )
 
     def __updateTree( self, path, file_state ):
