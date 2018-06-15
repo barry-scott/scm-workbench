@@ -11,6 +11,7 @@
 
 '''
 import sys
+import os
 import pathlib
 
 import wb_log_history_options_dialog
@@ -127,35 +128,6 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         else:
             return False
 
-    def enablerP4Commit( self ):
-        # enable if any files modified
-        p4_project = self.selectedP4Project()
-
-        if p4_project is None:
-            return False
-
-        # allow the commit dialog to appear
-        # if there are modified files
-        # which can be added using the commit dialog
-        if p4_project.numModifiedFiles() == 0:
-            return False
-
-        return True
-
-    def treeActionP4Debug1( self ):
-        self.log.error( '  enablerP4Commit -> %r' % (self.enablerP4Commit(),) )
-        p4_project = self.selectedP4Project()
-        self.log.error( '       p4_project -> %r' % (p4_project,) )
-        if p4_project is None:
-            return
-
-        self.log.error( '     commit_dialog -> %r' % (self.app.hasSingleton( self.commit_key ),) )
-        self.log.error( '  numModifiedFiles -> %r' % (p4_project.numModifiedFiles(),) )
-
-    def enablerP4Push( self ):
-        p4_project = self.selectedP4Project()
-        return p4_project is not None and p4_project.canPush()
-
     def enablerP4LogHistory( self ):
         return True
 
@@ -164,6 +136,28 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     # tree or table actions depending on focus
     #
     #------------------------------------------------------------
+    def treeActionP4Debug1( self ):
+        self.log.info( 'P4MainWindowActions.treeActionP4Debug1()' )
+        p4_project = self.selectedP4Project()
+        self.log.info( 'P4 Project: %r' % (p4_project,) )
+
+    @thread_switcher
+    def treeActionP4Connect_Bg( self, _arg=None ):
+        p4_project = self.selectedP4Project()
+        if p4_project.cmdConnect():
+            yield from self.top_window.updateTableView_Bg()
+
+    @thread_switcher
+    def treeActionP4Login_Bg( self, _arg=None ):
+        p4_project = self.selectedP4Project()
+        username = os.environ['USER']
+        dialog = wb_p4_credential_dialogs.WbP4GetLoginDialog( self.app, self.main_window, username )
+        if not dialog.exec_():
+            return
+
+        if p4_project.cmdLogin( username, dialog.getPassword() ):
+            yield from self.top_window.updateTableView_Bg()
+
     def treeTableActionP4DiffSmart( self ):
         self.main_window.callTreeOrTableFunction( self.treeActionP4DiffSmart, self.tableActionP4DiffSmart )
 
@@ -308,29 +302,6 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     def p4ErrorHandler( self, line ):
         self.log.error( line )
-
-    p4_username_prompt = 'user:'
-    p4_password_prompt = 'password:'
-    def p4CredentialsPrompt( self, url, realm, prompt ):
-        if prompt not in (self.p4_username_prompt, self.p4_password_prompt):
-            self.log.error( 'Unknown prompt "%s"' % (prompt,) )
-            return ''
-
-        if not self.__p4_credential_cache.hasCredentials( url ):
-            dialog = wb_p4_credential_dialogs.WbP4GetLoginDialog( self.app, self.main_window, url, realm )
-            if not dialog.exec_():
-                return ''
-
-            self.__p4_credential_cache.addCredentials( url, dialog.getUsername(), dialog.getPassword() )
-
-        if prompt == self.p4_username_prompt:
-            return self.__p4_credential_cache.username( url )
-
-        elif prompt == self.p4_password_prompt:
-            return self.__p4_credential_cache.password( url )
-
-    def p4AuthFailed( self, url ):
-        self.__p4_credential_cache.removeCredentials( url )
 
     #------------------------------------------------------------
     @thread_switcher

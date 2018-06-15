@@ -18,7 +18,7 @@ class WbP4GetLoginDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent, username ):
         super().__init__( parent )
 
-        self.setWindowTitle( T_('Perforce Credentials - %s') % (' '.join( app.app_name_parts ),) )
+        self.setWindowTitle( T_('P4 Credentials - %s') % (' '.join( app.app_name_parts ),) )
 
         self.password = QtWidgets.QLineEdit()
         self.password.setEchoMode( self.password.Password )

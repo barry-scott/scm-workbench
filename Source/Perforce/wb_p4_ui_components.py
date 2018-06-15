@@ -29,13 +29,10 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
         tm = self.table_view.table_model
         self.all_visible_table_columns = (tm.col_status, tm.col_name, tm.col_date)
 
-        try:
-            return wb_p4_project.P4Project( self.app, project, self )
+        project = wb_p4_project.P4Project( self.app, project, self )
+        project.cmdConnect()
 
-        except P4.P4Exception as e:
-            self.app.log.error( T_('Failed to add P4 workspace %s') % (project.path,) )
-            self.app.log.error( T_('P4 error: %s') % (e,) )
-            return None
+        return project
 
     #------------------------------------------------------------
     def addProjectPreInitWizardHandler( self, name, url, wc_path ):
@@ -129,13 +126,11 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Delete…'), act.tableActionP4Delete_Bg, act.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
-        addMenu( m, T_('Commit…'), act.treeActionP4Commit, act.enablerP4Commit, 'toolbar_images/commit.png' )
+        addMenu( m, T_('P4 Connect'), act.treeActionP4Connect_Bg )
+        addMenu( m, T_('P4 Login'), act.treeActionP4Login_Bg )
 
-        m.addSeparator()
-        addMenu( m, T_('Push'), act.treeActionP4Push_Bg, act.enablerP4Push, 'toolbar_images/push.png' )
-        addMenu( m, T_('Pull'), act.treeActionP4Pull_Bg, icon_name='toolbar_images/pull.png' )
-
-        if hasattr( self, 'treeActionP4Debug1' ):
+        if hasattr( act, 'treeActionP4Debug1' ):
+            m.addSeparator()
             m = mb.addMenu( T_('&P4 Debug') )
             self.all_menus.append( m )
             addMenu( m, T_('Debug 1'), act.treeActionP4Debug1 )
@@ -163,10 +158,6 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addTool( t, T_('Add'), act.tableActionP4Add_Bg, act.enablerP4FilesAdd, 'toolbar_images/add.png' )
         t.addSeparator()
         addTool( t, T_('Revert'), act.tableActionP4Revert_Bg, act.enablerP4FilesRevert, 'toolbar_images/revert.png' )
-        addTool( t, T_('Commit'), act.treeActionP4Commit, act.enablerP4Commit, 'toolbar_images/commit.png' )
-        t.addSeparator()
-        addTool( t, T_('Push'), act.treeActionP4Push_Bg, act.enablerP4Push, 'toolbar_images/push.png' )
-        addTool( t, T_('Pull'), act.treeActionP4Pull_Bg, icon_name='toolbar_images/pull.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )

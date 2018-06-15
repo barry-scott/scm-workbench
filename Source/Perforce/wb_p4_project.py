@@ -27,28 +27,38 @@ _p4_version = 'P4 from PyPI'
 def P4Version():
     return  _p4_version
 
+class ReportErrors(P4.OutputHandler):
+    def __init__( self, log ):
+        super().__init__()
+        self.log = log
+
+    def outputMessage( self, e ):
+        self.log.error( 'p4 error: msgid %d severity %d generic %d - %r' %
+                        (e.msgid, e.severity, e.generic, str(e)) )
+        return self.REPORT
+
 # Annotate can return errors about RCS that are uninteresting
 # Ignore them
-class SkipRcsErrors(P4.OutputHandler):
-    def __init__( self ):
-        super().__init__()
+class SkipRcsErrors(ReportErrors):
+    def __init__( self, log ):
+        super().__init__( log )
 
     def outputMessage( self, e ):
         if 'RCS checkout' in str(e):
             return self.HANDLED
 
-        return self.REPORT
+        return super().outputMessage( e )
 
-class SkipFstatEmpty(P4.OutputHandler):
-    def __init__( self ):
-        super().__init__()
+class SkipFstatEmpty(ReportErrors):
+    def __init__( self, log ):
+        super().__init__( log )
 
     def outputMessage( self, e ):
         # warning from fstat line file not in clien t view are EV_EMPTY
         if e.generic == P4.P4.EV_EMPTY:
             return self.HANDLED
 
-        return self.REPORT
+        return super().outputMessage( e )
 
 class P4Project:
     def __init__( self, app, prefs_project, ui_components ):
@@ -61,32 +71,69 @@ class P4Project:
         self.prefs_project = prefs_project
         if self.prefs_project is not None:
             # repo will be setup on demand - this speeds up start up especically on macOS
-            self.__repo = None
             self.tree = P4ProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
             self.flat_tree = P4ProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
         else:
-            self.__repo = P4.P4()
-            self.__repo.connect()
             self.tree = None
             self.flat_tree = None
+
+        self.__repo = P4.P4()
 
         self.all_file_state = {}
 
         self.__num_modified_files = 0
 
+    def _run( self, fn_name, *args, **kwds ):
+        repo = self.repo()
+        self.app.log.info( 'P4 CMD: %r %r %r' % (fn_name, args, kwds) )
+
+        if 'handler' in kwds:
+            handler = kwds['handler']
+        else:
+            handler =  ReportErrors( self.app.log )
+
+        while True:
+            try:
+                if not repo.connected():
+                    repo.connect()
+
+                return self.repo().run( fn_name, *args, handler=handler )
+
+            except P4.P4Exception as e:
+                self.app.log.error( 'In _run( %r, %r, %r ) error %s' %
+                                    (fn_name, args, kwds
+                                    ,str(e)) )
+                raise
+
     def repo( self ):
         # setup repo on demand
-        if self.__repo is None:
-            self.__repo = P4.P4()
+        return self.__repo
+
+    def cmdLogin( self, username, password ):
+        try:
+            self.__repo.user = username
+            self.__repo.password = password
+            self.__repo.connect()
+            self.__repo.run_login()
+            self.__repo.password = ''
+            return True
+
+        except P4.P4Exception as e:
+            self.__repo.password = ''
+            self.app.log.error( str(e) )
+            return False
+
+    def cmdConnect( self ):
+        try:
             self.__repo.connect()
             global _p4_version
             _p4_version = self.__repo.identify().split('\n')[-2]
+            return True
 
-        if not self.__repo.connected():
-            self.__repo.connect()
-
-        return self.__repo
+        except P4.P4Exception as e:
+            self.app.log.error( str(e) )
+            return False
 
     def scmType( self ):
         return 'p4'
@@ -202,7 +249,7 @@ class P4Project:
 
         # get the p4 file status for all the files in this folder
         try:
-            for fstat in self.repo().run_fstat('-Rc', '%s/*' % (self.pathForP4( folder ),), handler=SkipFstatEmpty() ):
+            for fstat in self._run( 'fstat', '-Rc', '%s/*' % (self.pathForP4( folder ),), handler=SkipFstatEmpty( self.app.log ) ):
                 # not interested in delete files
                 if fstat.get( 'headAction', '' ) in ('delete', 'move/delete'):
                     continue
@@ -322,36 +369,36 @@ class P4Project:
         p4_filepath = self.pathForP4( filename )
         if rev is not None:
             p4_filepath += rev
-        stats, text = self.repo().run_print( p4_filepath )
+        stats, text = self._run( 'print', p4_filepath )
         return stats, text
 
     def cmdEdit( self, filename ):
-        self.repo().run_edit( self.pathForP4( filename ) )
+        self._run( 'edit', self.pathForP4( filename ) )
 
     def cmdAdd( self, filename ):
-        self.repo().run_add( self.pathForP4( filename ) )
+        self_run( 'add', self.pathForP4( filename ) )
 
     def cmdRevert( self, filename ):
-        self.repo().run_revert( self.pathForP4( filename ) )
+        self._run( 'revert', self.pathForP4( filename ) )
 
     def cmdDelete( self, filename ):
-        self.repo().run_delete( self.pathForP4( filename ) )
+        self._run( 'delete', self.pathForP4( filename ) )
 
     def cmdDiffFolder( self, folder ):
         self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )
-        text = self.repo().run_diff( '-du', '%s/...' % (self.pathForP4( folder ),) )
+        text = self._run( 'diff', '-du', '%s/...' % (self.pathForP4( folder ),) )
         return text
 
     def cmdDiffWorkingVsChange( self, folder, change_old ):
         self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )
-        diff_list = self.repo().run_diff( '-du', '%s/...@%d' % (self.pathForP4( folder ), change_old) )
+        diff_list = self._run( 'diff', '-du', '%s/...@%d' % (self.pathForP4( folder ), change_old) )
         return diff_list
 
     def cmdDiffChangeVsChange( self, folder, change_old, change_new ):
         self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )
         # diff2 is known to *not* return diff lines ony file diff info
         # run in tagged=False to see the line diffs
-        text_list = self.repo().run_diff2( '-du', '%s/...@%d' % (self.pathForP4( folder ), change_old), '%s/...@%d' % (self.pathForP4( folder ), change_new), tagged=False )
+        text_list = self._run( 'diff2', '-du', '%s/...@%d' % (self.pathForP4( folder ), change_old), '%s/...@%d' % (self.pathForP4( folder ), change_new), tagged=False )
 
         text = []
         for line in text_list:
@@ -379,7 +426,7 @@ class P4Project:
         # annotate returns a list that starts with the file info.
         # which we skip. 
         line_num = -1
-        for line_info in self.repo().run_annotate( '-c', self.pathForP4( filename ) + rev, handler=SkipRcsErrors() ):
+        for line_info in self._run( 'annotate', '-c', self.pathForP4( filename ) + rev, handler=SkipRcsErrors( self.app.log ) ):
             line_num += 1
             if line_num == 0:
                 continue
@@ -392,7 +439,7 @@ class P4Project:
     def cmdChangeLogForAnnotateFile( self, filename, all_revs ):
         all_change_logs = {}
 
-        for desc in self.repo().run_describe( '-s', *all_revs ):
+        for desc in self._run( 'describe', '-s', *all_revs ):
             all_change_logs[ desc['change'] ] = WbP4LogBasic( desc, self.repo() )
 
         return all_change_logs
@@ -411,7 +458,7 @@ class P4Project:
 
         try:
             all_logs = [WbP4LogFull( data, self.repo() )
-                            for data in self.repo().run_changes( cmd )]
+                            for data in self._run( 'changes', cmd )]
             return all_logs
 
         except P4.P4Exception as e:
@@ -432,7 +479,7 @@ class P4Project:
 
         try:
             all_logs = [WbP4LogFull( data, self.repo() )
-                            for data in self.repo().run_changes( cmd )]
+                            for data in self._run( 'changes', cmd )]
             return all_logs
 
         except P4.P4Exception as e:
@@ -493,15 +540,15 @@ class P4Project:
         return False
 
     def cmdOpenedFiles( self ):
-        return self.repo().run_opened()
+        return self._run( 'opened' )
 
     def cmdChangesPending( self ):
         cmd = ['-u', os.getlogin(), '-s', 'pending', '-c', self.getClientName()]
-        return self.repo().run_changes( cmd )
+        return self._run( 'changes', cmd )
 
     def cmdChangesShelved( self ):
         cmd = ['-u', os.getlogin(), '-s', 'shelved', '-c', self.getClientName()]
-        return self.repo().run_changes( cmd )
+        return self._run( 'changes', cmd )
 
 class WbP4LogBasic:
     def __init__( self, data, repo ):
