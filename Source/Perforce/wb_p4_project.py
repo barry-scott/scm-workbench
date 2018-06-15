@@ -369,7 +369,7 @@ class P4Project:
         p4_filepath = self.pathForP4( filename )
         if rev is not None:
             p4_filepath += rev
-        stats, text = self._run( 'print', p4_filepath )
+        stats, text, unknown = self._run( 'print', p4_filepath )
         return stats, text
 
     def cmdEdit( self, filename ):
