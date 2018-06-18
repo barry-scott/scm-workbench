@@ -37,19 +37,7 @@ class ReportErrors(P4.OutputHandler):
                         (e.msgid, e.severity, e.generic, str(e)) )
         return self.REPORT
 
-# Annotate can return errors about RCS that are uninteresting
-# Ignore them
-class SkipRcsErrors(ReportErrors):
-    def __init__( self, log ):
-        super().__init__( log )
-
-    def outputMessage( self, e ):
-        if 'RCS checkout' in str(e):
-            return self.HANDLED
-
-        return super().outputMessage( e )
-
-class SkipFstatEmpty(ReportErrors):
+class SkipEmptyWarnings(ReportErrors):
     def __init__( self, log ):
         super().__init__( log )
 
@@ -249,7 +237,7 @@ class P4Project:
 
         # get the p4 file status for all the files in this folder
         try:
-            for fstat in self._run( 'fstat', '-Rc', '%s/*' % (self.pathForP4( folder ),), handler=SkipFstatEmpty( self.app.log ) ):
+            for fstat in self._run( 'fstat', '-Rc', '%s/*' % (self.pathForP4( folder ),), handler=SkipEmptyWarnings( self.app.log ) ):
                 # not interested in delete files
                 if fstat.get( 'headAction', '' ) in ('delete', 'move/delete'):
                     continue
@@ -386,19 +374,26 @@ class P4Project:
 
     def cmdDiffFolder( self, folder ):
         self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )
-        text = self._run( 'diff', '-du', '%s/...' % (self.pathForP4( folder ),) )
+        text = self._run( 'diff', '-du',
+                                '%s/...' % (self.pathForP4( folder ),),
+                                handler=SkipEmptyWarnings( self.app.log ) )
         return text
 
     def cmdDiffWorkingVsChange( self, folder, change_old ):
         self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )
-        diff_list = self._run( 'diff', '-du', '%s/...@%d' % (self.pathForP4( folder ), change_old) )
+        diff_list = self._run( 'diff', '-du',
+                                '%s/...@%d' % (self.pathForP4( folder ), change_old),
+                                handler=SkipEmptyWarnings( self.app.log ) )
         return diff_list
 
     def cmdDiffChangeVsChange( self, folder, change_old, change_new ):
         self.debugLog( 'cmdDiffFolder( %r )' % (folder,) )
         # diff2 is known to *not* return diff lines ony file diff info
         # run in tagged=False to see the line diffs
-        text_list = self._run( 'diff2', '-du', '%s/...@%d' % (self.pathForP4( folder ), change_old), '%s/...@%d' % (self.pathForP4( folder ), change_new), tagged=False )
+        text_list = self._run( 'diff2', '-du',
+                                '%s/...@%d' % (self.pathForP4( folder ), change_old), '%s/...@%d' % (self.pathForP4( folder ), change_new),
+                                tagged=False,
+                                handler=SkipEmptyWarnings( self.app.log ) )
 
         text = []
         for line in text_list:
@@ -426,7 +421,7 @@ class P4Project:
         # annotate returns a list that starts with the file info.
         # which we skip. 
         line_num = -1
-        for line_info in self._run( 'annotate', '-c', self.pathForP4( filename ) + rev, handler=SkipRcsErrors( self.app.log ) ):
+        for line_info in self._run( 'annotate', '-c', self.pathForP4( filename ) + rev, handler=SkipEmptyWarnings( self.app.log ) ):
             line_num += 1
             if line_num == 0:
                 continue

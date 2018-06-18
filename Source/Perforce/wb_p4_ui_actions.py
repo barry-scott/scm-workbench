@@ -209,7 +209,13 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         diff_list = tree_node.project.cmdDiffFolder( tree_node.relativePath() )
+        if len(diff_list) == 0:
+            self.log.info( 'Nothing to diff' )
 
+        else:
+            self.p4ShowDiffText( T_('Head vs. Working for %s') %
+                                        (tree_node.relativePath(),),
+                                        diff_list )
 
     def p4ShowDiffText( self, title, diff_list ):
         diff_text = []
