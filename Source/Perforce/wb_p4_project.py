@@ -46,6 +46,10 @@ class SkipEmptyWarnings(ReportErrors):
         if e.generic == P4.P4.EV_EMPTY:
             return self.HANDLED
 
+        # this is RCS error that pops up during an annotate
+        if e.msgid == 2167:
+            return self.HANDLED
+
         return super().outputMessage( e )
 
 class P4Project:
