@@ -841,6 +841,7 @@ class GitProject:
 
     def cmdStashPop( self, stash_id ):
         cmd = ['git', 'stash', 'pop', '--quiet', stash_id]
+        self.debugLog( 'cmdStashPop: %r' % (cmd,) )
         rc, stdout, stderr = self.repo().git.execute(
                     cmd,
                     with_extended_output=True,
@@ -874,7 +875,7 @@ class GitProject:
                 self.app.log.error( line )
             return []
 
-        all_stashs = []
+        all_stashes = []
 
         for line in stdout.split( '\n' ):
             line = line.strip()
@@ -887,9 +888,9 @@ class GitProject:
                     stash_branch = stash_branch[len(branch_prefix):]
                     break
 
-            all_stashs.append( WbGitStashInfo( stash_id, stash_branch, stash_message ) )
+            all_stashes.append( WbGitStashInfo( stash_id, stash_branch, stash_message ) )
 
-        return all_stashs
+        return all_stashes
 
 
 class WbGitStashInfo:
