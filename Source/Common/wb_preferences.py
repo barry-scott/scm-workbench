@@ -97,7 +97,19 @@ class Preferences(PreferencesNode):
             if project.path == path:
                 return project
 
+
         assert False, 'No project with path %r' % (path,)
+
+    def getProjectContainingPath( self, path:pathlib.Path ):
+        for project in self.all_projects.values():
+            try:
+                rel_path = path.relative_to( project.path )
+                return project, rel_path
+
+            except ValueError:
+                pass
+
+        return None, None
 
     def getAllProjects( self ) -> Iterable['Project']:
         return self.all_projects.values()
@@ -242,7 +254,7 @@ class Favorite(PreferencesNode):
     xml_attribute_info = (('project_path', pathlib.Path), ('path', pathlib.Path))
 
     def __init__( self, menu:str=None, project_path:pathlib.Path=None, path:pathlib.Path=None ) -> None:
-        super().__init__()
+        super().__init__()``
 
         assert menu is not None or isinstance( menu, str )
         assert project_path is None or isinstance( project_path, pathlib.Path )

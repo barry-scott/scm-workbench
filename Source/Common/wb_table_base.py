@@ -14,11 +14,26 @@ from PyQt5 import QtCore
 
 import wb_table_view
 
+_alignment_map = {
+    'l':    QtCore.Qt.AlignLeft,
+    'r':    QtCore.Qt.AlignRight,
+    'c':    QtCore.Qt.AlignCenter,
+    }
+
 class TableColumnBase:
-    def __init__( self, header, em_width, field ):
+    def __init__( self, header, em_width, alignment, field, formater=None ):
         self.header = header
         self.em_width = em_width
+        self.alignment = _alignment_map[ alignment ]
         self.field = field
+        self.formater = formater
+
+    def formatData( self, data ):
+        if self.formater == '1line':
+            return data.split( '\n', 1 )[0]
+
+        else:
+            return str( data )
 
 class TableColumnDict(TableColumnBase):
     def __init__( self, *args ):
@@ -49,6 +64,9 @@ class ViewModelMap:
 
     def data( self, column_index, container ):
         return self.all_columns[ column_index ].data( container )
+
+    def alignment( self, column_index ):
+        return self.all_columns[ column_index ].alignment
 
 class WbTableView(wb_table_view.WbTableView):
     def __init__( self, all_columns ):
@@ -113,8 +131,7 @@ class WbTableModel(QtCore.QAbstractTableModel):
                 return ''
 
         elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignLeft
-
+            return self.view_model_map.alignment( section )
         return None
 
     def rowInfo( self, row ):
@@ -123,5 +140,8 @@ class WbTableModel(QtCore.QAbstractTableModel):
     def data( self, index, role ):
         if role == QtCore.Qt.DisplayRole:
             return self.view_model_map.data( index.column(), self.all_rows[ index.row() ] )
+
+        if role == QtCore.Qt.TextAlignmentRole:
+            return self.view_model_map.alignment( index.column() )
 
         return None

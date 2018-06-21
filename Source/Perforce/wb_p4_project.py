@@ -539,7 +539,11 @@ class P4Project:
         return False
 
     def cmdOpenedFiles( self ):
-        return self._run( 'opened' )
+        all_opened_files = self._run( 'opened' )
+        for ofile in all_opened_files:
+            fstat = self._run( 'fstat', ofile[ 'depotFile' ] )[0]
+            ofile[ 'clientFile' ] = fstat[ 'clientFile' ]
+        return all_opened_files
 
     def cmdChangesPending( self ):
         cmd = ['-u', os.getlogin(), '-s', 'pending', '-c', self.getClientName()]
