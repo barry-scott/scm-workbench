@@ -12,8 +12,11 @@
 '''
 from PyQt5 import QtWidgets
 
+from wb_background_thread import thread_switcher
+
 import wb_tracked_qwidget
 import wb_table_base
+import wb_preferences
 import pathlib
 
 class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
@@ -29,6 +32,7 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         self.label_changes_pending = QtWidgets.QLabel( T_('Pending Changes ') )
         self.changes_pending = wb_table_base.WbTableView(
+                self.app,
                 [wb_table_base.TableColumnDict( U_('Change List'),  10, 'r', 'change' )
                 ,wb_table_base.TableColumnDict( U_('Description'),  50, 'l', 'desc', '1line' )] )
 
@@ -36,16 +40,18 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         self.label_changes_shelved = QtWidgets.QLabel( T_('Shelved changes ') )
         self.changes_shelved = wb_table_base.WbTableView(
+                self.app,
                 [wb_table_base.TableColumnDict( U_('Change List'),  10, 'r', 'change' )
                 ,wb_table_base.TableColumnDict( U_('Description'),  50, 'l', 'desc', '1line' )
                 ,wb_table_base.TableColumnDict( U_('Client'),       10, 'l', 'client' )] )
 
         self.label_opened_files = QtWidgets.QLabel( T_('Opened files') )
         self.opened_files = wb_table_base.WbTableView(
+                self.app,
                 [wb_table_base.TableColumnDict( U_('Change List'),  10, 'r', 'change' )
                 ,wb_table_base.TableColumnDict( U_('Action'),       10, 'l', 'action' )
                 ,wb_table_base.TableColumnDict( U_('File'),         50, 'l', 'clientFile' )] )
-        self.opened_files.setSelectionChangedCallback( self.fileSelected )
+        self.opened_files.setSelectionChangedCallback( self.fileSelected_Bg )
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget( self.label_changes_pending )
@@ -66,17 +72,15 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
     def changeListChanged( self, change ):
         self.opened_files.loadRows( self.all_change_list_files[ change[ 'change' ] ] )
 
-    def fileSelected( self, opened_file ):
-        print( 'QQQ %r' % (opened_file,) )
+    @thread_switcher
+    def fileSelected_Bg( self, opened_file ):
         filename = pathlib.Path( opened_file[ 'clientFile' ] )
         project, rel_path = self.app.prefs.getProjectContainingPath( filename )
         if project is None:
             return
 
-        print( 'QQQ project %r' % (project,) )
-        print( 'QQQ rel_path %r' % (rel_path,) )
-
-        #self.app.main_window.gotoProjectAndFile( project, rel_path )
+        favorite = wb_preferences.Favorite( menu='_', project_path=project.path, path=rel_path.parent )
+        yield from self.app.main_window.gotoFavorite_bg( favorite )
 
     def setStatus( self, all_opened_files, all_changes_pending, all_changes_shelved ):
         self.all_change_list_files = {}

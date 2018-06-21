@@ -69,8 +69,9 @@ class ViewModelMap:
         return self.all_columns[ column_index ].alignment
 
 class WbTableView(wb_table_view.WbTableView):
-    def __init__( self, all_columns ):
+    def __init__( self, app, all_columns ):
         super().__init__()
+        self.app = app
         self.selection_changed_callback = None
 
         self.view_model_map = ViewModelMap( all_columns )
@@ -88,7 +89,7 @@ class WbTableView(wb_table_view.WbTableView):
             self.setColumnWidth( index, em*self.view_model_map.emWidth( index ) )
 
     def setSelectionChangedCallback( self, selection_changed_callback ):
-        self.selection_changed_callback = selection_changed_callback
+        self.selection_changed_callback = self.app.wrapWithThreadSwitcher( selection_changed_callback, 'table_base_set_selection_changed' )
 
     def loadRows( self, all_rows ):
         self.model.loadRows( all_rows )
