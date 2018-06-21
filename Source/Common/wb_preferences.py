@@ -254,7 +254,7 @@ class Favorite(PreferencesNode):
     xml_attribute_info = (('project_path', pathlib.Path), ('path', pathlib.Path))
 
     def __init__( self, menu:str=None, project_path:pathlib.Path=None, path:pathlib.Path=None ) -> None:
-        super().__init__()``
+        super().__init__()
 
         assert menu is not None or isinstance( menu, str )
         assert project_path is None or isinstance( project_path, pathlib.Path )
