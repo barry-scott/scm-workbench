@@ -11,6 +11,7 @@
 
 '''
 from PyQt5 import QtWidgets
+from PyQt5 import QtCore
 
 from wb_background_thread import thread_switcher
 
@@ -81,6 +82,26 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         favorite = wb_preferences.Favorite( menu='_', project_path=project.path, path=rel_path.parent )
         yield from self.app.main_window.gotoFavorite_bg( favorite )
+
+        model = self.app.main_window.table_view.table_sortfilter
+        src_model = self.app.main_window.table_view.table_model
+        all_indices = src_model.indexListFromNameList( [rel_path.name] )
+        if len(all_indices) == 0:
+            return
+
+        selection_model = self.app.main_window.table_view.selectionModel()
+
+        # need a QItemSelection for this to work
+        left = all_indices[0]
+        right = left.model().createIndex( left.row(), 3, QtCore.QModelIndex() )
+
+        # must convert to source model indices
+        # and in this exact way otherwise SEGV on the select call
+        sort_left = model.mapFromSource( left )
+        sort_right = model.mapFromSource( right )
+
+        cell = QtCore.QItemSelection( sort_left, sort_right )
+        selection_model.select( cell, QtCore.QItemSelectionModel.Select )
 
     def setStatus( self, all_opened_files, all_changes_pending, all_changes_shelved ):
         self.all_change_list_files = {}

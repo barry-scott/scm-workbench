@@ -143,21 +143,6 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
 
         assert False, 'Unknown column %r' % (source_left,)
 
-    def indexListFromNameList( self, all_names ):
-        if len(all_names) == 0:
-            return []
-
-        model = self.sourceModel()
-
-        all_indices = []
-        for row in range( self.rowCount( QtCore.QModelIndex() ) ):
-            index = self.createIndex( row, 0 )
-            entry = model.data( index, QtCore.Qt.UserRole )
-            if entry.name in all_names:
-                all_indices.append( index )
-
-        return all_indices
-
 class WbScmTableModel(QtCore.QAbstractTableModel):
     col_include = 0
     col_staged = 1
@@ -184,6 +169,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 0, 255 ) )
         self.__brush_is_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
         self.__brush_is_uncontrolled = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
+
 
     def isByPath( self ):
         return self.scm_project_tree_node is not None and self.scm_project_tree_node.isByPath()
@@ -425,6 +411,19 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             return None
 
         return self.scm_project_tree_node.relativePath()
+
+    def indexListFromNameList( self, all_names ):
+        if len(all_names) == 0:
+            return []
+
+        all_indices = []
+        for row in range( self.rowCount( QtCore.QModelIndex() ) ):
+            index = self.createIndex( row, 0 )
+            entry = self.data( index, QtCore.Qt.UserRole )
+            if entry.name in all_names:
+                all_indices.append( index )
+
+        return all_indices
 
 class WbScmTableEntry:
     def __init__( self, app, name ):
