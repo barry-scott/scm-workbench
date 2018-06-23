@@ -241,7 +241,12 @@ class P4Project:
 
         # get the p4 file status for all the files in this folder
         try:
-            for fstat in self._run( 'fstat', '-Rc', '%s/*' % (self.pathForP4( folder ),), handler=SkipEmptyWarnings( self.app.log ) ):
+            all_fstat = self._run( 'fstat', '-Rc', '%s/*' % (self.pathForP4( folder ),), handler=SkipEmptyWarnings( self.app.log ) )
+            # sometimes fstat returns False (??!)
+            if type(all_fstat) == bool:
+                all_fstat = []
+
+            for fstat in all_fstat:
                 # not interested in delete files
                 if fstat.get( 'headAction', '' ) in ('delete', 'move/delete'):
                     continue
