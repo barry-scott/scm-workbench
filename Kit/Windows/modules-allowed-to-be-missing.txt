@@ -9,3 +9,4 @@ pkg_resources.extern.six
 pkg_resources.extern.appdirs
 unittest2
 gitdb_speedups._perf
+P4
