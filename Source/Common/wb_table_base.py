@@ -15,12 +15,12 @@ from PyQt5 import QtCore
 import wb_table_view
 
 _alignment_map = {
-    'l':    QtCore.Qt.AlignLeft,
-    'r':    QtCore.Qt.AlignRight,
-    'c':    QtCore.Qt.AlignCenter,
+    'L':    QtCore.Qt.AlignLeft,
+    'R':    QtCore.Qt.AlignRight,
+    'C':    QtCore.Qt.AlignCenter,
     }
 
-class TableColumnBase:
+class TableColumn:
     def __init__( self, header, em_width, alignment, field, formater=None ):
         self.header = header
         self.em_width = em_width
@@ -35,20 +35,6 @@ class TableColumnBase:
         else:
             return str( data )
 
-class TableColumnDict(TableColumnBase):
-    def __init__( self, *args ):
-        super().__init__( *args )
-
-    def data( self, container ):
-        return container[ self.field ]
-
-class TableColumnObject(TableColumnBase):
-    def __init__( self, *args ):
-        super().__init__( *args )
-
-    def data( self, container ):
-        return getattr( container, self.field )
-
 class ViewModelMap:
     def __init__( self, all_columns ):
         self.all_columns = all_columns
@@ -62,11 +48,25 @@ class ViewModelMap:
     def emWidth( self, column_index ):
         return self.all_columns[ column_index ].em_width
 
-    def data( self, column_index, container ):
-        return self.all_columns[ column_index ].data( container )
-
     def alignment( self, column_index ):
         return self.all_columns[ column_index ].alignment
+
+    # expects to be have a dict() or an instance of a class with
+    # fields or accessor functions
+    # use type info to figure which is which and get the field
+    # if the value is a callable method, call it
+    def data( self, column_index, container ):
+        field_name = self.all_columns[ column_index ].field_name
+
+        if isinstance( container, dict ):
+            value = container[ field_name ]
+
+        else:
+            value = getattr( container, field_name )
+            if type(value) == types.MethodType:
+                value = value()
+
+        return value
 
 class WbTableView(wb_table_view.WbTableView):
     def __init__( self, app, all_columns ):

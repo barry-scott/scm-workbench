@@ -34,24 +34,24 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.label_changes_pending = QtWidgets.QLabel( T_('Pending Changes ') )
         self.changes_pending = wb_table_base.WbTableView(
                 self.app,
-                [wb_table_base.TableColumnDict( U_('Change List'),  10, 'r', 'change' )
-                ,wb_table_base.TableColumnDict( U_('Description'),  50, 'l', 'desc', '1line' )] )
+                [wb_table_base.TableColumn( U_('Change List'),  10, 'R', 'change' )
+                ,wb_table_base.TableColumn( U_('Description'),  50, 'L', 'desc', '1line' )] )
 
         self.changes_pending.setSelectionChangedCallback( self.changeListChanged )
 
         self.label_changes_shelved = QtWidgets.QLabel( T_('Shelved changes ') )
         self.changes_shelved = wb_table_base.WbTableView(
                 self.app,
-                [wb_table_base.TableColumnDict( U_('Change List'),  10, 'r', 'change' )
-                ,wb_table_base.TableColumnDict( U_('Description'),  50, 'l', 'desc', '1line' )
-                ,wb_table_base.TableColumnDict( U_('Client'),       10, 'l', 'client' )] )
+                [wb_table_base.TableColumn( U_('Change List'),  10, 'R', 'change' )
+                ,wb_table_base.TableColumn( U_('Description'),  50, 'L', 'desc', '1line' )
+                ,wb_table_base.TableColumn( U_('Client'),       10, 'L', 'client' )] )
 
         self.label_opened_files = QtWidgets.QLabel( T_('Opened files') )
         self.opened_files = wb_table_base.WbTableView(
                 self.app,
-                [wb_table_base.TableColumnDict( U_('Change List'),  10, 'r', 'change' )
-                ,wb_table_base.TableColumnDict( U_('Action'),       10, 'l', 'action' )
-                ,wb_table_base.TableColumnDict( U_('File'),         50, 'l', 'clientFile' )] )
+                [wb_table_base.TableColumn( U_('Change List'),  10, 'R', 'change' )
+                ,wb_table_base.TableColumn( U_('Action'),       10, 'L', 'action' )
+                ,wb_table_base.TableColumn( U_('File'),         50, 'L', 'clientFile' )] )
         self.opened_files.setSelectionChangedCallback( self.fileSelected_Bg )
 
         self.layout = QtWidgets.QVBoxLayout()

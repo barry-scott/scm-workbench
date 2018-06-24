@@ -58,9 +58,9 @@ class WbGitStashPick(QtWidgets.QDialog):
 
         self.stashes_table = wb_table_base.WbTableView(
                 self.app,
-                [wb_table_base.TableColumnObject( U_('Stash ID'), 10, 'l', 'stash_id' )
-                ,wb_table_base.TableColumnObject( U_('Branch'),   10, 'l', 'stash_branch' )
-                ,wb_table_base.TableColumnObject( U_('Message'),  50, 'l', 'stash_message', '1line' )] )
+                [wb_table_base.TableColumn( U_('Stash ID'), 10, 'L', 'stash_id' )
+                ,wb_table_base.TableColumn( U_('Branch'),   10, 'L', 'stash_branch' )
+                ,wb_table_base.TableColumn( U_('Message'),  50, 'L', 'stash_message', '1line' )] )
         self.stashes_table.setSelectionChangedCallback( self.selectionChanged )
         self.stashes_table.loadRows( all_stashes )
 
