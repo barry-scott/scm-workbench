@@ -71,7 +71,14 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         self.resize( 100*em, 50*ex )
 
     def changeListChanged( self, change ):
-        self.opened_files.loadRows( self.all_change_list_files[ change[ 'change' ] ] )
+        change_id =  change[ 'change' ]
+        if change_id in self.all_change_list_files:
+            # load the files
+            self.opened_files.loadRows( self.all_change_list_files[ change_id ] )
+
+        else:
+            # the change has no files in the work space
+            self.opened_files.loadRows( [] )
 
     @thread_switcher
     def fileSelected_Bg( self, opened_file ):
@@ -119,4 +126,4 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
             self.opened_files.loadRows( self.all_change_list_files[ 'default' ] )
 
         elif len(self.all_change_list_files) > 0:
-            self.opened_files.loadRows( self.all_change_list_files[ all_changes_pending[0] ] )
+            self.changeListChanged( all_changes_pending[0] )
