@@ -56,13 +56,13 @@ class ViewModelMap:
     # use type info to figure which is which and get the field
     # if the value is a callable method, call it
     def data( self, column_index, container ):
-        field_name = self.all_columns[ column_index ].field_name
+        field = self.all_columns[ column_index ].field
 
         if isinstance( container, dict ):
-            value = container[ field_name ]
+            value = container[ field ]
 
         else:
-            value = getattr( container, field_name )
+            value = getattr( container, field )
             if type(value) == types.MethodType:
                 value = value()
 
