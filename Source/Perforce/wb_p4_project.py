@@ -31,8 +31,14 @@ class ReportErrors(P4.OutputHandler):
     def __init__( self, log ):
         super().__init__()
         self.log = log
+        self.retry = False
 
     def outputMessage( self, e ):
+        # connection timed out
+        if e.msgid == 1:
+            self.retry = True
+            return self.HANDLED
+
         self.log.error( 'p4 error: msgid %d severity %d generic %d - %r' %
                         (e.msgid, e.severity, e.generic, str(e)) )
         return self.REPORT
@@ -90,7 +96,11 @@ class P4Project:
                 if not repo.connected():
                     repo.connect()
 
-                return self.repo().run( fn_name, *args, handler=handler )
+                result = self.repo().run( fn_name, *args, handler=handler )
+                if handler.retry:
+                    continue
+
+                return result
 
             except P4.P4Exception as e:
                 self.app.log.error( 'In _run( %r, %r, %r ) error %s' %
