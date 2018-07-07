@@ -371,6 +371,31 @@ class P4Project:
         else:
             return all_lines
 
+    def cmdFetchChange( self ):
+        self.debugLog( 'cmdFetchChange()' )
+        changespec = self.__repo.fetch_change()
+        # lose useless UI prompt
+        changespec['description'] = ''
+        return changespec
+
+    def cmdSaveChange( self, changespec ):
+        self.debugLog( 'cmdSaveChange()' )
+        result = self.__repo.save_change( changespec )
+        for line in result:
+            self.app.log.info( line )
+
+    def cmdSubmitChange( self, change ):
+        self.debugLog( 'cmdSubmitChange( %r )' % (change,) )
+        self._run( 'submit', change )
+
+    def cmdShelveChange( self, change, reshelve=False ):
+        self.debugLog( 'cmdShelveChange( %r )' % (change,) )
+
+        if reshelve:
+            self._run( 'shelve', '-r', '-c', change )
+        else:
+            self._run( 'shelve', '-c', change )
+
     def cmdPrint( self, filename, rev=None ):
         self.debugLog( 'cmdPrint( %r, rev=%r )' % (filename, rev) )
         p4_filepath = self.pathForP4( filename )

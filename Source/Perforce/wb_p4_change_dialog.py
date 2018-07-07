@@ -7,7 +7,7 @@
 
  ====================================================================
 
-    wb_p4_commit_dialog.py
+    wb_p4_change_dialog.py
 
 '''
 from PyQt5 import QtWidgets
@@ -21,9 +21,9 @@ import wb_scm_table_view
 
 
 #
-#   add tool bars and menu for use in the commit window
+#   add tool bars and menu for use in the change window
 #
-class P4CommitWindowComponents(wb_ui_components.WbMainWindowComponents):
+class P4ChangeWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __init__( self, factory ):
         super().__init__( 'p4', factory )
 
@@ -55,7 +55,7 @@ class P4CommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         self.all_toolbars.append( t )
 
         addTool( t, T_('Diff'), act.tableActionP4DiffSmart, act.enablerP4DiffSmart, 'toolbar_images/diff.png' )
-        addTool( t, T_('Commit History'), act.tableActionP4LogHistory_Bg, act.enablerP4LogHistory, 'toolbar_images/history.png' )
+        addTool( t, T_('Change History'), act.tableActionP4LogHistory_Bg, act.enablerP4LogHistory, 'toolbar_images/history.png' )
 
         # ----------------------------------------
         t = addToolBar( T_('p4 state') )
@@ -64,12 +64,17 @@ class P4CommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         addTool( t, T_('Add'), act.tableActionP4Add_Bg, act.enablerP4FilesAdd, 'toolbar_images/include.png' )
         addTool( t, T_('Revert'), act.tableActionP4Revert_Bg, act.enablerP4FilesRevert, 'toolbar_images/revert.png' )
 
-class WbP4CommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
-    commitAccepted = QtCore.pyqtSignal()
-    commitClosed = QtCore.pyqtSignal()
+class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
+    changeAccepted = QtCore.pyqtSignal()
+    changeClosed = QtCore.pyqtSignal()
 
-    def __init__( self, app, p4_project ):
+    def __init__( self, app, p4_project, changespec=None ):
         self.__pyqt_bug_already_closed_why_call_close_event_again = False
+
+        if changespec is not None:
+            self.changespec = changespec
+        else:
+            self.changespec = p4_project.cmdFetchChange()
 
         self.app = app
         self.p4_project = p4_project
@@ -78,9 +83,9 @@ class WbP4CommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         super().__init__( app, app.debug_options.debugLogMainWindow )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
-        self.ui_component = P4CommitWindowComponents( self.app.getScmFactory( 'p4' ) )
+        self.ui_component = P4ChangeWindowComponents( self.app.getScmFactory( 'p4' ) )
 
-        self.setWindowTitle( T_('Commit %(project_name)s - %(app_name)s') %
+        self.setWindowTitle( T_('Change %(project_name)s - %(app_name)s') %
                                 {'project_name': p4_project.projectName()
                                 ,'app_name': ' '.join( app.app_name_parts )} )
         self.setWindowIcon( self.app.getAppQIcon() )
@@ -91,7 +96,7 @@ class WbP4CommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.all_included_files = set()
         self.table_view.setIncludedFilesSet( self.all_included_files )
 
-        # unchanged files should not be interesting for a commit
+        # unchanged files should not be interesting for a change
         self.table_view.setShowControlledAndNotChangedFiles( False )
 
         self.ui_component.setTopWindow( self.app.top_window )
@@ -124,8 +129,8 @@ class WbP4CommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.v_table_widget = QtWidgets.QWidget()
         self.v_table_widget.setLayout( self.v_table_layout )
 
-        self.label_message = QtWidgets.QLabel( T_('Commit Log Message') )
-        self.message = QtWidgets.QPlainTextEdit( '' )
+        self.label_message = QtWidgets.QLabel( T_('Change Log Message') )
+        self.message = QtWidgets.QPlainTextEdit( self.changespec['Description'] )
 
         self.v_message_layout = QtWidgets.QVBoxLayout()
         self.v_message_layout.addWidget( self.label_message )
@@ -140,8 +145,8 @@ class WbP4CommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         # ----------------------------------------
         self.v_split = QtWidgets.QSplitter()
         self.v_split.setOrientation( QtCore.Qt.Vertical )
-        self.v_split.addWidget( self.v_table_widget )
         self.v_split.addWidget( self.v_message_widget )
+        self.v_split.addWidget( self.v_table_widget )
 
         # ----------------------------------------
         self.layout = QtWidgets.QVBoxLayout()
@@ -179,7 +184,7 @@ class WbP4CommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.table_view.completeInit()
 
         # set splitter position
-        table_size_ratio = 0.7
+        table_size_ratio = 0.3
         height = sum( self.v_split.sizes() )
         table_height = int( height * table_size_ratio )
         message_height = height - table_height
@@ -231,17 +236,21 @@ class WbP4CommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
         self.__pyqt_bug_already_closed_why_call_close_event_again = True
 
-        self.commitClosed.emit()
+        self.changeClosed.emit()
 
     def handleAccepted( self ):
-        self.commitAccepted.emit()
+        self.changespec['Description'] = self.getMessage()
+        self.changeAccepted.emit()
 
     def enableOkButton( self ):
         text = self.message.toPlainText()
-        self.ok_button.setEnabled( text.strip() != '' and self.p4_project.numModifiedFiles() != 0 )
+        self.ok_button.setEnabled( text.strip() != '' )
 
     def getMessage( self ):
         return self.message.toPlainText().strip()
+
+    def getChangeSpec( self ):
+        return self.changespec
 
     def updateSingleton( self ):
         self.updateTableView()

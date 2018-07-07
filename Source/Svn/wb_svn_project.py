@@ -59,7 +59,6 @@ class SvnProject:
 
         if prefs_project is not None:
             self.tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
-            self.flat_tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
 
             self.all_file_state = {}
             self.__stale_status = False
@@ -84,6 +83,10 @@ class SvnProject:
     def getAllBranchNames( self ):
         return [self.getBranchName()]
 
+    # useful for checkin of a subset of the working copy
+    def newInstance( self ):
+        return SvnProject( self.app, self.prefs_project, self.ui_components )
+
     def isNotEqual( self, other ):
         return self.prefs_project.name != other.prefs_project.name
 
@@ -102,6 +105,24 @@ class SvnProject:
     def numUncommittedFiles( self ):
         return self.__num_uncommitted_files
 
+    def updateStateForCheckin( self ):
+        self.flat_tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+        for state in self.client().status2( str(self.projectPath()) ):
+            filepath = self.pathForWb( state.path )
+
+            if filepath not in self.all_file_state:
+                # filepath has been deleted
+                self.all_file_state[ filepath ] = WbSvnFileState( self, filepath )
+
+            self.all_file_state[ filepath ].setState( state )
+            if state.kind == pysvn.node_kind.dir:
+                self.all_file_state[ filepath ].setIsDir()
+
+            if state.node_status in (pysvn.wc_status_kind.added, pysvn.wc_status_kind.modified, pysvn.wc_status_kind.deleted):
+                self.__num_uncommitted_files += 1
+
+            self.flat_tree.addFileByPath( path )
+
     def updateState( self, tree_leaf ):
         self.debugLog( 'updateState( %r ) repo=%s' % (tree_leaf, self.projectPath()) )
 
@@ -109,7 +130,6 @@ class SvnProject:
 
         # rebuild the tree
         self.tree = SvnProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
-        self.flat_tree = SvnProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
 
         if not self.projectPath().exists():
             self.app.log.error( T_('Project %(name)s folder %(folder)s has been deleted') %
@@ -190,8 +210,6 @@ class SvnProject:
         self.debugLogUpdateTree( '__updateTree addFile %r to node %r' % (path, node) )
         if not is_dir:
             node.addFileByName( path )
-
-        self.flat_tree.addFileByPath( path )
 
     def dumpTree( self ):
         self.tree._dumpTree( 0 )

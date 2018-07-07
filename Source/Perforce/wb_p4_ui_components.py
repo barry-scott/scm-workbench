@@ -126,6 +126,9 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Delete…'), act.tableActionP4Delete_Bg, act.main_window.table_view.enablerTableFilesExists )
 
         m.addSeparator()
+        addMenu( m, T_('Change…'), act.treeActionP4Change, icon_name='toolbar_images/commit.png' )
+
+        m.addSeparator()
         addMenu( m, T_('P4 Connect'), act.treeActionP4Connect_Bg )
         addMenu( m, T_('P4 Login'), act.treeActionP4Login_Bg )
 
@@ -158,6 +161,8 @@ class P4MainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addTool( t, T_('Add'), act.tableActionP4Add_Bg, act.enablerP4FilesAdd, 'toolbar_images/add.png' )
         t.addSeparator()
         addTool( t, T_('Revert'), act.tableActionP4Revert_Bg, act.enablerP4FilesRevert, 'toolbar_images/revert.png' )
+        t.addSeparator()
+        addTool( t, T_('Change'), act.treeActionP4Change, icon_name='toolbar_images/commit.png' )
 
     def setupTableContextMenu( self, m, addMenu ):
         super().setupTableContextMenu( m, addMenu )

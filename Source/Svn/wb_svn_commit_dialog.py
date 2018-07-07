@@ -64,11 +64,12 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     commitAccepted = QtCore.pyqtSignal()
     commitClosed = QtCore.pyqtSignal()
 
-    def __init__( self, app, svn_project ):
+    def __init__( self, app, svn_project, all_paths_to_checkin ):
         self.__pyqt_bug_already_closed_why_call_close_event_again = False
 
         self.app = app
         self.svn_project = svn_project
+        self.all_paths_to_checkin = all_paths_to_checkin
         self.table_view = None
 
         super().__init__( app, app.debug_options.debugLogMainWindow )
@@ -255,8 +256,6 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.updateTableView()
 
     def updateTableView( self ):
-
-
         # caller will have updated the svn project state already
         self.table_view.setScmProjectTreeNode( self.svn_project.flat_tree )
 

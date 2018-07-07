@@ -18,7 +18,7 @@ import wb_log_history_options_dialog
 import wb_ui_actions
 import wb_common_dialogs
 
-import wb_p4_commit_dialog
+import wb_p4_change_dialog
 import wb_p4_project
 import wb_p4_status_view
 import wb_p4_credential_dialogs
@@ -29,7 +29,7 @@ from wb_background_thread import thread_switcher
 #
 #   Start with the main window components interface
 #   and add actions used by the main window
-#   and the commit window
+#   and the change window
 #
 #   then derive to add tool bars and menus
 #   appropiate to each context
@@ -179,11 +179,11 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         if not options.exec_():
             return
 
-        commit_log_view = self.factory.logHistoryView(
+        change_log_view = self.factory.logHistoryView(
                 self.app,
-                T_('Commit Log for %s') % (filename,) )
+                T_('Change Log for %s') % (filename,) )
 
-        yield from commit_log_view.showChangeLogForFile_Bg( p4_project, filename, options )
+        yield from change_log_view.showChangeLogForFile_Bg( p4_project, filename, options )
 
     #------------------------------------------------------------
     #
@@ -322,15 +322,15 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         yield self.app.switchToForeground
 
-        commit_status_view = wb_p4_status_view.WbP4StatusView(
+        change_status_view = wb_p4_status_view.WbP4StatusView(
                 self.app,
                 T_('Status for %s') % (p4_project.projectName(),) )
 
-        commit_status_view.setStatus(
+        change_status_view.setStatus(
                     all_opened_files,
                     all_changes_pending,
                     all_changes_shelved )
-        commit_status_view.show()
+        change_status_view.show()
 
     # ------------------------------------------------------------
     @thread_switcher
@@ -438,11 +438,11 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         p4_project = self.selectedP4Project()
 
-        commit_log_view = self.factory.logHistoryView(
+        change_log_view = self.factory.logHistoryView(
                 self.app,
-                T_('Commit Log for %s') % (p4_project.projectName(),) )
+                T_('Change Log for %s') % (p4_project.projectName(),) )
 
-        yield from commit_log_view.showChangeLogForFolder_Bg( p4_project, folder_path, options )
+        yield from change_log_view.showChangeLogForFolder_Bg( p4_project, folder_path, options )
 
     def enablerTableP4Annotate( self ):
         if not self.main_window.isScmTypeActive( 'p4' ):
@@ -471,12 +471,12 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield self.switchToForeground
 
         self.progress.end()
-        self.progress.start( T_('Annotate Commit Logs %(count)d'), 0 )
+        self.progress.start( T_('Annotate Change Logs %(count)d'), 0 )
 
         yield self.switchToBackground
 
         # when we know that exception can be raised catch it...
-        all_commit_logs = p4_project.cmdChangeLogForAnnotateFile( filename, all_annotate_revs )
+        all_change_logs = p4_project.cmdChangeLogForAnnotateFile( filename, all_annotate_revs )
 
         yield self.switchToForeground
 
@@ -486,50 +486,51 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         annotate_view = wb_p4_annotate.WbP4AnnotateView(
                             self.app,
                             T_('Annotation of %s') % (filename,) )
-        annotate_view.showAnnotationForFile( all_annotation_nodes, all_commit_logs )
+        annotate_view.showAnnotationForFile( all_annotation_nodes, all_change_logs )
         annotate_view.show()
 
-    commit_key = 'p4-commit-dialog'
-    def treeActionP4Commit( self ):
-        if self.app.hasSingleton( self.commit_key ):
-            commit_dialog = self.app.getSingleton( self.commit_key )
-            commit_dialog.raise_()
+    change_key = 'p4-change-dialog'
+    def treeActionP4Change( self ):
+        if self.app.hasSingleton( self.change_key ):
+            change_dialog = self.app.getSingleton( self.change_key )
+            change_dialog.raise_()
             return
 
         p4_project = self.selectedP4Project()
 
-        commit_dialog = wb_p4_commit_dialog.WbP4CommitDialog( self.app, p4_project )
-        commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
-        commit_dialog.commitClosed.connect( self.__commitClosed )
+        change_dialog = wb_p4_change_dialog.WbP4ChangeDialog( self.app, p4_project )
+        change_dialog.changeAccepted.connect( self.app.wrapWithThreadSwitcher( self.__changeAccepted_Bg ) )
+        change_dialog.changeClosed.connect( self.__changeClosed )
 
         # show to the user
-        commit_dialog.show()
+        change_dialog.show()
 
-        self.app.addSingleton( self.commit_key, commit_dialog )
+        self.app.addSingleton( self.change_key, change_dialog )
 
         # enabled states may have changed
         self.main_window.updateActionEnabledStates()
 
     @thread_switcher
-    def __commitAccepted_Bg( self ):
-        commit_dialog = self.app.popSingleton( self.commit_key )
+    def __changeAccepted_Bg( self ):
+        change_dialog = self.app.popSingleton( self.change_key )
+
+        changespec = change_dialog.getChangeSpec()
+        self.app.log.info( 'QQQ changespec %r' % (changespec,) )
+        headline = changespec['Description'].split('\n')[0]
+        self.log.infoheader( T_('Change "%(headline)s"') % {'headline': headline} )
 
         p4_project = self.selectedP4Project()
-        message = commit_dialog.getMessage()
-        commit_id = p4_project.cmdCommit( message )
+        change_id = p4_project.cmdSaveChange( changespec )
 
-        headline = message.split('\n')[0]
-        self.log.infoheader( T_('Committed "%(headline)s" as %(commit_id)s') % {'headline': headline, 'commit_id': commit_id} )
-
-        # close will emit the commitClose signal
-        commit_dialog.close()
+        # close will emit the changeClose signal
+        change_dialog.close()
 
         # take account of any changes
         yield from self.main_window.updateTableView_Bg()
 
-    def __commitClosed( self ):
-        if self.app.hasSingleton( self.commit_key ):
-            self.app.popSingleton( self.commit_key )
+    def __changeClosed( self ):
+        if self.app.hasSingleton( self.change_key ):
+            self.app.popSingleton( self.change_key )
 
     #============================================================
     #
@@ -540,8 +541,8 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         mw = self.main_window
 
         focus = mw.focusIsIn()
-        if focus == 'commits':
-            return len(mw.current_commit_selections) in (1,2)
+        if focus == 'changes':
+            return len(mw.current_change_selections) in (1,2)
 
         elif focus == 'changes':
             if len(mw.current_file_selection) == 0:
@@ -556,15 +557,15 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     def enablerTableP4AnnotateLogHistory( self ):
         mw = self.main_window
         focus = mw.focusIsIn()
-        if focus == 'commits':
-            return len(mw.current_commit_selections) in (1,2)
+        if focus == 'changes':
+            return len(mw.current_change_selections) in (1,2)
 
         else:
             return False
 
     def tableActionP4DiffLogHistory( self ):
         focus = self.main_window.focusIsIn()
-        if focus == 'commits':
+        if focus == 'changes':
             self.diffLogHistory()
 
         elif focus == 'changes':
@@ -579,11 +580,11 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         #
         #   Figure out the refs for the diff and set up title and headings
         #
-        if len( mw.current_commit_selections ) == 1:
+        if len( mw.current_change_selections ) == 1:
             # diff working against rev
             change_new = None
-            change_old = mw.log_model.changeForRow( mw.current_commit_selections[0] )
-            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+            change_old = mw.log_model.changeForRow( mw.current_change_selections[0] )
+            date_old = mw.log_model.dateStringForRow( mw.current_change_selections[0] )
 
             title_vars = {'change_old': change_old
                          ,'date_old': date_old}
@@ -601,10 +602,10 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
                 heading_new = 'Working'
 
         else:
-            change_new = mw.log_model.changeForRow( mw.current_commit_selections[0] )
-            date_new = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
-            change_old = mw.log_model.changeForRow( mw.current_commit_selections[-1] )
-            date_old = mw.log_model.dateStringForRow( mw.current_commit_selections[-1] )
+            change_new = mw.log_model.changeForRow( mw.current_change_selections[0] )
+            date_new = mw.log_model.dateStringForRow( mw.current_change_selections[0] )
+            change_old = mw.log_model.changeForRow( mw.current_change_selections[-1] )
+            date_old = mw.log_model.dateStringForRow( mw.current_change_selections[-1] )
 
             title_vars = {'change_old': change_old
                          ,'date_old': date_old
@@ -659,16 +660,16 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         type_, filename = mw.changes_model.changesNode( mw.current_file_selection[0] )
 
-        rev_new = mw.log_model.changeForRow( mw.current_commit_selections[0] )
+        rev_new = mw.log_model.changeForRow( mw.current_change_selections[0] )
         rev_old = rev_new - 1
-        date_new = mw.log_model.dateStringForRow( mw.current_commit_selections[0] )
+        date_new = mw.log_model.dateStringForRow( mw.current_change_selections[0] )
 
         title_vars = {'rev_old': rev_old
                      ,'rev_new': rev_new
                      ,'date_new': date_new}
 
-        heading_new = T_('commit %(rev_new)s date %(date_new)s') % title_vars
-        heading_old = T_('commit %(rev_old)s') % title_vars
+        heading_new = T_('change %(rev_new)s date %(date_new)s') % title_vars
+        heading_old = T_('change %(rev_old)s') % title_vars
 
         title = T_('Diff %s') % (filename,)
 
