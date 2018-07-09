@@ -375,7 +375,10 @@ class P4Project:
         self.debugLog( 'cmdFetchChange()' )
         changespec = self.__repo.fetch_change()
         # lose useless UI prompt
-        changespec['description'] = ''
+        changespec['Description'] = ''
+        # Jobs are not supported - remove is present
+        changespec['Jobs'] = []
+
         return changespec
 
     def cmdSaveChange( self, changespec ):
