@@ -381,6 +381,35 @@ class P4Project:
 
         return changespec
 
+    def projectTreeFromChangeSpec( self, changespec ):
+        tree = P4ProjectTreeNode( self, self.prefs_project.name, pathlib.Path( '.' ) )
+
+        all_files = changespec.get('Files', [])
+        if len(all_files) == 0:
+            return tree
+
+        repo_root = self.projectPath()
+
+        try:
+            cmd = ['fstat'] + all_files
+            all_fstat = self._run( *cmd )
+            for fstat in all_fstat:
+                abs_path = self.pathForWb( fstat['clientFile'] )
+                repo_relative = abs_path.relative_to( repo_root )
+
+                # is this a dirty trick?
+                if repo_relative not in self.all_file_state:
+                    self.all_file_state[ repo_relative ] = WbP4FileState( self, repo_relative )
+                self.all_file_state[ repo_relative ].setFStat( fstat )
+
+                tree.addFileByPath( repo_relative )
+
+        except P4.P4Exception as e:
+            self.app.log.error( 'P4 fstat error: %s' % (e,) )
+            self.debugLogTree( 'projectTreeFromChangeSpec() fstat error %r' % (e,) )
+
+        return tree
+
     def cmdSaveChange( self, changespec ):
         self.debugLog( 'cmdSaveChange()' )
         result = self.__repo.save_change( changespec )
@@ -522,6 +551,7 @@ class P4Project:
         try:
             all_logs = [WbP4LogFull( data, self.repo() )
                             for data in self._run( 'changes', cmd )]
+
             return all_logs
 
         except P4.P4Exception as e:
@@ -603,6 +633,9 @@ class WbP4LogBasic:
         self.message =  data['desc']
         self.date =     datetime.datetime.fromtimestamp( int(data['time']), tz=pytz.utc )
 
+    def __repr__( self ):
+        return '<%s c=%d a=%r d=%r>' % (self.__class__.__name__, self.change, self.author, self.message[:30])
+
     def commitMessage( self ):
         return self.message
 
@@ -624,6 +657,7 @@ class WbP4LogFull(WbP4LogBasic):
 
         self.all_changed_files = []
         for data in repo.run_describe( '-s', self.change ):
+            self.message = data['desc']
             action = ','.join( data['action'] )
             for filename in data['depotFile']:
                 self.all_changed_files.append( (action, filename) )

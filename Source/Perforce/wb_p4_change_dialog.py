@@ -64,6 +64,8 @@ class P4ChangeWindowComponents(wb_ui_components.WbMainWindowComponents):
         addTool( t, T_('Add'), act.tableActionP4Add_Bg, act.enablerP4FilesAdd, 'toolbar_images/include.png' )
         addTool( t, T_('Revert'), act.tableActionP4Revert_Bg, act.enablerP4FilesRevert, 'toolbar_images/revert.png' )
 
+        addTool( t, T_('Include'), act.tableActionChangeInclude, act.enablerP4ChangeInclude, checker=act.checkerActionChangeInclude )
+
 class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     changeAccepted = QtCore.pyqtSignal()
     changeClosed = QtCore.pyqtSignal()
@@ -75,6 +77,8 @@ class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
             self.changespec = changespec
         else:
             self.changespec = p4_project.cmdFetchChange()
+
+        app.log.info('QQQ changespec %r' % (self.changespec,) )
 
         self.app = app
         self.p4_project = p4_project
@@ -92,6 +96,8 @@ class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
         # on Qt on macOS table will trigger selectionChanged that needs table_model
         self.table_view = wb_scm_table_view.WbScmTableView( self.app, self )
+        tm = self.table_view.table_model
+        self.table_view.setVisibleColumns( (tm.col_include, tm.col_status, tm.col_name) )
 
         self.all_included_files = set()
         self.table_view.setIncludedFilesSet( self.all_included_files )
@@ -242,6 +248,14 @@ class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.changespec['Description'] = self.getMessage()
         self.changeAccepted.emit()
 
+    def addChangeIncludedFile( self, filename ):
+        self.all_included_files.add( filename )
+        self.enableOkButton()
+
+    def removeChangeIncludedFile( self, filename ):
+        self.all_included_files.discard( filename )
+        self.enableOkButton()
+
     def enableOkButton( self ):
         text = self.message.toPlainText()
         self.ok_button.setEnabled( text.strip() != '' )
@@ -257,7 +271,8 @@ class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
     def updateTableView( self ):
         # caller will have updated the p4 project state already
-        self.table_view.setScmProjectTreeNode( self.p4_project.flat_tree )
+        tree = self.p4_project.projectTreeFromChangeSpec( self.changespec )
+        self.table_view.setScmProjectTreeNode( tree )
 
     def isScmTypeActive( self, scm_type ):
         return scm_type == 'p4'

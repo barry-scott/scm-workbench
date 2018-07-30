@@ -57,6 +57,9 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     def enablerP4FilesRevert( self ):
         return self.__enablerP4Files( wb_p4_project.WbP4FileState.canRevert )
 
+    def enablerP4ChangeInclude( self ):
+        return len(self.main_window.all_included_files) != 0
+
     def __enablerP4Files( self, predicate ):
         if not self.main_window.isScmTypeActive( 'p4' ):
             return False
@@ -532,6 +535,33 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         if self.app.hasSingleton( self.change_key ):
             self.app.popSingleton( self.change_key )
 
+    def tableActionChangeInclude( self, checked=None ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return
+
+        for entry in all_file_states:
+            if checked:
+                self.main_window.addChangeIncludedFile( entry.relativePath() )
+
+            else:
+
+                self.main_window.removeChangeIncludedFile( entry.relativePath() )
+
+        # take account of the changes
+        yield from self.top_window.updateTableView_Bg()
+
+    def checkerActionChangeInclude( self ):
+        all_file_states = self.tableSelectedAllFileStates()
+        if len(all_file_states) == 0:
+            return False
+
+        for entry in all_file_states:
+            if entry.relativePath() not in self.main_window.all_included_files:
+                return False
+
+        return True
+
     #============================================================
     #
     # actions for log history view
@@ -541,7 +571,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         mw = self.main_window
 
         focus = mw.focusIsIn()
-        if focus == 'changes':
+        if focus == 'commits':
             return len(mw.current_change_selections) in (1,2)
 
         elif focus == 'changes':

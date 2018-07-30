@@ -84,7 +84,7 @@ class WbP4LogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         super().__init__( app, app.debug_options.debugLogMainWindow )
 
-        self.current_commit_selections = []
+        self.current_change_selections = []
         self.current_file_selection = []
 
         self.filename = None
@@ -148,7 +148,7 @@ class WbP4LogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.commit_info_layout.addWidget( self.log_table )
         self.commit_info_layout.addWidget( QtWidgets.QLabel( T_('Change ID') ) )
         self.commit_info_layout.addWidget( self.changeset_id )
-        self.commit_info_layout.addWidget( QtWidgets.QLabel( T_('Commit Message') ) )
+        self.commit_info_layout.addWidget( QtWidgets.QLabel( T_('Description') ) )
         self.commit_info_layout.addWidget( self.commit_message )
 
         self.commit_info = QtWidgets.QWidget()
@@ -237,15 +237,15 @@ class WbP4LogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.show()
 
     def selectionChangedCommit( self ):
-        self.current_commit_selections = [index.row() for index in self.log_table.selectedIndexes() if index.column() == 0]
+        self.current_change_selections = [index.row() for index in self.log_table.selectedIndexes() if index.column() == 0]
 
-        if len(self.current_commit_selections) == 0:
+        if len(self.current_change_selections) == 0:
             self.updateEnableStates()
             return
 
-        self.current_commit_selections.sort()
+        self.current_change_selections.sort()
 
-        node = self.log_model.commitNode( self.current_commit_selections[0] )
+        node = self.log_model.commitNode( self.current_change_selections[0] )
 
         self.changeset_id.clear()
         self.changeset_id.setText( node.commitIdString() )
