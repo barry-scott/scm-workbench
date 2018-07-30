@@ -152,7 +152,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
     col_type = 5
     col_num_columns = 6
 
-    column_titles = (U_('Commit'), U_('Staged'), U_('Status'), U_('Name'), U_('Date'), U_('Type'))
+    column_titles = (U_('Include'), U_('Staged'), U_('Status'), U_('Name'), U_('Date'), U_('Type'))
 
     def __init__( self, app ):
         self.app = app
