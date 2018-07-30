@@ -70,7 +70,7 @@ class GitCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         addTool( t, T_('Revert'), act.tableActionGitRevertAndExclude_Bg, act.enablerGitFilesRevert, 'toolbar_images/revert.png' )
 
         if feature_selective_commit:
-            addTool( t, 'Include', act.tableActionCommitInclude_Bg, act.enablerGitCommitInclude, checker=act.checkerActionCommitInclude )
+            addTool( t, T('Include'), act.tableActionCommitInclude_Bg, act.enablerGitCommitInclude, checker=act.checkerActionCommitInclude )
 
 
 class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
