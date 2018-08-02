@@ -595,7 +595,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     def tableActionP4DiffLogHistory( self ):
         focus = self.main_window.focusIsIn()
-        if focus == 'changes':
+        if focus == 'commits':
             self.diffLogHistory()
 
         elif focus == 'changes':
