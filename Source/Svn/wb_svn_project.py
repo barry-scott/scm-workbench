@@ -106,7 +106,7 @@ class SvnProject:
         return self.__num_uncommitted_files
 
     def updateStateForCheckin( self ):
-        self.flat_tree = SvnProjectTreeNode( self, prefs_project.name, pathlib.Path( '.' ) )
+        self.flat_tree = SvnProjectTreeNode( self, self.projectName(), pathlib.Path( '.' ) )
         for state in self.client().status2( str(self.projectPath()) ):
             filepath = self.pathForWb( state.path )
 
@@ -121,7 +121,7 @@ class SvnProject:
             if state.node_status in (pysvn.wc_status_kind.added, pysvn.wc_status_kind.modified, pysvn.wc_status_kind.deleted):
                 self.__num_uncommitted_files += 1
 
-            self.flat_tree.addFileByPath( path )
+            self.flat_tree.addFileByPath( filepath )
 
     def updateState( self, tree_leaf ):
         self.debugLog( 'updateState( %r ) repo=%s' % (tree_leaf, self.projectPath()) )

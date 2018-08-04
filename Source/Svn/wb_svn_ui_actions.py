@@ -767,7 +767,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     commit_key = 'svn-commit-dialog'
 
-    def treeActionSvnCheckin( self, checked ):
+    @thread_switcher
+    def treeActionSvnCheckin_Bg( self, checked ):
         if self.app.hasSingleton( self.commit_key ):
             commit_dialog = self.app.getSingleton( self.commit_key )
             commit_dialog.raise_()
@@ -775,7 +776,13 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         svn_project = self.selectedSvnProject()
 
-        commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project )
+        yield self.switchToBackground
+        svn_project.updateStateForCheckin()
+
+        yield self.switchToForeground
+
+        # QQQ need to finish the work to setup all_paths_to_checkin
+        commit_dialog = wb_svn_commit_dialog.WbSvnCommitDialog( self.app, svn_project, [] )
         commit_dialog.commitAccepted.connect( self.app.wrapWithThreadSwitcher( self.__commitAccepted_Bg ) )
         commit_dialog.commitClosed.connect( self.__commitClosed )
 

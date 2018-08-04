@@ -107,7 +107,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Unlock…'), act.tableActionSvnUnlock_Bg, act.enablerTableSvnUnlock, 'toolbar_images/unlock.png' )
 
         m.addSeparator()
-        addMenu( m, T_('Checkin…'), act.treeActionSvnCheckin, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
+        addMenu( m, T_('Checkin…'), act.treeActionSvnCheckin_Bg, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
 
         m.addSeparator()
         addMenu( m, T_('Update'), act.treeActionSvnUpdate_Bg, icon_name='toolbar_images/update.png' )
@@ -140,7 +140,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addTool( t, T_('Add'), act.tableActionSvnAdd_Bg, act.enablerTableSvnAdd, 'toolbar_images/add.png' )
         addTool( t, T_('Revert'), act.tableActionSvnRevert_Bg, act.enablerTableSvnRevert, 'toolbar_images/revert.png' )
         t.addSeparator()
-        addTool( t, T_('Checkin'), act.treeActionSvnCheckin, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
+        addTool( t, T_('Checkin'), act.treeActionSvnCheckin_Bg, act.enablerSvnCheckin, 'toolbar_images/checkin.png' )
         t.addSeparator()
         addTool( t, T_('Update'), act.treeActionSvnUpdate_Bg, icon_name='toolbar_images/update.png' )
 
