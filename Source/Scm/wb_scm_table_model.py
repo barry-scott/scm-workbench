@@ -347,7 +347,10 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             while offset < len(all_new_files) and offset < len(self.all_files):
                 self.debugLog( 'WbScmTableModel.refreshTable() while offset %d %r old %r' %
                         (offset, all_new_files[ offset ].name, self.all_files[ offset ].name) )
-                if all_new_files[ offset ].name == self.all_files[ offset ].name:
+
+                # all_new_files and self.all_files are a mix of str and Path objects
+                # coerce to str to do the compares
+                if str(all_new_files[ offset ].name) == str(self.all_files[ offset ].name):
                     if all_new_files[ offset ].isNotEqual( self.all_files[ offset ] ):
                         self.debugLog( 'WbScmTableModel.refreshTable() emit dataChanged row=%d' % (offset,) )
                         self.dataChanged.emit(
@@ -355,7 +358,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                             self.createIndex( offset, self.col_type ) )
                     offset += 1
 
-                elif all_new_files[ offset ].name < self.all_files[ offset ].name:
+                elif str(all_new_files[ offset ].name) < str(self.all_files[ offset ].name):
                     self.debugLog( 'WbScmTableModel.refreshTable() insertRows row=%d %r' % (offset, all_new_names[offset]) )
                     self.beginInsertRows( parent, offset, offset )
                     self.all_files.insert( offset, all_new_files[ offset ] )
