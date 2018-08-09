@@ -219,7 +219,10 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
             self.app.top_window.setStatusAction()
 
         else:
+            yield self.app.switchToBackground
             self.selected_node.scm_project_tree_node.updateTreeNode()
+
+            yield self.app.switchToForeground
             self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
 
             # add new nodes

@@ -82,9 +82,17 @@ class P4Project:
 
         self.__num_modified_files = 0
 
+    def _threadName( self ):
+        if self.app.isForegroundThread():
+            return 'fg'
+        else:
+            return 'bg'
+
     def _run( self, fn_name, *args, **kwds ):
         repo = self.repo()
-        self.app.log.info( 'P4 CMD: %r %r %r' % (fn_name, args, kwds) )
+        if self.app.isForegroundThread():
+            self.app.log.stack( 'QQQ running P4 in foreground' )
+        self.app.log.info( 'P4 CMD(%s): %r %r %r' % (self._threadName(), fn_name, args, kwds) )
 
         if 'handler' in kwds:
             handler = kwds['handler']
