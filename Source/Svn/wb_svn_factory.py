@@ -87,14 +87,14 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
     def scmSpecificAddRows( self ):
         info = self.scm_project.cmdInfo( pathlib.Path('.') )
 
-        self.addRow( T_('URL:'), info['URL'] )
-        self.addRow( T_('Repos root:'), info[ 'repos_root_URL' ] )
+        self.addRow( T_('URL:'), info.get( 'URL', 'N/A' ) )
+        self.addRow( T_('Repos root:'), info.get( 'repos_root_URL', 'N/A' ) )
 
         tags_url = self.prefs_project.tags_url
         tags_url_present = tags_url is not None
 
         if tags_url is None:
-            url_parts = info['URL'].split( '/' )
+            url_parts = info.get( 'URL', '' ).split( '/' )
 
             # look for the conventional 'trunk' or 'branches' folder
             try:

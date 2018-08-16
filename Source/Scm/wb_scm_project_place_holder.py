@@ -43,6 +43,9 @@ class ScmProjectPlaceholder:
     def updateState( self, tree_leaf ):
         pass
 
+    def cmdInfo( self, path ):
+        return {}
+
 class ScmProjectPlaceholderTreeNode:
     def __init__( self, project, name, path ):
         self.project = project
