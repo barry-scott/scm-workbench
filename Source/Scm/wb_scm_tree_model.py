@@ -109,7 +109,9 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         # reset the table model
         tree_node.update( scm_project.tree )
 
-        self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
+        # can arrive here and self.selected_node is None
+        if self.selected_node is not None:
+            self.table_model.setScmProjectTreeNode( self.selected_node.scm_project_tree_node )
         self.debugLog( 'refreshTree_Bg() Done' )
 
     def getFirstProjectIndex( self ):
