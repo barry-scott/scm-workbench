@@ -229,6 +229,11 @@ class WbGitCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.ui_component.setupTableContextMenu( m, self._addMenu )
 
+    def tableContextMenu( self, pos ):
+        self.debugLog( 'tableContextMenu( %r )' % (pos,) )
+
+        self.ui_component.getTableContextMenu().exec_( pos )
+
     def setupToolBar( self ):
         # --- setup common toolbars
         t = self.tool_bar_table = self._addToolBar( T_('table') )

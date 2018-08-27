@@ -220,6 +220,11 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         # --- setup scm_type specific tool bars
         self.ui_component.setupToolBarAtRight( self._addToolBar, self._addTool )
 
+    def tableContextMenu( self, global_pos ):
+        self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
+
+        self.ui_component.getTableContextMenu().exec_( global_pos )
+
     def closeEvent( self, event ):
         super().closeEvent( event )
 

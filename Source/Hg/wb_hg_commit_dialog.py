@@ -214,6 +214,11 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
         self.ui_component.setupTableContextMenu( m, self._addMenu )
 
+    def tableContextMenu( self, global_pos ):
+        self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
+
+        self.ui_component.getTableContextMenu().exec_( global_pos )
+
     def setupToolBar( self ):
         # --- setup common toolbars
         t = self.tool_bar_table = self._addToolBar( T_('table') )

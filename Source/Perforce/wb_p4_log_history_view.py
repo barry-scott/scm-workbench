@@ -291,9 +291,8 @@ class WbLogTableView(wb_table_view.WbTableView):
 
         self.main_window.setFocusIsIn( 'commits' )
 
-    def tableContextMenu( self, pos ):
-        self.debugLog( 'tableContextMenu( %r )' % (pos,) )
-        global_pos = self.viewport().mapToGlobal( pos )
+    def tableContextMenu( self, global_pos ):
+        self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
 
         self.main_window.ui_component.getTableContextMenu().exec_( global_pos )
 
@@ -428,9 +427,8 @@ class WbChangesTableView(wb_table_view.WbTableView):
 
         self.main_window.setFocusIsIn( 'changes' )
 
-    def tableContextMenu( self, pos ):
-        self.debugLog( 'tableContextMenu( %r )' % (pos,) )
-        global_pos = self.viewport().mapToGlobal( pos )
+    def tableContextMenu( self, global_pos ):
+        self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
 
         self.main_window.ui_component.getChangedFilesContextMenu().exec_( global_pos )
 
