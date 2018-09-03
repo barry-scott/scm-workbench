@@ -49,7 +49,7 @@ kit_values = {
 
 for kit_fmt in ('SCM-Workbench-%(VERSION)s-setup.exe',
                 'SCM-Workbench-%(VERSION)s.dmg',
-                'scm-workbench-%(VERSION)s-1.fc%(FEDORA_VERSION)s.noarch.rpm',
+                'scm-workbench-%(VERSION)s-1.fc%(FEDORA_VERSION)s.x86_64.rpm',
                 'scm-workbench-%(VERSION)s-1.fc%(FEDORA_VERSION)s.src.rpm'):
     copyFile( built_kits_dir / (kit_fmt % kit_values), output_kits_dir )
 
