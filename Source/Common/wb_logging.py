@@ -292,15 +292,26 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
     style_divider = 6
     style_infoheader = 7
 
-    all_style_colours = (
-        (style_normal,      '#000000', '#ffffff'),
-        (style_error,       '#DC143C', '#ffffff'),  # Crimson
-        (style_warning,     '#008000', '#ffffff'),  # Green
-        (style_critical,    '#BA55D3', '#ffffff'),  # Medium Orchid
+    all_style_colours_light_mode = (
+        (style_normal,      '', ''),
+        (style_error,       '#DC143C', ''),  # Crimson
+        (style_warning,     '#008000', ''),  # Green
+        (style_critical,    '#BA55D3', ''),  # Medium Orchid
         (style_debug,       '#191970', '#cccccc'),
-        (style_divider,     '#cccccc', '#ffffff'),  # Grey
-        (style_infoheader,  '#191970', '#ffffff'),  # Midnight Blue
-        (style_info,        '#803080', '#ffffff'),  # light purple
+        (style_divider,     '#cccccc', ''),  # Grey
+        (style_infoheader,  '#191970', ''),  # Midnight Blue
+        (style_info,        '#803080', ''),  # light purple
+        )
+
+    all_style_colours_dark_mode = (
+        (style_normal,      '', ''),
+        (style_error,       '#DC143C', ''),  # Crimson
+        (style_warning,     '#00d000', ''),  # Green
+        (style_critical,    '#BA55D3', ''),  # Medium Orchid
+        (style_debug,       '#4040fo', '#cccccc'),
+        (style_divider,     '#cccccc', ''),  # Grey
+        (style_infoheader,  '#8080ff', ''),  # Midnight Blue
+        (style_info,        '#f060f0', ''),  # light purple
         )
 
     divider_text = '\u2500'*60 + '\n'
@@ -308,12 +319,18 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
     def __init__( self, app ):
         self.app = app
 
+        if app.isDarkMode():
+            all_style_colours = self.all_style_colours_dark_mode
+
+        else:
+            all_style_colours = self.all_style_colours_light_mode
+
         self.all_text_formats = {}
-        for style, fg_colour, bg_colour in self.all_style_colours:
-            format = QtGui.QTextCharFormat()
-            format.setForeground( QtGui.QBrush( QtGui.QColor( fg_colour ) ) )
-            format.setBackground( QtGui.QBrush( QtGui.QColor( bg_colour ) ) )
-            self.all_text_formats[ style ] = format
+        for style, fg_colour, bg_colour in all_style_colours:
+            fmt = QtGui.QTextCharFormat()
+            fmt.setForeground( app.makeFgBrush( fg_colour ) )
+            fmt.setBackground( app.makeBgBrush( bg_colour ) )
+            self.all_text_formats[ style ] = fmt
 
         super().__init__()
         self.setReadOnly( True )

@@ -14,6 +14,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 
 import wb_tracked_qwidget
+import wb_config
 
 class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
     style_header = 0
@@ -28,12 +29,20 @@ class WbDiffViewBase(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         prefs = app.prefs.diff_window
 
-        self.all_style_colours = (
-            (self.style_header,  prefs.colour_header.fg, '#ffffff'),
-            (self.style_normal,  prefs.colour_normal.fg, '#ffffff'),
-            (self.style_delete,  prefs.colour_delete_line.fg, '#ffffff'),
-            (self.style_add,     prefs.colour_insert_line.fg, '#ffffff'),
-            )
+        if app.isDarkMode():
+            self.all_style_colours = (
+                (self.style_header,  wb_config.diff_dark_colour_header, ''),
+                (self.style_normal,  '', ''),
+                (self.style_delete,  wb_config.diff_dark_colour_delete_line, ''),
+                (self.style_add,     wb_config.diff_dark_colour_insert_line, ''),
+                )
+        else:
+            self.all_style_colours = (
+                (self.style_header,  wb_config.diff_light_colour_header, ''),
+                (self.style_normal,  '', ''),
+                (self.style_delete,  wb_config.diff_light_colour_delete_line, ''),
+                (self.style_add,     wb_config.diff_light_colour_insert_line, ''),
+                )
 
         self.setWindowTitle( title )
         self.setWindowIcon( self.app.getAppQIcon() )
@@ -55,8 +64,8 @@ class WbDiffViewText(WbDiffViewBase):
         for style, fg_colour, bg_colour in self.all_style_colours:
             char_format = QtGui.QTextCharFormat()
             char_format.setFont( self.code_font )
-            char_format.setForeground( QtGui.QBrush( QtGui.QColor( str(fg_colour) ) ) )
-            char_format.setBackground( QtGui.QBrush( QtGui.QColor( str(bg_colour) ) ) )
+            char_format.setForeground( app.makeFgBrush( fg_colour ) )
+            char_format.setBackground( app.makeBgBrush( bg_colour ) )
             self.all_text_formats[ style ] = char_format
 
         self.text_edit.setReadOnly( True )

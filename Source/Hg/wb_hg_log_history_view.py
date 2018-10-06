@@ -295,7 +295,10 @@ class WbHgLogHistoryModel(QtCore.QAbstractTableModel):
         self.all_commit_nodes  = []
         self.all_tags_by_rev = {}
 
-        self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
+        if app.isDarkMode():
+            self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 128, 128, 255 ) )
+        else:
+            self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
 
     def loadCommitLogForRepository( self, progress_callback, hg_project, limit, since, until ):
         self.beginResetModel()

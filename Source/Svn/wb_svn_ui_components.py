@@ -116,7 +116,11 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Cleanup'), act.treeActionSvnCleanup )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('svn logo'), style='font-size: 20pt; width: 40px; color: #000099' )
+        if self.app.isDarkMode():
+            colour = '#8080d0'
+        else:
+            colour = '#000099'
+        t = addToolBar( T_('svn logo'), style='font-size: 20pt; width: 40px; color: %s' % (colour,) )
         self.all_toolbars.append( t )
 
         addTool( t, 'Svn', self.main_window.projectActionSettings )

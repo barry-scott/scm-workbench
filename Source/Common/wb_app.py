@@ -20,6 +20,7 @@ import xml_preferences
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
+from PyQt5 import QtGui
 
 import wb_platform_specific
 import wb_logging
@@ -177,6 +178,9 @@ class WbApp(wb_logging.AppLoggingMixin,
 
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
+        self.__is_dark_mode = self.palette().text().color().lightnessF() > self.palette().window().color().lightnessF()
+
+
         # capture logs into the log widget
         self.__wb_log = wb_logging.WbLog( self )
 
@@ -199,6 +203,35 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.main_window = self.createMainWindow()
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
+
+    def isDarkMode( self ):
+        return self.__is_dark_mode
+
+    def defaultFgBrush( self ):
+        return self.palette().text()
+
+    def defaultBgBrush( self ):
+        return self.palette().base()
+
+    def defaultFgRgb( self ):
+        colour = self.defaultFgBrush().color()
+        return '#%2.2x%2.2x%2.2x' % (colour.red(), colour.green(), colour.blue())
+
+    def defaultBgRgb( self ):
+        colour = self.defaultBgBrush().color()
+        return '#%2.2x%2.2x%2.2x' % (colour.red(), colour.green(), colour.blue())
+
+    def makeFgBrush( self, colour ):
+        if colour != '':
+            return QtGui.QBrush( QtGui.QColor( str(colour) ) )
+        else:
+            return self.defaultFgBrush()
+
+    def makeBgBrush( self, colour ):
+        if colour != '':
+            return QtGui.QBrush( QtGui.QColor( str(colour) ) )
+        else:
+            return self.defaultBgBrush()
 
     def logWidget( self ):
         return self.__wb_log.logWidget()

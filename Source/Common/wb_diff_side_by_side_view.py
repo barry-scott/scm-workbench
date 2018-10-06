@@ -23,6 +23,8 @@ import wb_main_window
 import wb_config
 import wb_tracked_qwidget
 
+import wb_config
+
 class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, parent, title, file_left, header_left, file_right, header_right, ):
         super().__init__( app, app.debug_options.debugLogDiff, parent=parent )
@@ -123,14 +125,23 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         key = QtWidgets.QLabel()
         key.setTextFormat( QtCore.Qt.RichText )
+        if self.app.isDarkMode():
+            all_colours = {'normal': self.app.defaultFgRgb()
+                          ,'insert': wb_config.diff_dark_colour_insert_line
+                          ,'delete': wb_config.diff_dark_colour_delete_line
+                          ,'change': wb_config.diff_dark_colour_change_line}
+
+        else:
+            all_colours = {'normal': self.app.defaultFgRgb()
+                          ,'insert': wb_config.diff_light_colour_insert_line
+                          ,'delete': wb_config.diff_light_colour_delete_line
+                          ,'change': wb_config.diff_light_colour_change_line}
+
+
         key.setText( '<font color="%(normal)s">Key: </font>'
                      '<font color="%(insert)s">Inserted text </font>'
                      '<font color="%(delete)s">Deleted text </font>'
-                     '<font color="%(change)s">Changed text </font>' %
-                        {'normal': prefs.colour_normal.fg
-                        ,'insert': prefs.colour_insert_line.fg
-                        ,'delete': prefs.colour_delete_line.fg
-                        ,'change': prefs.colour_change_line.fg} )
+                     '<font color="%(change)s">Changed text </font>' % all_colours )
         key.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
 
         self.status_bar_key_field = key
@@ -245,9 +256,9 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.fold_minimum_length = self.fold_context_border * 2 + 1
 
         self.style_line_normal = self.STYLE_DEFAULT
-        self.style_line_insert = self.STYLE_LASTPREDEFINED
-        self.style_line_delete = self.STYLE_LASTPREDEFINED + 1
-        self.style_line_change = self.STYLE_LASTPREDEFINED + 2
+        self.style_line_insert = self.STYLE_LASTPREDEFINED + 1
+        self.style_line_delete = self.STYLE_LASTPREDEFINED + 2
+        self.style_line_change = self.STYLE_LASTPREDEFINED + 3
 
         # use the lexer range of indictor numbers
         self.indictor_char_insert =  8
@@ -264,24 +275,45 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
         # make some styles
         prefs = app.prefs.diff_window
-        self.styleSetFromSpec( self.style_line_normal,
-                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_normal.fg) )
-        self.styleSetFromSpec( self.style_line_insert,
-                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_insert_line.fg) )
-        self.styleSetFromSpec( self.style_line_delete,
-                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_delete_line.fg) )
-        self.styleSetFromSpec( self.style_line_change,
-                'size:%d,face:%s,fore:%s' % (wb_config.point_size, wb_config.face, prefs.colour_change_line.fg) )
+        if app.isDarkMode():
+            self.styleSetFromSpec( self.style_line_normal,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
+            self.styleSetFromSpec( self.style_line_insert,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_dark_colour_insert_line, app.defaultBgRgb()) )
+            self.styleSetFromSpec( self.style_line_delete,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_dark_colour_delete_line, app.defaultBgRgb()) )
+            self.styleSetFromSpec( self.style_line_change,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_dark_colour_change_line, app.defaultBgRgb()) )
 
-        # and finally, an indicator or two
-        self.indicSetStyle( self.indictor_char_insert,  self.INDIC_SQUIGGLE )
-        self.indicSetFore( self.indictor_char_insert,   str(prefs.colour_insert_char.fg) )
+            # and finally, an indicator or two
+            self.indicSetStyle( self.indictor_char_insert,  self.INDIC_SQUIGGLE )
+            self.indicSetFore( self.indictor_char_insert,   str(wb_config.diff_dark_colour_insert_line) )
 
-        self.indicSetStyle( self.indictor_char_delete,  self.INDIC_STRIKE )
-        self.indicSetFore( self.indictor_char_delete,   str(prefs.colour_delete_char.fg) )
+            self.indicSetStyle( self.indictor_char_delete,  self.INDIC_STRIKE )
+            self.indicSetFore( self.indictor_char_delete,   str(wb_config.diff_dark_colour_delete_line) )
 
-        self.indicSetStyle( self.indictor_char_changed, self.INDIC_SQUIGGLE )
-        self.indicSetFore( self.indictor_char_changed,  str(prefs.colour_change_char.fg) )
+            self.indicSetStyle( self.indictor_char_changed, self.INDIC_SQUIGGLE )
+            self.indicSetFore( self.indictor_char_changed,  str(wb_config.diff_dark_colour_change_line) )
+
+        else:
+            self.styleSetFromSpec( self.style_line_normal,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
+            self.styleSetFromSpec( self.style_line_insert,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_light_colour_insert_line, app.defaultBgRgb()) )
+            self.styleSetFromSpec( self.style_line_delete,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_light_colour_delete_line, app.defaultBgRgb()) )
+            self.styleSetFromSpec( self.style_line_change,
+                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_light_colour_change_line, app.defaultBgRgb()) )
+
+            # and finally, an indicator or two
+            self.indicSetStyle( self.indictor_char_insert,  self.INDIC_SQUIGGLE )
+            self.indicSetFore( self.indictor_char_insert,   str(wb_config.diff_light_colour_insert_line) )
+
+            self.indicSetStyle( self.indictor_char_delete,  self.INDIC_STRIKE )
+            self.indicSetFore( self.indictor_char_delete,   str(wb_config.diff_light_colour_delete_line) )
+
+            self.indicSetStyle( self.indictor_char_changed, self.INDIC_SQUIGGLE )
+            self.indicSetFore( self.indictor_char_changed,  str(wb_config.diff_light_colour_change_line) )
 
         self.marginClicked.connect( self.handleMarginClicked )
         self.cursorPositionChanged.connect( self.handleCursorPositionChanged )
@@ -457,11 +489,11 @@ class DiffLineNumbers(wb_scintilla.WbScintilla):
 
         # make some styles
         self.styleSetFromSpec( self.style_normal,
-                'size:%d,face:%s,fore:#000000,back:#e0e0e0' % (wb_config.point_size, wb_config.face) )
+                'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
         self.styleSetFromSpec( self.style_line_numbers,
-                'size:%d,face:%s,fore:#000000,back:#f0f0f0' % (wb_config.point_size, wb_config.face) )
+                'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
         self.styleSetFromSpec( self.style_line_numbers_for_diff,
-                'size:%d,face:%s,fore:#000000,back:#d0d0d0' % (wb_config.point_size, wb_config.face) )
+                'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), '#0d0d0d') )
 
         # Calculate space for 6 digits
         font = QtGui.QFont( wb_config.face, wb_config.point_size )

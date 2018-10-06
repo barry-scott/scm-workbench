@@ -156,7 +156,11 @@ class HgMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             addMenu( m, T_('Debug 1'), act.treeActionHgDebug1 )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
+        if self.app.isDarkMode():
+            colour = '#cc0000'
+        else:
+            colour = '#cc0000'
+        t = addToolBar( T_('hg logo'), style='font-size: 20pt; width: 40px; color: %s' % (colour,) )
         self.all_toolbars.append( t )
 
         addTool( t, 'Hg', self.main_window.projectActionSettings )

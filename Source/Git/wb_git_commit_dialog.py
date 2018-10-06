@@ -46,7 +46,11 @@ class GitCommitWindowComponents(wb_ui_components.WbMainWindowComponents):
         addMenu( m, T_('Delete…'), act.tableActionGitDelete_Bg, self.main_window.table_view.enablerTableFilesExists )
 
     def setupToolBarAtLeft( self, addToolBar, addTool ):
-        t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 40px; color: #cc0000' )
+        if self.app.isDarkMode():
+            colour = '#60cc60'
+        else:
+            colour = '#00cc00'
+        t = addToolBar( T_('git logo'), style='font-size: 20pt; width: 40px; color: %s' % (colour,) )
         self.all_toolbars.append( t )
 
         addTool( t, 'Git', self.main_window.projectActionSettings )
