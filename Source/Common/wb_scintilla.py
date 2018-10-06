@@ -24,11 +24,14 @@ _colour_names = {
     }
 
 def parseColourToRgbInt( colour ):
-    if colour.startswith( '#' ) and len(colour) == 7:
-        return int( colour[1:], 16 )
+    if colour in _colour_names:
+            colour = _colour_names[ colour ]
 
-    elif colour in _colour_names:
-        return int( _colour_names[ colour ][1:], 16 )
+    if colour.startswith( '#' ) and len(colour) == 7:
+        r = int( colour[1:3], 16 )
+        g = int( colour[3:5], 16 )
+        b = int( colour[5:7], 16 )
+        return r + (g << 8) + (b << 16)
 
     else:
         assert False, 'colour %r not supported' % (colour,)
