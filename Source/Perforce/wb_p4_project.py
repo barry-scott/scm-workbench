@@ -663,12 +663,11 @@ class WbP4LogFull(WbP4LogBasic):
     def __init__( self, data, repo ):
         super().__init__( data, repo )
 
-        self.all_changed_files = []
-        for data in repo.run_describe( '-s', self.change ):
-            self.message = data['desc']
-            action = ','.join( data['action'] )
-            for filename in data['depotFile']:
-                self.all_changed_files.append( (action, filename) )
+        data = repo.run_describe( '-s', self.change )[0]
+        self.message = data['desc']
+        action = ','.join( sorted( set(  ) ) )
+        # could add in 'type', 'rev' and 'fileSize'
+        self.all_changed_files = list( zip( data['action'], data['depotFile'] ) )
 
 class WbP4FileState:
     map_p4_action_to_state = {
