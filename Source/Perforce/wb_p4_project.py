@@ -665,7 +665,6 @@ class WbP4LogFull(WbP4LogBasic):
 
         data = repo.run_describe( '-s', self.change )[0]
         self.message = data['desc']
-        action = ','.join( sorted( set(  ) ) )
         # could add in 'type', 'rev' and 'fileSize'
         self.all_changed_files = list( zip( data['action'], data['depotFile'] ) )
 
