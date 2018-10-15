@@ -101,7 +101,10 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if git_project is None:
             return False
 
-        return len(git_project.cmdStashList()) > 0
+        # QQQ: git stash list of very slow on Windows.
+        # QQQ: don't run util we have a work around
+        #return len(git_project.cmdStashList()) > 0
+        return True
 
     def enablerGitDiffHeadVsWorking( self ):
         return self.__enablerDiff( wb_git_project.WbGitFileState.canDiffHeadVsWorking )
