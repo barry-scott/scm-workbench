@@ -323,5 +323,3 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.dark_palette.setColor( QtGui.QPalette.HighlightedText, QtCore.Qt.black )
 
         self.setPalette( self.dark_palette )
-
-        self.setStyleSheet( "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }" )
