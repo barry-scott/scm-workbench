@@ -141,6 +141,9 @@ class WbScmApp(wb_app.WbApp):
         if self.prefs.font_ui.face is not None:
             style_sheet_pieces.append( '* { font-family: "%s"; font-size: %dpt}' % (self.prefs.font_ui.face, self.prefs.font_ui.point_size) )
 
+        if self.isDarkMode():
+            style_sheet_pieces.append( 'QToolTip { color: white; background-color: %s; border: 1px solid #888888; }' % (feedback_bg,) )
+
         style_sheet = '\n'.join( style_sheet_pieces )
         self.debugLogApp( style_sheet )
         self.setStyleSheet( style_sheet )

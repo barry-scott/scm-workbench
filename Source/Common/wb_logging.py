@@ -204,6 +204,9 @@ class WbLog:
 
         self.__session_log = open( str(wb_platform_specific.getLogFilename()) + '.session.log', 'w', buffering=1 )
 
+    def initStyles( self ):
+        self.__log_widget.initStyles()
+
     def excepthook( self, type_, value, tb ):
         # emergency write
         self.__session_log.write( 'excepthook called\n' )
@@ -319,7 +322,14 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
     def __init__( self, app ):
         self.app = app
 
-        if app.isDarkMode():
+        self.initStyles()
+
+        super().__init__()
+        self.setReadOnly( True )
+        self.setTextInteractionFlags( QtCore.Qt.TextSelectableByMouse|QtCore.Qt.TextSelectableByKeyboard )
+
+    def initStyles( self ):
+        if self.app.isDarkMode():
             all_style_colours = self.all_style_colours_dark_mode
 
         else:
@@ -328,13 +338,9 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
         self.all_text_formats = {}
         for style, fg_colour, bg_colour in all_style_colours:
             fmt = QtGui.QTextCharFormat()
-            fmt.setForeground( app.makeFgBrush( fg_colour ) )
-            fmt.setBackground( app.makeBgBrush( bg_colour ) )
+            fmt.setForeground( self.app.makeFgBrush( fg_colour ) )
+            fmt.setBackground( self.app.makeBgBrush( bg_colour ) )
             self.all_text_formats[ style ] = fmt
-
-        super().__init__()
-        self.setReadOnly( True )
-        self.setTextInteractionFlags( QtCore.Qt.TextSelectableByMouse|QtCore.Qt.TextSelectableByKeyboard )
 
     def __writeStyledText( self, text, style ):
         self.moveCursor( QtGui.QTextCursor.End )

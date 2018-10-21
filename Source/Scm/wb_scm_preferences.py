@@ -28,13 +28,14 @@ class Preferences(wb_preferences.Preferences):
         super().__init__()
         self.log_history = None
 
-class Projects(PreferencesNode):
-    xml_attribute_info = (('new_projects_folder', pathlib.Path),)
+class General(PreferencesNode):
+    xml_attribute_info = (('new_projects_folder', pathlib.Path), ('force_dark_mode', Bool))
 
     def __init__( self ):
         super().__init__()
 
         self.new_projects_folder = None
+        self.force_dark_mode = False
 
 class LogHistory(PreferencesNode):
     xml_attribute_info = (('default_limit', int)
@@ -61,7 +62,8 @@ class PreferencesManager(wb_preferences.PreferencesManager):
 
         scheme_nodes = wb_preferences.scheme_nodes
         scheme_nodes << SchemeNode( LogHistory, 'log_history' )
-        scheme_nodes << SchemeNode( Projects, 'projects_defaults' )
+        # general was called project in the past
+        scheme_nodes << SchemeNode( General, 'projects_defaults' )
 
         for setup_preferences in all_setup_preferences:
             setup_preferences( scheme_nodes )

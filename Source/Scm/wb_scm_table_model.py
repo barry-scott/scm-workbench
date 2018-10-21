@@ -167,14 +167,13 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         self.all_included_files = None
 
         if app.isDarkMode():
-            self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 128, 255 ) )
-            self.__brush_is_changed = QtGui.QBrush( QtGui.QColor( 128, 128, 255 ) )
-            self.__brush_is_uncontrolled = QtGui.QBrush( QtGui.QColor( 128, 255, 128 ) )
+            self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 0, 255 ) )
+            self.__brush_is_changed = QtGui.QBrush( QtGui.QColor( 160, 160, 255 ) )
+            self.__brush_is_uncontrolled = QtGui.QBrush( QtGui.QColor( 0, 255, 0 ) )
         else:
             self.__brush_is_cached = QtGui.QBrush( QtGui.QColor( 255, 0, 255 ) )
             self.__brush_is_changed = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
             self.__brush_is_uncontrolled = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
-
 
     def isByPath( self ):
         return self.scm_project_tree_node is not None and self.scm_project_tree_node.isByPath()

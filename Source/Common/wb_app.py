@@ -179,7 +179,7 @@ class WbApp(wb_logging.AppLoggingMixin,
         QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
 
         self.__is_dark_mode = self.palette().text().color().lightnessF() > self.palette().window().color().lightnessF()
-
+        self.prefs = None
 
         # capture logs into the log widget
         self.__wb_log = wb_logging.WbLog( self )
@@ -199,13 +199,17 @@ class WbApp(wb_logging.AppLoggingMixin,
 
         self.prefs = self.prefs_manager.getPreferences()
 
+        if self.isDarkMode():
+            self.setDarkPalette()
+            self.__wb_log.initStyles()
+
         # part 2 of settings up logging is done in main window code
         self.main_window = self.createMainWindow()
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
 
     def isDarkMode( self ):
-        return self.__is_dark_mode
+        return self.__is_dark_mode or (self.prefs is not None and self.prefs.projects_defaults.force_dark_mode)
 
     def defaultFgBrush( self ):
         return self.palette().text()
@@ -299,3 +303,25 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.debugLogApp( 'quit()' )
         self.may_quit = True
         self.main_window.close()
+
+    def setDarkPalette( self ):
+        # thanks to https://gist.github.com/QuantumCD/6245215
+        self.setStyle( QtWidgets.QStyleFactory.create( "Fusion" ) )
+        self.dark_palette = QtGui.QPalette()
+        self.dark_palette.setColor( QtGui.QPalette.Window, QtGui.QColor( 53,53,53 ) )
+        self.dark_palette.setColor( QtGui.QPalette.WindowText, QtCore.Qt.white )
+        self.dark_palette.setColor( QtGui.QPalette.Base, QtGui.QColor( 25,25,25 ) )
+        self.dark_palette.setColor( QtGui.QPalette.AlternateBase, QtGui.QColor( 53,53,53 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ToolTipBase, QtCore.Qt.white )
+        self.dark_palette.setColor( QtGui.QPalette.ToolTipText, QtCore.Qt.white )
+        self.dark_palette.setColor( QtGui.QPalette.Text, QtCore.Qt.white )
+        self.dark_palette.setColor( QtGui.QPalette.Button, QtGui.QColor( 53,53,53 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ButtonText, QtCore.Qt.white )
+        self.dark_palette.setColor( QtGui.QPalette.BrightText, QtCore.Qt.red )
+        self.dark_palette.setColor( QtGui.QPalette.Link, QtGui.QColor( 42, 130, 218 ) )
+        self.dark_palette.setColor( QtGui.QPalette.Highlight, QtGui.QColor( 42, 130, 218 ) )
+        self.dark_palette.setColor( QtGui.QPalette.HighlightedText, QtCore.Qt.black )
+
+        self.setPalette( self.dark_palette )
+
+        self.setStyleSheet( "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }" )

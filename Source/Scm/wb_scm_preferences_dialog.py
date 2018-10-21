@@ -32,7 +32,7 @@ class WbScmPreferencesDialog(wb_dialog_bases.WbTabbedDialog):
 
     def completeTabsInit( self ):
         self.tabs = QtWidgets.QTabWidget()
-        for tab_class in (ProjectsTab, EditorTab, ShellTab, LogHistoryTab, FontTab):
+        for tab_class in (GeneralTab, EditorTab, ShellTab, LogHistoryTab, FontTab):
             tab = tab_class( self.app )
             self.addTab( tab )
 
@@ -44,9 +44,9 @@ class WbScmPreferencesDialog(wb_dialog_bases.WbTabbedDialog):
             tab = self.tabs.widget( index )
             tab.savePreferences()
 
-class ProjectsTab(wb_dialog_bases.WbTabBase):
+class GeneralTab(wb_dialog_bases.WbTabBase):
     def __init__( self, app ):
-        super().__init__( app, T_('Projects') )
+        super().__init__( app, T_('General') )
 
         if self.app is None:
             self.prefs = None
@@ -65,11 +65,23 @@ class ProjectsTab(wb_dialog_bases.WbTabBase):
 
         self.addRow( T_('New projects folder'), self.new_projects_folder, self.browse_folder )
 
+        self.dark_theme = QtWidgets.QCheckBox( T_("Force use of a Dark Mode Theme") )
+        self.dark_theme.setChecked( self.prefs.force_dark_mode )
+        self.addRow( T_('Theme'), self.dark_theme )
+
     def savePreferences( self ):
         if self.prefs is None:
             return
 
         self.prefs.new_projects_folder = self.new_projects_folder.text()
+        old_dark_mode = self.prefs.force_dark_mode
+        self.prefs.force_dark_mode = self.dark_theme.isChecked()
+
+        if old_dark_mode != self.prefs.force_dark_mode:
+            QtWidgets.QMessageBox.warning(
+                self.app.main_window,
+                T_('Restart SCM-Workbench'),
+                T_('SCM-Workbench must be restarted too apply the Theme change.') )
 
     def __pickFolder( self ):
         folder = wb_pick_path_dialogs.pickFolder( self, pathlib.Path( self.new_projects_folder.text() ) )
