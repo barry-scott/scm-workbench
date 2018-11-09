@@ -20,5 +20,5 @@ if exist "c:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxil
 @echo %__e%
 
 set PYTHON=c:\python%PYTHON_FILE_VERSION%.%BUILDER_CFG_PLATFORM%\python
-PATH c:\python%PYTHON_FILE_VERSION%.%BUILDER_CFG_PLATFORM%;"c:\Program Files\gettext-iconv\bin";%PATH%
+PATH c:\python%PYTHON_FILE_VERSION%.%BUILDER_CFG_PLATFORM%;c:\Program Files\gettext-iconv\bin;%PATH%
 %PYTHON% -c "import sys;print( 'Python:', sys.version )"
