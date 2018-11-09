@@ -16,9 +16,13 @@ import sys
 import time
 import pathlib
 
-# On OS X the packager missing this import
-import sip  #pylint: disable=unused-import
+try:
+    # needed on macOS for some versions of PyQt5
+    # but not used by bemacs itself
+    import sip  #pylint: disable=unused-import
 
+except ImportError:
+    pass
 
 from PyQt5 import Qt
 from PyQt5 import QtWidgets
