@@ -30,7 +30,7 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.all_factories = app.all_factories
         super().__init__()
 
-        self.setWizardStyle(self.ClassicStyle)
+        self.setWizardStyle( self.ClassicStyle )
 
         self.setWindowTitle( T_('Add Project Wizard - %s') % (' '.join( app.app_name_parts ),) )
 
