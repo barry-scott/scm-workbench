@@ -619,8 +619,12 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
         self.all_tags_by_id = {}
         self.all_unpushed_commit_ids = set()
 
-        self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
-        self.__brush_is_unpushed = QtGui.QBrush( QtGui.QColor( 192, 0, 192 ) )
+        if app.isDarkMode():
+            self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 128, 128, 255 ) )
+            self.__brush_is_unpushed = QtGui.QBrush( QtGui.QColor( 192, 0, 192 ) )
+        else:
+            self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
+            self.__brush_is_unpushed = QtGui.QBrush( QtGui.QColor( 192, 0, 192 ) )
 
     def loadCommitLogForRepository( self, progress_callback, git_project, limit, since, until ):
         self.beginResetModel()
