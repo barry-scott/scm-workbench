@@ -10,7 +10,7 @@ Darwin)
     ;;
 
 Linux)
-    for version in ${PYTHON_VERSION} 3.6 3.5 3.4
+    for version in ${PYTHON_VERSION} 3.7 3.6 3.5 3.4
     do
         if [ -e /usr/bin/python${version} ]
         then
