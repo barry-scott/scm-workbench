@@ -111,7 +111,7 @@ class PageAddProjectP4Existing(wb_scm_project_dialogs.PageAddProjectScmExistingB
 
         except P4.P4Exception as e:
             self.client_root = None
-            self.grid_layout.addRow( T_('P4 Error'), e.errors[0] )
+            self.grid_layout.addRow( T_('P4 Error'), str(e ) )
 
     def radioButtonLabel( self ):
         return T_('Add existing Perforce (P4) workspace')
