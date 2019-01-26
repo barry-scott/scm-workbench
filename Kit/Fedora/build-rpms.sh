@@ -50,10 +50,13 @@ cp \
     ~/.local/lib/python${PYTHON_VERSION}/site-packages/xml_preferences/__init__.py \
         ${KIT_BASENAME}/Source/Common/xml_preferences
 
-cp \
-    ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4.py \
-    ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4API.cpython-${PYTHON_VERSION/./}m-x86_64-linux-gnu.so \
-        ${KIT_BASENAME}/Source/Common
+if [ -e ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4.py ]
+then
+    cp \
+        ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4.py \
+        ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4API.cpython-${PYTHON_VERSION/./}m-x86_64-linux-gnu.so \
+            ${KIT_BASENAME}/Source/Common
+fi
 
 # make the source kit
 tar czf ${KIT_BASENAME}.tar.gz ${KIT_BASENAME}
