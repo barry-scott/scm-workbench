@@ -43,7 +43,8 @@ class WbScmTableView(wb_table_view.WbTableView):
 
         self.table_sortfilter = wb_scm_table_model.WbScmTableSortFilter( self.app )
         self.table_sortfilter.setSourceModel( self.table_model )
-        self.table_sortfilter.setDynamicSortFilter( False )
+        # does this hurt performance?
+        self.table_sortfilter.setDynamicSortFilter( True )
 
         self.table_sort_column = self.table_model.col_status
         self.table_sort_order = QtCore.Qt.AscendingOrder
