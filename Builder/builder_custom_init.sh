@@ -4,7 +4,7 @@ export BUILDER_CFG_PLATFORM=$(uname -s)
 case ${BUILDER_CFG_PLATFORM} in
 
 Darwin)
-    export PYTHON_VERSION=${1:-3.6}
+    export PYTHON_VERSION=${1:-3.7}
     export BUILDER_CFG_PLATFORM=MacOSX
     export PYTHON=python${PYTHON_VERSION}
     ;;
