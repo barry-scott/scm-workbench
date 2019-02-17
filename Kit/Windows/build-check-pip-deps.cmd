@@ -1,4 +1,4 @@
-@echo off
+@echo on
 if "%BUILDER_TOP_DIR%" == "" (
     echo Error: BUILDER_TOP_DIR is not set. Hint: run builder_custom_init.cmd
     goto :eof
@@ -20,15 +20,8 @@ if errorlevel 1 goto :eof
 call :check_for_pip_dependency xml-preferences "import xml_preferences"
 if errorlevel 1 goto :eof
 rem only need win_app_packager for the binary kitting not testing
-if not %1 == testing call :check_for_pip_dependency win-app-packager "import win_app_packager"
+if not "%1" == "testing" call :check_for_pip_dependency win-app-packager "import win_app_packager"
 if errorlevel 1 goto :eof
-
-nmake -f Windows.mak PYTHON=%python% clean
-if exist c:\unxutils\tee.exe (
-    nmake -f Windows.mak INSTALL=%1 PYTHON=%PYTHON% build 2>&1 | c:\unxutils\tee build.log
-) else (
-    nmake -f Windows.mak INSTALL=%1 PYTHON=%PYTHON% build
-)
 
 goto :eof
 

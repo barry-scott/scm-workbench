@@ -35,17 +35,6 @@ if exist setup.tmp rmdir /s /q setup.tmp
 mkdir %DIST_DIR%
     if errorlevel 1 goto :error
 
-pushd %SRC_DIR%\Common
-%PYTHON% make_wb_diff_images.py
-    if errorlevel 1 goto :error
-popd >NUL
-
-pushd %SRC_DIR%\Scm
-nmake -f windows.mak clean
-nmake -f windows.mak
-    if errorlevel 1 goto :error
-popd >NUL
-
 set PYTHONPATH=%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Perforce;%SRC_DIR%\Common
 pushd %SRC_DIR%\Scm
 %PYTHON% -m win_app_packager build wb_scm_main.py %APPMODE% %DIST_DIR% --icon %SRC_DIR%\wb.ico --name "SCM Workbench" --modules-allowed-to-be-missing-file %BUILDER_TOP_DIR%\Kit\Windows\modules-allowed-to-be-missing.txt %VERBOSE%
