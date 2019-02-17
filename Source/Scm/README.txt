@@ -13,10 +13,21 @@ packaged for your operating system.
     tzlocal>=1.2.2
     xml-preferences>=1.1.2
 
+Use the requirements.txt for your OS to install all dependencies.
+For macOS Kit/macOS/requirements.txt
+For Windows Kit/Windows/requirements.txt
+
+For example on Windows:
+    py -3.7-64 -m pip install --user --upgrade -r Kit/Windows/requirements.txt
+
+For example on macOS:
+    python3.7 -m pip install --user --upgrade -r Kit/macOS/requirements.txt
+s
+
 Note: pysvn is available as a package for most linux systems.
 For Windows and macOS get a binary kit from:
 
-    http://pysvn.tigris.org/project_downloads.html
+    https://pysvn.sourceforge.io/downloads.html
 
 If you wish to work with Git you will also need:
 
