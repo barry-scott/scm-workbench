@@ -30,6 +30,8 @@ if "%PYTHON%" == "" (
     goto :eof
 )
 
+call %BUILDER_TOP_DIR%\Kit\Windows\build-check-pip-deps.cmd testing
+
 set PYTHONPATH=%BUILDER_TOP_DIR%\Source\Scm;%BUILDER_TOP_DIR%\Source\Common;%BUILDER_TOP_DIR%\Source\Git;%BUILDER_TOP_DIR%\Source\Svn;%BUILDER_TOP_DIR%\Source\Hg
 
 cd ..\Common
