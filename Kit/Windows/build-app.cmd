@@ -94,10 +94,12 @@ rmdir /s /q Qt\translations
     if errorlevel 1 goto :error
 
 echo Info: clean up Qt 6. delete webengine files
-del Qt\bin\QtWebEngineProcess.exe >NUL
-    if errorlevel 1 goto :error
-del Qt\resources\qtwebengine*.pak >NUL
-    if errorlevel 1 goto :error
+if exist Qt\bin\QtWebEngineProcess.exe (
+    del Qt\bin\QtWebEngineProcess.exe >NUL
+        if errorlevel 1 goto :error
+    del Qt\resources\qtwebengine*.pak >NUL
+        if errorlevel 1 goto :error
+)
 
 echo Info: clean up Qt 6. delete qsci resources 
 rmdir /s /q Qt\qsci

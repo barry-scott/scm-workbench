@@ -18,10 +18,10 @@ class InnoSetup:
         self.arch = sys.argv[1]
         self.vc_ver = sys.argv[2]
 
-        self.build_time  = time.time()
-        self.build_time_str = time.strftime( '%d-%b-%Y %H:%M', time.localtime( self.build_time ) )
+        self.build_time  = datetime.datetime.now()
+        self.build_time_str = self.build_time.strftime( '%Y-%m-%d %H:%M:%S' )
 
-        self.year = datetime.datetime.now().year
+        self.year = self.build_time.year
 
         self.all_code_items = []
         self.all_setup_items = []
@@ -189,3 +189,5 @@ this kit.
 
 if __name__ == '__main__':
     sys.exit( main( sys.argv ) )
+
+

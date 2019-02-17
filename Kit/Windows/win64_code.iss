@@ -1,3 +1,11 @@
+function InitializeUninstall(): Boolean;
+  var ErrorCode: Integer;
+begin
+  ShellExec('open','taskkill.exe','/f /im "%(app_id)s.exe"','',SW_HIDE,ewNoWait,ErrorCode);
+  ShellExec('open','tskill.exe',' "%(app_id)s"','',SW_HIDE,ewNoWait,ErrorCode);
+  result := True;
+end;
+
 procedure UninstallOldVersions( root_key : Integer );
 var
     uninstall_image     : string;
@@ -16,6 +24,7 @@ begin
                        'Do you wish to uninstall it now?', mbConfirmation, MB_YESNO );
         if rci = idYes then
         begin
+            InitializeUninstall();
             rcb := Exec( RemoveQuotes( uninstall_image ), '',
                             ExpandConstant('{src}'), SW_SHOWNORMAL, ewWaitUntilTerminated, Error );
             if not rcb then
