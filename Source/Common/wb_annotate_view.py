@@ -257,7 +257,7 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
                 return QtCore.Qt.AlignLeft
 
         elif role == QtCore.Qt.FontRole:
-            if index.column() == self.col_line_text:
-                return self.fixed_font
+            # use the fixed font for all the column otherwise it looks odd
+            return self.fixed_font
 
         return None

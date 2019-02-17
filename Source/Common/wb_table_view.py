@@ -26,6 +26,9 @@ class WbTableView(QtWidgets.QTableView):
         self.setAlternatingRowColors( alternate_row_shading )
         self.setShowGrid( False )
 
+        # make text in cells be elided not wraped to multiple lines
+        self.setWordWrap( False )
+
         vh = self.verticalHeader()
         vh.sectionResizeMode( vh.Fixed )
         line_spacing = self.fontMetrics().lineSpacing()
