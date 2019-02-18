@@ -121,6 +121,13 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         item = self.invisibleRootItem().child( 0 )
         return self.indexFromItem( item )
 
+    def getFirstProjectName( self ):
+        if self.invisibleRootItem().rowCount() == 0:
+            return None
+
+        item = self.invisibleRootItem().child( 0 )
+        return item.text()
+
     def indexFromProject( self, project ):
         item = self.invisibleRootItem()
 

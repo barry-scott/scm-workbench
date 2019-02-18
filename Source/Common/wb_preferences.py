@@ -97,8 +97,7 @@ class Preferences(PreferencesNode):
             if project.path == path:
                 return project
 
-
-        assert False, 'No project with path %r' % (path,)
+        return None
 
     def getProjectContainingPath( self, path:pathlib.Path ):
         for project in self.all_projects.values():

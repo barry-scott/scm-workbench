@@ -225,15 +225,20 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         last_position = self.app.prefs.last_position
         if last_position is not None:
             project = self.app.prefs.getProjectByPath( last_position.project_path )
-            index = self.tree_model.indexFromProject( project )
+            if project is None:
+                self.log.error( 'Cannot find project: %s' % (last_position.project_path,) )
+                last_position = None
 
-        else:
-            index = self.tree_model.getFirstProjectIndex()
+        if project is None:
+            project_name = self.tree_model.getFirstProjectName()
+            if project_name is not None:
+                project = self.app.prefs.getProject( project_name )
 
         self.tree_view.sortByColumn( 0, QtCore.Qt.DescendingOrder )
         self.tree_view.setSortingEnabled( True )
 
-        if index is not None:
+        if project is not None:
+            index = self.tree_model.indexFromProject( project )
             index = self.tree_sortfilter.mapFromSource( index )
             self.tree_view.setCurrentIndex( index )
 
@@ -570,13 +575,16 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                     all_submenus[ submenu_fullname ] = submenu
 
             project = prefs.getProjectByPath( favorite.project_path )
+            if project is None:
+                self.log.error( 'Cannot find path for favorite: %s' % (favorite.project_path) )
 
-            action = submenu.addAction( menu_levels[-1] )
-            handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
-            action.triggered.connect( handler )
-            action.setMenuRole( QtWidgets.QAction.NoRole )
-            action.setStatusTip( 'Goto Favorite %s - %s' % (project.name, favorite.path) )
-            action.setData( favorite )
+            else:
+                action = submenu.addAction( menu_levels[-1] )
+                handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
+                action.triggered.connect( handler )
+                action.setMenuRole( QtWidgets.QAction.NoRole )
+                action.setStatusTip( 'Goto Favorite %s - %s' % (project.name, favorite.path) )
+                action.setData( favorite )
 
     @thread_switcher
     def gotoFavoriteHandler_bg( self, clicked=None ):
