@@ -54,8 +54,20 @@ if [ -e ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4.py ]
 then
     cp \
         ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4.py \
+        ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4API.py \
         ~/.local/lib/python${PYTHON_VERSION}/site-packages/P4API.cpython-${PYTHON_VERSION/./}m-x86_64-linux-gnu.so \
             ${KIT_BASENAME}/Source/Common
+
+elif [ -e ~/.local/lib/python${PYTHON_VERSION}/site-packages/p4python*.egg ]
+then
+    cp \
+        ~/.local/lib/python${PYTHON_VERSION}/site-packages/p4python*.egg/P4.py \
+        ~/.local/lib/python${PYTHON_VERSION}/site-packages/p4python*.egg/P4API.py \
+        ~/.local/lib/python${PYTHON_VERSION}/site-packages/p4python*.egg/P4API.cpython-${PYTHON_VERSION/./}m-x86_64-linux-gnu.so \
+            ${KIT_BASENAME}/Source/Common
+else
+    echo 'Error: cannot find P4'
+    exit 1
 fi
 
 # make the source kit
