@@ -11,11 +11,14 @@ MAN1=${4? man1 folder}
 DOC=${5? doc folder}
 DESKTOPFILES=${6? desktop files folder}
 
+PY_VER=$($PYTHON -c 'import sys;print("%d.%d"% (sys.version_info.major, sys.version_info.minor))')
+
 echo "Info: BIN ${BIN}"
 echo "Info: LIB ${LIB}"
 echo "Info: MAN1 ${MAN1}"
 echo "Info: DOC ${DOC}"
 echo "Info: DESTTOPFILES ${DESTTOPFILES}"
+echo "Info: Python version ${PY_VER}"
 set -x
 
 mkdir -p ${BUILD_ROOT}${BIN} ${BUILD_ROOT}${LIB} ${BUILD_ROOT}${MAN1} ${BUILD_ROOT}${DOC} ${BUILD_ROOT}${DESKTOPFILES}
@@ -57,7 +60,17 @@ do
     cp ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
 done
 
-LOCAL_SITE_PACKAGES="${HOME}/.local/lib/python3.5/site-packages"
+for LIBSO in \
+    ${BUILDER_TOP_DIR}/Source/Common/P4API.cpython-??m-x86_64-linux-gnu.so
+do
+    if [ -e ${LIBSO} ]
+    then
+        cp ${LIBSO} ${BUILD_ROOT}${LIB}
+    fi
+done
+
+
+LOCAL_SITE_PACKAGES="${HOME}/.local/lib/python${PY_VER}/site-packages"
 
 for MOD_PACKAGE in pytz tzlocal git gitdb smmap xml_preferences
 do
@@ -67,7 +80,7 @@ do
     fi
 done
 
-for MOD_FILE in P4.py P4API.cpython-??m-x86_64-linux-gnu.so
+for MOD_FILE in P4.py P4API.py P4API.cpython-??m-x86_64-linux-gnu.so
 do
     if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ]
     then
