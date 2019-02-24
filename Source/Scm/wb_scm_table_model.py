@@ -121,7 +121,8 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
                 return left < right
 
             # finally in name order
-            return left_ent.name < right_ent.name
+            # name can be pathlib.Path or str.
+            return str(left_ent.name) < str(right_ent.name)
 
         if column == model.col_status:
             if left == right:
