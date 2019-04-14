@@ -236,12 +236,15 @@ class FilePropertiesDialog(PropertiesDialogBase):
 
 class FolderPropertiesDialog(PropertiesDialogBase):
     def __init__( self, app, parent, path, prop_dict ):
-        self.known_properties_names = set( ['svn:ignore', 'svn:externals'] )
+        self.known_properties_names = set( ['svn:ignore', 'svn:externals', 'svn:global-ignores'] )
         self.ignore_properties_names = set( ['svn:mergeinfo'] )
 
         super().__init__( app, parent, path, prop_dict )
 
     def initKnownProperties( self ):
+        prop = 'svn:global-ignores'
+        self.property_ctrls[ prop ] = SinglePropertyMultiLine( self, prop, prop in self.prop_dict,
+                                        self.prop_dict.get( prop, '' ) )
         prop = 'svn:ignore'
         self.property_ctrls[ prop ] = SinglePropertyMultiLine( self, prop, prop in self.prop_dict,
                                         self.prop_dict.get( prop, '' ) )
