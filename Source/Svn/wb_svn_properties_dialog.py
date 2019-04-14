@@ -89,9 +89,8 @@ class SinglePropertyMultiLine(SingleProperty):
     def __init__( self, dialog, name, present, value ):
         SingleProperty.__init__( self, dialog, name, present )
 
-        value_ctrl = QtWidgets.QTextEdit()
-        value_ctrl.setAcceptRichText( False )
-        value_ctrl.setText( value )
+        value_ctrl = QtWidgets.QPlainTextEdit()
+        value_ctrl.setPlainText( value )
         value_ctrl.setMinimumWidth( 400 )
         value_ctrl.setMinimumHeight( 200 )
 
@@ -101,7 +100,7 @@ class SinglePropertyMultiLine(SingleProperty):
         if not self.isPresent():
             return True
 
-        text = self.value_ctrl.text()
+        text = self.value_ctrl.toPlainText()
         if text.strip() == '':
             warningMessage( self.name )
             return False
@@ -109,7 +108,7 @@ class SinglePropertyMultiLine(SingleProperty):
         return True
 
     def getValue( self ):
-        return self.value_ctrl.text()
+        return self.value_ctrl.toPlainText()
 
 class SinglePropertyChoice(SingleProperty):
     def __init__( self, dialog, name, present, value, all_choices ):
@@ -127,7 +126,7 @@ class SinglePropertyChoice(SingleProperty):
         self.setValueCtrl( value_ctrl, value )
 
     def getValue( self ):
-        return self.value_ctrl.currentText()
+        return self.value_ctrl.toPlainText()
 
 class SinglePropertyNoValue(SingleProperty):
     def __init__( self, dialog, name, present ):
