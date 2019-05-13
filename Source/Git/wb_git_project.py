@@ -1018,7 +1018,7 @@ class WbGitFileState:
 
     #------------------------------------------------------------
     def isControlled( self ):
-        if self.__staged_diff is not None and self.__staged_diff.renamed:
+        if self.__staged_diff is not None:
             return True
 
         return self.__index_entry is not None
@@ -1027,7 +1027,7 @@ class WbGitFileState:
         return self.__untracked
 
     def isIgnored( self ):
-        if self.__staged_diff is not None and self.__staged_diff.renamed:
+        if self.__staged_diff is not None:
             return False
 
         if self.__index_entry is not None:
