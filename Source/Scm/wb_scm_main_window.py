@@ -229,6 +229,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self.log.error( 'Cannot find project: %s' % (last_position.project_path,) )
                 last_position = None
 
+        else:
+            project = None
+
         if project is None:
             project_name = self.tree_model.getFirstProjectName()
             if project_name is not None:
