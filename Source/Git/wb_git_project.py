@@ -325,9 +325,15 @@ class GitProject:
         for diff in head_vs_index:
             self.__num_staged_files += 1
             filepath = pathlib.Path( diff.b_path )
+
             if filepath not in self.all_file_state:
                 self.all_file_state[ filepath ] = WbGitFileState( self, filepath )
-            self.all_file_state[ filepath ]._addStaged( diff )
+
+            if diff.renamed:
+                self.all_file_state[ pathlib.Path( diff.rename_from ) ]._addStaged( diff )
+
+            else:
+                self.all_file_state[ filepath ]._addStaged( diff )
 
         self.__num_modified_files = 0
         for diff in index_vs_working:
@@ -394,7 +400,7 @@ class GitProject:
                 all_staged_files.append( (T_('Deleted'), filename, None) )
 
             elif file_state.isStagedRenamed():
-                all_staged_files.append( (T_('Renamed'), filename, file_state.renamedToFilename()) )
+                all_staged_files.append( (T_('Renamed'), file_state.renamedFromFilename(), file_state.renamedToFilename()) )
 
         return all_staged_files
 
@@ -470,11 +476,25 @@ class GitProject:
         self.repo().git.reset( 'HEAD', filename, mixed=True )
         self.__stale_index = True
 
-    def cmdRevert( self, rev, filename ):
-        self.debugLog( 'cmdRevert( %r, %r )' % (rev, filename) )
+    def cmdRevert( self, rev, file_state ):
+        self.debugLog( 'cmdRevert( %r, %s:%r )' % (rev, file_state.relativePath(), file_state) )
 
         try:
-            self.repo().git.checkout( rev, filename )
+            if file_state.isStagedRenamed():
+                self.debugLog( 'cmdRevert renamedFromFilename %r renamedToFilename %r' %
+                    (file_state.renamedFromFilename(), file_state.renamedToFilename()) )
+
+                self.repo().git.reset( rev, file_state.renamedFromFilename(), mixed=True )
+                self.repo().git.reset( rev, file_state.renamedToFilename(), mixed=True )
+                self.repo().git.checkout( rev, file_state.renamedFromFilename() )
+                self.cmdDelete( file_state.renamedToFilename() )
+
+            elif( file_state.isStagedNew()
+            or file_state.isStagedModified() ):
+                self.repo().git.reset( rev, file_state.relativePath(), mixed=True )
+
+            else:
+                self.repo().git.checkout( rev, file_state.relativePath() )
 
         except GitCommandError as e:
             if e.stderr is not None:
@@ -943,7 +963,11 @@ class WbGitFileState:
 
     def renamedToFilename( self ):
         assert self.isStagedRenamed()
-        return self.__staged_diff.rename_from
+        return pathlib.Path( self.__staged_diff.rename_from )
+
+    def renamedFromFilename( self ):
+        assert self.isStagedRenamed()
+        return pathlib.Path( self.__staged_diff.rename_to )
 
     def setIsDir( self ):
         self.__is_dir = True
@@ -1077,6 +1101,8 @@ class WbGitFileState:
     def canRevert( self ):
         return (self.isUnstagedDeleted()
                or self.isUnstagedModified()
+               or self.isStagedNew()
+               or self.isStagedRenamed()
                or self.isStagedDeleted()
                or self.isStagedModified())
 

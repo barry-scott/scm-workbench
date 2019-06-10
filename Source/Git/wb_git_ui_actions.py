@@ -552,7 +552,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         else:
             # revert to HEAD
-            git_project.cmdRevert( 'HEAD', filename )
+            git_project.cmdRevert( 'HEAD', file_state )
 
     def _actionGitDelete( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
