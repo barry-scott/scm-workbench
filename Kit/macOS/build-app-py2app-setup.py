@@ -40,7 +40,9 @@ setup(
                     CFBundleName='%(APP_NAME)s-Devel' % v,
                     CFBundleVersion=short_version,
                     CFBundleShortVersionString=short_version,
-                    CFBundleGetInfoString=info_string
+                    CFBundleGetInfoString=info_string,
+                    # claim we know about dark mode
+                    NSRequiresAquaSystemAppearance='false',
                     ),
             }},
     setup_requires =
