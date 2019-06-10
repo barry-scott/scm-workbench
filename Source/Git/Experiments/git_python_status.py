@@ -22,13 +22,13 @@ for diff in r.index.diff( r.head.commit ):
 
     elif diff.deleted_file:
         print( '        new file:   %s' % (diff.b_path,) )
-        
+
     elif diff.new_file:
-        print( '        deleted :   %s' % (diff.b_path,) )
+        print( '        deleted:    %s' % (diff.b_path,) )
 
     else:
         print( '        modified:   %s' % (diff.b_path,) )
-        
+
 print()
 print( 'Changes not staged for commit:' )
 for diff in r.index.diff( None ):

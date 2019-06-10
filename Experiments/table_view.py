@@ -39,6 +39,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resize( 100*em, 50*ex )
 
         self.table_view = TableView( self.app )
+        self.table_view.setWordWrap( False )
+        #self.table_view.setTextElideMode( QtCore.Qt.ElideRight )
 
         self.filter_text = QtWidgets.QLineEdit()
         self.filter_text.setClearButtonEnabled( True )
@@ -193,7 +195,7 @@ class TableModel(QtCore.QAbstractTableModel):
             TableEntry( app, 'c-file.h' ),
             TableEntry( app, 'a-file.cpp' ),
             TableEntry( app, 'b-file.cpp' ),
-            TableEntry( app, 'c-file.cpp' ),
+            TableEntry( app, 'c-file-jkahfds lkjhadsf lkjha flkjh alfkjh alkhf lakjh flkajh fljh flkjah flkjh flakjhsf lkajsdfh laskjdfh laskjdfh.cpp' ),
             ]
 
         self.__brush_is_uncontrolled = QtGui.QBrush( QtGui.QColor( 0, 128, 0 ) )
@@ -253,6 +255,9 @@ class TableModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.ForegroundRole:
             entry = self.all_files[ index.row() ]
             return self.__brush_is_uncontrolled
+
+        elif role == QtCore.Qt.TextAlignmentRole:
+            return QtCore.Qt.AlignLeft
 
         return None
 
