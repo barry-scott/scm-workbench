@@ -224,7 +224,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         try:
             diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
-            self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text )
+            self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
 
         except wb_svn_project.ClientError as e:
             tree_node.project.logClientError( e )
