@@ -367,6 +367,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     self.debugLog( 'WbScmTableModel.refreshTable() insertRows row=%d %r' % (offset, all_new_names[offset]) )
                     self.beginInsertRows( parent, offset, offset )
                     self.all_files.insert( offset, all_new_files[ offset ] )
+                    all_old_names.insert( offset, all_new_files[ offset ].name )
                     self.endInsertRows()
                     offset += 1
 
@@ -375,14 +376,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
                     # delete the old
                     self.beginRemoveRows( parent, offset, offset )
                     del self.all_files[ offset ]
-                    if offset < len(all_old_names):
-                        del all_old_names[ offset ]
-
-                    else:
-                        self.app.log.error( 'WbScmTableModel.refreshTable deleteRows offset %d too big' % (offset,) )
-                        for line in all_debug_lines:
-                            self.app.log.error( line )
-
+                    del all_old_names[ offset ]
                     self.endRemoveRows()
 
             if offset < len(self.all_files):
