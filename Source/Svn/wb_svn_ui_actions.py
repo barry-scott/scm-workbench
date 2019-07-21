@@ -797,6 +797,8 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     @thread_switcher
     def __commitAccepted_Bg( self ):
         svn_project = self.selectedSvnProject()
+        if svn_project is None:
+            return
 
         commit_dialog = self.app.getSingleton( self.commit_key )
 
