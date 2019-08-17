@@ -1,4 +1,3 @@
-@echo on
 if "%BUILDER_TOP_DIR%" == "" (
     echo Error: BUILDER_TOP_DIR is not set. Hint: run builder_custom_init.cmd
     goto :eof
@@ -26,9 +25,10 @@ if errorlevel 1 goto :eof
 goto :eof
 
 :check_for_pip_dependency
+    echo Checking for %2
     %PYTHON% -c %2 2>nul
     if errorlevel 1 (
-        echo Error: %1 is not installed for %PYTHON%. Hint: %PYTHON% -m pip install %1
+        echo Error: %1 is not installed for %PYTHON%. Hint: %PYTHON% -m pip install --user %1
         exit /b 1
     )
     exit /b 0

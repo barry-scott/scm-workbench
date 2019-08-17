@@ -1,4 +1,5 @@
-setlocal
+@setlocal
+@echo off
 pushd %BUILDER_TOP_DIR%\Kit\Windows
 call build-check-pip-deps.cmd %1
 cd %BUILDER_TOP_DIR%\Source\Common
@@ -6,17 +7,19 @@ cd %BUILDER_TOP_DIR%\Source\Common
     %PYTHON% make_wb_diff_images.py
     if errorlevel 1 goto :eof
 
-cd %BUILDER_TOP_DIR%\Source\
+cd %BUILDER_TOP_DIR%\Source\Scm
 echo Info: Build Clean
     if exist locale rmdir /s /q locale
+    if not exist I18N mkdir I18N
     echo zzz >I18N\zzzqqqzzz.current.po
     del I18N\*.current.po
     if exist wb_scm_images.py del wb_scm_images.py
     if exist wb_scm_version.py del wb_scm_version.py
+    if exist wb_scm_version.cmd del wb_scm_version.cmd
 
 echo Info: Build all
     %PYTHON% -u make_wb_scm_images.py
-    %PYTHON% -u make_wb_scm_version.py %BUILDER_TOP_DIR%/Builder/version.dat wb_scm_version.py
+    %PYTHON% -u make_wb_scm_version.py %BUILDER_TOP_DIR%/Builder/version.dat wb_scm_version.py wb_scm_version.cmd
     if not exist locale\en\LC_MESSAGES mkdir locale\en\LC_MESSAGES
     for /F "usebackq" %%X in ('xgettext.exe') do set XGETTXT_PATH=MISSING%%~$PATH:X
     if "%XGETTXT_PATH%" == "MISSING" (
