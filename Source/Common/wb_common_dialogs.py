@@ -116,7 +116,7 @@ class WbErrorDialog(wb_dialog_bases.WbDialog):
         self.error_message = QtWidgets.QPlainTextEdit( self )
         self.error_message.setReadOnly( True )
         self.error_message.insertPlainText( error_message )
-        self.setFont( self.app.getCodeFont() )
+        self.setFont( self.app.codeFont() )
 
         em = self.fontMetrics().width( 'M' )
         self.addRow( None, self.error_message, min_width=em*60 )

@@ -34,7 +34,6 @@ if getattr( typing, 'TYPE_CHECKING', False ):
 class WbScmApp(wb_app.WbApp):
     def __init__( self, args:List[str] ) -> None:
         self.__all_singletons = {}  # type: Dict[str, None]
-        self.__code_font = None     # type: QtGui.QFont
 
         all_factories, all_messages = wb_scm_factories.allScmFactories()
         # convert to a dict
@@ -113,13 +112,6 @@ class WbScmApp(wb_app.WbApp):
 
         self.setAppStyles()
 
-        p = self.prefs.font_code
-        if p.face is None or p.point_size is None:
-            self.__code_font = self.font()
-
-        else:
-            self.__code_font = QtGui.QFont( p.face, p.point_size )
-
     # place fix style changes in this list
     app_style_sheet = [] # type: List[str]
 
@@ -151,16 +143,6 @@ class WbScmApp(wb_app.WbApp):
     def createMainWindow( self ):
         self.setAppStyles()
 
-        p = self.prefs.font_code
-        if p.face is None or p.point_size is None:
-            self.__code_font = self.font()
-
-        else:
-            self.__code_font = QtGui.QFont( p.face, p.point_size )
-
         self.top_window = wb_scm_main_window.WbScmMainWindow( self, self.all_factories )
 
         return self.top_window
-
-    def getCodeFont( self ) -> 'QtGui.QFont':
-        return self.__code_font

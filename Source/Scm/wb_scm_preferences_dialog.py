@@ -238,16 +238,9 @@ class FontTab(wb_dialog_bases.WbTabBase):
             self.ui_face = p.face
             self.ui_point_size = p.point_size
 
-        p =  self.app.prefs.font_code
-
-        if p.face is None or p.point_size is None:
-            font = self.app.font()
-            self.code_face = font.family()
-            self.code_point_size = font.pointSize()
-
-        else:
-            self.code_face = p.face
-            self.code_point_size = p.point_size
+        font = self.app.codeFont()
+        self.code_face = font.family()
+        self.code_point_size = font.pointSize()
 
         self.ui_font_text = QtWidgets.QLabel( '%s %dpt ' % (self.ui_face, self.ui_point_size) )
         self.ui_font_text.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Fixed )
@@ -279,6 +272,9 @@ class FontTab(wb_dialog_bases.WbTabBase):
 
         p.face = self.code_face
         p.point_size = self.code_point_size
+
+        # cause the new value to be used
+        self.app.code_font = None
 
     def validate( self ):
         return True

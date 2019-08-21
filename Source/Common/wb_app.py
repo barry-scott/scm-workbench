@@ -25,6 +25,7 @@ from PyQt5 import QtGui
 import wb_platform_specific
 import wb_logging
 import wb_background_thread
+import wb_config
 
 qt_event_type_names = {}
 for name in dir(QtCore.QEvent):
@@ -185,7 +186,7 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.__wb_log = wb_logging.WbLog( self )
 
         # background threads depend on Qt
-        self.startBackgoundThread()
+        self.startBackgroundThread()
         self.log.infoheader( T_('Starting %s') % (' '.join( self.app_name_parts ),) )
 
         self.prefs_manager = self.createPreferencesManager()
@@ -203,13 +204,29 @@ class WbApp(wb_logging.AppLoggingMixin,
             self.setDarkPalette()
             self.__wb_log.initStyles()
 
+        self.code_font = None
+
         # part 2 of settings up logging is done in main window code
         self.main_window = self.createMainWindow()
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
 
     def isDarkMode( self ):
-        return self.__is_dark_mode or (self.prefs is not None and self.prefs.projects_defaults.force_dark_mode)
+        if hasattr( self.prefs, 'projects_defaults' ):
+            return self.__is_dark_mode or (self.prefs is not None and self.prefs.projects_defaults.force_dark_mode)
+        else:
+            return True
+
+    def codeFont( self ):
+        if self.code_font is None:
+            font_code = self.prefs.font_code
+            if font_code.face is not None and font_code.point_size is not None:
+                self.code_font = QtGui.QFont( font_code.face, font_code.point_size )
+
+            else:
+                self.code_font = QtGui.QFont( wb_config.face, wb_config.point_size )
+
+        return self.code_font
 
     def defaultFgBrush( self ):
         return self.palette().text()

@@ -23,15 +23,12 @@ import wb_main_window
 import wb_config
 import wb_tracked_qwidget
 
-import wb_config
-
 class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, parent, title, file_left, header_left, file_right, header_right, ):
         super().__init__( app, app.debug_options.debugLogDiff, parent=parent )
         wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
-        prefs = self.app.prefs.diff_window
-        geometry = prefs.geometry
+        geometry = self.app.prefs.diff_window.geometry
 
         self.setWindowTitle( title )
         icon = app.getAppQIcon()
@@ -275,15 +272,19 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
         # make some styles
         prefs = app.prefs.diff_window
+
+        # Setting the font via the help setFont() aways works where as the low level API does not.
+        self.setFont( app.codeFont() )
+
         if app.isDarkMode():
             self.styleSetFromSpec( self.style_line_normal,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (app.defaultFgRgb(), app.defaultBgRgb()) )
             self.styleSetFromSpec( self.style_line_insert,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_dark_colour_insert_line, app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (wb_config.diff_dark_colour_insert_line, app.defaultBgRgb()) )
             self.styleSetFromSpec( self.style_line_delete,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_dark_colour_delete_line, app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (wb_config.diff_dark_colour_delete_line, app.defaultBgRgb()) )
             self.styleSetFromSpec( self.style_line_change,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_dark_colour_change_line, app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (wb_config.diff_dark_colour_change_line, app.defaultBgRgb()) )
 
             # and finally, an indicator or two
             self.indicSetStyle( self.indictor_char_insert,  self.INDIC_SQUIGGLE )
@@ -488,18 +489,16 @@ class DiffLineNumbers(wb_scintilla.WbScintilla):
         self.setMarginWidth( 2, 0 )
 
         # make some styles
+        self.setFont( app.codeFont() )
         self.styleSetFromSpec( self.style_normal,
-                'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
+                'fore:%s,back:%s' % (app.defaultFgRgb(), app.defaultBgRgb()) )
         self.styleSetFromSpec( self.style_line_numbers,
-                'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
+                'fore:%s,back:%s' % (app.defaultFgRgb(), app.defaultBgRgb()) )
         self.styleSetFromSpec( self.style_line_numbers_for_diff,
-                'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), '#0d0d0d') )
+                'fore:%s,back:%s' % (app.defaultFgRgb(), '#0d0d0d') )
 
         # Calculate space for 6 digits
-        font = QtGui.QFont( wb_config.face, wb_config.point_size )
-        self.setFont( font )
-
-        fontmetrics = QtGui.QFontMetrics( font )
+        fontmetrics = QtGui.QFontMetrics( app.codeFont() )
 
         width = fontmetrics.width( '123456' )
 

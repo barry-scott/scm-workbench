@@ -87,7 +87,7 @@ class WbHgLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.setWindowTitle( title )
         self.setWindowIcon( self.app.getAppQIcon() )
 
-        self.code_font = self.app.getCodeFont()
+        self.code_font = self.app.codeFont()
 
         #----------------------------------------
         self.log_table = WbLogTableView( self )

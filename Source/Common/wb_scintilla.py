@@ -133,13 +133,7 @@ class WbScintilla(Qsci.QsciScintilla):
         # white space is not removed
         for name_value in css.split( ',' ):
             name, value = name_value.split( ':' )
-            if name == 'size':
-                self.SendScintilla( self.SCI_STYLESETSIZE, style_number, int(value) )
-
-            elif name == 'face':
-                self.SendScintilla( self.SCI_STYLESETFONT, style_number, value.encode( 'utf-8' ) )
-
-            elif name == 'fore':
+            if name == 'fore':
                 self.SendScintilla( self.SCI_STYLESETFORE, style_number, parseColourToRgbInt( value ) )
 
             elif name == 'back':

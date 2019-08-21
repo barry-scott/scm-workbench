@@ -61,7 +61,7 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
 
         #----------------------------------------
         self.commit_message = QtWidgets.QPlainTextEdit()
-        self.commit_message.setFont( self.app.getCodeFont() )
+        self.commit_message.setFont( self.app.codeFont() )
         self.commit_message.setReadOnly( True )
 
         #----------------------------------------
@@ -189,7 +189,7 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
         self.all_annotation_nodes  = []
         self.all_commit_log_nodes = {}
 
-        self.fixed_font = self.app.getCodeFont()
+        self.fixed_font = self.app.codeFont()
 
     def loadAnnotationForFile( self, all_annotation_nodes, all_commit_log_nodes ):
         self.beginResetModel()

@@ -102,7 +102,7 @@ class BackgroundWorkMixin:
         self.foreground_thread = threading.currentThread()
         self.background_thread = BackgroundThread( self )
 
-    def startBackgoundThread( self ):
+    def startBackgroundThread( self ):
         self.foregroundProcessSignal.connect( self.__runInForeground, type=QtCore.Qt.QueuedConnection )
         self.background_thread.start()
 

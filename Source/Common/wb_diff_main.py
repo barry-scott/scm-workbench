@@ -55,7 +55,7 @@ class WbDiff_App(wb_app.WbApp):
         super().__init__( ('Wb', 'Diff'), argv, wb_debug.WbDebug )
 
         if len(self.all_positional_args) != 2:
-            print( 'Error: expection 2 filename arguments' )
+            print( 'Error: expecting 2 filename arguments' )
             sys.exit( 1 )
 
         # self is log and app
@@ -70,8 +70,13 @@ class WbDiff_App(wb_app.WbApp):
                     wb_platform_specific.getPreferencesFilename() )
 
     def createMainWindow( self ):
-        self.file1 = self.all_positional_args[0]
-        self.file2 = self.all_positional_args[1]
+        if len(self.all_positional_args) == 2:
+            self.file1 = self.all_positional_args[0]
+            self.file2 = self.all_positional_args[1]
+
+        else:
+            self.file1 = '/dev/null'
+            self.file2 = '/dev/null'
 
         return wb_diff_side_by_side_view.DiffSideBySideView( self, None, 'wb-diff', self.file1, self.file1, self.file2, self.file2 )
 

@@ -51,7 +51,7 @@ class WbDiffViewText(WbDiffViewBase):
     def __init__( self, app, title ):
         super().__init__( app, title )
 
-        self.code_font = self.app.getCodeFont()
+        self.code_font = self.app.codeFont()
 
         self.text_edit = QtWidgets.QTextEdit()
 

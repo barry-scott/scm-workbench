@@ -124,14 +124,14 @@ class WbRebaseConfirmDialog(wb_dialog_bases.WbDialog):
 
         self.rebase_details = QtWidgets.QPlainTextEdit()
         self.rebase_details.setReadOnly( True )
-        self.rebase_details.setFont( app.getCodeFont() )
+        self.rebase_details.setFont( app.codeFont() )
 
         self.addNamedDivider( T_('Rebase Details') )
         self.addRow( None, self.rebase_details, min_width=em*80 )
 
         if commit_message is not None:
             self.commit_message = QtWidgets.QPlainTextEdit()
-            self.commit_message.setFont( app.getCodeFont() )
+            self.commit_message.setFont( app.codeFont() )
             self.commit_message.textChanged.connect( self.commitMessageChanged )
 
             self.addNamedDivider( T_('New Commit Message') )
@@ -182,7 +182,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.setWindowTitle( title )
         self.setWindowIcon( self.app.getAppQIcon() )
 
-        self.code_font = self.app.getCodeFont()
+        self.code_font = self.app.codeFont()
 
         #----------------------------------------
         self.log_table = WbLogTableView( self )
