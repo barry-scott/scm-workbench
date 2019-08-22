@@ -12,11 +12,11 @@
 '''
 class WorkBenchError(Exception):
     def __init__( self, msg ):
-        Exception.__init__( self, msg )
+        super().__init__( msg )
 
 class InternalError(WorkBenchError):
     def __init__( self, msg ):
-        WorkBenchError.__init__( self, msg )
+        super().__init__( msg )
 
 #
 #    Helper class to cut down code bloat.

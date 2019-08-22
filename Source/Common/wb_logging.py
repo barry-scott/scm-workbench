@@ -172,7 +172,7 @@ class ThreadSafeLogFacade:
 #--------------------------------------------------------------------------------
 class StdoutLogHandler(logging.Handler):
     def __init__( self ):
-        logging.Handler.__init__( self )
+        super().__init__()
 
     def emit( self, record ):
         try:

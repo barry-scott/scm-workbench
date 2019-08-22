@@ -76,7 +76,6 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.table_view = None
 
         super().__init__( app, app.debug_options.debugLogMainWindow )
-        wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         self.ui_component = HgCommitWindowComponents( self.app.getScmFactory( 'hg' ) )
 

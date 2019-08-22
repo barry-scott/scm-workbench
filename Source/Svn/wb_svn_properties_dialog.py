@@ -65,7 +65,7 @@ class SingleProperty:
 
 class SinglePropertyText(SingleProperty):
     def __init__( self, dialog, name, present, value ):
-        SingleProperty.__init__( self, dialog, name, present )
+        super().__init__( dialog, name, present )
 
         value_ctrl = QtWidgets.QLineEdit()
         value_ctrl.setText( value )
@@ -87,7 +87,7 @@ class SinglePropertyText(SingleProperty):
 
 class SinglePropertyMultiLine(SingleProperty):
     def __init__( self, dialog, name, present, value ):
-        SingleProperty.__init__( self, dialog, name, present )
+        super().__init__( dialog, name, present )
 
         value_ctrl = QtWidgets.QPlainTextEdit()
         value_ctrl.setPlainText( value )
@@ -112,7 +112,7 @@ class SinglePropertyMultiLine(SingleProperty):
 
 class SinglePropertyChoice(SingleProperty):
     def __init__( self, dialog, name, present, value, all_choices ):
-        SingleProperty.__init__( self, dialog, name, present )
+        super().__init__( dialog, name, present )
 
         value_ctrl = QtWidgets.QComboBox()
         value_ctrl.addItems( all_choices )
@@ -130,7 +130,7 @@ class SinglePropertyChoice(SingleProperty):
 
 class SinglePropertyNoValue(SingleProperty):
     def __init__( self, dialog, name, present ):
-        SingleProperty.__init__( self, dialog, name, present )
+        super().__init__( dialog, name, present )
 
         self.setValueCtrl( QtWidgets.QLabel( '' ), '' )
 

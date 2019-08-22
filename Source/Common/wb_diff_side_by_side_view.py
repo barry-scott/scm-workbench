@@ -26,7 +26,6 @@ import wb_tracked_qwidget
 class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedModeless):
     def __init__( self, app, parent, title, file_left, header_left, file_right, header_right, ):
         super().__init__( app, app.debug_options.debugLogDiff, parent=parent )
-        wb_tracked_qwidget.WbTrackedModeless.__init__( self )
 
         geometry = self.app.prefs.diff_window.geometry
 

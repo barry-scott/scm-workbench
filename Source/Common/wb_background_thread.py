@@ -43,7 +43,7 @@ class MarshalledCall:
 
 class BackgroundThread(threading.Thread):
     def __init__( self, app ):
-        threading.Thread.__init__( self )
+        super().__init__()
 
         self.app = app
 
