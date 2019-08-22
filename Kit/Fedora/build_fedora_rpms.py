@@ -74,7 +74,7 @@ class BuildFedoraRpms:
             next(args)
             self.cmd = next(args)
             if self.cmd not in valid_cmds:
-                raise BuildError( 'Invalid cmd %r - pick on of %s' % (cmd, ', '.join( valid_cmds )) )
+                raise BuildError( 'Invalid cmd %r - pick on of %s' % (self.cmd, ', '.join( valid_cmds )) )
 
             while True:
                 arg = next(args)
