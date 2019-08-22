@@ -11,6 +11,7 @@
 
 '''
 import sys
+import unicodedata
 import difflib
 import wb_read_file
 
@@ -49,7 +50,7 @@ class Difference:
     # the similar pair.  Lots of work, but often worth it.
 
     def fancy_replace( self, a, alo, ahi, b, blo, bhi):
-
+        print( 'Difference.fancy_replace( %r, %r, %r, %r, %r, %r )' % (a, alo, ahi, b, blo, bhi) )
         # don't synch up unless the lines have a similarity score of at
         # least cutoff; best_ratio tracks the best score seen so far
         best_ratio, cutoff = 0.51, 0.52
@@ -103,16 +104,23 @@ class Difference:
         if eqi is None:
             self.text_body.addChangedLineBegin()
 
-            cruncher.set_seqs( aelt, belt )
+            # diff usually makes more sense as a diff of the words in a line
+            awords = self.splitIntoWords( aelt )
+            bwords = self.splitIntoWords( belt )
+            cruncher.set_seqs( awords, bwords )
             for tag, ai1, ai2, bj1, bj2 in cruncher.get_opcodes():
                 if tag == 'replace':
-                    self.text_body.addChangedLineReplace( aelt[ai1:ai2], belt[bj1:bj2] )
+                    self.text_body.addChangedLineReplace( ''.join( awords[ai1:ai2] ), ''.join( bwords[bj1:bj2] ) )
+
                 elif tag == 'delete':
-                    self.text_body.addChangedLineDelete( aelt[ai1:ai2] )
+                    self.text_body.addChangedLineDelete( ''.join( awords[ai1:ai2] ) )
+
                 elif tag == 'insert':
-                    self.text_body.addChangedLineInsert( belt[bj1:bj2] )
+                    self.text_body.addChangedLineInsert( ''.join( bwords[bj1:bj2] ) )
+
                 elif tag == 'equal':
-                    self.text_body.addChangedLineEqual( belt[bj1:bj2] )
+                    self.text_body.addChangedLineEqual( ''.join( bwords[bj1:bj2] ) )
+
                 else:
                     raise ValueError( 'unknown tag ' + str(tag) )
 
@@ -122,6 +130,34 @@ class Difference:
 
         # pump out diffs from after the synch point
         self.fancy_helper(a, best_i+1, ahi, b, best_j+1, bhi)
+
+    def splitIntoWords( self, line ):
+        all_words = []
+
+        c_last = ''
+        word = []
+        for c in line:
+            c_this = unicodedata.category( c )
+
+            if c_this == c_last:
+                word.append( c )
+
+            elif c_last == 'Lu' and c_this == 'Ll':
+                # camelCaseWords.
+                word.append( c )
+
+            else:
+                if len(word) > 0:
+                    all_words.append( ''.join( word ) )
+
+                word = [c]
+
+            c_last = c_this
+
+        if len(word) > 0:
+            all_words.append( ''.join( word ) )
+
+        return all_words
 
     def fancy_helper( self, a, alo, ahi, b, blo, bhi):
         if alo < ahi:
