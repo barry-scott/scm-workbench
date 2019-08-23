@@ -50,7 +50,6 @@ class Difference:
     # the similar pair.  Lots of work, but often worth it.
 
     def fancy_replace( self, a, alo, ahi, b, blo, bhi):
-        print( 'Difference.fancy_replace( %r, %r, %r, %r, %r, %r )' % (a, alo, ahi, b, blo, bhi) )
         # don't synch up unless the lines have a similarity score of at
         # least cutoff; best_ratio tracks the best score seen so far
         best_ratio, cutoff = 0.51, 0.52
