@@ -38,9 +38,11 @@ sips -z 512 512   ${SRC_DIR}/wb.png --out ${DIST_DIR}/wb.iconset/icon_512x512.pn
 cp                ${SRC_DIR}/wb.png       ${DIST_DIR}/wb.iconset/icon_512x512@2x.png
 iconutil -c icns ${DIST_DIR}/wb.iconset
 
+./build-venv.sh
+
 export PYTHONPATH=${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
 
-${PYTHON} build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip 2>&1 | tee py2app.log
+./venv.tmp/bin/python build-app-py2app-setup.py py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip 2>&1 | tee py2app.log
 
 pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
 

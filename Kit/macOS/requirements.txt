@@ -4,15 +4,18 @@
 #   pip3 install --requirement requirements.txt
 #
 
-# get pysvn from http://pysvn.tigris.org/
+# build tools
+
+py2app>=0.11
+
+# get pysvn from https://sourceforge.net/projects/pysvn/
+
 # pysvn>1.9.3 with svn 1.9 support
 
 GitPython>=2.1.8
-PyQt5>5.7
 python-hglib>=2.2
+PyQt5==5.12.2
+QScintilla==2.11.1
 pytz>=2016.7
-QScintilla>=2.9.3
 tzlocal>=1.2.2
 xml-preferences>=1.1.2
-
-py2app>=0.11

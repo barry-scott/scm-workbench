@@ -9,8 +9,8 @@ win-app-packager >= 1.4.0
 
 # dependencies for SCM workbench
 
-# get pysvn from http://pysvn.tigris.org/
-# pysvn>1.9.3 with svn 1.9 support
+# get pysvn from https://sourceforge.net/projects/pysvn/
+# pysvn>1.9.3 with svn>1.9 support
 
 GitPython>=2.1.8
 python-hglib>=2.2
