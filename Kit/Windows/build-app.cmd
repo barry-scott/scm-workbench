@@ -24,18 +24,16 @@ set PYTHON=%BUILDER_TOP_DIR%\Kit\Windows\venv.tmp\scripts\python.exe
 set APPMODE=--gui
 if "%1" == "--cli" set APPMODE=--cli
 
-set PKG_DIST_DIR=%BUILDER_TOP_DIR%\Kit\Windows\app.tmp
+set DIST_DIR=%BUILDER_TOP_DIR%\Kit\Windows\app.tmp
 set SRC_DIR=%BUILDER_TOP_DIR%\Source
 set DOC_DIR=%BUILDER_TOP_DIR%\Docs
 
-set DIST_DIR=%PKG_DIST_DIR%
-
 if exist build rmdir /s /q build
-    if errorlevel 1 goto :error
+    if exist build goto :error
 if exist %DIST_DIR% rmdir /s /q %DIST_DIR%
-    if errorlevel 1 goto :error
+    if exist %DIST_DIR% goto :error
 if exist setup.tmp rmdir /s /q setup.tmp
-    if errorlevel 1 goto :error
+    if exist setup.tmp goto :error
 
 mkdir %DIST_DIR%
     if errorlevel 1 goto :error
@@ -58,7 +56,7 @@ colour-print "<>info Info:<> Copy in the docs"
 %DOC_DIR%\build-docs.py %DIST_DIR%\Documentation
     if errorlevel 1 goto :error
 
-pushd %DIST_DIR%\PyWinAppRes\PyQt5
+pushd %DIST_DIR%\PyWinAppRes\Lib\site-packages\PyQt5
     if errorlevel 1 goto :error
 
 colour-print "<>info Info:<> clean up Qt 1. move all pyd and dll into a tmp folder"
@@ -117,11 +115,11 @@ rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\unittest\test
     if errorlevel 1 goto :error
 
 colour-print "<>info Info:<> clean up python lib 2. delete distutils exe"
-del /s %DIST_DIR%\PyWinAppRes\Lib\distutils\command\wininst-*.exe
+del /s %DIST_DIR%\PyWinAppRes\Lib\distutils\command\wininst-*.exe >NUL
     if errorlevel 1 goto :error
 
 colour-print "<>info Info:<> clean up python lib 3. delete pysvn uninstall exe"
-del /s %DIST_DIR%\PyWinAppRes\Lib\site-packages\pysvn\unins000.exe
+del /s %DIST_DIR%\PyWinAppRes\Lib\site-packages\pysvn\unins000.exe >NUL
     if errorlevel 1 goto :error
 
 popd

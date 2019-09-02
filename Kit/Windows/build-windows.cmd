@@ -1,4 +1,7 @@
 setlocal
+rem used for colour messages
+%PYTHON% -m pip install --user --upgrade colour-text
+
 call build-venv.cmd
     if errorlevel 1 goto :error
 call build-extras.cmd
