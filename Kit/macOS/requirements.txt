@@ -5,12 +5,10 @@
 #
 
 # build tools
-
 py2app>=0.11
 
 # get pysvn from https://sourceforge.net/projects/pysvn/
-
-# pysvn>1.9.3 with svn 1.9 support
+# pysvn>1.9.3 with svn >1.9 support
 
 GitPython>=2.1.8
 python-hglib>=2.2
