@@ -297,13 +297,13 @@ class DiffBodyText(wb_scintilla.WbScintilla):
 
         else:
             self.styleSetFromSpec( self.style_line_normal,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, app.defaultFgRgb(), app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (app.defaultFgRgb(), app.defaultBgRgb()) )
             self.styleSetFromSpec( self.style_line_insert,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_light_colour_insert_line, app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (wb_config.diff_light_colour_insert_line, app.defaultBgRgb()) )
             self.styleSetFromSpec( self.style_line_delete,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_light_colour_delete_line, app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (wb_config.diff_light_colour_delete_line, app.defaultBgRgb()) )
             self.styleSetFromSpec( self.style_line_change,
-                    'size:%d,face:%s,fore:%s,back:%s' % (wb_config.point_size, wb_config.face, wb_config.diff_light_colour_change_line, app.defaultBgRgb()) )
+                    'fore:%s,back:%s' % (wb_config.diff_light_colour_change_line, app.defaultBgRgb()) )
 
             # and finally, an indicator or two
             self.indicSetStyle( self.indictor_char_insert,  self.INDIC_SQUIGGLE )
