@@ -1,7 +1,7 @@
 @setlocal
 @echo off
 pushd %BUILDER_TOP_DIR%\Kit\Windows
-set PYTHON=%CD%\venv.tmp\scripts\python.exe
+if not "%1" == "testing" set PYTHON=%CD%\venv.tmp\scripts\python.exe
 
 cd %BUILDER_TOP_DIR%\Source\Common
     if exist wb_diff_images.py del wb_diff_images.py

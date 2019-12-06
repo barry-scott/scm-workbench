@@ -13,7 +13,9 @@ packaged for your operating system.
     tzlocal>=1.2.2
     xml-preferences>=1.1.2
 
-Use the requirements.txt for your OS to install all dependencies.
+Use the requirements.txt for your OS to install all dependencies at
+versions that are know to work well.
+
 For macOS Kit/macOS/requirements.txt
 For Windows Kit/Windows/requirements.txt
 
@@ -22,7 +24,6 @@ For example on Windows:
 
 For example on macOS:
     python3.7 -m pip install --user --upgrade -r Kit/macOS/requirements.txt
-s
 
 Note: pysvn is available as a package for most linux systems.
 For Windows and macOS get a binary kit from:
@@ -40,6 +41,11 @@ If you wish to work with Mercurial you will also need:
 If you wish to work with Subversion you will also need:
 
     pysvn>=1.9.2
+
+You will also need the to install command line clients for git and Mercurial.
+
+For Windows:
+    https://gitforwindows.org/
 
 Having installed the dependencies use the wb-scm.sh script to
 run SCM workbench on macOS and Linux systems. Use wb-scm.cmd on

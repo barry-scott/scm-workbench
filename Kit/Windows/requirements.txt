@@ -6,6 +6,7 @@
 
 # build tools
 win-app-packager >= 1.4.0
+colour-text
 
 # dependencies for SCM workbench
 
