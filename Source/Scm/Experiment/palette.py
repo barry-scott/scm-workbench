@@ -5,7 +5,11 @@ from PyQt5 import QtCore
 
 app = QtWidgets.QApplication(sys.argv)
 
+#app.setStyle('fusion')
+
 palette = app.palette()
+
+print( 'desktopSettingsAware: %r' % (app.desktopSettingsAware(),) )
 
 def colorAsString( brush ):
     color = brush.color()
