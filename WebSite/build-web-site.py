@@ -9,9 +9,8 @@ def copyFile( src, dst_dir ):
     shutil.copy( str( src ), str( dst ) )
 
 version = sys.argv[1]
-fedora_version = sys.argv[2]
-built_kits_dir = pathlib.Path( sys.argv[3] )
-testing = '--test' in sys.argv[4:]
+built_kits_dir = pathlib.Path( sys.argv[2] )
+testing = '--test' in sys.argv[3:]
 
 # source paths
 builder_top_dir = pathlib.Path( os.environ['BUILDER_TOP_DIR'] )
@@ -43,14 +42,11 @@ if rc != 0:
 
 kit_values = {
     'VERSION': version,
-    'FEDORA_VERSION': fedora_version,
     }
 
 
 for kit_fmt in ('SCM-Workbench-%(VERSION)s-setup.exe',
-                'SCM-Workbench-%(VERSION)s.dmg',
-                'scm-workbench-%(VERSION)s-1.fc%(FEDORA_VERSION)s.x86_64.rpm',
-                'scm-workbench-%(VERSION)s-1.fc%(FEDORA_VERSION)s.src.rpm'):
+                'SCM-Workbench-%(VERSION)s.dmg'):
     copyFile( built_kits_dir / (kit_fmt % kit_values), output_kits_dir )
 
 with open( str( output_dir / 'index.html' ), encoding='utf-8' ) as f:
