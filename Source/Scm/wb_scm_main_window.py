@@ -575,6 +575,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
                 else:
                     submenu = submenu.addMenu( submenu_name )
+                    # QAction.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
+                    submenu.menuAction().setMenuRole( QtWidgets.QAction.NoRole )
                     all_submenus[ submenu_fullname ] = submenu
 
             project = prefs.getProjectByPath( favorite.project_path )
@@ -582,12 +584,15 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 self.log.error( 'Cannot find path for favorite: %s' % (favorite.project_path) )
 
             else:
-                action = submenu.addAction( menu_levels[-1] )
+                action = submenu.addAction( '-place holder-' )
+                action.setMenuRole( QtWidgets.QAction.NoRole )
                 handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
                 action.triggered.connect( handler )
+                # QAction.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
                 action.setMenuRole( QtWidgets.QAction.NoRole )
                 action.setStatusTip( 'Goto Favorite %s - %s' % (project.name, favorite.path) )
                 action.setData( favorite )
+                action.setText( menu_levels[-1] )
 
     @thread_switcher
     def gotoFavoriteHandler_bg( self, clicked=None ):
