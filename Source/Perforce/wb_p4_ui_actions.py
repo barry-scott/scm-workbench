@@ -177,7 +177,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     @thread_switcher
     def _actionP4LogHistory_Bg( self, p4_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
         if not options.exec_():
             return
@@ -434,7 +434,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         if folder_path is None:
             return
 
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
         if not options.exec_():
             return

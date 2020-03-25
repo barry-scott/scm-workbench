@@ -176,7 +176,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         yield from self.table_view.tableActionViewRepo_Bg( self._actionHgLogHistory_Bg )
 
     def _actionHgLogHistory_Bg( self, hg_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
         if not options.exec_():
             return
@@ -434,7 +434,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # ------------------------------------------------------------
     @thread_switcher
     def treeActionHgLogHistory_Bg( self, checked=None ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
         if not options.exec_():
             return

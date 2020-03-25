@@ -171,6 +171,7 @@ class LogHistoryTab(wb_dialog_bases.WbTabBase):
         self.default_limit.setRange( 1, 100000 )
         self.default_limit.setSuffix( T_(' Commits') )
 
+        self.use_default_since_tag = QtWidgets.QCheckBox( T_('Use since tag') )
         self.use_default_limit = QtWidgets.QCheckBox( T_('Use limit') )
 
         self.default_until = QtWidgets.QSpinBox()
@@ -186,6 +187,8 @@ class LogHistoryTab(wb_dialog_bases.WbTabBase):
         self.use_default_since = QtWidgets.QCheckBox( T_('Use since') )
 
         if self.prefs is not None:
+            self.use_default_since_tag.setChecked( self.prefs.use_default_since_tag )
+
             self.default_limit.setValue( self.prefs.default_limit )
             self.use_default_limit.setChecked( self.prefs.use_default_limit )
 
@@ -195,6 +198,7 @@ class LogHistoryTab(wb_dialog_bases.WbTabBase):
             self.default_since.setValue( self.prefs.default_since_days_interval )
             self.use_default_since.setChecked( self.prefs.use_default_since_days_interval )
 
+        self.addRow( T_('Default since tag'), QtWidgets.QLabel( T_('last tag') ), self.use_default_since_tag )
         self.addRow( T_('Default Limit'), self.default_limit, self.use_default_limit )
         self.addRow( T_('Default until interval'), self.default_until, self.use_default_until )
         self.addRow( T_('Default since interval'), self.default_since, self.use_default_since )
@@ -213,6 +217,8 @@ class LogHistoryTab(wb_dialog_bases.WbTabBase):
     def savePreferences( self ):
         if self.prefs is None:
             return
+
+        self.prefs.use_default_since_tag  = self.use_default_since_tag.isChecked()
 
         self.prefs.default_limit = self.default_limit.value()
         self.prefs.use_default_limit = self.use_default_limit.isChecked()

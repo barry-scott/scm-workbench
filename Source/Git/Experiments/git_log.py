@@ -38,5 +38,5 @@ for commit in r.iter_commits( None ):
     tree = commit.tree
 
     printTree( tree )
-    
+
     break

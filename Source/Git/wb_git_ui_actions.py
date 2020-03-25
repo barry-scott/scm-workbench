@@ -524,7 +524,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     @thread_switcher
     def _actionGitLogHistory_Bg( self, git_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
         if not options.exec_():
             return
@@ -657,12 +657,13 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     # ------------------------------------------------------------
     @thread_switcher
     def treeActionGitLogHistory_Bg( self, checked=None ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        git_project = self.selectedGitProject()
+        all_tags = sorted( git_project.cmdTagsForRepository().values(), reverse=True )
+
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, all_tags, self.main_window )
 
         if not options.exec_():
             return
-
-        git_project = self.selectedGitProject()
 
         commit_log_view = self.factory.logHistoryView(
                 self.app,

@@ -361,7 +361,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         options = self.reload_commit_log_options
         self.log_model.loadCommitLogForRepository(
                     self.ui_component.deferedLogHistoryProgress(), self.git_project,
-                    options.getLimit(), options.getSince(), options.getUntil() )
+                    options.getLimit(), options.getSince(), options.getUntil(), self.__revFromOptions( options ), '' )
 
         yield self.app.switchToForeground
 
@@ -372,6 +372,14 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         self.ui_component.progress.end()
         self.updateEnableStates()
         self.show()
+
+    def __revFromOptions( self, options ):
+        tag = options.getTag()
+        if tag is None:
+            return None
+
+        # Include the tagged commit in the log
+        return '%s^..HEAD' % (tag,)
 
     #------------------------------------------------------------
     def enablerTableGitRebaseSquash( self ):
@@ -513,7 +521,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         self.log_model.loadCommitLogForRepository(
                     self.ui_component.deferedLogHistoryProgress(), git_project,
-                    options.getLimit(), options.getSince(), options.getUntil() )
+                    options.getLimit(), options.getSince(), options.getUntil(), self.__revFromOptions( options ), '' )
 
         yield self.app.switchToForeground
 
@@ -626,16 +634,16 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
             self.__brush_is_tag = QtGui.QBrush( QtGui.QColor( 0, 0, 255 ) )
             self.__brush_is_unpushed = QtGui.QBrush( QtGui.QColor( 192, 0, 192 ) )
 
-    def loadCommitLogForRepository( self, progress_callback, git_project, limit, since, until ):
+    def loadCommitLogForRepository( self, progress_callback, git_project, limit, since, until, rev=None, path='' ):
         self.beginResetModel()
-        self.all_commit_nodes = git_project.cmdCommitLogForRepository( progress_callback, limit, since, until )
+        self.all_commit_nodes = git_project.cmdCommitLogForRepository( progress_callback, limit, since, until, rev, path )
         self.all_tags_by_id = git_project.cmdTagsForRepository()
         self.all_unpushed_commit_ids = set( [commit.hexsha for commit in git_project.getUnpushedCommits()] )
         self.endResetModel()
 
-    def loadCommitLogForFile( self, progress_callback, git_project, filename, limit, since, until ):
+    def loadCommitLogForFile( self, progress_callback, git_project, filename, limit, since, until, rev=None ):
         self.beginResetModel()
-        self.all_commit_nodes = git_project.cmdCommitLogForFile( progress_callback, filename, limit, since, until )
+        self.all_commit_nodes = git_project.cmdCommitLogForFile( progress_callback, filename, limit, since, until, rev=rev )
         self.all_tags_by_id = git_project.cmdTagsForRepository()
         self.all_unpushed_commit_ids = set( git_project.getUnpushedCommits() )
         self.endResetModel()

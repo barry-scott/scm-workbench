@@ -419,7 +419,7 @@ class SvnProject:
 
         return all_revisions
 
-    def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None ):
+    def cmdCommitLogForFile( self, filename, limit=None, since=None, until=None, rev=None ):
         if limit is None:
             limit = 0
 
@@ -430,6 +430,8 @@ class SvnProject:
 
         if since is not None:
             rev_end = pysvn.Revision( pysvn.opt_revision_kind.date, since )
+        elif rev is not None:
+            rev_end = rev
         else:
             rev_end = self.svn_rev_r0
 

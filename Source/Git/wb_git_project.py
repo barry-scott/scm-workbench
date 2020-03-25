@@ -651,7 +651,7 @@ class GitProject:
 
         return all_commit_logs
 
-    def cmdCommitLogForRepository( self, progress_callback, limit=None, since=None, until=None ):
+    def cmdCommitLogForRepository( self, progress_callback, limit=None, since=None, until=None, rev=None, paths='' ):
         if not self.hasCommits():
             return []
 
@@ -665,7 +665,7 @@ class GitProject:
         if since is not None:
             kwds['until'] = until
 
-        for commit in self.repo().iter_commits( None, **kwds ):
+        for commit in self.repo().iter_commits( rev, paths, **kwds ):
             all_commit_logs.append( GitCommitLogNode( commit ) )
 
         total = len(all_commit_logs)
@@ -676,31 +676,8 @@ class GitProject:
 
         return all_commit_logs
 
-    def cmdCommitLogForFile( self, progress_callback, filename, limit=None, since=None, until=None ):
-        if not self.hasCommits():
-            return []
-
-        all_commit_logs = []
-
-        kwds = {}
-        if limit is not None:
-            kwds['max_count'] = limit
-        if since is not None:
-            kwds['since'] = since
-        if since is not None:
-            kwds['until'] = until
-
-        progress_callback( 0, 0 )
-        for commit in self.repo().iter_commits( None, str(filename), **kwds ):
-            all_commit_logs.append( GitCommitLogNode( commit ) )
-
-        total = len(all_commit_logs)
-        progress_callback( 0, total )
-
-        self.__addCommitChangeInformation( progress_callback, all_commit_logs )
-        progress_callback( total, total )
-
-        return all_commit_logs
+    def cmdCommitLogForFile( self, progress_callback, filename, limit=None, since=None, until=None, rev=None ):
+        return self.cmdCommitLogForRepository( progress_callback, paths=filename, limit=limit, since=since, until=until, rev=rev )
 
     def cmdTagsForRepository( self ):
         tag_name_by_id = {}

@@ -23,7 +23,7 @@ from PyQt5 import QtCore
 #
 #------------------------------------------------------------
 class WbLogHistoryOptions(QtWidgets.QDialog):
-    def __init__( self, app, parent ):
+    def __init__( self, app, all_tags, parent ):
         self.app = app
         prefs = self.app.prefs.log_history
 
@@ -31,9 +31,25 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
 
         self.setWindowTitle( T_('Commit Log History Options - %s') % (' '.join( app.app_name_parts ),) )
 
-        self.use_limit = QtWidgets.QCheckBox( T_('Show only') )
-        self.use_until = QtWidgets.QCheckBox( T_('Show Until') )
-        self.use_since = QtWidgets.QCheckBox( T_('Show Since') )
+        self.grp_show = QtWidgets.QButtonGroup()
+        self.show_all = QtWidgets.QRadioButton( T_('Show All Commits') )
+        self.grp_show.addButton( self.show_all )
+        if all_tags:
+            self.show_since_tag = QtWidgets.QRadioButton( T_('Show Since Tag') )
+            self.grp_show.addButton( self.show_since_tag )
+        else:
+            self.show_since_tag = None
+
+        self.show_only = QtWidgets.QRadioButton( T_('Show only:') )
+        self.grp_show.addButton( self.show_only )
+        self.use_limit = QtWidgets.QCheckBox( T_('Limit') )
+        self.use_until = QtWidgets.QCheckBox( T_('Until') )
+        self.use_since = QtWidgets.QCheckBox( T_('Since') )
+
+        if self.show_since_tag:
+            self.tag = QtWidgets.QComboBox()
+            self.tag.addItems( all_tags )
+            self.tag.setCurrentText( all_tags[0] )
 
         self.limit = QtWidgets.QSpinBox()
         self.limit.setRange( 1, 1000000 )
@@ -65,17 +81,43 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
 
         layout = QtWidgets.QGridLayout()
         row = 0
-        layout.addWidget( self.use_limit,   row, 0 )
-        layout.addWidget( self.limit,       row, 1, 1, 3 )
+        layout.addWidget( self.show_all,    row, 0, 1, 6 )
         row += 1
-        layout.addWidget( self.use_since,   row, 0 )
-        layout.addWidget( self.since,       row, 1 )
-        layout.addWidget( self.use_until,   row, 2 )
-        layout.addWidget( self.until,       row, 3 )
+        if self.show_since_tag:
+            layout.addWidget( self.show_since_tag,  row, 0, 1, 2 )
+            layout.addWidget( self.tag,         row, 2, 1, 4 )
+            row += 1
+
+        layout.addWidget( self.show_only,   row, 0, 1, 6 )
         row += 1
-        layout.addWidget( self.buttons,     row, 0, 1, 4 )
+        layout.addWidget( self.use_limit,   row, 1 )
+        layout.addWidget( self.limit,       row, 2, 1, 4 )
+        row += 1
+        layout.addWidget( self.use_since,   row, 1 )
+        layout.addWidget( self.since,       row, 2 )
+        layout.addWidget( self.use_until,   row, 3 )
+        layout.addWidget( self.until,       row, 4 )
+        row += 1
+        layout.addWidget( self.buttons,     row, 0, 1, 6 )
 
         self.setLayout( layout )
+
+        # --- radio buttons
+        if self.show_since_tag is not None and prefs.use_default_since_tag:
+            self.show_since_tag.setChecked( True )
+
+        elif( prefs.use_default_limit
+        or prefs.use_default_until_days_interval
+        or prefs.use_default_since_days_interval ):
+            self.show_only.setChecked( True )
+
+        else:
+            self.show_all.setChecked( True )
+
+        # --- tag
+        if self.show_since_tag:
+            self.show_since_tag.setChecked( prefs.use_default_since_tag )
+            self.tag.setEnabled( prefs.use_default_since_tag )
 
         # --- limit
         self.use_limit.setChecked( prefs.use_default_limit )
@@ -100,6 +142,14 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
         self.since.setEnabled( prefs.use_default_since_days_interval )
 
         # --- connect up behavior
+        if self.show_since_tag:
+            # enabling since tag turns off the other filters
+            self.show_since_tag.toggled.connect( self.tag.setEnabled )
+
+        self.show_only.toggled.connect( self.use_limit.setEnabled )
+        self.show_only.toggled.connect( self.use_until.setEnabled )
+        self.show_only.toggled.connect( self.use_since.setEnabled )
+
         self.use_limit.stateChanged.connect( self.limit.setEnabled )
         self.use_until.stateChanged.connect( self.until.setEnabled )
         self.use_since.stateChanged.connect( self.since.setEnabled )
@@ -125,15 +175,25 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
             since = until.addDays( -1 )
             self.since.setSelectedDate( since )
 
+    def __useTag( self ):
+        return self.show_since_tag is not None and self.show_since_tag.isChecked()
+
+    def getTag( self ):
+        if self.__useTag():
+            return self.tag.currentText()
+
+        else:
+            return None
+
     def getLimit( self ):
-        if self.use_limit.isChecked():
+        if not self.__useTag() and self.use_limit.isChecked():
             return self.limit.value()
 
         else:
             return None
 
     def getUntil( self ):
-        if self.use_until.isChecked():
+        if not self.__useTag() and self.use_until.isChecked():
             qt_until = self.until.selectedDate()
             until = datetime.date( qt_until.year(), qt_until.month(), qt_until.day() )
             return time.mktime( until.timetuple() )
@@ -142,7 +202,7 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
             return None
 
     def getSince( self ):
-        if self.use_since.isChecked():
+        if not self.__useTag() and self.use_since.isChecked():
             qt_since = self.since.selectedDate()
             since = datetime.date( qt_since.year(), qt_since.month(), qt_since.day() )
             return time.mktime( since.timetuple() )

@@ -105,7 +105,23 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
     @thread_switcher
     def __actionSvnLogHistory_Bg( self, svn_project, filename ):
-        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, self.main_window )
+        self.progress.start( T_('Finding Tags') )
+
+        yield self.switchToBackground
+        try:
+            all_tag_nodes = svn_project.cmdTagsForFile( filename )
+
+        except wb_svn_project.ClientError as e:
+            svn_project.logClientError( e, 'Cannot get tags for %s:%s' % (svn_project.projectName(), filename) )
+            all_tag_nodes = []
+
+        all_tags = [node.tag_name for node in all_tag_nodes]
+
+        yield self.switchToForeground
+
+        self.progress.end()
+
+        options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, all_tags, self.main_window )
         # as soon as possible del options to attemtp to avoid XCB errors
         if not options.exec_():
             return
@@ -116,7 +132,21 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         yield self.switchToBackground
         try:
-            all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil())
+            tag = options.getTag()
+            if tag is not None:
+                # find the tag node
+                for node in all_tag_nodes:
+                    if node.tag_name == tag:
+                        break
+
+                all_tag_nodes = [node]
+
+                rev = node.revision
+
+            else:
+                rev = None
+
+            all_commit_nodes = svn_project.cmdCommitLogForFile( filename, options.getLimit(), options.getSince(), options.getUntil(), rev )
 
         except wb_svn_project.ClientError as e:
             svn_project.logClientError( e, 'Cannot get commit logs for %s:%s' % (svn_project.projectName(), filename) )
@@ -125,17 +155,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         if len(all_commit_nodes) > 0:
-            yield self.switchToForeground
-            self.progress.start( T_('Tags %(count)d') )
-
-            yield self.switchToBackground
-            try:
-                all_tag_nodes = svn_project.cmdTagsForFile( filename, all_commit_nodes[-1]['revision'].number )
-                all_commit_nodes.extend( all_tag_nodes )
-
-            except wb_svn_project.ClientError as e:
-                svn_project.logClientError( e, 'Cannot get tags for %s:%s' % (svn_project.projectName(), filename) )
-                # continue to show the logs we have got
+            all_commit_nodes.extend( all_tag_nodes )
 
         def key( node ):
             return -node['revision'].number

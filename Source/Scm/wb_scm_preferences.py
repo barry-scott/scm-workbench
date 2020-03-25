@@ -40,6 +40,7 @@ class General(PreferencesNode):
 class LogHistory(PreferencesNode):
     xml_attribute_info = (('default_limit', int)
                          ,('use_default_limit', Bool)
+                         ,('use_default_since_tag', Bool)
                          ,('default_until_days_interval', int)
                          ,('use_default_until_days_interval', Bool)
                          ,('default_since_days_interval', int)
@@ -50,6 +51,7 @@ class LogHistory(PreferencesNode):
 
         self.default_limit = 20
         self.use_default_limit = False
+        self.use_default_since_tag = False
         self.default_until_days_interval = 0
         self.use_default_until_days_interval = False
         self.default_since_days_interval = 7
