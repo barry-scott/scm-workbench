@@ -76,9 +76,14 @@ else
     case "$( uname )" in
     Darwin)
         # run Python with the path that it has when started by macOS as an App
-        if [ -e ${PYTHONW} ]
+        if [ -e ../../Kit/macOS/venv.tmp/bin/python ]
+        then
+            PATH=/usr/bin:/bin:/usr/sbin:/sbin ../../Kit/macOS/venv.tmp/bin/python wb_scm_main.py $*
+
+        elif [ -e ${PYTHONW} ]
         then
             PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHONW} wb_scm_main.py $*
+
         else
             PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHON} wb_scm_main.py $*
         fi
