@@ -9,6 +9,7 @@ venv.tmp\scripts\python -m pip install -r requirements.txt
 venv.tmp\scripts\python -m pip list
 
 colour-print "<>info Info: <> Install pysvn"
-xcopy /s /q C:\Python37.win64\lib\site-packages\pysvn venv.tmp\lib\site-packages\pysvn\
+%PYTHON% -c "import pysvn,os;print(os.path.dirname(pysvn.__file__))" >pysvn.tmp
+for /f %%x in (pysvn.tmp) do xcopy /s /q %%x venv.tmp\lib\site-packages\pysvn\
 
 endlocal

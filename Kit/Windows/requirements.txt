@@ -5,7 +5,7 @@
 #
 
 # build tools
-win-app-packager >= 1.4.0
+win-app-packager >= 1.4.1
 colour-text
 
 # dependencies for SCM workbench
@@ -15,8 +15,8 @@ colour-text
 
 GitPython>=2.1.8
 python-hglib>=2.2
-PyQt5==5.12.2
-QScintilla==2.11.1
+PyQt5>=5.12.2
+QScintilla>=2.11.1
 pytz>=2016.7
 tzlocal>=1.2.2
 xml-preferences>=1.1.2

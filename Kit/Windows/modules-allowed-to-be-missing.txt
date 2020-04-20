@@ -14,3 +14,12 @@ sip
 _uuid
 extern.six
 collections.Mapping
+git.objects.Tree
+git.refs.HEAD
+git.objects.Commit
+git.refs.Reference
+refs.Head
+git.objects.Blob
+refs.Reference
+git.refs.Head
+git.objects.Submodule
