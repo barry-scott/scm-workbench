@@ -126,7 +126,7 @@ class SinglePropertyChoice(SingleProperty):
         self.setValueCtrl( value_ctrl, value )
 
     def getValue( self ):
-        return self.value_ctrl.toPlainText()
+        return self.value_ctrl.currentText()
 
 class SinglePropertyNoValue(SingleProperty):
     def __init__( self, dialog, name, present ):
