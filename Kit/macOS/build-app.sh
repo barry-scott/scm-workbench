@@ -38,7 +38,10 @@ sips -z 512 512   ${SRC_DIR}/wb.png --out ${DIST_DIR}/wb.iconset/icon_512x512.pn
 cp                ${SRC_DIR}/wb.png       ${DIST_DIR}/wb.iconset/icon_512x512@2x.png
 iconutil -c icns ${DIST_DIR}/wb.iconset
 
-./build-venv.sh
+if [ "$1" != "--novenv" ]
+then
+    ./build-venv.sh
+fi
 
 export PYTHONPATH=${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
 
@@ -56,6 +59,8 @@ ${PYTHON} ${KIT_DIR}/build_fix_install_rpath.py fix Frameworks/libsvn*.dylib
 #
 ${DOCS_DIR}/build-docs.py Resources/Documentation
 
+if false
+then
 # fixup 1. only keep the frameworks that we need, saving space
 # Resources/lib/python3.N/lib-dynload/PyQt5 - QtXxx.so
 mkdir \
@@ -98,6 +103,7 @@ rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/lib/tmp
 rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/qml
 rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/translations
 rm -rf Resources/lib/python${PYTHON_VERSION}/PyQt5/Qt/qsci
+fi
 
 #
 #   add in the git-callback client
