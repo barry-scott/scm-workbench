@@ -192,7 +192,9 @@ def __run_command( app, cmd, args ):
     cmd = asUtf8( cmd )
     args = [asUtf8( str(arg) ) for arg in args]
 
-    os.spawnvpe( os.P_NOWAIT, cmd, [cmd]+args, env )
+    p = subprocess.run( [cmd]+args, stderr=subprocess.STDOUT, stdout=subprocess.PIPE )
+    if p.returncode != 0:
+        app.log.error('rc = %d stdout: %r' % (p.returncode, p.stdout))
 
 def __run_command_with_output( app, cmd, args ):
     err_prefix = u'error running %s %s' % (cmd, ' '.join( args ))
