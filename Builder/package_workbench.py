@@ -283,13 +283,31 @@ class PackageWorkbench(object):
             raise BuildError( 'Mock CFG files does not exist %s' % (mock_cfg,) )
 
         with open( mock_cfg, 'r' ) as f:
+            # starting with Fedora 31 mock uses the include('template') statement
+            config_opts = {'yum_install_command': ''}
+            cfg_locals = {'config_opts': config_opts}
+
+            def include( tpl ):
+                abs_tpl = os.path.join( '/etc/mock', tpl )
+                with open( abs_tpl, 'r' ) as t:
+                    tpl_code = compile( t.read(), 'mock_tpl', 'exec' )
+                    exec( tpl_code , globals(), cfg_locals)
+
+            cfg_locals['include'] = include
+
             cfg_code = compile( f.read(), 'mock_cfg', 'exec' )
-            config_opts = {}
-            exec( cfg_code )
+
+            exec( cfg_code, globals(), cfg_locals )
+
+        def expandMockCfgVars( key ):
+            value = config_opts[ key ]
+            value = value.replace( '{{ releasever }}', config_opts[ 'releasever' ] )
+            assert '{{' not in value, 'Key %s: Found {{ in %r' % (key, value)
+            return value
 
         # set to match the mock target
         self.opt_arch = config_opts[ 'target_arch' ]
-        self.dist_tag = config_opts[ 'dist' ]
+        self.dist_tag = expandMockCfgVars( 'dist' )
         return config_opts
 
     def makeMockTargetFile( self ):
@@ -297,25 +315,34 @@ class PackageWorkbench(object):
 
         config_opts = self.readMockConfig()
 
+        if 'yum.conf' in config_opts:
+            conf_key = 'yum.conf'
+
+        elif 'dnf.conf' in config_opts:
+            conf_key = 'dnf.conf'
+
+        else:
+            assert False, 'config_opts missing yum.conf or dnf.conf section'
+
         with open( self.MOCK_COPR_REPO_FILENAME, 'r' ) as f:
             repo = f.read()
 
             if self.opt_mock_target.startswith( 'epel-' ):
                 repo = repo.replace( '/fedora-$releasever-$basearch/', '/epel-$releasever-$basearch/' )
 
-            config_opts['yum.conf'] += '\n'
-            config_opts['yum.conf'] += repo
+            config_opts[conf_key] += '\n'
+            config_opts[conf_key] += repo
             config_opts['root'] = os.path.splitext( os.path.basename( self.MOCK_TARGET_FILENAME ) )[0]
 
         with open( self.MOCK_TARGET_FILENAME, 'w' ) as f:
             for k in config_opts:
-                if k == 'yum.conf':
-                    print( 'config_opts[\'yum.conf\'] = """', end='', file=f )
-                    print( config_opts['yum.conf'], file=f )
+                if k == conf_key:
+                    print( '''config_opts['%s'] = """''' % (conf_key,), end='', file=f )
+                    print( config_opts[conf_key], file=f )
                     print( '"""', file=f )
 
                 else:
-                    print( 'config_opts[%r] = %r' % (k, config_opts[k]), file=f )
+                    print( '''config_opts['%s'] = %r''' % (k, config_opts[k]), file=f )
 
         # prevent mock from rebuilding the mock cache on each build.
         # mock uses the timestamp on the CFG file and compares to the
