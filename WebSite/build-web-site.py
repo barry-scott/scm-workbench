@@ -92,5 +92,6 @@ if install:
     os.system( 'scp tmp/kits/* root@qrm.org.uk:%s/kits/' % (web_root,) )
     os.system( 'scp tmp/user-guide/* root@qrm.org.uk:%s/user-guide/' % (web_root,) )
     os.system( 'scp tmp/user-guide/scm-workbench_files/* root@qrm.org.uk:%s/user-guide/scm-workbench_files' % (web_root,) )
+    os.system( 'ssh root@qrm.org.uk chmod -R -v  a+r %s' % (web_root,) )
 
 sys.exit( 0 )
