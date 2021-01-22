@@ -4,13 +4,13 @@ export BUILDER_CFG_PLATFORM=$(uname -s)
 case ${BUILDER_CFG_PLATFORM} in
 
 Darwin)
-    export PYTHON_VERSION=${1:-3.8}
+    export PYTHON_VERSION=${1:-3.9}
     export BUILDER_CFG_PLATFORM=MacOSX
     export PYTHON=python${PYTHON_VERSION}
     ;;
 
 Linux)
-    export PYTHON_VERSION=${1:-3.8}
+    export PYTHON_VERSION=${1:-3.9}
 
     for version in ${PYTHON_VERSION} 3.9 3.8 3.7 3.6 3.5 3.4
     do
@@ -50,7 +50,7 @@ Linux)
     fi
     ;;
 *)
-    export PYTHON_VERSION=${1:-3.8}
+    export PYTHON_VERSION=${1:-3.9}
     # no need to change
     ;;
 esac

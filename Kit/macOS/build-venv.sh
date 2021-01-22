@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if ! which colour-print >/dev/null
+then
+    function colour-print {
+        echo "$@"
+    }
+fi
+
 colour-print "<>info Info: <> Clean up"
 rm -rf venv.tmp
 
