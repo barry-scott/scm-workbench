@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<preferences>
+    <font_ui face="Sans Serif" point_size="10"/>
+    <font_code face="Courier" point_size="12"/>
+    <main_window geometry="01d9d0cb0003000000000006000001bc00000519000004a900000006000001bc00000519000004a90000000000000000078000000006000001bc00000519000004a9"/>
+    <diff_window>
+        <colour_normal fg="#000000"/>
+        <colour_header fg="#1919c0"/>
+        <colour_insert_line fg="#008200"/>
+        <colour_delete_line fg="#dc143c"/>
+        <colour_change_line fg="#0000ff"/>
+        <colour_insert_char fg="#008200"/>
+        <colour_delete_char fg="#dc143c"/>
+        <colour_change_char fg="#0000ff"/>
+    </diff_window>
+    <projects>
+        <project name="repo2" scm_type="git" path="/home/barry/Projects/scm-workbench/Experiments/tmp/repo2"/>
+    </projects>
+    <favorites>
+    </favorites>
+    <last_position project_path="/home/barry/Projects/scm-workbench/Experiments/tmp/repo2" path="."/>
+    <editor program="/usr/bin/bemacs" options=""/>
+    <shell terminal_program="gnome-terminal" terminal_init="" file_browser="nautilus"/>
+    <view show_controlled="True" show_uncontrolled="True" show_ignored="False" show_only_changed="False"/>
+    <log_history default_limit="20" use_default_limit="False" use_default_since_tag="False" default_until_days_interval="1" use_default_until_days_interval="False" default_since_days_interval="7" use_default_since_days_interval="False"/>
+    <projects_defaults new_projects_folder="/home/barry/Projects/scm-workbench/Experiments/tmp" force_dark_mode="False"/>
+    <git program="git"/>
+    <hg program="hg"/>
+</preferences>
