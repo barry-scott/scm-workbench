@@ -11,8 +11,6 @@ OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython
 OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-setprotocol-patch
 OVERRIDE_PYTHONPATH_2=~/wc/hg/hglib-prompt-patch
 
-export MYPYPATH=/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages
-
 for PART in ${BUILDER_TOP_DIR}/Source/typelib "${SCMPYTHONPATH}" "${OVERRIDE_PYTHONPATH_1}" "${OVERRIDE_PYTHONPATH_2}"
 do
     if [ "${PART}" != "" ]
@@ -26,8 +24,6 @@ do
     fi
 done
 
-PYTHON=${PYTHON:-python3}
-PYTHON=$( which ${PYTHON} )
-
-${PYTHON} -m mypy wb_scm_main.py | tee mypy.log
+echo "Info: MYPYPATH ${MYPYPATH}"
+${BUILDER_TOP_DIR}/Kit/macOS/venv.tmp/bin/python -m mypy wb_scm_main.py | tee mypy.log
 echo "Info: log file mypy.log ($( wc -l <mypy.log ))"

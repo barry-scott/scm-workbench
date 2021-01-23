@@ -11,7 +11,7 @@
     wb_preferences.py
 
 '''
-from typing import Sequence, Union, Any, Iterable
+from typing import Sequence, Union, Any, Iterable, Optional
 
 import pathlib
 
@@ -151,7 +151,7 @@ class Preferences(PreferencesNode):
     def getFavoriteByProjectAndPath( self, project_path:pathlib.Path, path:pathlib.Path ):
         return self.all_favorites_by_path[ (project_path, path) ]
 
-    def hasMenu( self, menu:str ) -> Bool:
+    def hasMenu( self, menu:str ) -> bool:
         return menu in self.all_favorites
 
     def getAllFavorites( self ) -> Iterable['Favorite']:
@@ -177,11 +177,11 @@ class MainWindow(PreferencesNode):
     def __init__( self ) -> None:
         super().__init__()
 
-        self.geometry = None    # type: str
-        self.all_colours = {}   # type: Dict[str, Colour]
+        self.geometry = None    # type: str|None
+        self.all_colours = {}   # type: dict[str, Colour]
         self.title = None
 
-    def getFrameGeometry( self ) -> str:
+    def getFrameGeometry( self ) -> Optional[str]:
         return self.geometry
 
     def setFrameGeometry( self, geometry:bytes ) -> None:
@@ -193,8 +193,8 @@ class Font(PreferencesNode):
     def __init__( self ) -> None:
         super().__init__()
 
-        self.face = None        # type: str
-        self.point_size = None  # type: int
+        self.face = None        # type: str|None
+        self.point_size = None  # type: int|None
 
 class NamedColour(PreferencesNode):
     xml_attribute_info = (('fg', RGB), ('bg', RGB))
@@ -312,13 +312,13 @@ class View(PreferencesNode):
         return ('<View: ctl=%r unctl=%r ig=%r only=%r diff=%r>' %
                 (self.show_controlled, self.show_uncontrolled, self.show_ignored, self.show_only_changed, self.diff_style))
 
-    def setDiffUnified( self ) -> bool:
+    def setDiffUnified( self ):
         self.diff_style = 'unified'
 
     def isDiffUnified( self ) -> bool:
         return self.diff_style == 'unified'
 
-    def setDiffSideBySide( self ) -> bool:
+    def setDiffSideBySide( self ):
         self.diff_style = 'side-by-side'
 
     def isDiffSideBySide( self ) -> bool:

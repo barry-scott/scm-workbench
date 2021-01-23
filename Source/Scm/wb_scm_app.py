@@ -33,7 +33,7 @@ if getattr( typing, 'TYPE_CHECKING', False ):
 
 class WbScmApp(wb_app.WbApp):
     def __init__( self, args:List[str] ) -> None:
-        self.__all_singletons = {}  # type: Dict[str, None]
+        self.__all_singletons = {}  # type: dict[str, None]
 
         all_factories, all_messages = wb_scm_factories.allScmFactories()
         # convert to a dict
