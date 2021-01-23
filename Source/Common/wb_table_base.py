@@ -12,6 +12,8 @@
 '''
 from PyQt5 import QtCore
 
+import types
+
 import wb_table_view
 
 _alignment_map = {
