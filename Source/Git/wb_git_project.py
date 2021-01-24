@@ -572,17 +572,18 @@ class GitProject:
             setCallbackRebaseEditorHandler( newCommitMessage )
 
         rc, stdout, stderr = self.repo().git.execute(
-                    ['git', 'rebase', '--interactive', '%s^1' % (commit_id,)],
+                    [git.Git.GIT_PYTHON_GIT_EXECUTABLE, 'rebase', '--interactive', '%s^1' % (commit_id,)],
                     with_extended_output=True,
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self.debugLog( 'git rebase --interactive %s -> rc %d' % (commit_id, rc) )
+        self.debugLog( '%s rebase --interactive %s -> rc %d' %
+                (git.Git.GIT_PYTHON_GIT_EXECUTABLE, commit_id, rc) )
 
         if rc != 0:
             # assume need to abort rebase on failure
             self.repo().git.execute(
-                    ['git', 'rebase', '--abort'],
+                    [git.Git.GIT_PYTHON_GIT_EXECUTABLE, 'rebase', '--abort'],
                     with_extended_output=True,
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
@@ -818,7 +819,7 @@ class GitProject:
             raise
 
     def cmdStashSave( self, message=None ):
-        cmd = ['git', 'stash', 'save']
+        cmd = [git.Git.GIT_PYTHON_GIT_EXECUTABLE, 'stash', 'save']
         if message is not None:
             cmd.append( message )
 
@@ -828,7 +829,7 @@ class GitProject:
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self.debugLog( 'git stash save -> rc %d' % (rc,) )
+        self.debugLog( '%s stash save -> rc %d' % (git.Git.GIT_PYTHON_GIT_EXECUTABLE, rc) )
         if rc != 0:
             for line in stderr.split( '\n' ):
                 line = line.strip()
@@ -837,7 +838,7 @@ class GitProject:
         return rc == 0
 
     def cmdStashPop( self, stash_id ):
-        cmd = ['git', 'stash', 'pop', '--quiet', stash_id]
+        cmd = [git.Git.GIT_PYTHON_GIT_EXECUTABLE, 'stash', 'pop', '--quiet', stash_id]
         self.debugLog( 'cmdStashPop: %r' % (cmd,) )
         rc, stdout, stderr = self.repo().git.execute(
                     cmd,
@@ -845,7 +846,7 @@ class GitProject:
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self.debugLog( 'git stash apply %s -> rc %d' % (stash_id, rc) )
+        self.debugLog( '%s stash apply %s -> rc %d' % (git.Git.GIT_PYTHON_GIT_EXECUTABLE, stash_id, rc) )
 
         for line in stdout.split( '\n' ):
             line = line.strip()
@@ -860,12 +861,12 @@ class GitProject:
 
     def cmdStashList( self ):
         rc, stdout, stderr = self.repo().git.execute(
-                    ['git', 'stash', 'list'],
+                    [git.Git.GIT_PYTHON_GIT_EXECUTABLE, 'stash', 'list'],
                     with_extended_output=True,
                     with_exceptions=False,
                     universal_newlines=False,   # GitPython bug will TB if true
                     stdout_as_string=True )
-        self.debugLog( 'git stash list -> rc %d' % (rc,) )
+        self.debugLog( '%s stash list -> rc %d' % (git.Git.GIT_PYTHON_GIT_EXECUTABLE, rc) )
         if rc != 0:
             for line in stderr.split( '\n' ):
                 line = line.strip()
