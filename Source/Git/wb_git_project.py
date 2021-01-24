@@ -819,8 +819,9 @@ class GitProject:
             raise
 
     def cmdStashSave( self, message=None ):
-        cmd = [git.Git.GIT_PYTHON_GIT_EXECUTABLE, 'stash', 'save']
+        cmd = [git.Git.GIT_PYTHON_GIT_EXECUTABLE, 'stash', 'push']
         if message is not None:
+            cmd.append( '--message' )
             cmd.append( message )
 
         rc, stdout, stderr = self.repo().git.execute(
