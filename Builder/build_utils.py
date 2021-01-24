@@ -6,6 +6,7 @@ from __future__ import print_function
 import sys
 import os
 import subprocess
+import shutil
 
 log = None
 
@@ -52,15 +53,17 @@ class Popen(subprocess.Popen):
 
 def run( cmd, check=True, output=False, cwd=None ):
     kwargs = {}
-    if type(cmd) is unicode_type:
-        log.info( 'Running %s' % (cmd,) )
-        kwargs['shell'] = True
-    else:
-        log.info( 'Running %s' % (' '.join( cmd ),) )
-    if cwd:
-        kwargs['cwd'] = cwd
-    else:
+    if cwd is None:
         cwd = os.getcwd()
+
+    kwargs['cwd'] = cwd
+
+    if type(cmd) is unicode_type:
+        log.info( 'Running %s in %s' % (cmd, cwd) )
+        kwargs['shell'] = True
+
+    else:
+        log.info( 'Running %s in %s' % (' '.join( cmd ), cwd) )
 
     if output:
         kwargs['stdout'] = subprocess.PIPE
@@ -81,3 +84,25 @@ def run( cmd, check=True, output=False, cwd=None ):
             raise BuildError( 'Cmd failed %s - %r' % (retcode, cmd) )
 
     return r
+
+def rmdirAndContents( folder ):
+    if os.path.exists( folder ):
+        shutil.rmtree( folder )
+
+def mkdirAndParents( folder ):
+    if not os.path.exists( folder ):
+        os.makedirs( folder, 0o755 )
+
+def copyFile( src, dst, mode ):
+    if os.path.isdir( dst ):
+        dst = os.path.join( dst, os.path.basename( src ) )
+
+    if os.path.exists( dst ):
+        os.chmod( dst, 0o600 )
+        os.remove( dst )
+
+    shutil.copyfile( src, dst )
+    os.chmod( dst, mode )
+
+def numCpus():
+    return os.sysconf( os.sysconf_names['SC_NPROCESSORS_ONLN'] )

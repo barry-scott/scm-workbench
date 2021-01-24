@@ -175,7 +175,7 @@ class PackageWorkbench(object):
 
     def buildSrpm( self ):
         run( ('rm', '-rf', 'tmp') )
-        run( ('mkdir', 'tmp') )
+        run( ('mkdir', '-p', 'tmp') )
         run( ('mkdir', 'tmp/sources') )
 
         self.makeTarBall()

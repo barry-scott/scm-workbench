@@ -25,5 +25,5 @@ do
 done
 
 echo "Info: MYPYPATH ${MYPYPATH}"
-${BUILDER_TOP_DIR}/Kit/macOS/venv.tmp/bin/python -m mypy wb_scm_main.py | tee mypy.log
+${BUILDER_TOP_DIR}/Kit/macOS/tmp/venv/bin/python -m mypy wb_scm_main.py | tee mypy.log
 echo "Info: log file mypy.log ($( wc -l <mypy.log ))"

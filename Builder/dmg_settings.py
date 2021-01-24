@@ -1,37 +1,30 @@
 #
-#   package_macos_dmg_settings.py
+#   dmg-settings.sh
 #
-#   settings file imported into dmgbuild to create the DMG file.
+
+#   settings file imported into dmgbuild to create the SCM Workbench DMG file.
 #
 import biplist
 import os
-import sys
+import os.path
 
-sys.path.insert( 0, os.getcwd() )
+print( 'Info: build DMG' )
 
-import build_log
-log = build_log.BuildLog()
-log.setColour( True )
+import wb_scm_version
 
-log.info( 'change to org.barrys-emacs.scm-workbench' )
-
-PKGNAME = 'dmg'
-
-app_path = os.path.join( 'tmp', PKGNAME, "SCM Workbench.app" )
-app_name = os.path.basename( app_path )
-
+app_path = os.environ['APP_PATH']
+ 
 path = os.path.join( app_path, 'Contents', 'Info.plist' )
 with open( path, 'r' ) as f:
-    log.info( 'Reading %s' % (path,) )
+    print( 'Info: Reading %s' % (path,) )
     __text = f.read().decode( 'utf-8' )
 
-__text = __text.replace( '<string>org.barrys-emacs.scm-workbench-devel</string>',
-                         '<string>org.barrys-emacs.scm-workbench</string>' )
-__text = __text.replace( 'SCM Workbench-Devel', 'SCM Workbench' )
+__text = __text.replace( '<string>%s-devel</string>' % (wb_scm_version.APP_ID,),
+                         '<string>%s</string>' % (wb_scm_version.APP_ID,) )
+__text = __text.replace( '%s-Devel' % (wb_scm_version.APP_NAME,), wb_scm_version.APP_NAME )
 
-path = os.path.join( app_path, 'Contents', 'Info.plist' )
 with open( path, 'w' ) as f:
-    log.info( 'Writing %s' % (path,) )
+    print( 'Info: Writing %s' % (path,) )
     f.write( __text.encode( 'utf-8' ) )
 
 # .. Useful stuff ..............................................................
@@ -73,8 +66,8 @@ badge_icon = __iconFromApp( app_path )
 
 # Where to put the icons
 icon_locations = {
-    app_name:           (140, 120),
-    'Applications':     (500, 120),
+    wb_scm_version.APP_NAME:    (200, 200),
+    'Applications':             (500, 140),
     }
 
 # .. Window configuration ......................................................

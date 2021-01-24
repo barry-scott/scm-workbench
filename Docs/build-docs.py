@@ -9,7 +9,7 @@ def copyFile( src, dst_dir ):
     shutil.copy( str( src ), str( dst ) )
 
 if len(sys.argv) != 2:
-    print( 'Usage: %s --test|--strict-test<docs-folder>' % (sys.argv[0],) )
+    print( 'Usage: %s --test|--strict-test <docs-folder>' % (sys.argv[0],) )
     sys.exit( 1 )
 
 if sys.argv[1] == '--test':
@@ -46,7 +46,6 @@ for src in (src_dir / 'toolbar_images').glob( '*.png' ):
     copyFile( src, output_files_dir )
 
 print( 'Docs built into %s' % (output_dir,) )
-
 
 if testing is not None:
     import check_docs

@@ -17,8 +17,8 @@ def main( argv ):
 
 class InnoSetup:
     def __init__( self, arch, vc_ver ):
-        self.app_name = "Barry's Emacs 8"
-        self.app_id = "Barry''s Emacs 8"    # for use in Pascal code
+        self.app_name = "SCM Workbench"
+        self.app_id = "SCM Workbench"    # for use in Pascal code
         self.arch = arch
         self.vc_ver = vc_ver
 
@@ -50,7 +50,7 @@ class InnoSetup:
 
         f = open( r'tmp\info_before.txt', 'w' )
         f.write(
-'''Barry's Emacs %(version)s for %(arch)s
+'''SCM Workbench %(version)s for %(arch)s
 
 After the installation is completed please
 see the readme.txt file for changes new in
@@ -66,7 +66,7 @@ this kit.
 
         self.all_setup_items.extend( [
                 r'''AppName=%(app_name)s''' % self.__dict__,
-                r'''AppVerName=Barry's Emacs %s''' % (version,),
+                r'''AppVerName=SCM Workbench %s''' % (version,),
                 r'''AppCopyright=Copyright (C) 1980-%s Barry A. Scott''' % (self.year,),
                 r'''DefaultDirName={pf}\Barry Scott\%(app_name)s''' % self.__dict__,
                 r'''DefaultGroupName=%(app_name)s''' % self.__dict__,
@@ -78,22 +78,17 @@ this kit.
                 ] )
 
         self.all_task_items.extend( [
-                r'''Name: "option_register_emacs_open_ml"; Description: "%(app_name)s will open .ML and .MLP files"''' % self.__dict__,
-                r'''Name: "option_register_emacs_open_c_dont"; Description: "No association"; GroupDescription: "How should %(app_name)s be associated with Cand C++ Source Files"; Flags: exclusive''' % self.__dict__,
-                r'''Name: "option_register_emacs_open_c_one_type"; Description: "Associate using one file type"; GroupDescription: "How should %(app_name)s be associated with Cand C++ Source Files"; Flags: exclusive''' % self.__dict__,
-                r'''Name: "option_register_emacs_open_c_many_types"; Description: "Associate using multiple file types"; GroupDescription: "How should %(app_name)s be associated with Cand C++ Source Files"; Flags: exclusive''' % self.__dict__,
                 r'''Name: "option_desktop_icon"; Flags: unchecked; Description: "Place %(app_name)s icon on the Desktop"''' % self.__dict__,
                 r'''Name: "option_start_menu_icon"; Description: "Place %(app_name)s on the Start menu"''' % self.__dict__,
                 r'''Name: "option_edit_with_bemacs"; Description: "Place Edit with %(app_name)s on the Context menu"''' % self.__dict__,
                 ] )
 
         self.all_icon_items.extend( [
-                r'''Name: "{group}\Barry's Emacs"; Filename: "{app}\bemacs.exe"''',
-                r'''Name: "{group}\Barry's Emacs Server"; Filename: "{app}\BEmacs_Server.exe"''',
+                r'''Name: "{group}\SCM Workbench"; Filename: "{app}\scm workbench.exe"''',
                 r'''Name: "{group}\Documentation"; Filename: "{app}\Documentation\emacs-documentation.html"''',
                 r'''Name: "{group}\FAQ"; Filename: "{app}\documentation\bemacs-faq.html"''',
                 r'''Name: "{group}\Readme"; Filename: "{app}\bemacs.exe"; Parameters: """{app}\readme.txt"""''',
-                r'''Name: "{group}\Barry's Emacs Web Site"; Filename: "http://www.barrys-emacs.org";''',
+                r'''Name: "{group}\SCM Workbench Web Site"; Filename: "http://www.barrys-emacs.org/scm-workbench/";''',
                 #
                 #    Add an Emacs icon to the Desktop
                 #
@@ -106,81 +101,6 @@ this kit.
 
                 ] )
 
-        self.all_registry_items.extend( [
-                r'''Root: HKCR; Subkey: "BarrysEmacs8Command"; ValueType: string; ValueData: "BEmacs Command"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8Command\Shell\open\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" /package=""%1"""''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8Command\DefaultIcon"; ValueType: string; ValueData: "{app}\bemacs.exe"''',
-
-                r'''Root: HKCR; Subkey: "BarrysEmacs8MLisp"; ValueType: string; ValueData: "BEmacs MLisp"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8MLisp\Shell\open\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" ""%1"""''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8MLisp\DefaultIcon"; ValueType: string; ValueData: "{app}\bemacs.exe"''',
-
-                r'''Root: HKCR; Subkey: "BarrysEmacs8Document"; ValueType: string; ValueData: "BEmacs"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8Document\Shell\open\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" ""%1"""''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8Document\DefaultIcon"; ValueType: string; ValueData: "{app}\bemacs.exe"''',
-
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentII"; ValueType: string; ValueData: "BEmacs II"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentII\Shell\open\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" ""%1"""''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentII\DefaultIcon"; ValueType: string; ValueData: "{app}\bemacs.exe"''',
-
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentIII"; ValueType: string; ValueData: "BEmacs III"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentIII\Shell\open\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" ""%1"""''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentIII\DefaultIcon"; ValueType: string; ValueData: "{app}\bemacs.exe"''',
-
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentIV"; ValueType: string; ValueData: "BEmacs IV"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentIV\Shell\open\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" ""%1"""''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentIV\DefaultIcon"; ValueType: string; ValueData: "{app}\bemacs.exe"''',
-
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentV"; ValueType: string; ValueData: "BEmacs V"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentV\Shell\open\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" ""%1"""''',
-                r'''Root: HKCR; Subkey: "BarrysEmacs8DocumentV\DefaultIcon"; ValueType: string; ValueData: "{app}\bemacs.exe"''',
-
-                #
-                #    Add the Edit with Barry's Emacs to the context menu
-                #
-
-                # option_edit_with_bemacs
-                r'''Root: HKCR; Subkey: "*\shell\Edit with %(app_name)s"; ValueType: string; ValueData: "Edit with &%(app_name)s"; Flags: uninsdeletekey''' % self.__dict__,
-                r'''Root: HKCR; Subkey: "*\shell\Edit with %(app_name)s\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" ""%%1"""''' % self.__dict__,
-
-                r'''Root: HKCR; Subkey: "Drive\shell\%(app_name)s Here"; ValueType: string; ValueData: "%(app_name)s &Here"; Flags: uninsdeletekey''' % self.__dict__,
-                r'''Root: HKCR; Subkey: "Drive\shell\%(app_name)s Here\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" /package=cd-here ""%%1\.."""''' % self.__dict__,
-
-                r'''Root: HKCR; Subkey: "Directory\shell\%(app_name)s Here"; ValueType: string; ValueData: "%(app_name)s &Here"; Flags: uninsdeletekey''' % self.__dict__,
-                r'''Root: HKCR; Subkey: "Directory\shell\%(app_name)s Here\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" /package=cd-here ""%%1"""''' % self.__dict__,
-
-                r'''Root: HKCR; Subkey: "Directory\Background\shell\%(app_name)s Here"; ValueType: string; ValueData: "%(app_name)s &Here"; Flags: uninsdeletekey''' % self.__dict__,
-                r'''Root: HKCR; Subkey: "Directory\Background\shell\%(app_name)s Here\command"; ValueType: string; ValueData: """{app}\bemacs.exe"" /package=cd-here ""%%v"""''' % self.__dict__,
-
-                #
-                # have emacs open .ML files and .MLP files
-                #
-                r'''Root: HKCR; SubKey: ".ml";  ValueType: string; ValueData: "BarrysEmacs8MLisp"; Tasks: "option_register_emacs_open_ml"; Flags: uninsdeletekey''',
-                r'''Root: HKCR; SubKey: ".mlp"; ValueType: string; ValueData: "BarrysEmacs8Command"; Tasks: "option_register_emacs_open_ml"; Flags: uninsdeletekey''',
-
-                #
-                # register all the C and C++ file types for emacs to open
-                # either using one type or multiple
-                #
-                r'''Root: HKCR; Subkey: ".h";   ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-                r'''Root: HKCR; Subkey: ".hh";  ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-                r'''Root: HKCR; Subkey: ".hpp"; ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-                r'''Root: HKCR; Subkey: ".hxx"; ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-                r'''Root: HKCR; Subkey: ".c";   ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-                r'''Root: HKCR; Subkey: ".cc";  ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-                r'''Root: HKCR; Subkey: ".cpp"; ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-                r'''Root: HKCR; Subkey: ".cxx"; ValueType: string; ValueData: "BarrysEmacs8Document"; Tasks: "option_register_emacs_open_c_one_type"''',
-
-                r'''Root: HKCR; Subkey: ".h";   ValueType: string; ValueData: "BarrysEmacs8DocumentII"; Tasks: "option_register_emacs_open_c_many_types"''',
-                r'''Root: HKCR; Subkey: ".hh";  ValueType: string; ValueData: "BarrysEmacs8DocumentII"; Tasks: "option_register_emacs_open_c_many_types"''',
-                r'''Root: HKCR; Subkey: ".hpp"; ValueType: string; ValueData: "BarrysEmacs8DocumentII"; Tasks: "option_register_emacs_open_c_many_types"''',
-                r'''Root: HKCR; Subkey: ".hxx"; ValueType: string; ValueData: "BarrysEmacs8DocumentII"; Tasks: "option_register_emacs_open_c_many_types"''',
-
-                r'''Root: HKCR; Subkey: ".c";   ValueType: string; ValueData: "BarrysEmacs8DocumentIII"; Tasks: "option_register_emacs_open_c_many_types"''',
-                r'''Root: HKCR; Subkey: ".cc";  ValueType: string; ValueData: "BarrysEmacs8DocumentIII"; Tasks: "option_register_emacs_open_c_many_types"''',
-                r'''Root: HKCR; Subkey: ".cpp"; ValueType: string; ValueData: "BarrysEmacs8DocumentIII"; Tasks: "option_register_emacs_open_c_many_types"''',
-                r'''Root: HKCR; Subkey: ".cxx"; ValueType: string; ValueData: "BarrysEmacs8DocumentIII"; Tasks: "option_register_emacs_open_c_many_types"''',
-                ] )
 
         self.all_file_items.extend( [
                 r'''Source: "%s\Kits\Readme.txt"; DestDir: "{app}";''' % (BUILDER_TOP_DIR,),
