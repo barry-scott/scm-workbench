@@ -3,9 +3,9 @@
 #
 #   settings file imported into dmgbuild to create the DMG file.
 #
-import biplist
 import os
 import sys
+import plistlib
 
 sys.path.insert( 0, os.getcwd() )
 
@@ -23,7 +23,7 @@ app_name = os.path.basename( app_path )
 path = os.path.join( app_path, 'Contents', 'Info.plist' )
 with open( path, 'r' ) as f:
     log.info( 'Reading %s' % (path,) )
-    __text = f.read().decode( 'utf-8' )
+    __text = f.read()
 
 __text = __text.replace( '<string>org.barrys-emacs.scm-workbench-devel</string>',
                          '<string>org.barrys-emacs.scm-workbench</string>' )
@@ -32,13 +32,14 @@ __text = __text.replace( 'SCM Workbench-Devel', 'SCM Workbench' )
 path = os.path.join( app_path, 'Contents', 'Info.plist' )
 with open( path, 'w' ) as f:
     log.info( 'Writing %s' % (path,) )
-    f.write( __text.encode( 'utf-8' ) )
+    f.write( __text )
 
 # .. Useful stuff ..............................................................
 
 def __iconFromApp( app_path ):
     plist_path = os.path.join( app_path, 'Contents', 'Info.plist' )
-    plist = biplist.readPlist( plist_path )
+    with open( plist_path, 'rb' ) as f:
+        plist = plistlib.load( f )
     icon_name = plist[ 'CFBundleIconFile' ]
     icon_root, icon_ext = os.path.splitext( icon_name )
     if not icon_ext:

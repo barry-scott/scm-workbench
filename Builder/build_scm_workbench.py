@@ -123,7 +123,7 @@ class BuildScmWorkbench(object):
 
         elif self.platform == 'MacOSX':
             self.BUILD_BIN_DIR = self.BUILDER_TOP_DIR / "Builder/tmp/app/Barry's Emacs-Devel.app/Contents/Resources/bin"
-            self.BUILD_DOC_DIR = self.BUILDER_TOP_DIR / "%s/Builder/tmp/app/Barry's Emacs-Devel.app/Contents/Resources/documentation"
+            self.BUILD_DOC_DIR = self.BUILDER_TOP_DIR / "Builder/tmp/app/Barry's Emacs-Devel.app/Contents/Resources/documentation"
 
             self.INSTALL_DOC_DIR = self.BUILD_DOC_DIR
 
@@ -253,6 +253,7 @@ class BuildScmWorkbench(object):
         pkg_name = 'SCM Workbench-%s' % (self.wb_version_info.get('version'),)
         dmg_folder = '%s/Builder/tmp/dmg' % (self.BUILDER_TOP_DIR,)
         app_folder = '%s/Builder/tmp/app' % (self.BUILDER_TOP_DIR,)
+        venv_bin = '%s/Builder/tmp/venv/bin' % (self.BUILDER_TOP_DIR,)
 
         build_utils.mkdirAndParents( app_folder )
         build_utils.mkdirAndParents( dmg_folder )
@@ -262,8 +263,7 @@ class BuildScmWorkbench(object):
                 "%s/SCM Workbench.app" % (dmg_folder,)) )
 
         log.info( 'Create DMG' )
-        # use 2.7 version as 3.5 version does not work yet (confuses bytes and str)
-        run( ('/Library/Frameworks/Python.framework/Versions/2.7/bin/dmgbuild',
+        run( ('%s/dmgbuild' % (venv_bin,),
                 '--settings', 'package_macos_dmg_settings.py',
                 'SCM Workbench',
                 '%s/%s.dmg' % (dmg_folder, pkg_name)) )
