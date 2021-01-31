@@ -23,9 +23,5 @@ def main( argv ):
         for key in sorted( v.keys() ):
             f.write( '%s=%s\n' % (key, v[ key ]) )
 
-    if len(argv) == 4:
-        with open( argv[3], 'w' ) as f:
-            f.write( 'set WB_SCM_VERSION=%s.%s.%s\n' % (v['major'], v['minor'], v['patch']) )
-
 if __name__ == '__main__':
     sys.exit( main( sys.argv ) )

@@ -368,7 +368,7 @@ class PackageWorkbench(object):
         run( (os.environ['PYTHON'], '-u',
                 '%s/Source/Scm/make_wb_scm_version.py' % (self.BUILDER_TOP_DIR,),
                 '%s/Builder/version.dat' % (self.BUILDER_TOP_DIR,),
-                'tmp/scm-workbench-%s/Source/Scm//wb_scm_version.py' % (self.version,)) )
+                'tmp/scm-workbench-%s/Source/Scm/wb_scm_version.py' % (self.version,)) )
 
         run( ('tar', 'czf', 'sources/%s.tar.gz' % (self.KIT_BASENAME,), self.KIT_BASENAME), cwd='tmp' )
 

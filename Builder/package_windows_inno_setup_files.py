@@ -96,7 +96,7 @@ class InnoSetup:
 
         if self.arch == 'win64':
             redist_arch = 'x64'
-            code_file = os.path.join( self.BUILDER_TOP_DIR, r'Kit\Windows\win64_code.iss' )
+            code_file = os.path.join( self.BUILDER_TOP_DIR, r'Builder\win_code.iss' )
             self.all_setup_items.append( 'ArchitecturesAllowed=x64' )
             self.all_setup_items.append( 'ArchitecturesInstallIn64BitMode=x64' )
 

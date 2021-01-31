@@ -288,11 +288,13 @@ class BuildScmWorkbench(object):
             log.error( 'StdErr:\n%s' % (r.stderr.replace('\r', '').strip(),) )
             raise BuildError( 'Inno setup failed %d' % (r.returncode,) )
 
+        setup_exe = r'tmp\SCM-Workbench-%s-setup.exe' % (self.wb_version_info.get('version'),)
+
         build_utils.copyFile(
             r'tmp\Output\mysetup.exe',
-            r'tmp\scm-workbench-%s-setup.exe' % (self.wb_version_info.get('version'),),
+            setup_exe,
             0o600 )
-        log.info( r'Created kit tmp\scm-workbench-%s-setup.exe' % (self.wb_version_info.get('version'),) )
+        log.info( r'Created kit %s' % (setup_exe,) )
 
 if __name__ == '__main__':
     sys.exit( BuildScmWorkbench().main( sys.argv ) )

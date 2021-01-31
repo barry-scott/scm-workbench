@@ -24,9 +24,23 @@ rem so that python DLLs can be found
 for %%i in (%PYTHON%) do set PATH=%%~di%%~pi;%PATH%
 
 set APPMODE=--gui
-if "%1" == "--cli" set APPMODE=--cli
+if "%1" == "--cli" (
+    set APPMODE=--cli
+    shift
+)
 
-set DIST_DIR=%BUILDER_TOP_DIR%\Builder\tmp\app
+if not exist "%1" (
+    %VENV_BIN%\colour-print "<>error Error:<> build-windows.cmd DIST_DIR %1 does not exist"
+    exit /b 1
+)
+
+if "%2" == "" (
+    %VENV_BIN%\colour-print "<>error Error:<> build-windows.cmd version %2 missing"
+    exit /b  1
+)
+set WB_VERSION=%2
+
+set DIST_DIR=%1
 set SRC_DIR=%BUILDER_TOP_DIR%\Source
 
 if exist build rmdir /s /q build
@@ -39,17 +53,29 @@ if exist setup.tmp rmdir /s /q setup.tmp
 mkdir %DIST_DIR%
     if errorlevel 1 goto :error
 rem set the version
-call %SRC_DIR%\Scm\wb_scm_version.cmd
 
-%VENV_BIN%\colour-print "<>info Info:<> Build SCM Workbench %APPMODE%"
-set PYTHONPATH=%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Perforce;%SRC_DIR%\Common
+%VENV_BIN%\colour-print "<>info Info:<> Generate SCM resource sources"
+set TMP_SRC=%BUILDER_TOP_DIR%\Builder\tmp\Source
+if exist %TMP_SRC% rmdir /s /q %TMP_SRC%
+mkdir %TMP_SRC%
+
+%PYTHON% %SRC_DIR%\make_wb_scm_version.py ^
+    %BUILDER_TOP_DIR%\Builder\version.dat ^
+    %TMP_SRC%\wb_scm_version.py
+
+%PYTHON% %SRC_DIR%\make_wb_scm_images.py ^
+    %TMP_SRC%\wb_scm_images.py
+dir %TMP_SRC%
+
+%VENV_BIN%\colour-print "<>info Info:<> Build SCM Workbench %APPMODE% version %WB_VERSION%"
+set PYTHONPATH=%TMP_SRC%;%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Perforce;%SRC_DIR%\Common
 pushd %SRC_DIR%\Scm
 %PYTHON% -m win_app_packager build wb_scm_main.py ^
         %APPMODE% %DIST_DIR% ^
-        --version %WB_SCM_VERSION% ^
+        --version %WB_VERSION% ^
         --icon %SRC_DIR%\wb.ico ^
         --name "SCM Workbench" ^
-        --modules-allowed-to-be-missing-file %BUILDER_TOP_DIR%\Kit\Windows\modules-allowed-to-be-missing.txt ^
+        --modules-allowed-to-be-missing-file %BUILDER_TOP_DIR%\Builder\win-modules-allowed-to-be-missing.txt ^
         %VERBOSE%
     if errorlevel 1 goto :error
 popd >NUL
@@ -58,7 +84,7 @@ popd >NUL
 pushd %SRC_DIR%\Git
 %PYTHON% -m win_app_packager build wb_git_callback_client_win32.py ^
         --cli %DIST_DIR% ^
-        --version %WB_SCM_VERSION% ^
+        --version %WB_VERSION% ^
         --icon %SRC_DIR%\wb.ico ^
         --name "SCM-Workbench-Git-Callback" ^
         --merge ^
@@ -123,6 +149,10 @@ rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\site-packages\gitdb\test
 rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\site-packages\smmap\test
     if errorlevel 1 goto :error
 rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\unittest\test
+    if errorlevel 1 goto :error
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\test
+    if errorlevel 1 goto :error
+rmdir /s /q %DIST_DIR%\PyWinAppRes\Lib\tkinter
     if errorlevel 1 goto :error
 
 %VENV_BIN%\colour-print "<>info Info:<> clean up python lib 2. delete distutils exe"

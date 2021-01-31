@@ -17,7 +17,7 @@ data_slice = 32
 
 argv = [
         sys.argv[0],
-        'wb_scm_images.py',
+        sys.argv[1],
 
         'wb.png',
 
@@ -58,6 +58,8 @@ argv = [
         ]
 
 def main( argv ):
+    print( 'Info: make_wb_images creating %s' % (argv[1],) )
+
     with open( argv[1], 'w' ) as f:
         f.write( header )
 
