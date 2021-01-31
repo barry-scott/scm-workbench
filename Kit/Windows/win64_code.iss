@@ -1,8 +1,8 @@
 function InitializeUninstall(): Boolean;
   var ErrorCode: Integer;
 begin
-  ShellExec('open','taskkill.exe','/f /im "%(app_id)s.exe"','',SW_HIDE,ewNoWait,ErrorCode);
-  ShellExec('open','tskill.exe',' "%(app_id)s"','',SW_HIDE,ewNoWait,ErrorCode);
+  ShellExec('open','taskkill.exe','/f /im "%(APP_ID)s.exe"','',SW_HIDE,ewNoWait,ErrorCode);
+  ShellExec('open','tskill.exe',' "%(APP_ID)s"','',SW_HIDE,ewNoWait,ErrorCode);
   result := True;
 end;
 
@@ -15,11 +15,11 @@ var
 begin
     error := 0;
     rcb := RegQueryStringValue( root_key,
-        'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%(app_id)s_is1',
+        'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%(APP_ID)s_is1',
         'UninstallString', uninstall_image );
     if rcb then
     begin
-        rci := MsgBox( 'An old version of %(app_id)s is installed.' #13 #13
+        rci := MsgBox( 'An old version of %(APP_ID)s is installed.' #13 #13
                        'It must be uninstalled before installing the this version' #13
                        'Do you wish to uninstall it now?', mbConfirmation, MB_YESNO );
         if rci = idYes then
@@ -50,15 +50,15 @@ begin
 
     BringToFrontAndRestore;
     rc32 := RegQueryStringValue( HKLM32,
-        'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%(app_id)s_is1',
+        'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%(APP_ID)s_is1',
         'UninstallString', uninstall_string );
     rc64 := RegQueryStringValue( HKLM64,
-        'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%(app_id)s_is1',
+        'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%(APP_ID)s_is1',
         'UninstallString', uninstall_string );
     Result := not (rc32 or rc64);
     if not Result then
         MsgBox( 'Quitting installation.' #13 #13
-                'An old version of %(app_id)s is still installed.' #13
+                'An old version of %(APP_ID)s is still installed.' #13
                 'Run this installation again after the old version has' #13
                 'been uninstalled', mbInformation, MB_OK );
 end;

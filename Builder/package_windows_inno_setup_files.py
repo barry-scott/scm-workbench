@@ -3,22 +3,14 @@ import time
 import os
 import datetime
 import pathlib
-
-import brand_version
-
-import build_log
-log = build_log.BuildLog()
-log.setColour( True )
-
-def main( argv ):
-    log.info( argv[0] )
-    inno = InnoSetup( argv[1], argv[2] )
-    return inno.createInnoInstall()
+import build_utils
 
 class InnoSetup:
-    def __init__( self, arch, vc_ver ):
-        self.app_name = "SCM Workbench"
-        self.app_id = "SCM Workbench"    # for use in Pascal code
+    def __init__( self, log, arch, vc_ver, wb_version_info ):
+        self.log = log
+
+        self.wb_version_info = wb_version_info
+
         self.arch = arch
         self.vc_ver = vc_ver
 
@@ -26,6 +18,7 @@ class InnoSetup:
         self.build_time_str = time.strftime( '%d-%b-%Y %H:%M', time.localtime( self.build_time ) )
 
         self.year = datetime.datetime.now().year
+        self.BUILDER_TOP_DIR = os.environ[ 'BUILDER_TOP_DIR' ]
 
         self.all_code_items = []
         self.all_setup_items = []
@@ -40,21 +33,13 @@ class InnoSetup:
         self.generateInnoFile()
 
     def setupInnoItems( self ):
-        log.info( 'Create info_before.txt' )
+        self.log.info( 'Create info_before.txt' )
 
-        BUILDER_TOP_DIR = os.environ['BUILDER_TOP_DIR']
-        vi = brand_version.VersionInfo( BUILDER_TOP_DIR, print )
-        vi.parseVersionInfo( os.path.join( BUILDER_TOP_DIR, 'Builder/version_info.txt' ) )
-
-        version = vi.get('version')
+        version = self.wb_version_info[ 'version' ]
 
         f = open( r'tmp\info_before.txt', 'w' )
         f.write(
 '''SCM Workbench %(version)s for %(arch)s
-
-After the installation is completed please
-see the readme.txt file for changes new in
-this kit.
 
     Barry Scott
 
@@ -65,12 +50,12 @@ this kit.
         f.close()
 
         self.all_setup_items.extend( [
-                r'''AppName=%(app_name)s''' % self.__dict__,
-                r'''AppVerName=SCM Workbench %s''' % (version,),
-                r'''AppCopyright=Copyright (C) 1980-%s Barry A. Scott''' % (self.year,),
-                r'''DefaultDirName={pf}\Barry Scott\%(app_name)s''' % self.__dict__,
-                r'''DefaultGroupName=%(app_name)s''' % self.__dict__,
-                r'''UninstallDisplayIcon={app}\bemacs.exe''',
+                r'''AppName=%(APP_NAME)s''' % self.wb_version_info,
+                r'''AppVerName=SCM Workbench %(major)s.%(minor)s.%(patch)s''' % self.wb_version_info,
+                r'''AppCopyright=Copyright (C) %(copyright_years)s Barry A. Scott''' % self.wb_version_info,
+                r'''DefaultDirName={pf}\Barry Scott\%(APP_NAME)s''' % self.wb_version_info,
+                r'''DefaultGroupName=%(APP_NAME)s''' % self.wb_version_info,
+                r'''UninstallDisplayIcon={app}\SCM Workbench.exe''',
                 r'''ChangesAssociations=yes''',
                 r'''DisableStartupPrompt=yes''',
                 r'''InfoBeforeFile=info_before.txt''',
@@ -78,41 +63,26 @@ this kit.
                 ] )
 
         self.all_task_items.extend( [
-                r'''Name: "option_desktop_icon"; Flags: unchecked; Description: "Place %(app_name)s icon on the Desktop"''' % self.__dict__,
-                r'''Name: "option_start_menu_icon"; Description: "Place %(app_name)s on the Start menu"''' % self.__dict__,
-                r'''Name: "option_edit_with_bemacs"; Description: "Place Edit with %(app_name)s on the Context menu"''' % self.__dict__,
+                r'''Name: "option_desktop_icon"; Flags: unchecked; Description: "Place %(APP_NAME)s icon on the Desktop"''' % self.wb_version_info,
+                r'''Name: "option_start_menu_icon"; Description: "Place %(APP_NAME)s on the Start menu"''' % self.wb_version_info,
                 ] )
 
         self.all_icon_items.extend( [
-                r'''Name: "{group}\SCM Workbench"; Filename: "{app}\scm workbench.exe"''',
-                r'''Name: "{group}\Documentation"; Filename: "{app}\Documentation\emacs-documentation.html"''',
-                r'''Name: "{group}\FAQ"; Filename: "{app}\documentation\bemacs-faq.html"''',
-                r'''Name: "{group}\Readme"; Filename: "{app}\bemacs.exe"; Parameters: """{app}\readme.txt"""''',
+                r'''Name: "{group}\SCM Workbench"; Filename: "{app}\SCM Workbench.exe"''',
                 r'''Name: "{group}\SCM Workbench Web Site"; Filename: "http://www.barrys-emacs.org/scm-workbench/";''',
                 #
                 #    Add an Emacs icon to the Desktop
                 #
-                r'''Name: "{commondesktop}\%(app_name)s"; Filename: "{app}\bemacs.exe"; Tasks: "option_desktop_icon"''' % self.__dict__,
+                r'''Name: "{commondesktop}\%(APP_NAME)s"; Filename: "{app}\SCM Workbench.exe"; Tasks: "option_desktop_icon"''' % self.wb_version_info,
 
                 #
                 #    Add an Emacs icon to the Start menu
                 #
-                r'''Name: "{commonstartmenu}\%(app_name)s"; Filename: "{app}\bemacs.exe"; Tasks: "option_start_menu_icon"''' % self.__dict__,
+                r'''Name: "{commonstartmenu}\%(APP_NAME)s"; Filename: "{app}\SCM Workbench"; Tasks: "option_start_menu_icon"''' % self.wb_version_info,
 
                 ] )
 
-
-        self.all_file_items.extend( [
-                r'''Source: "%s\Kits\Readme.txt"; DestDir: "{app}";''' % (BUILDER_TOP_DIR,),
-
-                r'''Source: "%s\Editor\PyQtBEmacs\bemacs.png";  DestDir: "{app}\Documentation";''' % (BUILDER_TOP_DIR,),
-                r'''Source: "%s\HTML\*.css";  DestDir: "{app}\Documentation";''' % (BUILDER_TOP_DIR,),
-                r'''Source: "%s\HTML\*.html"; DestDir: "{app}\Documentation";''' % (BUILDER_TOP_DIR,),
-                r'''Source: "%s\HTML\*.gif";  DestDir: "{app}\Documentation";''' % (BUILDER_TOP_DIR,),
-                r'''Source: "%s\HTML\*.js";   DestDir: "{app}\Documentation";''' % (BUILDER_TOP_DIR,),
-                ] )
-
-        self.addAllKitFiles()
+        self.addAllAppFiles()
 
         #for dll in [dll for dll in os.listdir( 'tmp' ) if dll.lower().endswith( '.dll' )]:
         #    self.all_file_items.append( 'Source: "%s"; DestDir: "{app}"; Flags: ignoreversion' % (dll,) )
@@ -126,7 +96,7 @@ this kit.
 
         if self.arch == 'win64':
             redist_arch = 'x64'
-            code_file = os.path.join( BUILDER_TOP_DIR, 'Kits/Windows/bemacs_win64_code.iss' )
+            code_file = os.path.join( self.BUILDER_TOP_DIR, r'Kit\Windows\win64_code.iss' )
             self.all_setup_items.append( 'ArchitecturesAllowed=x64' )
             self.all_setup_items.append( 'ArchitecturesInstallIn64BitMode=x64' )
 
@@ -134,27 +104,22 @@ this kit.
             print( 'Error: Unsupported ARCH of %s' % (self.arch,) )
             return 1
 
-        f = open( code_file, 'r' )
-        self.all_code_items.append( f.read() % self.__dict__ )
-        f.close()
+        with open( code_file, 'r' ) as f:
+            self.all_code_items.append( f.read() % self.wb_version_info )
 
         redist_file = 'vcredist_%s_%s.exe' % (redist_arch, redist_year)
 
-        log.info( r'QQQ assuming K:\subversion is a thing' )
-        os.system( r'copy k:\subversion\%s tmp' % (redist_file,) )
+        self.log.info( r'Assuming redist files are in K:\subversion' )
+        build_utils.copyFile( r'k:\subversion\%s' % (redist_file,), r'tmp\app', 0o700 )
 
         self.all_file_items.append( 'Source: "%s"; DestDir: {tmp}; Flags: deleteafterinstall' %
-                                    (redist_file,) )
+                                    (r'app\%s' % (redist_file,)) )
         self.all_run_items.append( r'Filename: {tmp}\%s; Parameters: "/q"; StatusMsg: Installing VC++ %s %s Redistributables...' %
                                     (redist_file, redist_year, self.arch) )
 
-        # finally show the readme.txt
-        self.all_run_items.append( r'Filename: "{app}\bemacs.exe"; Parameters: """{app}\readme.txt"""; '
-                                        r'Flags: nowait postinstall skipifsilent; Description: "View README.TXT"' )
-
-    def addAllKitFiles( self ):
+    def addAllAppFiles( self ):
         os.chdir( 'tmp' )
-        kitfiles_folder = pathlib.Path( 'kitfiles' )
+        kitfiles_folder = pathlib.Path( 'app' )
 
         all_files = []
 
@@ -173,11 +138,11 @@ this kit.
         os.chdir( '..' )
 
     def generateInnoFile( self ):
-        inno_file = r'tmp\bemacs.iss'
-        log.info( 'Generating %s' % (inno_file,) )
+        inno_file = r'tmp\scm-workbench.iss'
+        self.log.info( 'Generating %s' % (inno_file,) )
         f = open( inno_file, 'w' )
 
-        f.write( ';\n; bemacs.iss generate by setup_kit_files.py\n;\n' )
+        f.write( ';\n; scm-workbench.iss generate by package_windows_inno_setup_files.py\n;\n' )
 
         self.__generateSection( f, 'Code', self.all_code_items )
         self.__generateSection( f, 'Setup', self.all_setup_items )
@@ -196,6 +161,3 @@ this kit.
             for item in all_items:
                 f.write( item )
                 f.write( '\n' )
-
-if __name__ == '__main__':
-    sys.exit( main( sys.argv ) )

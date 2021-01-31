@@ -130,10 +130,9 @@ class BuildScmWorkbench(object):
         elif self.platform == 'win64':
             self.KITSRC = self.BUILDER_TOP_DIR / 'Kits/Windows'
             self.KITROOT = self.BUILDER_TOP_DIR / 'Builder/tmp'
-            self.KITFILES = self.BUILDER_TOP_DIR / 'kitfiles'
 
-            self.BUILD_BIN_DIR = self.KITFILES
-            self.BUILD_DOC_DIR = self.KITFILES / 'Documentation'
+            self.BUILD_BIN_DIR = self.KITROOT / 'App'
+            self.BUILD_DOC_DIR = self.KITROOT / 'App' / 'Documentation'
 
             self.INSTALL_BIN_DIR = self.BUILD_BIN_DIR
             self.INSTALL_DOC_DIR = self.BUILD_DOC_DIR
@@ -217,6 +216,7 @@ class BuildScmWorkbench(object):
             build_utils.rmdirAndContents( 'tmp/app' )
 
     def ruleBuild( self ):
+        log.info( 'Running ruleBuild' )
         for folder in (self.BUILD_DOC_DIR, self.BUILD_BIN_DIR):
             build_utils.mkdirAndParents( folder )
 
@@ -238,17 +238,17 @@ class BuildScmWorkbench(object):
 
         elif self.platform == 'win64':
             run( ('build-windows.cmd'
-                 ,self.KITFILES
-                 ,self.wb_version_info.get('win_version'))
+                 ,str(self.INSTALL_BIN_DIR)
+                 ,self.wb_version_info.get('version'))
                  ,cwd=r'..\Source' )
 
         else:
             run( ('./build-linux.sh'
-                 ,self.ROOT_DIR),
+                 ,str(self.ROOT_DIR)),
                     cwd='../Source' )
 
     def ruleMacosPackage( self ):
-        log.info( 'Make macOS package' )
+        log.info( 'Running ruleMacosPackage' )
 
         pkg_name = 'SCM Workbench-%s' % (self.wb_version_info.get('version'),)
         dmg_folder = '%s/Builder/tmp/dmg' % (self.BUILDER_TOP_DIR,)
@@ -269,19 +269,30 @@ class BuildScmWorkbench(object):
                 '%s/%s.dmg' % (dmg_folder, pkg_name)) )
 
     def ruleInnoInstaller( self ):
+        log.info( 'Running ruleInnoInstaller' )
+
         import package_windows_inno_setup_files
-        inno_setup = package_windows_inno_setup_files.InnoSetup( self.platform, self.VC_VER, self.opt_vcredist )
+        inno_setup = package_windows_inno_setup_files.InnoSetup( log, self.platform, self.VC_VER, self.wb_version_info )
         inno_setup.createInnoInstall()
 
-        run( (r'c:\Program Files (x86)\Inno Setup 5\ISCC.exe', r'tmp\bemacs.iss') )
+        r = run( (r'c:\Program Files (x86)\Inno Setup 5\ISCC.exe', '/O+', r'tmp\scm-workbench.iss'), output=True, check=False )
+        with open( r'tmp\inno.log', 'w' ) as f:
+            f.write( r.stdout.replace( '\r', '' ) )
+            if len(r.stderr) > 0:
+                f.write( '--- stderrr ---\n' )
+                f.write( r.stderr.replace( '\r', '' ) )
+            f.write( '--- exit code %d ---\n' % (r.returncode,) )
+
+        if r.returncode != 0:
+            log.info( 'StdOut:\n%s' % (r.stdout.replace('\r', '').strip(),) )
+            log.error( 'StdErr:\n%s' % (r.stderr.replace('\r', '').strip(),) )
+            raise BuildError( 'Inno setup failed %d' % (r.returncode,) )
+
         build_utils.copyFile(
             r'tmp\Output\mysetup.exe',
             r'tmp\scm-workbench-%s-setup.exe' % (self.wb_version_info.get('version'),),
             0o600 )
         log.info( r'Created kit tmp\scm-workbench-%s-setup.exe' % (self.wb_version_info.get('version'),) )
-
-def logNothing( msg ):
-    pass
 
 if __name__ == '__main__':
     sys.exit( BuildScmWorkbench().main( sys.argv ) )

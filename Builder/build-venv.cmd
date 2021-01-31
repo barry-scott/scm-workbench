@@ -16,6 +16,12 @@ if exist venv.tmp rmdir /s /q venv.tmp
 venv.tmp\Scripts\python.exe -m pip install --upgrade pip setuptools
 venv.tmp\Scripts\python.exe -m pip install -r %requirements_file%
 venv.tmp\Scripts\python.exe -m pip list
+
+%PYTHON% -m colour_text "<>info Info:<> Install pysvn"
+%PYTHON% -c "import pysvn,os;print(os.path.dirname(pysvn.__file__))" >pysvn.tmp
+for /f %%x in (pysvn.tmp) do xcopy /s /q %%x venv.tmp\lib\site-packages\pysvn\
+del pysvn.tmp
+
 goto :eof
 
 :error
