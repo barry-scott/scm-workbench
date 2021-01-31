@@ -117,6 +117,11 @@ class InnoSetup:
         self.all_run_items.append( r'Filename: {tmp}\%s; Parameters: "/q"; StatusMsg: Installing VC++ %s %s Redistributables...' %
                                     (redist_file, redist_year, self.arch) )
 
+        self.all_run_items.append( r'Filename: "{app}\%(APP_NAME)s.exe"; '
+                                   r'Flags: nowait postinstall skipifsilent; Description: "Start %(APP_NAME)s"' %
+                                    self.wb_version_info )
+
+
     def addAllAppFiles( self ):
         os.chdir( 'tmp' )
         kitfiles_folder = pathlib.Path( 'app' )
