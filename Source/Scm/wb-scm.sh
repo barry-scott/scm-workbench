@@ -6,7 +6,7 @@ then
     BUILDER_TOP_DIR=$( cd ../..; pwd )
 fi
 
-SCMPYTHONPATH=${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Hg:${BUILDER_TOP_DIR}/Source/Svn:${BUILDER_TOP_DIR}/Source/Perforce:${BUILDER_TOP_DIR}/Source/Common
+SCMPYTHONPATH=${BUILDER_TOP_DIR}/tmp/Source;${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Hg:${BUILDER_TOP_DIR}/Source/Svn:${BUILDER_TOP_DIR}/Source/Perforce:${BUILDER_TOP_DIR}/Source/Common
 
 # for override libraries
 #OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython
@@ -38,10 +38,7 @@ then
 fi
 PYTHONW=${DIRNAME}pythonw${SUFFIX}
 
-pushd ../Common
-make -f linux.mak clean
-make -f linux.mak
-popd >/dev/null
+
 
 make -f linux.mak clean
 make -f linux.mak
@@ -70,26 +67,16 @@ then
 
     echo "set args wb_scm_main.py $*" >.gdbinit
     echo "echo gdbinit loaded\\n" >>.gdbinit
-    gdb -x .gdbinit ${PYTHON}
+    gdb -x .gdbinit ${BUILDER_TOP_DIR}/Builder/venv.tmp/bin/python
 
 else
     case "$( uname )" in
     Darwin)
         # run Python with the path that it has when started by macOS as an App
-        if [ -e ../../Kit/macOS/tmp/venv/bin/python ]
-        then
-            PATH=/usr/bin:/bin:/usr/sbin:/sbin ../../Kit/macOS/tmp/venv/bin/python wb_scm_main.py $*
-
-        elif [ -e ${PYTHONW} ]
-        then
-            PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHONW} wb_scm_main.py $*
-
-        else
-            PATH=/usr/bin:/bin:/usr/sbin:/sbin ${PYTHON} wb_scm_main.py $*
-        fi
+        PATH=/usr/bin:/bin:/usr/sbin:/sbin ${BUILDER_TOP_DIR}/Builder/venv.tmp/bin/python "$@"
         ;;
     *)
-        ${PYTHON} wb_scm_main.py $*
+        ${BUILDER_TOP_DIR}/Builder/venv.tmp/bin/python wb_scm_main.py "$@"
         ;;
     esac
 fi

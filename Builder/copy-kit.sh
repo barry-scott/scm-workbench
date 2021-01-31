@@ -1,7 +1,7 @@
 #!/bin/bash
 case "${BUILDER_CFG_PLATFORM}" in
 MacOSX)
-    DMG=$( echo dmg.tmp/*.dmg )
+    DMG=$( echo tmp/dmg/*.dmg )
     if [ ! -e /Volumes/Downloads ]
     then
         echo "Mounting shares..."

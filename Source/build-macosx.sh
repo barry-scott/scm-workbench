@@ -30,25 +30,30 @@ PY_VER=$( ${VPYTHON} -c 'import sys;print( "%d.%d" % (sys.version_info.major, sy
 rm -rf ${DIST_DIR}
 mkdir -p ${DIST_DIR}
 
-${VPYTHON} make_wb_scm_images.py
+TMP_SRC=${BUILDER_TOP_DIR}/Builder/tmp/Source
+rm -rf ${TMP_SRC}
+mkdir ${TMP_SRC}
+
+${VPYTHON} ${SRC_DIR}/make_wb_scm_version.py \
+    ${BUILDER_TOP_DIR}/Builder/version.dat \
+    ${TMP_SRC}/wb_scm_version.py
+
+${VPYTHON} make_wb_scm_images.py \
+    ${TMP_SRC}/wb_scm_images.py
 
 colour-print "<>info Info:<> Creating Application bundle"
 
 # assume that pysvn is install outside of the VENV
 PYSVN_PATH=$( ${PYTHON} -c 'import pysvn;print(pysvn.__path__[0])' )
 
-pushd ${SRC_DIR}/Common >/dev/null
-make -f linux.mak clean
-make -f linux.mak
-popd >/dev/null
-
+# make translation PO files
 pushd ${SRC_DIR} >/dev/null
 make -f linux.mak clean
 make -f linux.mak
 popd >/dev/null
 
 # wb_scm_version.py is bash compatible
-. ${SRC_DIR}/Scm/wb_scm_version.py
+. ${TMP_SRC}/wb_scm_version.py
 
 mkdir -p ${DIST_DIR}/wb.iconset
 sips -z 16 16     ${SRC_DIR}/wb.png --out ${DIST_DIR}/wb.iconset/icon_16x16.png
@@ -63,7 +68,7 @@ sips -z 512 512   ${SRC_DIR}/wb.png --out ${DIST_DIR}/wb.iconset/icon_512x512.pn
 cp                ${SRC_DIR}/wb.png       ${DIST_DIR}/wb.iconset/icon_512x512@2x.png
 iconutil -c icns ${DIST_DIR}/wb.iconset
 
-export PYTHONPATH=${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
+export PYTHONPATH=${TMP_SRC}:${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
 
 ${BUILDER_DIR}/tmp/venv/bin/python \
     ${SRC_DIR}/build_macos_py2app_setup.py \
