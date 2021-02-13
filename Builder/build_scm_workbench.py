@@ -214,6 +214,7 @@ class BuildScmWorkbench(object):
         elif self.platform == 'MacOSX':
             # must not remove tmp/venv
             build_utils.rmdirAndContents( 'tmp/app' )
+            build_utils.rmdirAndContents( 'tmp/dmg' )
 
     def ruleBuild( self ):
         log.info( 'Running ruleBuild' )
@@ -257,10 +258,6 @@ class BuildScmWorkbench(object):
 
         build_utils.mkdirAndParents( app_folder )
         build_utils.mkdirAndParents( dmg_folder )
-
-        run( ('cp', '-r',
-                "%s/SCM Workbench-Devel.app" % (app_folder,),
-                "%s/SCM Workbench.app" % (dmg_folder,)) )
 
         log.info( 'Create DMG' )
         run( ('%s/dmgbuild' % (venv_bin,),

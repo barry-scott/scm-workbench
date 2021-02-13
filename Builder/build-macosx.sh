@@ -38,7 +38,8 @@ fi
 export PYTHON=${PWD}/tmp/venv/bin/python
 ${PYTHON} ./build_scm_workbench.py --colour | ${PYTHON} -u build_tee.py build.log
 
-DMG="$( ls -1 tmp/dmg/*.dmg )"
+DMG=$( ls -1 tmp/dmg/*.dmg )
+
 colour-print "<>info Info:<> DMG ${DMG}"
 if [ "$1" = "--install" ]
 then
@@ -46,6 +47,6 @@ then
     # and will start all of them at the same time so delete
     rm -rf tmp/app
     rm -rf tmp/dmg/*.app
-    open ${DMG}
+    open "${DMG}"
 fi
 colour-print "<>info Info:<> build-macosx.sh Builder - end"

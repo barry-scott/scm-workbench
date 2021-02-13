@@ -13,26 +13,8 @@ import build_log
 log = build_log.BuildLog()
 log.setColour( True )
 
-log.info( 'change to org.barrys-emacs.scm-workbench' )
-
-PKGNAME = 'dmg'
-
-app_path = os.path.join( 'tmp', PKGNAME, "SCM Workbench.app" )
+app_path = os.path.join( 'tmp', 'app', "SCM Workbench.app" )
 app_name = os.path.basename( app_path )
-
-path = os.path.join( app_path, 'Contents', 'Info.plist' )
-with open( path, 'r' ) as f:
-    log.info( 'Reading %s' % (path,) )
-    __text = f.read()
-
-__text = __text.replace( '<string>org.barrys-emacs.scm-workbench-devel</string>',
-                         '<string>org.barrys-emacs.scm-workbench</string>' )
-__text = __text.replace( 'SCM Workbench-Devel', 'SCM Workbench' )
-
-path = os.path.join( app_path, 'Contents', 'Info.plist' )
-with open( path, 'w' ) as f:
-    log.info( 'Writing %s' % (path,) )
-    f.write( __text )
 
 # .. Useful stuff ..............................................................
 

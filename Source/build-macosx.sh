@@ -18,18 +18,6 @@ BUILDER_DIR=${BUILDER_TOP_DIR}/Builder
 SRC_DIR=${BUILDER_TOP_DIR}/Source
 DOCS_DIR=${BUILDER_TOP_DIR}/Docs
 
-if [ "$1" = "--package" ]
-then
-    DIST_DIR=${BUILDER_TOP_DIR}/Builder/tmp/app
-else
-    DIST_DIR=dist
-fi
-
-PY_VER=$( ${VPYTHON} -c 'import sys;print( "%d.%d" % (sys.version_info.major, sys.version_info.minor) )' )
-
-rm -rf ${DIST_DIR}
-mkdir -p ${DIST_DIR}
-
 TMP_SRC=${BUILDER_TOP_DIR}/Builder/tmp/Source
 rm -rf ${TMP_SRC}
 mkdir ${TMP_SRC}
@@ -40,6 +28,25 @@ ${VPYTHON} ${SRC_DIR}/make_wb_scm_version.py \
 
 ${VPYTHON} make_wb_scm_images.py \
     ${TMP_SRC}/wb_scm_images.py
+
+# happens to work as a shell source
+. ${TMP_SRC}/wb_scm_version.py
+
+if [ "$1" = "--package" ]
+then
+    export DIST_DIR=${BUILDER_TOP_DIR}/Builder/tmp/app
+    PY2APP_OPT='--package'
+
+else
+    export DIST_DIR=dist
+    PY2APP_OPT=''
+    APP_NAME=${APP_NAME}-Devel
+fi
+
+PY_VER=$( ${VPYTHON} -c 'import sys;print( "%d.%d" % (sys.version_info.major, sys.version_info.minor) )' )
+
+rm -rf ${DIST_DIR}
+mkdir -p ${DIST_DIR}
 
 colour-print "<>info Info:<> Creating Application bundle"
 
@@ -71,11 +78,11 @@ iconutil -c icns ${DIST_DIR}/wb.iconset
 export PYTHONPATH=${TMP_SRC}:${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
 
 ${BUILDER_DIR}/tmp/venv/bin/python \
-    ${SRC_DIR}/build_macos_py2app_setup.py \
+    ${SRC_DIR}/build_macos_py2app_setup.py ${PY2APP_OPT} \
         py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip \
             2>&1 | tee ${BUILDER_DIR}/tmp/py2app.log
 
-pushd "${DIST_DIR}/SCM Workbench-Devel.app/Contents" >/dev/null
+pushd "${DIST_DIR}/${APP_NAME}.app/Contents" >/dev/null
 
 # py2app corrupts the dylibs - macOS report they are truncated
 # replace with the original versions
