@@ -42,7 +42,7 @@ cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_callback_client_unix.py >>${PROG}
 chmod +x ${PROG}
 unset PROG
 
-pushd ${BUILDER_TOP_DIR}/Source/Scm
+pushd ${BUILDER_TOP_DIR}/Source
 make -f linux.mak
 popd
 pushd ${BUILDER_TOP_DIR}/Source/Common

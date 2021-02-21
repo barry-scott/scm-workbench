@@ -34,6 +34,7 @@ class PackageWorkbench(object):
         self.opt_kit_xml_preferences = None
 
         self.copr_repo = None
+        self.copr_repo_other = None
 
         self.cmd = None
         self.opt_release = 'auto'
@@ -103,17 +104,28 @@ class PackageWorkbench(object):
             log.info( 'Defaulting --mock-target=%s' % (self.opt_mock_target,) )
 
         self.COPR_REPO_URL = 'https://copr-be.cloud.fedoraproject.org/results/barryascott/%s/%s' % (self.copr_repo, self.opt_mock_target)
+        self.COPR_REPO_OTHER_URL = 'https://copr-be.cloud.fedoraproject.org/results/barryascott/%s/%s' % (self.copr_repo_other, self.opt_mock_target)
 
         if self.opt_release == 'auto':
             all_packages = package_list_repo.listRepo( self.COPR_REPO_URL )
+            all_other_packages = package_list_repo.listRepo( self.COPR_REPO_OTHER_URL )
+
+            package_ver = 0
+            other_package_ver = 0
 
             if self.KITNAME in all_packages:
                 ver, rel, build_time = all_packages[ self.KITNAME ]
                 if ver == self.version:
-                    self.opt_release = 1 + int( rel.split('.')[0] )
+                    package_ver = int( rel.split('.')[0] )
+                    log.info( 'Release %d found in %s' % (package_ver, self.copr_repo) )
 
-            if self.opt_release == 'auto':
-                self.opt_release = 1
+            if self.KITNAME in all_other_packages:
+                ver, rel, build_time = all_other_packages[ self.KITNAME ]
+                if ver == self.version:
+                    other_package_ver = int( rel.split('.')[0] )
+                    log.info( 'Release %d found in %s' % (package_ver, self.copr_repo_other) )
+
+            self.opt_release = 1 + max( package_ver, other_package_ver )
 
             log.info( 'Release set to %d' % (self.opt_release,) )
 
@@ -129,9 +141,11 @@ class PackageWorkbench(object):
 
             if self.cmd in ('srpm-release', 'mock-release', 'list-release', 'copr-release'):
                 self.copr_repo = 'tools'
+                self.copr_repo_other = 'tools-testing'
 
             elif self.cmd in ('srpm-testing', 'mock-testing', 'list-testing', 'copr-testing'):
                 self.copr_repo = 'tools-testing'
+                self.copr_repo_other = 'tools'
 
             while True:
                 arg = next(args)
@@ -153,9 +167,6 @@ class PackageWorkbench(object):
                 elif arg.startswith('--mock-target='):
                     self.opt_mock_target = arg[len('--mock-target='):]
 
-                elif arg.startswith('--arch='):
-                    self.opt_arch = arg[len('--arch='):]
-
                 elif arg.startswith('--install'):
                     self.install = True
 
@@ -174,6 +185,7 @@ class PackageWorkbench(object):
         raise BuildError( 'Expected /etc/os-release to have a VERSION_ID= field' )
 
     def buildSrpm( self ):
+        log.info( 'buildSrpm' )
         run( ('rm', '-rf', 'tmp') )
         run( ('mkdir', '-p', 'tmp') )
         run( ('mkdir', 'tmp/sources') )
@@ -189,6 +201,7 @@ class PackageWorkbench(object):
         log.info( 'SRPM is %s' % (self.SRPM_FILENAME,) )
 
     def buildMock( self ):
+        log.info( 'buildMock' )
         self.buildSrpm()
 
         log.info( 'Creating RPM' )
@@ -204,7 +217,6 @@ class PackageWorkbench(object):
                         '--rebuild',
                         self.SRPM_FILENAME) )
 
-
         all_bin_kitnames = [
             self.KITNAME,
             ]
@@ -212,11 +224,14 @@ class PackageWorkbench(object):
         run( ('mkdir','-p', 'built') )
 
         for bin_kitname in all_bin_kitnames:
-            basename = '%s-%s-%s.%s.%s.rpm' % (bin_kitname, self.version, self.opt_release, self.dist_tag, self.opt_arch)
+            basename = '%s-%s-%s.%s.%s.rpm' % (bin_kitname, self.version, self.opt_release, self.dist_tag, 'noarch')
             src = '%s/RPMS/%s' % (self.MOCK_BUILD_DIR, basename)
-            if os.path.exists( src ):
-                log.info( 'Copying %s' % (basename,) )
-                shutil.copyfile( src, 'built/%s' % (basename,) )
+            if not os.path.exists( src ):
+                raise BuildError( 'Cannot find kit %s' % (src,) )
+
+            log.info( 'Copying %s' % (basename,) )
+            shutil.copyfile( src, 'built/%s' % (basename,) )
+
 
         log.info( 'Results in %s/built:' % (os.getcwd(),) )
 
@@ -234,6 +249,7 @@ class PackageWorkbench(object):
             run( cmd )
 
     def buildCopr( self ):
+        log.info( 'buildCopr' )
         # setup vars based on mock config
         self.readMockConfig()
 
@@ -366,14 +382,15 @@ class PackageWorkbench(object):
             f.write( p.stdout )
 
         run( (os.environ['PYTHON'], '-u',
-                '%s/Source/Scm/make_wb_scm_version.py' % (self.BUILDER_TOP_DIR,),
+                '%s/Source/make_wb_scm_version.py' % (self.BUILDER_TOP_DIR,),
                 '%s/Builder/version.dat' % (self.BUILDER_TOP_DIR,),
                 'tmp/scm-workbench-%s/Source/Scm/wb_scm_version.py' % (self.version,)) )
 
         run( ('tar', 'czf', 'sources/%s.tar.gz' % (self.KIT_BASENAME,), self.KIT_BASENAME), cwd='tmp' )
 
     def makeSrpm( self ):
-        log.info( 'creating %s.spec' % (self.KITNAME,) )
+        log.info( 'makeSrpm' )
+        log.info( 'Creating %s.spec' % (self.KITNAME,) )
         import package_rpm_specfile
         package_rpm_specfile.createRpmSpecFile( self, 'tmp/%s.spec' % (self.KITNAME,) )
 

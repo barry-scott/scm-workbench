@@ -17,40 +17,21 @@ def createRpmSpecFile( opt, spec_filename ):
 
     kit_xml_preferences_basename = ''
 
-    if opt.opt_mock_target.startswith( 'epel-7-' ):
-        # centos 7 uses python36 not python3
-        python = '/usr/bin/python3'
-        all_requires.add( 'python36 >= 3.5' )
-        all_requires.add( 'python36-qt5 >= 5.7' )
-        all_requires.add( 'subversion >= 1.9' )
-        all_requires.add( 'python36-pysvn >= 1.9.2' )
-        all_requires.add( 'git-core >= 2.7' )
-        all_requires.add( 'python36-hglib >= 2.3' )
-        all_requires.add( 'python36-GitPython >= 2.1.1' )
-        all_requires.add( 'python36-pytz >= 2016.6' )
-        all_requires.add( 'python36-qscintilla-qt5 >= 2.9' )
-        all_requires.add( 'python36-tzlocal >= 1.2' )
-        all_requires.add( 'python36-xml-preferences' )
+    python = '/usr/bin/python3'
+    all_requires.add( 'python3 >= 3.5' )
+    all_requires.add( 'python3-qt5 >= 5.7' )
+    all_requires.add( 'subversion >= 1.9' )
+    all_requires.add( 'python3-pysvn >= 1.9.2' )
+    all_requires.add( 'git-core >= 2.7' )
+    all_requires.add( 'python3-hglib >= 2.3' )
+    all_requires.add( 'python3-GitPython >= 2.1.1' )
+    all_requires.add( 'python3-pytz >= 2016.6' )
+    all_requires.add( 'python3-qscintilla-qt5 >= 2.9' )
+    all_requires.add( 'python3-tzlocal >= 1.2' )
+    all_requires.add( 'python3-xml-preferences' )
 
-        all_build_requires.add( 'python36' )
-        all_build_requires.add( 'gettext' )
-
-    else:
-        python = '/usr/bin/python3'
-        all_requires.add( 'python3 >= 3.5' )
-        all_requires.add( 'python3-qt5 >= 5.7' )
-        all_requires.add( 'subversion >= 1.9' )
-        all_requires.add( 'python3-pysvn >= 1.9.2' )
-        all_requires.add( 'git-core >= 2.7' )
-        all_requires.add( 'python3-hglib >= 2.3' )
-        all_requires.add( 'python3-GitPython >= 2.1.1' )
-        all_requires.add( 'python3-pytz >= 2016.6' )
-        all_requires.add( 'python3-qscintilla-qt5 >= 2.9' )
-        all_requires.add( 'python3-tzlocal >= 1.2' )
-        all_requires.add( 'python3-xml-preferences' )
-
-        all_build_requires.add( 'python3' )
-        all_build_requires.add( 'gettext' )
+    all_build_requires.add( 'python3' )
+    all_build_requires.add( 'gettext' )
 
     if opt.opt_kit_xml_preferences is None:
         all_requires.add( 'python3-xml-preferences' )
@@ -136,7 +117,7 @@ echo Info: Install PWD $( pwd )
 export BUILDER_TOP_DIR=$( pwd )
 export PYTHON=/usr/bin/python3
 
-cd ${BUILDER_TOP_DIR}/Kit/Fedora
+cd ${BUILDER_TOP_DIR}/Builder
 ./build-install-tree.sh \
     %{buildroot} \
     %{_bindir} \
