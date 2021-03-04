@@ -43,6 +43,10 @@ chmod +x ${PROG}
 unset PROG
 
 pushd ${BUILDER_TOP_DIR}/Source
+
+${PYTHON} ./make_wb_scm_images.py \
+    ${BUILD_ROOT}${LIB}/wb_scm_images.py
+
 make -f linux.mak
 popd
 pushd ${BUILDER_TOP_DIR}/Source/Common
