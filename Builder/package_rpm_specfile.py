@@ -32,6 +32,7 @@ def createRpmSpecFile( opt, spec_filename ):
 
     all_build_requires.add( 'python3' )
     all_build_requires.add( 'gettext' )
+    all_build_requires.add( 'make' )
 
     if opt.opt_kit_xml_preferences is None:
         all_requires.add( 'python3-xml-preferences' )
