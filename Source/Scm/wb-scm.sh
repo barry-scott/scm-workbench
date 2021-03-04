@@ -77,7 +77,7 @@ else
         PATH=/usr/bin:/bin:/usr/sbin:/sbin ${BUILDER_TOP_DIR}/Builder/tmp/venv/bin/python wb_scm_main.py "$@"
         ;;
     *)
-        ${BUILDER_TOP_DIR}/Builder/venv.tmp/bin/python wb_scm_main.py "$@"
+        python3 wb_scm_main.py "$@"
         ;;
     esac
 fi
