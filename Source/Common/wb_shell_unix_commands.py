@@ -139,7 +139,7 @@ def commandShell( app, working_dir ):
     try:
         if p.terminal_program == 'konsole':
             __run_command( app, p.terminal_program,
-                ['--title',  title, '--workdir', working_dir, '-e', '/bin/bash', f.name],
+                ['--workdir', working_dir, '-e', '/bin/bash', f.name],
                 working_dir )
 
         elif p.terminal_program in ('gnome-terminal', 'xfce4-terminal'):
