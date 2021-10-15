@@ -683,7 +683,12 @@ class GitProject:
     def cmdTagsForRepository( self ):
         tag_name_by_id = {}
         for tag in self.repo().tags:
-            tag_name_by_id[ tag.commit.hexsha ] = tag.name
+            try:
+                tag_name_by_id[ tag.commit.hexsha ] = tag.name
+
+            except ValueError:
+                # cannot get the tag - may be a deteched ref
+                pass
 
         return tag_name_by_id
 
