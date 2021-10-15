@@ -733,20 +733,6 @@ class HgCommitLogNode:
         previous_commit = self.__commit.parents[0]
         return previous_commit.tree
 
-    def commitTreeDict( self ):
-        all_entries = {}
-        self.__treeToDict( self.commitTree(), all_entries )
-        return all_entries
-
-    def commitPreviousTreeDict( self ):
-        all_entries = {}
-
-        tree = self.commitPreviousTree()
-        if tree is not None:
-            self.__treeToDict( tree, all_entries )
-
-        return all_entries
-
     def commitIdString( self ):
         return self.__commit.hexsha
 

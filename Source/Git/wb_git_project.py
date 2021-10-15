@@ -695,11 +695,12 @@ class GitProject:
         total = len(all_commit_logs)
         for offset in range( total ):
             progress_callback( offset, total )
+            all_files = all_commit_logs[ offset ].commitStats().files
             new_tree = all_commit_logs[ offset ].commitTree()
             old_tree = all_commit_logs[ offset ].commitPreviousTree()
 
             all_new = {}
-            self.__treeToDict( new_tree, all_new )
+            self.__treeToDict( all_files, new_tree, all_new )
             new_set = set(all_new)
 
             if old_tree is None:
@@ -707,7 +708,7 @@ class GitProject:
 
             else:
                 all_old = {}
-                self.__treeToDict( old_tree, all_old )
+                self.__treeToDict( all_files, old_tree, all_old )
 
                 old_set = set(all_old)
 
@@ -747,13 +748,25 @@ class GitProject:
 
                 all_commit_logs[ offset ]._addChanges( all_added, all_deleted, all_renamed, all_modified )
 
-    def __treeToDict( self, tree, all_entries ):
-        for blob in tree:
-            if blob.type == 'blob':
-                all_entries[ blob.path ] = blob.hexsha
+    def __treeToDict( self, all_files, tree, all_entries ):
+        for file in all_files:
+            all_parts = file.split('/')
+            node = tree
 
-        for child in tree.trees:
-            self.__treeToDict( child, all_entries )
+            # walk down the tree (aka folders) until we have
+            # the tree that has the blob (aka file)
+            # tree.path is a simple name of the folder, not the full path to the folder
+            for part in all_parts[:-1]:
+                for child in node.trees:
+                    if child.path == part:
+                        node = child
+                        break
+
+            # blob.path is the full path to the file
+            for blob in node:
+                if blob.path == file:
+                    all_entries[ blob.path ] = blob.hexsha
+                    break
 
     def cmdAnnotationForFile( self, filename, rev=None ):
         if rev is None:
@@ -1155,6 +1168,9 @@ class GitCommitLogNode:
         for name in all_modified:
             self.__all_changes.append( ('M', name, '' ) )
 
+    def commitStats( self ):
+        return self.__commit.stats
+
     def commitTree( self ):
         return self.__commit.tree
 
@@ -1164,20 +1180,6 @@ class GitCommitLogNode:
 
         previous_commit = self.__commit.parents[0]
         return previous_commit.tree
-
-    def commitTreeDict( self ):
-        all_entries = {}
-        self.__treeToDict( self.commitTree(), all_entries )
-        return all_entries
-
-    def commitPreviousTreeDict( self ):
-        all_entries = {}
-
-        tree = self.commitPreviousTree()
-        if tree is not None:
-            self.__treeToDict( tree, all_entries )
-
-        return all_entries
 
     def commitId( self ):
         return self.__commit.hexsha
