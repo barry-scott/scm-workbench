@@ -36,7 +36,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
             return wb_svn_project.SvnProject( self.app, project, self )
 
         except wb_svn_project.ClientError as e:
-            svn_project.logClientError( e, 'Failed to add SVN repo %r' % (project.path,) )
+            project.logClientError( e, 'Failed to add SVN repo %r' % (project.path,) )
             return None
 
     #------------------------------------------------------------
