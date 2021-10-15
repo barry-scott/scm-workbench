@@ -42,3 +42,6 @@ for index, commit in enumerate(r.iter_commits( None )):
     tree = commit.tree
 
     printTree( tree )
+
+    if index > 1:
+        break
