@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 if [ "${BUILDER_TOP_DIR}" = "" ]
 then
     BUILDER_TOP_DIR=$( cd ../..; pwd )
@@ -24,10 +26,13 @@ do
     fi
 done
 
+pushd ..
 make -f linux.mak
+popd
+
 pushd ../Common
 make -f linux.mak
 popd
 
-python3-pylint --rcfile pylintrc wb_*.py ../Common/wb*.py ../Git/wb*.py ../Svn/wb*.py ../Hg/wb*.py | tee pylint.log
+pylint-3 --rcfile pylintrc wb_*.py ../Common/wb*.py ../Git/wb*.py ../Svn/wb*.py ../Hg/wb*.py | tee pylint.log
 echo "Info: log file pylint.log ($( wc -l <pylint.log ))"
