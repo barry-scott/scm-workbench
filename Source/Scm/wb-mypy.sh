@@ -4,7 +4,7 @@ then
     BUILDER_TOP_DIR=$( cd ../..; pwd )
 fi
 
-SCMPYTHONPATH=${BUILDER_TOP_DIR}/Builder/tmp/Source;${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Hg:${BUILDER_TOP_DIR}/Source/Svn:${BUILDER_TOP_DIR}/Source/Common
+SCMPYTHONPATH=${BUILDER_TOP_DIR}/Builder/tmp/Source:${BUILDER_TOP_DIR}/Source/Scm:${BUILDER_TOP_DIR}/Source/Git:${BUILDER_TOP_DIR}/Source/Hg:${BUILDER_TOP_DIR}/Source/Svn:${BUILDER_TOP_DIR}/Source/Common
 
 # for override libraries
 #OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython
