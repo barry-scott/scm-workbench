@@ -759,11 +759,13 @@ class GitProject:
             node = tree
 
             # walk down the tree (aka folders) until we have
-            # the tree that has the blob (aka file)
-            # tree.path is a simple name of the folder, not the full path to the folder
-            for part in all_parts[:-1]:
+            # the tree that has the blob (aka file) in it
+
+            # tree.path is the full name of the folder
+            for index in range(1, len(all_parts)):
+                prefix = '/'.join( all_parts[:index] )
                 for child in node.trees:
-                    if child.path == part:
+                    if child.path == prefix:
                         node = child
                         break
 
