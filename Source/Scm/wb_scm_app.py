@@ -45,8 +45,11 @@ class WbScmApp(wb_app.WbApp):
 
         super().__init__( ('Scm', 'Workbench'), args, debug_class=wb_scm_debug.WbScmDebug, extra_loggers=extra_loggers,  )
 
-        self.setDesktopFileName( '/usr/share/applications/org.barrys-emacs.scm-workbench.desktop' )
-        self.log.info( 'desktopFileName %r' % (self.desktopFileName(),) )
+        if wb_platform_specific.isUnix():
+            self.setDesktopFileName( '/usr/share/applications/org.barrys-emacs.scm-workbench.desktop' )
+            self.log.info( 'desktopFileName %r' % (self.desktopFileName(),) )
+
+            self.setApplicationDisplayName( 'org.barrys-emacs.scm-workbench' )
 
         for msg in all_messages:
             self.log.info( msg )
