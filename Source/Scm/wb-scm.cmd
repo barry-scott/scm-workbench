@@ -24,7 +24,12 @@ if "%BUILDER_TOP_DIR%" == "" (
         cd %BUILDER_START_DIR%
 )
 
-set VPYTHON=%BUILDER_TOP_DIR%\venv.tmp\Scripts\python
+set VPYTHON=%BUILDER_TOP_DIR%\Builder\venv.tmp\Scripts\python.exe
+
+if not exist %VPYTHON% (
+    echo "Error: Must create the VENV for %VPYTHON%"
+    goto :eof
+)
 
 set PYTHONPATH=%BUILDER_TOP_DIR%\tmp\Source;%BUILDER_TOP_DIR%\Source\Scm;%BUILDER_TOP_DIR%\Source\Common;%BUILDER_TOP_DIR%\Source\Git;%BUILDER_TOP_DIR%\Source\Svn;%BUILDER_TOP_DIR%\Source\Hg
 
