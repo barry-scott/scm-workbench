@@ -18,11 +18,11 @@
 #   This hack works around the problem.
 #
 import datetime
-import pytz
+import zoneinfo
 import tzlocal
 
 def utcDatetime( timestamp ):
-    return pytz.utc.localize( datetime.datetime.utcfromtimestamp( timestamp ) )
+    return datetime.datetime.fromtimestamp( timestamp, datetime.timezone.utc )
 
 def localDatetime( datetime_or_timestamp ):
     if type(datetime_or_timestamp) in (int, float):
@@ -30,7 +30,7 @@ def localDatetime( datetime_or_timestamp ):
     else:
         dt = datetime_or_timestamp
 
-    local_timezone = tzlocal.get_localzone()
+    local_timezone = zoneinfo.ZoneInfo( tzlocal.get_localzone_name() )
     local_dt = dt.astimezone( local_timezone )
     return local_dt
 
