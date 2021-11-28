@@ -11,6 +11,7 @@ def copyFile( src, dst_dir ):
 if len(sys.argv) < 3:
     print( 'Usage: %s <version> <kits-folder> [--test] [--install]' % (sys.argv[0],) )
     print( '       %s 0.9.3 /shared/Downloads/ScmWorkbench/0.9.3' % (sys.argv[0],) )
+    sys.exit( 1 )
 
 version = sys.argv[1]
 built_kits_dir = pathlib.Path( sys.argv[2] )
