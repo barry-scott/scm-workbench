@@ -5,7 +5,7 @@ rem builder_custom_init
 
 set BUILDER_CFG_PLATFORM=Win64
 set BUILDER_CFG_BUILD_TYPE=Release
-set PYTHON_VERSION=3.9
+set PYTHON_VERSION=3.10
 
 for /f "usebackq" %%X in (`py -%PYTHON_VERSION%-64 -c "import sys;print(sys.executable)"`) do set PYTHON=%%X
 echo Python %PYTHON_VERSION% found in %PYTHON%
