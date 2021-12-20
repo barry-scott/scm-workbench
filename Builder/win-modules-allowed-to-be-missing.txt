@@ -26,3 +26,8 @@ refs.Reference
 sip
 unittest2
 win32wnet
+git.refs.Head
+git.objects.Submodule
+git.objects.TagObject
+objects.Commit
+_typeshed
