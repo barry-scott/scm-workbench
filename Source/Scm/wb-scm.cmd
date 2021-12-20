@@ -31,7 +31,7 @@ if not exist %VPYTHON% (
     goto :eof
 )
 
-set PYTHONPATH=%BUILDER_TOP_DIR%\tmp\Source;%BUILDER_TOP_DIR%\Source\Scm;%BUILDER_TOP_DIR%\Source\Common;%BUILDER_TOP_DIR%\Source\Git;%BUILDER_TOP_DIR%\Source\Svn;%BUILDER_TOP_DIR%\Source\Hg
+set PYTHONPATH=%BUILDER_TOP_DIR%\Builder\tmp\Source;%BUILDER_TOP_DIR%\Source\Scm;%BUILDER_TOP_DIR%\Source\Common;%BUILDER_TOP_DIR%\Source\Git;%BUILDER_TOP_DIR%\Source\Svn;%BUILDER_TOP_DIR%\Source\Hg
 
 set PROG=scm_workbench_git_callback.cmd
 echo "%VPYTHON%" "%BUILDER_TOP_DIR%\Source\Git\wb_git_callback_client_win32.py" %%1 %%2 >%PROG%
