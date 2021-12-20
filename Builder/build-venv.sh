@@ -8,7 +8,16 @@ then
     }
 fi
 
-requirements_file=${1:?os name}-requirements.txt
+case "$(uname)" in
+Darwin)
+    requirements_file=macos-requirements.txt
+    ;;
+
+*)
+    colour-print "<>error Error:<> not support on $(uanme)"
+    exit 1
+    ;;
+esac
 
 colour-print "<>info Info:<> Clean up"
 rm -rf tmp/venv

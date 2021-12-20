@@ -13,7 +13,7 @@ if exist venv.tmp rmdir /s /q venv.tmp
 
 %PYTHON% -m colour_text "<>info Info:<> Install requirements"
 
-venv.tmp\Scripts\python.exe -m pip install --upgrade pip setuptools
+venv.tmp\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
 venv.tmp\Scripts\python.exe -m pip install -r %requirements_file%
 venv.tmp\Scripts\python.exe -m pip list
 
