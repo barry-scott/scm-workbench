@@ -1,9 +1,7 @@
 @echo off
 setlocal
 
-if "%1" == "" goto :error
-
-set requirements_file=%1-requirements.txt
+set requirements_file=windows-requirements.txt
 
 %PYTHON% -m colour_text "<>info Info:<> Clean up"
 if exist venv.tmp rmdir /s /q venv.tmp
@@ -22,8 +20,4 @@ venv.tmp\Scripts\python.exe -m pip list
 for /f %%x in (pysvn.tmp) do xcopy /s /q %%x venv.tmp\lib\site-packages\pysvn\
 del pysvn.tmp
 
-goto :eof
-
-:error
-    %PYTHON% -m colour_text "<>error Error: missing %%1 os arg<>"
 endlocal
