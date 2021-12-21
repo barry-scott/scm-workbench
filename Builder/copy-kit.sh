@@ -8,7 +8,7 @@ MacOSX)
         open -a mount-shares
     fi
 
-    for ((i=1; i<=30; i++))
+    for ((i=1; i<=120; i++))
     do
         if [ -e /Volumes/Downloads/ScmWorkbench/beta ]
         then
