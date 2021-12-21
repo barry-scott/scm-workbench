@@ -24,10 +24,10 @@ then
     exit 1
 fi
 
-if [ -e /Volumes/SCM-Workbench-*.dmg ]
+if [ -e "/Volumes/SCM Workbench" ]
 then
     colour-print "<>info Info:<> unmount old kit dmg"
-    umount /Volumes/SCM-Workbench-*.dmg
+    umount "/Volumes/SCM Workbench"
 fi
 
 if [ "$1" != "--no-venv" ]

@@ -122,8 +122,8 @@ class BuildScmWorkbench(object):
             self.BUILD_BIN_DIR = '%s%s' % (self.ROOT_DIR, self.INSTALL_BIN_DIR)
 
         elif self.platform == 'MacOSX':
-            self.BUILD_BIN_DIR = self.BUILDER_TOP_DIR / "Builder/tmp/app/Barry's Emacs-Devel.app/Contents/Resources/bin"
-            self.BUILD_DOC_DIR = self.BUILDER_TOP_DIR / "Builder/tmp/app/Barry's Emacs-Devel.app/Contents/Resources/documentation"
+            self.BUILD_BIN_DIR = self.BUILDER_TOP_DIR / "Builder/tmp/app/SCM Workbench-Devel.app/Contents/Resources/bin"
+            self.BUILD_DOC_DIR = self.BUILDER_TOP_DIR / "Builder/tmp/app/SCM Workbench-Devel.app/Contents/Resources/documentation"
 
             self.INSTALL_DOC_DIR = self.BUILD_DOC_DIR
 

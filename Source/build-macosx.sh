@@ -77,10 +77,33 @@ iconutil -c icns ${DIST_DIR}/wb.iconset
 
 export PYTHONPATH=${TMP_SRC}:${SRC_DIR}/Scm:${SRC_DIR}/Git:${SRC_DIR}/Svn:${SRC_DIR}/Hg:${SRC_DIR}/Common
 
-${BUILDER_DIR}/tmp/venv/bin/python \
-    ${SRC_DIR}/build_macos_py2app_setup.py ${PY2APP_OPT} \
-        py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip \
-            2>&1 | tee ${BUILDER_DIR}/tmp/py2app.log
+# true = pyinstall, false = py2app
+if true
+then
+    # true = use wb-scm-pyinstall.spec, false = make a new one
+    if true
+    then
+        ${BUILDER_TOP_DIR}/Builder/tmp/venv/bin/pyinstaller \
+            --distpath ${DIST_DIR} \
+                wb-scm-pyinstaller.spec
+    else
+        ${BUILDER_TOP_DIR}/Builder/tmp/venv/bin/pyinstaller \
+            --log-level INFO \
+            --distpath ${DIST_DIR} \
+            --name "SCM Workbench" \
+            --paths ${PYTHONPATH} \
+            --windowed \
+            --icon wb.icns \
+            --osx-bundle-identifier ${APP_ID} \
+                Scm/wb_scm_main.py
+    fi
+
+else
+    ${BUILDER_DIR}/tmp/venv/bin/python \
+        ${SRC_DIR}/build_macos_py2app_setup.py ${PY2APP_OPT} \
+            py2app --dist-dir ${DIST_DIR} --bdist-base ${DIST_DIR}/build --no-strip \
+                2>&1 | tee ${BUILDER_DIR}/tmp/py2app.log
+fi
 
 pushd "${DIST_DIR}/${APP_NAME}.app/Contents" >/dev/null
 
