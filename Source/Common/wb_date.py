@@ -20,8 +20,14 @@
 import datetime
 import zoneinfo
 import tzlocal
-# implicit import of tzdata to make sure its included by packaging tools
-import tzdata
+
+try:
+    # implicit import of tzdata to make sure its included by packaging tools
+    import tzdata
+
+except ImportError:
+    pass
+
 
 def utcDatetime( timestamp ):
     return datetime.datetime.fromtimestamp( timestamp, datetime.timezone.utc )
