@@ -548,7 +548,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         and (file_state.isUnstagedModified()
             or file_state.isUnstagedDeleted()) ):
             # revert to staged (--)
-            git_project.cmdRevert( '--', filename )
+            git_project.cmdRevert( '--', file_state )
 
         else:
             # revert to HEAD
