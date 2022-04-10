@@ -22,7 +22,7 @@ if not "%1" == "--no-venv"  call build-venv.cmd windows
 
 set VPYTHON=%CD%\venv.tmp\Scripts\python.exe
 if "%1" == "--enable-debug" set BUILD_OPT=--enable-debug
-%VPYTHON% build_scm_workbench.py --colour --vcredist=k:\subversion %BUILD_OPT% 2>&1 | %PYTHON% -u build_tee.py build.log
+%VPYTHON% build_scm_workbench.py --colour --vcredist=k:\subversion %BUILD_OPT% 2>&1 | "%PYTHON%" -u build_tee.py build.log
 
 if "%1" == "--install" for %%f in (tmp\scm-workbench-*-setup.exe) do start /wait %%f
 endlocal

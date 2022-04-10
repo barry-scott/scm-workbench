@@ -272,7 +272,7 @@ class BuildScmWorkbench(object):
         inno_setup = package_windows_inno_setup_files.InnoSetup( log, self.platform, self.VC_VER, self.wb_version_info )
         inno_setup.createInnoInstall()
 
-        r = run( (r'c:\Program Files (x86)\Inno Setup 5\ISCC.exe', '/O+', r'tmp\scm-workbench.iss'), output=True, check=False )
+        r = run( (r'c:\Program Files (x86)\Inno Setup 6\ISCC.exe', '/O+', r'tmp\scm-workbench.iss'), output=True, check=False )
         with open( r'tmp\inno.log', 'w' ) as f:
             f.write( r.stdout.replace( '\r', '' ) )
             if len(r.stderr) > 0:

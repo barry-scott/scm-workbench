@@ -21,6 +21,7 @@ pkg_resources.extern.appdirs
 pkg_resources.extern.packaging
 pkg_resources.extern.six
 pkg_resources.extern.six.moves
+pkg_resources.extern.jaraco.text
 refs.Head
 refs.Reference
 sip

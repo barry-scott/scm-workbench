@@ -7,6 +7,8 @@ set BUILDER_CFG_PLATFORM=Win64
 set BUILDER_CFG_BUILD_TYPE=Release
 set PYTHON_VERSION=3.10
 
-for /f "usebackq" %%X in (`py -%PYTHON_VERSION%-64 -c "import sys;print(sys.executable)"`) do set PYTHON=%%X
+py -%PYTHON_VERSION%-64 -c "import sys;print('set PYTHON=' + sys.executable)" >%TEMP%\__tmp__.cmd
+call %TEMP%\__tmp__.cmd
+del %TEMP%\__tmp__.cmd
 echo Python %PYTHON_VERSION% found in %PYTHON%
-%PYTHON% -c "import sys;print( 'Python:', sys.version )"
+"%PYTHON%" -c "import sys;print( 'Python:', sys.version )"

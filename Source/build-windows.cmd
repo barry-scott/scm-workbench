@@ -59,18 +59,18 @@ set TMP_SRC=%BUILDER_TOP_DIR%\Builder\tmp\Source
 if exist %TMP_SRC% rmdir /s /q %TMP_SRC%
 mkdir %TMP_SRC%
 
-%PYTHON% %SRC_DIR%\make_wb_scm_version.py ^
+"%PYTHON%" %SRC_DIR%\make_wb_scm_version.py ^
     %BUILDER_TOP_DIR%\Builder\version.dat ^
     %TMP_SRC%\wb_scm_version.py
 
-%PYTHON% %SRC_DIR%\make_wb_scm_images.py ^
+"%PYTHON%" %SRC_DIR%\make_wb_scm_images.py ^
     %TMP_SRC%\wb_scm_images.py
 dir %TMP_SRC%
 
 %VENV_BIN%\colour-print "<>info Info:<> Build SCM Workbench %APPMODE% version %WB_VERSION%"
 set PYTHONPATH=%TMP_SRC%;%SRC_DIR%\Scm;%SRC_DIR%\Git;%SRC_DIR%\Svn;%SRC_DIR%\Hg;%SRC_DIR%\Perforce;%SRC_DIR%\Common
 pushd %SRC_DIR%\Scm
-%PYTHON% -m win_app_packager build wb_scm_main.py ^
+"%PYTHON%" -m win_app_packager build wb_scm_main.py ^
         %APPMODE% %DIST_DIR% ^
         --version %WB_VERSION% ^
         --icon %SRC_DIR%\wb.ico ^
@@ -82,7 +82,7 @@ popd >NUL
 
 %VENV_BIN%\colour-print "<>info Info:<> Build git callback client"
 pushd %SRC_DIR%\Git
-%PYTHON% -m win_app_packager build wb_git_callback_client_win32.py ^
+"%PYTHON%" -m win_app_packager build wb_git_callback_client_win32.py ^
         --cli %DIST_DIR% ^
         --version %WB_VERSION% ^
         --icon %SRC_DIR%\wb.ico ^
@@ -93,7 +93,7 @@ pushd %SRC_DIR%\Git
 popd >NUL
 
 %VENV_BIN%\colour-print "<>info Info:<> Copy in the docs"
-%PYTHON% %BUILDER_TOP_DIR%\Docs\build-docs.py %DIST_DIR%\Documentation
+"%PYTHON%" %BUILDER_TOP_DIR%\Docs\build-docs.py %DIST_DIR%\Documentation
     if errorlevel 1 goto :error
 
 echo on
