@@ -1,9 +1,9 @@
 import wb_scintilla
 import sys
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 
 app =QtWidgets.QApplication( sys.argv )
 

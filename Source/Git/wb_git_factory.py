@@ -20,7 +20,7 @@ import wb_scm_factory_abc
 
 import wb_dialog_bases
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 all_supported_schemes = ('ssh', 'git', 'https', 'http')
 

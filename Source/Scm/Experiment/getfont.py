@@ -3,10 +3,10 @@
 #
 import sys
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-from PyQt5 import Qt
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
+from PyQt6 import QtCore
+from PyQt6 import Qt
 
 app = QtWidgets.QApplication( sys.argv )
 

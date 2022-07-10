@@ -10,7 +10,7 @@
     wb_scm_tree_view.py
 
 '''
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 class WbScmTreeView(QtWidgets.QTreeView):
     def __init__( self, app, main_window ):

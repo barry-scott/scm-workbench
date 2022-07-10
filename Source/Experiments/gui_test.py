@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import sys
 
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget
-from PyQt5.QtCore import QSize
+from PyQt6 import QtCore, QtWidgets
+from PyQt6.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget
+from PyQt6.QtCore import QSize
 
 class HelloWindow(QMainWindow):
     def __init__( self ):

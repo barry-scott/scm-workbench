@@ -10,7 +10,7 @@
     wb_git_status_view.py
 
 '''
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 import wb_tracked_qwidget
 

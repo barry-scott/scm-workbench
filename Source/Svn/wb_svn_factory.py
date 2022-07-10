@@ -20,8 +20,8 @@ import wb_scm_project_dialogs
 import wb_scm_factory_abc
 import wb_svn_preferences
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
 
 class WbSvnFactory(wb_scm_factory_abc.WbScmFactoryABC):
     def __init__( self ):

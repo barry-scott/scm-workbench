@@ -16,8 +16,8 @@ import pathlib
 
 import wb_platform_specific
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
 
 def pickExecutable( parent, executable ):
     file_browser = QtWidgets.QFileDialog( parent )

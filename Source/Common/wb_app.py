@@ -18,9 +18,9 @@ import inspect
 import gettext
 import xml_preferences
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
-from PyQt5 import QtGui
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
+from PyQt6 import QtGui
 
 import wb_platform_specific
 import wb_logging
@@ -36,11 +36,12 @@ for name in dir(QtCore.QEvent):
 def U_( s: str ) -> str:
     return s
 
-class WbApp(wb_logging.AppLoggingMixin,
-            wb_background_thread.BackgroundWorkMixin,
-            QtWidgets.QApplication):
-
+class WbApp(QtWidgets.QApplication):
     def __init__( self, app_name_parts, args, debug_class, extra_loggers=None ):
+        super().__init__( [sys.argv[0]] )
+        self.app_logger = wb_logging.AppLogging( self )
+        self.bg_work = wb_background_thread.BackgroundWork()
+
         self.top_window = None
         self.main_window = None
         # used to set the names of files and windows for this app
@@ -48,12 +49,6 @@ class WbApp(wb_logging.AppLoggingMixin,
 
         # setup the platform specific support
         wb_platform_specific.setupPlatform( self.app_name_parts, sys.argv[0] )
-
-        if extra_loggers is None:
-            extra_loggers = []
-
-        wb_logging.AppLoggingMixin.__init__( self, extra_loggers )
-        wb_background_thread.BackgroundWorkMixin.__init__( self )
 
         self.may_quit = False
 
@@ -150,7 +145,9 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.__last_client_error = []
 
         # part 1 of settings up logging
-        self.setupLogging()
+        self.app_logger.setupLogging( extra_loggers )
+        self.log = self.app_logger.log
+        self.trace = self.app_logger.trace
 
         # and debug trace
         self.debug_options = debug_class( self.log )
@@ -177,8 +174,6 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.log.info( 'preferences_dir %s' % (wb_platform_specific.getPreferencesDir(),) )
         self.log.info( 'Qt libraryPaths %r' % (QtWidgets.QApplication.libraryPaths(),) )
 
-        QtWidgets.QApplication.__init__( self, [sys.argv[0]] )
-
         self.__is_dark_mode = self.palette().text().color().lightnessF() > self.palette().window().color().lightnessF()
         self.prefs = None
 
@@ -186,7 +181,7 @@ class WbApp(wb_logging.AppLoggingMixin,
         self.__wb_log = wb_logging.WbLog( self )
 
         # background threads depend on Qt
-        self.startBackgroundThread()
+        self.bg_work.startBackgroundThread()
         self.log.infoheader( T_('Starting %s') % (' '.join( self.app_name_parts ),) )
 
         self.prefs_manager = self.createPreferencesManager()
@@ -211,6 +206,11 @@ class WbApp(wb_logging.AppLoggingMixin,
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
 
+    # facade for BackgroundWork functions
+    def isForegroundThread( self ):
+        return self.bg_work.isForegroundThread()
+
+    # perfs
     def isDarkMode( self ):
         if hasattr( self.prefs, 'projects_defaults' ):
             return self.__is_dark_mode or (self.prefs is not None and self.prefs.projects_defaults.force_dark_mode)

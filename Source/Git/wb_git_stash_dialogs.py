@@ -10,7 +10,7 @@
     wb_git_stash_dialogs.py
 
 '''
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 import wb_table_base
 import wb_dialog_bases

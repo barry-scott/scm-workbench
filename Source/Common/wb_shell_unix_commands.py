@@ -18,7 +18,7 @@ import shlex
 import tempfile
 import pathlib
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 __all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
           ,'guiDiffFiles', 'shellDiffFiles', 'editFile'

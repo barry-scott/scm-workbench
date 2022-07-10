@@ -10,7 +10,7 @@
     wb_git_credentials_dialog.py
 
 '''
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 import wb_dialog_bases
 

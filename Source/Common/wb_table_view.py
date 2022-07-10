@@ -10,7 +10,7 @@
     wb_table_view.py
 
 '''
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 #
 #   wbTableView

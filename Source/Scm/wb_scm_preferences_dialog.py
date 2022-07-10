@@ -14,8 +14,8 @@
 '''
 import pathlib
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
 
 import wb_pick_path_dialogs
 import wb_shell_commands

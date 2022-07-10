@@ -10,9 +10,9 @@
     wb_svn_log_history.py
 
 '''
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 
 import wb_tracked_qwidget
 import wb_main_window

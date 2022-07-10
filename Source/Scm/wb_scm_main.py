@@ -25,9 +25,9 @@ if sys.platform.startswith( 'win' ):
 
     # also at run time it is also necessary to add
     # these folders
-    import PyQt5
-    PyQt5_dir = os.path.dirname( PyQt5.__file__ )
-    for folder in (PyQt5_dir, os.path.join( PyQt5_dir, 'Qt5', 'bin' )):
+    import PyQt6
+    PyQt6_dir = os.path.dirname( PyQt6.__file__ )
+    for folder in (PyQt6_dir, os.path.join( PyQt6_dir, 'Qt5', 'bin' )):
         os.add_dll_directory( folder )
 
 import wb_main

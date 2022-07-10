@@ -10,7 +10,7 @@
     wb_scm_table_model.py
 
 '''
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 import wb_scm_table_model
 import wb_shell_commands

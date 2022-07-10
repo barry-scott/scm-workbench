@@ -12,8 +12,8 @@
 '''
 import os
 
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 
 def U_( s: str ) -> str:
     return s

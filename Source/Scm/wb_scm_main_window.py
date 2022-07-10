@@ -17,17 +17,16 @@ import time
 import pathlib
 
 try:
-    # needed on macOS for some versions of PyQt5
+    # needed on macOS for some versions of PyQt6
     # but not used by bemacs itself
     import sip  #pylint: disable=unused-import
 
 except ImportError:
     pass
 
-from PyQt5 import Qt
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 
 import wb_scm_version
 import wb_scm_preferences_dialog

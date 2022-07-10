@@ -24,8 +24,8 @@ import wb_scm_images
 
 import wb_scm_factories
 
-from PyQt5 import QtGui
-from PyQt5 import QtWidgets
+from PyQt6 import QtGui
+from PyQt6 import QtWidgets
 
 if getattr( typing, 'TYPE_CHECKING', False ):
     #pylint: disable=unused-import

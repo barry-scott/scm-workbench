@@ -10,7 +10,7 @@
     wb_table_base.py
 
 '''
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 import types
 

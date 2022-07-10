@@ -10,8 +10,8 @@
     wb_diff_view.py
 
 '''
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
 
 import wb_tracked_qwidget
 import wb_config

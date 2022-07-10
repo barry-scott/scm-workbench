@@ -14,7 +14,7 @@ import threading
 import queue
 import types
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 #
 #   Decorator used to set the requires_thread_switcher property on a function
@@ -95,7 +95,7 @@ class BackgroundThread(threading.Thread):
 #
 
 # assumes that self is app
-class BackgroundWorkMixin:
+class BackgroundWork:
     foregroundProcessSignal = QtCore.pyqtSignal( [MarshalledCall] )
 
     def __init__( self ):

@@ -10,7 +10,7 @@
     wb_p4_credential_dialogs.py
 
 '''
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 import wb_dialog_bases
 

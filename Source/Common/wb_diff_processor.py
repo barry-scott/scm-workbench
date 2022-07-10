@@ -10,7 +10,7 @@
     wb_diff_processor.py
 
 '''
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 class DiffOneSideProcessor:
     def __init__( self, name, text_body ):

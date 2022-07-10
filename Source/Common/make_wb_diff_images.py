@@ -50,7 +50,7 @@ def main( argv ):
 header = '''# made by make_wb_diff_image.py
 #pylint disable=too-many-lines
 
-from PyQt5 import QtGui
+from PyQt6 import QtGui
 
 def getQImage( name ):
     image = QtGui.QImage()

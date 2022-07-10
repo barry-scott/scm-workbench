@@ -13,8 +13,8 @@
 import urllib.parse
 import pathlib
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
 
 class WbDialog(QtWidgets.QDialog):
     def __init__( self, parent=None, cancel=True ):

@@ -21,46 +21,46 @@ import traceback
 
 import wb_platform_specific
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 
 INFOHEADER = logging.INFO + 1
 
-class AppLoggingMixin:
-    def __init__( self, extra_logger_names=None ):
+class AppLogging:
+    def __init__( self, parent ):
+        self.parent = parent
         self.log = None
         self.trace = None
 
-        if extra_logger_names is not None:
-            self.all_extra_logger_names = extra_logger_names
-        else:
-            self.all_extra_logger_names = []
-
+        self.all_extra_logger_names = []
         self.all_extra_log = []
 
-    def setupLogging( self ):
+    def setupLogging( self, extra_logger_names=None ):
+        if extra_logger_names is not None:
+            self.all_extra_logger_names = extra_logger_names
+
         logging.addLevelName( INFOHEADER, 'INFOHEADER' )
-        name = ''.join( self.app_name_parts )
-        self.log = ThreadSafeLogFacade( self, logging.getLogger( name ) )
-        self.trace = ThreadSafeLogFacade( self, logging.getLogger( '%s.Trace' % (name,) ) )
+        name = ''.join( self.parent.app_name_parts )
+        self.log = ThreadSafeLogFacade( self.parent, logging.getLogger( name ) )
+        self.trace = ThreadSafeLogFacade( self.parent, logging.getLogger( '%s.Trace' % (name,) ) )
 
         for name in self.all_extra_logger_names:
             log = logging.getLogger( name )
             self.all_extra_log.append( log )
 
-            if self.extraDebugEnabled():
+            if self.parent.extraDebugEnabled():
                 log.setLevel( logging.DEBUG )
 
             else:
                 log.setLevel( logging.INFO )
 
-        if self.debugEnabled():
+        if self.parent.debugEnabled():
             self.log.setLevel( logging.DEBUG )
         else:
             self.log.setLevel( logging.INFO )
 
-        if self.traceEnabled():
+        if self.parent.traceEnabled():
             self.trace.setLevel( logging.INFO )
         else:
             self.trace.setLevel( logging.CRITICAL )
@@ -76,7 +76,7 @@ class AppLoggingMixin:
         for log in self.all_extra_log:
             log.addHandler( handler )
 
-        if self.logToStdOut():
+        if self.parent.logToStdOut():
             handler = StdoutLogHandler()
             formatter = logging.Formatter( '%(asctime)s %(levelname)s %(message)s' )
             handler.setFormatter( formatter )

@@ -10,8 +10,8 @@
     wb_svn_properties_dialog.py
 
 '''
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
 
 def warningMessage( name ):
     #QQQ: need a parent?

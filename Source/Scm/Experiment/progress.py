@@ -1,9 +1,9 @@
 #
 #   progress.py
 #
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 
 count = 0
 total = 10

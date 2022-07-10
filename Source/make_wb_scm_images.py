@@ -79,7 +79,7 @@ def main( argv ):
 header = '''
 #pylint disable=too-many-lines
 
-from PyQt5 import QtGui
+from PyQt6 import QtGui
 
 def getQImage( name ):
     image = QtGui.QImage()

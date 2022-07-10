@@ -10,8 +10,8 @@
     wb_scm_tree_model.py
 
 '''
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 
 import wb_scm_project_place_holder
 

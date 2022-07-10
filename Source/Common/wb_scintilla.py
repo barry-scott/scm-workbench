@@ -12,9 +12,9 @@
     provide a nice python3 friendly wrapper arouns the raw Scintilla control
 
 '''
-from PyQt5 import QtPrintSupport    # import missed by py2app
+from PyQt6 import QtPrintSupport    # import missed by py2app
 type(QtPrintSupport)                # ref to keep pylint happy
-from PyQt5 import Qsci
+from PyQt6 import Qsci
 
 #------------------------------------------------------------------------------------------
 _colour_names = {

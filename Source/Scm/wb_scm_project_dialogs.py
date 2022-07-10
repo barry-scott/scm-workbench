@@ -12,8 +12,8 @@
 '''
 import pathlib
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
 
 import wb_dialog_bases
 import wb_platform_specific
