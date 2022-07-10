@@ -10,7 +10,7 @@ tmp.pyinstaller/venv/bin/python -m pip install PyQt5 pyinstaller
 tmp.pyinstaller/venv/bin/python -m pip list
 
 echo "Info: Test gui_test.py from command line"
-#tmp.pyinstaller/venv/bin/python gui_test.py
+tmp.pyinstaller/venv/bin/python gui_test.py
 
 echo "Info: Build gui_test.py into an App"
 tmp.pyinstaller/venv/bin/pyinstaller \
