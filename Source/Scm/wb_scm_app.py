@@ -127,7 +127,7 @@ class WbScmApp(wb_app.WbApp):
         # get the feedback background-color that matches a dialog background
         dialog = QtWidgets.QDialog()
         palette = dialog.palette()
-        feedback_bg = palette.color( palette.Active, palette.Window ).name()
+        feedback_bg = palette.color( palette.ColorGroup.Active, palette.ColorRole.Window ).name()
 
         style_sheet_pieces.append( 'QPlainTextEdit#feedback {background-color: %s; color: #cc00cc}' % (feedback_bg,) )
 

@@ -10,8 +10,9 @@
     wb_window_main.py
 
 '''
-from PyQt6 import QtWidgets
 from PyQt6 import QtCore
+from PyQt6 import QtGui
+from PyQt6 import QtWidgets
 
 class WbMainWindow(QtWidgets.QMainWindow):
     focus_is_in_names = ('tree', 'table')
@@ -74,7 +75,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def setupStatusBar( self, status_bar ):
         pass
 
-    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, role=QtWidgets.QAction.MenuRole.NoRole ):
+    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, role=QtGui.QAction.MenuRole.NoRole ):
         if icon_name is None:
             icon_name = 'toolbar_images/blank.png'
 

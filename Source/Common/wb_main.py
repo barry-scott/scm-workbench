@@ -38,7 +38,7 @@ def main( app_cls, argv ):
 
     app.main_window.show()
 
-    rc = app.exec_()
+    rc = app.exec()
 
     # force clean up of objects to avoid segv on exit
     del app

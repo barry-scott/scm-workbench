@@ -95,12 +95,16 @@ class BackgroundThread(threading.Thread):
 #
 
 # assumes that self is app
-class BackgroundWork:
+class BackgroundWork(QtCore.QObject):
     foregroundProcessSignal = QtCore.pyqtSignal( [MarshalledCall] )
 
-    def __init__( self ):
+    def __init__( self, app ):
+        super().__init__()
+
+        self.app = app
+
         self.foreground_thread = threading.currentThread()
-        self.background_thread = BackgroundThread( self )
+        self.background_thread = BackgroundThread( self.app )
 
     def startBackgroundThread( self ):
         self.foregroundProcessSignal.connect( self.__runInForeground, type=QtCore.Qt.ConnectionType.QueuedConnection )
@@ -111,10 +115,10 @@ class BackgroundWork:
         return self.foreground_thread is threading.currentThread()
 
     def deferRunInForeground( self, function ):
-        return DeferRunInForeground( self, function )
+        return DeferRunInForeground( self.app, function )
 
     def runInBackground( self, function, args ):
-        self.debug_options.debugLogThreading( 'runInBackground( %r, %r )' % (function, args) )
+        self.app.debug_options.debugLogThreading( 'runInBackground( %r, %r )' % (function, args) )
         self.background_thread.addWork( function, args )
 
     def runInForeground( self, function, args ):
@@ -123,7 +127,7 @@ class BackgroundWork:
 
     def wrapWithThreadSwitcher( self, function, reason='' ):
         if requiresThreadSwitcher( function ):
-            return ThreadSwitchScheduler( self, function, reason )
+            return ThreadSwitchScheduler( self.app, function, reason )
 
         else:
             return function
@@ -133,13 +137,13 @@ class BackgroundWork:
     switchToBackground = runInBackground
 
     def __runInForeground( self, function ):
-        self.debug_options.debugLogThreading( '__runInForeground( %r )' % (function,) )
+        self.app.debug_options.debugLogThreading( '__runInForeground( %r )' % (function,) )
 
         try:
             function()
 
         except:
-            self.log.exception( 'foregroundProcess function failed' )
+            self.app.log.exception( 'foregroundProcess function failed' )
 
 class DeferRunInForeground:
     def __init__( self, app, function ):

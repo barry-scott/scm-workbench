@@ -61,7 +61,7 @@ class WbScmTableView(wb_table_view.WbTableView):
         self.setSortingEnabled( True )
 
         # always select a whole row
-        self.setSelectionBehavior( self.SelectRows )
+        self.setSelectionBehavior( self.SelectionBehavior.SelectRows )
         self.doubleClicked.connect( self.tableDoubleClicked )
 
         # connect up signals
@@ -77,7 +77,7 @@ class WbScmTableView(wb_table_view.WbTableView):
 
     def setTableAllColumnWidths( self ):
         # size columns
-        em = self.fontMetrics().width( 'm' )
+        em = self.fontMetrics().horizontalAdvance( 'm' )
         self.setColumnWidth( self.table_model.col_include, em*4 )
         self.setColumnWidth( self.table_model.col_staged, em*4 )
         self.setColumnWidth( self.table_model.col_status, em*4 )

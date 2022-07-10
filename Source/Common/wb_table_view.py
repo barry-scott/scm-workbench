@@ -30,6 +30,6 @@ class WbTableView(QtWidgets.QTableView):
         self.setWordWrap( False )
 
         vh = self.verticalHeader()
-        vh.sectionResizeMode( vh.Fixed )
+        vh.sectionResizeMode( vh.ResizeMode.Fixed.value )
         line_spacing = self.fontMetrics().lineSpacing()
         vh.setDefaultSectionSize( int( line_spacing * spacing_scale ) )

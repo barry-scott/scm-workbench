@@ -408,9 +408,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def setupMenuBar( self, mb ):
         # --- setup common menus
         m = mb.addMenu( T_('&File') )
-        self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.MenuRole.PreferencesRole )
+        self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtGui.QAction.MenuRole.PreferencesRole )
         self._addMenu( m, T_('View Log'), self.appActionViewLog )
-        self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.MenuRole.QuitRole )
+        self._addMenu( m, T_('E&xit'), self.close, role=QtGui.QAction.MenuRole.QuitRole )
 
         m = mb.addMenu( T_('&View') )
         tv = self.table_view
@@ -421,7 +421,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         m.addSeparator()
 
-        self.diff_group = QtWidgets.QActionGroup( self )
+        self.diff_group = QtGui.QActionGroup( self )
         self.diff_group.setExclusive( True )
         self._addMenu( m, T_('Unified diff'), self.setDiffUnified, checker=self.checkerDiffUnified, group=self.diff_group )
         self._addMenu( m, T_('Side by side diff'), self.setDiffSideBySide, checker=self.checkerDiffSideBySide, group=self.diff_group )
@@ -460,7 +460,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         m = mb.addMenu( T_('&Help' ) )
         self._addMenu( m, T_("&User Guide…"), self.appActionUserGuide )
-        self._addMenu( m, T_("&About…"), self.appActionAbout, role=QtWidgets.QAction.MenuRole.AboutRole )
+        self._addMenu( m, T_("&About…"), self.appActionAbout, role=QtGui.QAction.MenuRole.AboutRole )
 
     def __setupTreeContextMenu( self ):
         self.debugLog( '__setupTreeContextMenu' )
@@ -575,7 +575,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                 else:
                     submenu = submenu.addMenu( submenu_name )
                     # QAction.MenuRole.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
-                    submenu.menuAction().setMenuRole( QtWidgets.QAction.MenuRole.NoRole )
+                    submenu.menuAction().setMenuRole( QtGui.QAction.MenuRole.NoRole )
                     all_submenus[ submenu_fullname ] = submenu
 
             project = prefs.getProjectByPath( favorite.project_path )
@@ -584,11 +584,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             else:
                 action = submenu.addAction( '-place holder-' )
-                action.setMenuRole( QtWidgets.QAction.MenuRole.NoRole )
+                action.setMenuRole( QtGui.QAction.MenuRole.NoRole )
                 handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
                 action.triggered.connect( handler )
                 # QAction.MenuRole.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
-                action.setMenuRole( QtWidgets.QAction.MenuRole.NoRole )
+                action.setMenuRole( QtGui.QAction.MenuRole.NoRole )
                 action.setStatusTip( 'Goto Favorite %s - %s' % (project.name, favorite.path) )
                 action.setData( favorite )
                 action.setText( menu_levels[-1] )

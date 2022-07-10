@@ -40,7 +40,7 @@ class WbApp(QtWidgets.QApplication):
     def __init__( self, app_name_parts, args, debug_class, extra_loggers=None ):
         super().__init__( [sys.argv[0]] )
         self.app_logger = wb_logging.AppLogging( self )
-        self.bg_work = wb_background_thread.BackgroundWork()
+        self.bg_work = wb_background_thread.BackgroundWork( self )
 
         self.top_window = None
         self.main_window = None
@@ -209,6 +209,15 @@ class WbApp(QtWidgets.QApplication):
     # facade for BackgroundWork functions
     def isForegroundThread( self ):
         return self.bg_work.isForegroundThread()
+
+    def wrapWithThreadSwitcher( self, function, reason='' ):
+        return self.bg_work.wrapWithThreadSwitcher( function, reason )
+
+    def switchToBackground( self, functions, args ):
+        self.bg_work.switchToBackground( functions, args )
+
+    def switchToForeground( self, functions, args ):
+        self.bg_work.switchToForeground( functions, args )
 
     # perfs
     def isDarkMode( self ):
