@@ -136,7 +136,7 @@ class InfoDialog(QtWidgets.QDialog):
         value = str(value)
 
         label_ctrl = QtWidgets.QLabel( label )
-        label_ctrl.setAlignment( QtCore.Qt.AlignRight )
+        label_ctrl.setAlignment( QtCore.Qt.AlignmentFlag.AlignRight )
 
         if '\n' in value:
             value_ctrl = QtWidgets.QPlainTextEdit()

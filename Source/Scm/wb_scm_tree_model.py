@@ -168,21 +168,21 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         return self.indexFromItem( item )
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return T_('Project')
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignCenter
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
+            return QtCore.Qt.AlignmentFlag.AlignCenter
 
         return None
 
     def flags( self, index ):
         # turn off edit as that stops double click to expand
-        return super().flags( index ) & ~QtCore.Qt.ItemIsEditable
+        return super().flags( index ) & ~QtCore.Qt.ItemFlag.ItemIsEditable
 
     def selectionChanged( self, selected, deselected ):
         self.debugLog( 'selectionChanged:   selected %r' % ([(index.row(), index.column()) for index in selected.indexes()],) )

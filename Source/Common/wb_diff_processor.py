@@ -181,7 +181,7 @@ class DiffProcessor:
     def addEnd( self ):
         self.processor_left.addEnd()
         self.processor_right.addEnd()
-        self.processor_left.text_body.setFocus( QtCore.Qt.OtherFocusReason)
+        self.processor_left.text_body.setFocus( QtCore.Qt.FocusReason.OtherFocusReason)
 
     def showCurrentChange( self ):
         for proc in (self.processor_left, self.processor_right):

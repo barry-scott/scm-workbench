@@ -118,7 +118,7 @@ class SvnProjectSettingsDialog(wb_scm_project_dialogs.ProjectSettingsDialog):
         self.tags_url.setEnabled( tags_url_present )
 
         self.check_tag_url = QtWidgets.QCheckBox( T_('Tag URL:') )
-        self.check_tag_url.setCheckState( QtCore.Qt.Checked if tags_url_present else QtCore.Qt.Unchecked )
+        self.check_tag_url.setCheckState( QtCore.Qt.CheckState.Checked if tags_url_present else QtCore.Qt.CheckState.Unchecked )
         self.check_tag_url.stateChanged.connect( self.tags_url.setEnabled )
         self.check_tag_url.stateChanged.connect( self.enableOkButton )
 

@@ -91,11 +91,11 @@ class WbDiffViewText(WbDiffViewBase):
         self.ensureStartVisible()
 
     def ensureStartVisible( self ):
-        self.text_edit.moveCursor( QtGui.QTextCursor.Start )
+        self.text_edit.moveCursor( QtGui.QTextCursor.MoveOperation.Start )
         self.text_edit.ensureCursorVisible()
 
     def writeStyledText( self, text, style ):
-        self.text_edit.moveCursor( QtGui.QTextCursor.End )
+        self.text_edit.moveCursor( QtGui.QTextCursor.MoveOperation.End )
 
         cursor = self.text_edit.textCursor()
         cursor.beginEditBlock()

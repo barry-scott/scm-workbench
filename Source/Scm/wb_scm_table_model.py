@@ -63,7 +63,7 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
         model = self.sourceModel()
         index = model.createIndex( source_row, WbScmTableModel.col_name )
 
-        entry = model.data( index, QtCore.Qt.UserRole )
+        entry = model.data( index, QtCore.Qt.ItemDataRole.UserRole )
 
         changed = entry.stagedAsString() != '' or entry.statusAsString() != ''
         not_changed = entry.stagedAsString() == '' and entry.statusAsString() == ''
@@ -186,15 +186,15 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         return len( self.column_titles )
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return T_( self.column_titles[section] )
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignLeft
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
+            return QtCore.Qt.AlignmentFlag.AlignLeft
 
         return None
 
@@ -202,9 +202,9 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         return self.all_files[ index.row() ]
 
     role_to_name = {
-        QtCore.Qt.UserRole: 'UserRole',
-        QtCore.Qt.DisplayRole: 'DisplayRole',
-        QtCore.Qt.ForegroundRole: 'ForegroundRole',
+        QtCore.Qt.ItemDataRole.UserRole: 'UserRole',
+        QtCore.Qt.ItemDataRole.DisplayRole: 'DisplayRole',
+        QtCore.Qt.ItemDataRole.ForegroundRole: 'ForegroundRole',
         }
     def data( self, index, role ):
         result = self.data_( index, role )
@@ -218,10 +218,10 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         return result
 
     def data_( self, index, role ):
-        if role == QtCore.Qt.UserRole:
+        if role == QtCore.Qt.ItemDataRole.UserRole:
             return self.all_files[ index.row() ]
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             entry = self.all_files[ index.row() ]
 
             col = index.column()
@@ -257,7 +257,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
 
             assert False
 
-        elif role == QtCore.Qt.ForegroundRole:
+        elif role == QtCore.Qt.ItemDataRole.ForegroundRole:
             entry = self.all_files[ index.row() ]
             cached = entry.stagedAsString()
             working = entry.statusAsString()
@@ -272,7 +272,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
             if not entry.isControlled():
                 return self.__brush_is_uncontrolled
 
-        #if role == QtCore.Qt.BackgroundRole:
+        #if role == QtCore.Qt.ItemDataRole.BackgroundRole:
 
         return None
 
@@ -421,7 +421,7 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         all_indices = []
         for row in range( self.rowCount( QtCore.QModelIndex() ) ):
             index = self.createIndex( row, 0 )
-            entry = self.data( index, QtCore.Qt.UserRole )
+            entry = self.data( index, QtCore.Qt.ItemDataRole.UserRole )
             if entry.name in all_names:
                 all_indices.append( index )
 

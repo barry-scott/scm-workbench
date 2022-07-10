@@ -26,7 +26,7 @@ def pickExecutable( parent, executable ):
     file_browser.setOption( file_browser.DontResolveSymlinks, True )
     file_browser.setViewMode( file_browser.Detail )
     # Without Readable will not return a Executable image
-    file_browser.setFilter( QtCore.QDir.Files|QtCore.QDir.Executable|QtCore.QDir.Readable )
+    file_browser.setFilter( QtCore.QDir.Filter.Files|QtCore.QDir.Filter.Executable|QtCore.QDir.Filter.Readable )
 
     if executable is not None and executable.name != '':
         file_browser.setDirectory( str( executable.parent ) )
@@ -69,7 +69,7 @@ def pickFolder( parent, orig_folder ):
     file_browser.setOption( file_browser.ShowDirsOnly, False )
     file_browser.setOption( file_browser.ReadOnly, True )
     file_browser.setViewMode( file_browser.Detail )
-    file_browser.setFilter( QtCore.QDir.Hidden | QtCore.QDir.Dirs )
+    file_browser.setFilter( QtCore.QDir.Filter.Hidden | QtCore.QDir.Filter.Dirs )
 
     file_browser.setDirectory( str( folder ) )
     file_browser.selectFile( str( orig_folder ) )

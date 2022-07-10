@@ -47,7 +47,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         self.setupStatusBar( self.statusBar() )
 
         self.splitter = QtWidgets.QSplitter()
-        self.splitter.setOrientation( QtCore.Qt.Horizontal )
+        self.splitter.setOrientation( QtCore.Qt.Orientation.Horizontal )
         self.sash_ratio = 0.5
 
         self.panel_left = DiffWidget( app, self.splitter, header_left, name='left' )
@@ -120,7 +120,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
         prefs = self.app.prefs.diff_window
 
         key = QtWidgets.QLabel()
-        key.setTextFormat( QtCore.Qt.RichText )
+        key.setTextFormat( QtCore.Qt.TextFormat.RichText )
         if self.app.isDarkMode():
             all_colours = {'normal': self.app.defaultFgRgb()
                           ,'insert': wb_config.diff_dark_colour_insert_line
@@ -138,7 +138,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
                      '<font color="%(insert)s">Inserted text </font>'
                      '<font color="%(delete)s">Deleted text </font>'
                      '<font color="%(change)s">Changed text </font>' % all_colours )
-        key.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        key.setFrameStyle( QtWidgets.QFrame.Shape.Panel|QtWidgets.QFrame.Shadow.Sunken )
 
         self.status_bar_key_field = key
         s.addPermanentWidget( self.status_bar_key_field )
@@ -220,11 +220,11 @@ class DiffWidget(QtWidgets.QWidget):
 
         self.ed = DiffBodyText( app, self, name=self.name )
 
-        v_layout = QtWidgets.QBoxLayout( QtWidgets.QBoxLayout.LeftToRight )
+        v_layout = QtWidgets.QBoxLayout( QtWidgets.QBoxLayout.Direction.LeftToRight )
         v_layout.addWidget( self.ed.diff_line_numbers )
         v_layout.addWidget( self.ed )
 
-        h_layout = QtWidgets.QBoxLayout( QtWidgets.QBoxLayout.TopToBottom )
+        h_layout = QtWidgets.QBoxLayout( QtWidgets.QBoxLayout.Direction.TopToBottom )
         h_layout.addWidget( self.text_file_name )
         h_layout.addLayout( v_layout )
 

@@ -29,7 +29,7 @@ class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
 
         else:
             self.save_credentials = QtWidgets.QCheckBox()
-            self.save_credentials.setCheckState( QtCore.Qt.Unchecked )
+            self.save_credentials.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
@@ -55,7 +55,7 @@ class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
         return self.password.text().strip()
 
     def getSaveCredentials( self ):
-        return self.save_credentials.checkState() == QtCore.Qt.Checked
+        return self.save_credentials.checkState() == QtCore.Qt.CheckState.Checked
 
 class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
     def __init__( self, parent, trust_info ):
@@ -65,7 +65,7 @@ class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
 
         self.realm = QtWidgets.QLabel( trust_info['realm'] )
         self.save_trust = QtWidgets.QCheckBox()
-        self.save_trust.setCheckState( QtCore.Qt.Unchecked )
+        self.save_trust.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
         em = self.fontMetrics().width( 'M' )
 
@@ -79,4 +79,4 @@ class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
         self.addButtons()
 
     def getSaveTrust( self ):
-        return self.save_trust.checkState() == QtCore.Qt.Checked
+        return self.save_trust.checkState() == QtCore.Qt.CheckState.Checked

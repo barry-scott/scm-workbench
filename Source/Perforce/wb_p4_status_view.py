@@ -108,7 +108,7 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
         sort_right = model.mapFromSource( right )
 
         cell = QtCore.QItemSelection( sort_left, sort_right )
-        selection_model.select( cell, QtCore.QItemSelectionModel.Select )
+        selection_model.select( cell, QtCore.QItemSelectionModel.SelectionFlag.Select )
 
     def setStatus( self, all_opened_files, all_changes_pending, all_changes_shelved ):
         self.all_change_list_files = {}

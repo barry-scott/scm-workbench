@@ -138,7 +138,7 @@ class WbHgCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
         # ----------------------------------------
         self.v_split = QtWidgets.QSplitter()
-        self.v_split.setOrientation( QtCore.Qt.Vertical )
+        self.v_split.setOrientation( QtCore.Qt.Orientation.Vertical )
         self.v_split.addWidget( self.v_table_widget )
         self.v_split.addWidget( self.v_message_widget )
 

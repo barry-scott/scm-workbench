@@ -17,9 +17,9 @@ import types
 import wb_table_view
 
 _alignment_map = {
-    'L':    QtCore.Qt.AlignLeft,
-    'R':    QtCore.Qt.AlignRight,
-    'C':    QtCore.Qt.AlignCenter,
+    'L':    QtCore.Qt.AlignmentFlag.AlignLeft,
+    'R':    QtCore.Qt.AlignmentFlag.AlignRight,
+    'C':    QtCore.Qt.AlignmentFlag.AlignCenter,
     }
 
 class TableColumn:
@@ -126,14 +126,14 @@ class WbTableModel(QtCore.QAbstractTableModel):
         return self.view_model_map.numColumns()
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return self.view_model_map.header( section )
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
             return self.view_model_map.alignment( section )
         return None
 
@@ -141,10 +141,10 @@ class WbTableModel(QtCore.QAbstractTableModel):
         return self.all_rows[ row ]
 
     def data( self, index, role ):
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             return self.view_model_map.data( index.column(), self.all_rows[ index.row() ] )
 
-        if role == QtCore.Qt.TextAlignmentRole:
+        if role == QtCore.Qt.ItemDataRole.TextAlignmentRole:
             return self.view_model_map.alignment( index.column() )
 
         return None

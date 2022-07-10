@@ -471,9 +471,9 @@ class PageAddProjectScanForExisting(PageAddProjectScmExistingBase):
 
         self.thread = None
 
-        self.foundRepository.connect( self.__foundRepository, type=QtCore.Qt.QueuedConnection )
-        self.scannedOneMoreFolder.connect( self.__setFeedback, type=QtCore.Qt.QueuedConnection )
-        self.scanComplete.connect( self.__scanCompleted, type=QtCore.Qt.QueuedConnection )
+        self.foundRepository.connect( self.__foundRepository, type=QtCore.Qt.ConnectionType.QueuedConnection )
+        self.scannedOneMoreFolder.connect( self.__setFeedback, type=QtCore.Qt.ConnectionType.QueuedConnection )
+        self.scanComplete.connect( self.__scanCompleted, type=QtCore.Qt.ConnectionType.QueuedConnection )
 
         self.__all_labels_to_scm_info = {}
 

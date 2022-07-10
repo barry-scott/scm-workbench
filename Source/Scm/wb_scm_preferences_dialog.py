@@ -249,15 +249,15 @@ class FontTab(wb_dialog_bases.WbTabBase):
         self.code_point_size = font.pointSize()
 
         self.ui_font_text = QtWidgets.QLabel( '%s %dpt ' % (self.ui_face, self.ui_point_size) )
-        self.ui_font_text.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Fixed )
-        self.ui_font_text.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        self.ui_font_text.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Policy.Fixed )
+        self.ui_font_text.setFrameStyle( QtWidgets.QFrame.Shape.Panel|QtWidgets.QFrame.Shadow.Sunken )
         self.ui_font_text.setFont( QtGui.QFont( self.ui_face, self.ui_point_size ) )
 
         self.ui_font_select_font = QtWidgets.QPushButton( T_(' Select Font... ') )
 
         self.code_font_text = QtWidgets.QLabel( '%s %dpt ' % (self.code_face, self.code_point_size) )
-        self.code_font_text.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Fixed )
-        self.code_font_text.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        self.code_font_text.sizePolicy().setHorizontalPolicy( QtWidgets.QSizePolicy.Policy.Fixed )
+        self.code_font_text.setFrameStyle( QtWidgets.QFrame.Shape.Panel|QtWidgets.QFrame.Shadow.Sunken )
         self.code_font_text.setFont( QtGui.QFont( self.code_face, self.code_point_size ) )
 
         self.code_font_select_font = QtWidgets.QPushButton( T_(' Select Font... ') )

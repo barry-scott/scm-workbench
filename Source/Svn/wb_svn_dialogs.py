@@ -56,7 +56,7 @@ class WbAddFolderDialog(wb_dialog_bases.WbDialog):
         self.depth = WbSvnDepthWidget( include_empty=True, default=pysvn.depth.empty )
 
         self.force = QtWidgets.QCheckBox( T_('force files to be added') )
-        self.force.setCheckState( QtCore.Qt.Unchecked )
+        self.force.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
         self.addRow( T_('Folder'), folder_name )
         self.addRow( T_('Depth'), self.depth )
@@ -67,7 +67,7 @@ class WbAddFolderDialog(wb_dialog_bases.WbDialog):
         return self.depth.getDepth()
 
     def getForce( self ):
-        return self.force.checkState() == QtCore.Qt.Checked
+        return self.force.checkState() == QtCore.Qt.CheckState.Checked
 
 class WbRevertFolderDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent, folder ):
@@ -98,7 +98,7 @@ class WbLockFileDialog(wb_dialog_bases.WbDialog):
         self.message = QtWidgets.QPlainTextEdit( '' )
 
         self.force = QtWidgets.QCheckBox( T_('force files to be locked') )
-        self.force.setCheckState( QtCore.Qt.Unchecked )
+        self.force.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
         em = self.fontMetrics().width( 'M' )
 
@@ -116,7 +116,7 @@ class WbLockFileDialog(wb_dialog_bases.WbDialog):
         return self.message.toPlainText()
 
     def getForce( self ):
-        return self.force.checkState() == QtCore.Qt.Checked
+        return self.force.checkState() == QtCore.Qt.CheckState.Checked
 
 class WbUnlockFileDialog(wb_dialog_bases.WbDialog):
     def __init__( self, app, parent ):
@@ -128,7 +128,7 @@ class WbUnlockFileDialog(wb_dialog_bases.WbDialog):
 
         self.details = QtWidgets.QPlainTextEdit( '' )
         self.force = QtWidgets.QCheckBox( T_('force files to be unlocked') )
-        self.force.setCheckState( QtCore.Qt.Unchecked )
+        self.force.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
         em = self.fontMetrics().width( 'M' )
 
@@ -141,4 +141,4 @@ class WbUnlockFileDialog(wb_dialog_bases.WbDialog):
         self.details.setPlainText( '\n'.join( str(f) for f in all_filenames ) )
 
     def getForce( self ):
-        return self.force.checkState() == QtCore.Qt.Checked
+        return self.force.checkState() == QtCore.Qt.CheckState.Checked

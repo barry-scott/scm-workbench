@@ -290,7 +290,7 @@ class WbApp(wb_logging.AppLoggingMixin,
         return QtWidgets.QApplication.event( self, event )
 
     def applicationStateChangedHandler( self, state ):
-        if state == QtCore.Qt.ApplicationActive:
+        if state == QtCore.Qt.ApplicationState.ApplicationActive:
             self.main_window.appActiveHandler()
 
     def writePreferences( self ):
@@ -325,18 +325,18 @@ class WbApp(wb_logging.AppLoggingMixin,
         # thanks to https://gist.github.com/QuantumCD/6245215
         self.setStyle( QtWidgets.QStyleFactory.create( "Fusion" ) )
         self.dark_palette = QtGui.QPalette()
-        self.dark_palette.setColor( QtGui.QPalette.Window, QtGui.QColor( 53,53,53 ) )
-        self.dark_palette.setColor( QtGui.QPalette.WindowText, QtCore.Qt.white )
-        self.dark_palette.setColor( QtGui.QPalette.Base, QtGui.QColor( 25,25,25 ) )
-        self.dark_palette.setColor( QtGui.QPalette.AlternateBase, QtGui.QColor( 53,53,53 ) )
-        self.dark_palette.setColor( QtGui.QPalette.ToolTipBase, QtCore.Qt.white )
-        self.dark_palette.setColor( QtGui.QPalette.ToolTipText, QtCore.Qt.white )
-        self.dark_palette.setColor( QtGui.QPalette.Text, QtCore.Qt.white )
-        self.dark_palette.setColor( QtGui.QPalette.Button, QtGui.QColor( 53,53,53 ) )
-        self.dark_palette.setColor( QtGui.QPalette.ButtonText, QtCore.Qt.white )
-        self.dark_palette.setColor( QtGui.QPalette.BrightText, QtCore.Qt.red )
-        self.dark_palette.setColor( QtGui.QPalette.Link, QtGui.QColor( 42, 130, 218 ) )
-        self.dark_palette.setColor( QtGui.QPalette.Highlight, QtGui.QColor( 42, 130, 218 ) )
-        self.dark_palette.setColor( QtGui.QPalette.HighlightedText, QtCore.Qt.black )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.Window, QtGui.QColor( 53,53,53 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.WindowText, QtCore.Qt.GlobalColor.white )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.Base, QtGui.QColor( 25,25,25 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.AlternateBase, QtGui.QColor( 53,53,53 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.ToolTipBase, QtCore.Qt.GlobalColor.white )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.ToolTipText, QtCore.Qt.GlobalColor.white )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.Text, QtCore.Qt.GlobalColor.white )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.Button, QtGui.QColor( 53,53,53 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.ButtonText, QtCore.Qt.GlobalColor.white )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.BrightText, QtCore.Qt.GlobalColor.red )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.Link, QtGui.QColor( 42, 130, 218 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.Highlight, QtGui.QColor( 42, 130, 218 ) )
+        self.dark_palette.setColor( QtGui.QPalette.ColorRole.HighlightedText, QtCore.Qt.GlobalColor.black )
 
         self.setPalette( self.dark_palette )

@@ -74,7 +74,7 @@ class WbMainWindow(QtWidgets.QMainWindow):
     def setupStatusBar( self, status_bar ):
         pass
 
-    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, role=QtWidgets.QAction.NoRole ):
+    def _addMenu( self, menu, name, handler, enabler=None, icon_name=None, checker=None, group=None, role=QtWidgets.QAction.MenuRole.NoRole ):
         if icon_name is None:
             icon_name = 'toolbar_images/blank.png'
 

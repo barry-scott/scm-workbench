@@ -241,7 +241,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         #----------------------------------------
         self.v_split = QtWidgets.QSplitter()
-        self.v_split.setOrientation( QtCore.Qt.Vertical )
+        self.v_split.setOrientation( QtCore.Qt.Orientation.Vertical )
 
         self.v_split.addWidget( self.log_table )
         self.v_split.setStretchFactor( self.v_split.count()-1, 15 )
@@ -585,7 +585,7 @@ class WbLogTableView(wb_table_view.WbTableView):
 
         # connect up signals
         self.customContextMenuRequested.connect( self.tableContextMenu )
-        self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
+        self.setContextMenuPolicy( QtCore.Qt.ContextMenuPolicy.CustomContextMenu )
 
     def selectionChanged( self, selected, deselected ):
         self.debugLog( 'WbLogTableView.selectionChanged()' )
@@ -671,15 +671,15 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
         return len( self.column_titles )
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return T_( self.column_titles[section] )
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignLeft
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
+            return QtCore.Qt.AlignmentFlag.AlignLeft
 
         return None
 
@@ -687,10 +687,10 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
         return self.all_commit_nodes[ row ]
 
     def data( self, index, role ):
-        if role == QtCore.Qt.UserRole:
+        if role == QtCore.Qt.ItemDataRole.UserRole:
             return self.all_commit_nodes[ index.row() ]
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             node = self.all_commit_nodes[ index.row() ]
 
             col = index.column()
@@ -712,7 +712,7 @@ class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
 
             assert False
 
-        elif role == QtCore.Qt.ForegroundRole:
+        elif role == QtCore.Qt.ItemDataRole.ForegroundRole:
             node = self.all_commit_nodes[ index.row() ]
             commit_id = node.commitIdString()
 
@@ -735,7 +735,7 @@ class WbChangesTableView(wb_table_view.WbTableView):
 
         # connect up signals
         self.customContextMenuRequested.connect( self.tableContextMenu )
-        self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
+        self.setContextMenuPolicy( QtCore.Qt.ContextMenuPolicy.CustomContextMenu )
 
         self.setShowGrid( False )
 
@@ -786,15 +786,15 @@ class WbGitChangedFilesModel(QtCore.QAbstractTableModel):
         return len( self.column_titles )
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return T_( self.column_titles[section] )
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignLeft
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
+            return QtCore.Qt.AlignmentFlag.AlignLeft
 
         return None
 
@@ -802,11 +802,11 @@ class WbGitChangedFilesModel(QtCore.QAbstractTableModel):
         return self.all_changes[ row ]
 
     def data( self, index, role ):
-        if role == QtCore.Qt.UserRole:
+        if role == QtCore.Qt.ItemDataRole.UserRole:
             return self.all_changes[ index.row() ]
 
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             type_, filename, old_filename = self.all_changes[ index.row() ]
 
             col = index.column()

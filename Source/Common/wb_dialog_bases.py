@@ -126,7 +126,7 @@ class WbGridLayout(QtWidgets.QGridLayout):
     def __init__( self ):
         super().__init__()
 
-        self.setAlignment( QtCore.Qt.AlignTop )
+        self.setAlignment( QtCore.Qt.AlignmentFlag.AlignTop )
         self.setColumnStretch( 1, 2 )
 
     def addNamedDivider( self, name ):

@@ -16,10 +16,10 @@ from PyQt5 import QtCore
 def warningMessage( name ):
     #QQQ: need a parent?
     box = QtWidgets.QMessageBox(
-            QtWidgets.QMessageBox.Information,
+            QtWidgets.QMessageBox.Icon.Information,
             T_('Warning'),
             T_('Enter a value for %s') % (name,),
-            QtWidgets.QMessageBox.Close,
+            QtWidgets.QMessageBox.StandardButton.Close,
             parent=None )
     box.exec_()
 
@@ -33,7 +33,7 @@ class SingleProperty:
         self.value_ctrl = None
 
         self.checkbox = QtWidgets.QCheckBox( name )
-        self.checkbox.setCheckState( QtCore.Qt.Checked if present else QtCore.Qt.Unchecked )
+        self.checkbox.setCheckState( QtCore.Qt.CheckState.Checked if present else QtCore.Qt.CheckState.Unchecked )
 
     def setValueCtrl( self, value_ctrl, value ):
         self.starting_value = value
@@ -55,7 +55,7 @@ class SingleProperty:
         return self.isPresent() and self.starting_value != self.getValue()
 
     def isPresent( self ):
-        return self.checkbox.checkState() == QtCore.Qt.Checked
+        return self.checkbox.checkState() == QtCore.Qt.CheckState.Checked
 
     def getName( self ):
         return self.name

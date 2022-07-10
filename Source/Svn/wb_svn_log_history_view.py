@@ -125,7 +125,7 @@ class WbSvnLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         #----------------------------------------
         self.v_split = QtWidgets.QSplitter()
-        self.v_split.setOrientation( QtCore.Qt.Vertical )
+        self.v_split.setOrientation( QtCore.Qt.Orientation.Vertical )
 
         self.v_split.addWidget( self.log_table )
         self.v_split.setStretchFactor( self.v_split.count()-1, 15 )
@@ -261,15 +261,15 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
         return len( self.column_titles )
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return T_( self.column_titles[section] )
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignLeft
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
+            return QtCore.Qt.AlignmentFlag.AlignLeft
 
         return None
 
@@ -283,10 +283,10 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
         return self.app.formatDatetime( self.all_commit_nodes[ row ].date )
 
     def data( self, index, role ):
-        if role == QtCore.Qt.UserRole:
+        if role == QtCore.Qt.ItemDataRole.UserRole:
             return self.all_commit_nodes[ index.row() ]
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             node = self.all_commit_nodes[ index.row() ]
 
             col = index.column()
@@ -312,14 +312,14 @@ class WbSvnLogHistoryModel(QtCore.QAbstractTableModel):
 
             assert False
 
-        elif role == QtCore.Qt.TextAlignmentRole:
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole:
             if index.column() == self.col_revision:
-                return QtCore.Qt.AlignRight
+                return QtCore.Qt.AlignmentFlag.AlignRight
 
             else:
-                return QtCore.Qt.AlignLeft
+                return QtCore.Qt.AlignmentFlag.AlignLeft
 
-        elif role == QtCore.Qt.ForegroundRole:
+        elif role == QtCore.Qt.ItemDataRole.ForegroundRole:
             node = self.all_commit_nodes[ index.row() ]
             if hasattr( node, 'is_tag' ):
                 return self.__brush_is_tag
@@ -375,15 +375,15 @@ class WbSvnChangedFilesModel(QtCore.QAbstractTableModel):
         return len( self.column_titles )
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return T_( self.column_titles[section] )
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignLeft
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
+            return QtCore.Qt.AlignmentFlag.AlignLeft
 
         return None
 
@@ -391,11 +391,11 @@ class WbSvnChangedFilesModel(QtCore.QAbstractTableModel):
         return self.all_changes[ row ]
 
     def data( self, index, role ):
-        if role == QtCore.Qt.UserRole:
+        if role == QtCore.Qt.ItemDataRole.UserRole:
             return self.all_changes[ index.row() ]
 
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             node = self.all_changes[ index.row() ]
 
             col = index.column()

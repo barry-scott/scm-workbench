@@ -425,13 +425,13 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             files_in_conflict = self.progress.getInConflictCount()
             if files_in_conflict > 0:
                 box = QtWidgets.QMessageBox(
-                        QtWidgets.QMessageBox.Information,
+                        QtWidgets.QMessageBox.Icon.Information,
                         T_('Warning'),
                         S_("%d file is in conflict",
                            "%d files are in conflict",
                             files_in_conflict) %
                                 (files_in_conflict,),
-                        QtWidgets.QMessageBox.Close,
+                        QtWidgets.QMessageBox.StandardButton.Close,
                         parent=self.top_window )
                 box.exec_()
 

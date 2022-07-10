@@ -20,7 +20,7 @@ code_point_size = 13
 print( 'QQQ code_face %r code_point_size %r' % (code_face, code_point_size) )
 font = QtGui.QFont( code_face, code_point_size )
 print( 'QQQ FontTab.onSelectFontCode() font in %r %r %r' % (font, font.family(), font.pointSize()) )
-r = QtWidgets.QFontDialog.getFont( font, None, 'Choose code font', QtWidgets.QFontDialog.MonospacedFonts )
+r = QtWidgets.QFontDialog.getFont( font, None, 'Choose code font', QtWidgets.QFontDialog.FontDialogOption.MonospacedFonts )
 
 print( 'QQQ ok %r' % (r,) )
 

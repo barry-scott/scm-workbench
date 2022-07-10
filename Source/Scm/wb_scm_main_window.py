@@ -127,15 +127,15 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # layout widgets in window
         self.v_split = QtWidgets.QSplitter()
-        self.v_split.setOrientation( QtCore.Qt.Vertical )
+        self.v_split.setOrientation( QtCore.Qt.Orientation.Vertical )
 
         self.setCentralWidget( self.v_split )
 
         self.h_split = QtWidgets.QSplitter( self.v_split )
-        self.h_split.setOrientation( QtCore.Qt.Horizontal )
+        self.h_split.setOrientation( QtCore.Qt.Orientation.Horizontal )
 
         self.v_split_table = QtWidgets.QSplitter()
-        self.v_split_table.setOrientation( QtCore.Qt.Vertical )
+        self.v_split_table.setOrientation( QtCore.Qt.Orientation.Vertical )
 
         self.h_filter_widget = QtWidgets.QWidget( self.v_split )
         self.h_filter_layout = QtWidgets.QGridLayout()
@@ -237,7 +237,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             if project_name is not None:
                 project = self.app.prefs.getProject( project_name )
 
-        self.tree_view.sortByColumn( 0, QtCore.Qt.DescendingOrder )
+        self.tree_view.sortByColumn( 0, QtCore.Qt.SortOrder.DescendingOrder )
         self.tree_view.setSortingEnabled( True )
 
         if project is not None:
@@ -333,7 +333,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         # connect up signals
         self.tree_view.customContextMenuRequested.connect( self.treeContextMenu )
-        self.tree_view.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
+        self.tree_view.setContextMenuPolicy( QtCore.Qt.ContextMenuPolicy.CustomContextMenu )
 
     singleton_update_branches_running = False
 
@@ -409,9 +409,9 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def setupMenuBar( self, mb ):
         # --- setup common menus
         m = mb.addMenu( T_('&File') )
-        self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.PreferencesRole )
+        self._addMenu( m, T_('&Preferences…'), self.appActionPreferences, role=QtWidgets.QAction.MenuRole.PreferencesRole )
         self._addMenu( m, T_('View Log'), self.appActionViewLog )
-        self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.QuitRole )
+        self._addMenu( m, T_('E&xit'), self.close, role=QtWidgets.QAction.MenuRole.QuitRole )
 
         m = mb.addMenu( T_('&View') )
         tv = self.table_view
@@ -461,7 +461,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         m = mb.addMenu( T_('&Help' ) )
         self._addMenu( m, T_("&User Guide…"), self.appActionUserGuide )
-        self._addMenu( m, T_("&About…"), self.appActionAbout, role=QtWidgets.QAction.AboutRole )
+        self._addMenu( m, T_("&About…"), self.appActionAbout, role=QtWidgets.QAction.MenuRole.AboutRole )
 
     def __setupTreeContextMenu( self ):
         self.debugLog( '__setupTreeContextMenu' )
@@ -516,8 +516,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.status_progress = QtWidgets.QLabel()
         self.status_action = QtWidgets.QLabel()
 
-        self.status_progress.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
-        self.status_action.setFrameStyle( QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken )
+        self.status_progress.setFrameStyle( QtWidgets.QFrame.Shape.Panel|QtWidgets.QFrame.Shadow.Sunken )
+        self.status_action.setFrameStyle( QtWidgets.QFrame.Shape.Panel|QtWidgets.QFrame.Shadow.Sunken )
 
         s.addWidget( self.status_general, 1 )
         s.addWidget( self.status_progress, 1 )
@@ -575,8 +575,8 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
                 else:
                     submenu = submenu.addMenu( submenu_name )
-                    # QAction.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
-                    submenu.menuAction().setMenuRole( QtWidgets.QAction.NoRole )
+                    # QAction.MenuRole.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
+                    submenu.menuAction().setMenuRole( QtWidgets.QAction.MenuRole.NoRole )
                     all_submenus[ submenu_fullname ] = submenu
 
             project = prefs.getProjectByPath( favorite.project_path )
@@ -585,11 +585,11 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
             else:
                 action = submenu.addAction( '-place holder-' )
-                action.setMenuRole( QtWidgets.QAction.NoRole )
+                action.setMenuRole( QtWidgets.QAction.MenuRole.NoRole )
                 handler = self.app.wrapWithThreadSwitcher( self.gotoFavoriteHandler_bg, 'favorite: %s' % (menu_name,) )
                 action.triggered.connect( handler )
-                # QAction.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
-                action.setMenuRole( QtWidgets.QAction.NoRole )
+                # QAction.MenuRole.NoRole prevents the TextHeuristicRole putting user's favorites in system menus 
+                action.setMenuRole( QtWidgets.QAction.MenuRole.NoRole )
                 action.setStatusTip( 'Goto Favorite %s - %s' % (project.name, favorite.path) )
                 action.setData( favorite )
                 action.setText( menu_levels[-1] )
@@ -724,7 +724,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                         scm_project_tree_node.project.projectPath(),
                         scm_project_tree_node.relativePath() )
 
-        default_button = QtWidgets.QMessageBox.No
+        default_button = QtWidgets.QMessageBox.StandardButton.No
 
         title = T_('Confirm Remove Favorite')
         message = (T_('Are you sure you wish to delete favorite %(project_name)s - %(path)s') %
@@ -732,7 +732,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                         ,'path': favorite.path})
 
         rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
-        if rc == QtWidgets.QMessageBox.Yes:
+        if rc == QtWidgets.QMessageBox.StandardButton.Yes:
             # remove from preferences
             self.app.prefs.delFavorite( favorite.menu )
             self.setupMenuFavorites()
@@ -792,19 +792,19 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         all_about_info.append( T_('Copyright Barry Scott (c) %s. All rights reserved') % (wb_scm_version.copyright_years,) )
 
         box = QtWidgets.QMessageBox(
-            QtWidgets.QMessageBox.Information,
+            QtWidgets.QMessageBox.Icon.Information,
             T_('About %s') % (' '.join( self.app.app_name_parts ),),
             '\n'.join( all_about_info ),
-            QtWidgets.QMessageBox.Close,
+            QtWidgets.QMessageBox.StandardButton.Close,
             parent=self )
         box.exec_()
 
     def errorMessage( self, title, message ):
         box = QtWidgets.QMessageBox(
-                    QtWidgets.QMessageBox.Critical,
+                    QtWidgets.QMessageBox.Icon.Critical,
                     title,
                     message,
-                    QtWidgets.QMessageBox.Close,
+                    QtWidgets.QMessageBox.StandardButton.Close,
                     parent=self )
         box.exec_()
 
@@ -899,13 +899,13 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         project_name = tree_node.project.projectName()
 
-        default_button = QtWidgets.QMessageBox.No
+        default_button = QtWidgets.QMessageBox.StandardButton.No
 
         title = T_('Confirm Delete Project')
         message = T_('Are you sure you wish to delete project %s') % (project_name,)
 
         rc = QtWidgets.QMessageBox.question( self, title, message, defaultButton=default_button )
-        if rc == QtWidgets.QMessageBox.Yes:
+        if rc == QtWidgets.QMessageBox.StandardButton.Yes:
             # remove from preferences
             self.app.prefs.delProject( project_name )
             self.setupMenuFavorites()

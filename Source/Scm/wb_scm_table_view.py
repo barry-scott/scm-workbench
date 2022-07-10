@@ -47,7 +47,7 @@ class WbScmTableView(wb_table_view.WbTableView):
         self.table_sortfilter.setDynamicSortFilter( True )
 
         self.table_sort_column = self.table_model.col_status
-        self.table_sort_order = QtCore.Qt.AscendingOrder
+        self.table_sort_order = QtCore.Qt.SortOrder.AscendingOrder
 
         # setModel triggers a selectionChanged event
         self.setModel( self.table_sortfilter )
@@ -67,7 +67,7 @@ class WbScmTableView(wb_table_view.WbTableView):
         # connect up signals
         self.horizontalHeader().sectionClicked.connect( self.tableHeaderClicked )
         self.customContextMenuRequested.connect( self.tableContextMenu )
-        self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
+        self.setContextMenuPolicy( QtCore.Qt.ContextMenuPolicy.CustomContextMenu )
 
         # after Qt 5.9.2 the column widths get reset before being shown
         self.setTableAllColumnWidths()
@@ -245,14 +245,14 @@ class WbScmTableView(wb_table_view.WbTableView):
 
     def tableHeaderClicked( self, column ):
         if column == self.table_sort_column:
-            if self.table_sort_order == QtCore.Qt.DescendingOrder:
-                self.table_sort_order = QtCore.Qt.AscendingOrder
+            if self.table_sort_order == QtCore.Qt.SortOrder.DescendingOrder:
+                self.table_sort_order = QtCore.Qt.SortOrder.AscendingOrder
             else:
-                self.table_sort_order = QtCore.Qt.DescendingOrder
+                self.table_sort_order = QtCore.Qt.SortOrder.DescendingOrder
 
         else:
             self.table_sort_column = column
-            self.table_sort_order = QtCore.Qt.AscendingOrder
+            self.table_sort_order = QtCore.Qt.SortOrder.AscendingOrder
 
         self.sortByColumn( self.table_sort_column, self.table_sort_order )
 
@@ -286,7 +286,7 @@ class WbScmTableView(wb_table_view.WbTableView):
         return all_existing_filenames
 
     def tableSelectedFiles( self ):
-        return [index.data( QtCore.Qt.UserRole ).name
+        return [index.data( QtCore.Qt.ItemDataRole.UserRole ).name
                     for index in self.selectedIndexes()
                     if index.column() == self.table_model.col_name]
 

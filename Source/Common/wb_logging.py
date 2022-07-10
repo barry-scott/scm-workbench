@@ -326,7 +326,7 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
 
         super().__init__()
         self.setReadOnly( True )
-        self.setTextInteractionFlags( QtCore.Qt.TextSelectableByMouse|QtCore.Qt.TextSelectableByKeyboard )
+        self.setTextInteractionFlags( QtCore.Qt.TextInteractionFlag.TextSelectableByMouse|QtCore.Qt.TextInteractionFlag.TextSelectableByKeyboard )
 
     def initStyles( self ):
         if self.app.isDarkMode():
@@ -343,7 +343,7 @@ class WbLogTextWidget(QtWidgets.QTextEdit):
             self.all_text_formats[ style ] = fmt
 
     def __writeStyledText( self, text, style ):
-        self.moveCursor( QtGui.QTextCursor.End )
+        self.moveCursor( QtGui.QTextCursor.MoveOperation.End )
 
         cursor = self.textCursor()
         cursor.beginEditBlock()

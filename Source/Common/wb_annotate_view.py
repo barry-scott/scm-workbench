@@ -74,7 +74,7 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
 
         # ----------------------------------------
         self.v_split = QtWidgets.QSplitter()
-        self.v_split.setOrientation( QtCore.Qt.Vertical )
+        self.v_split.setOrientation( QtCore.Qt.Orientation.Vertical )
         self.v_split.addWidget( self.annotate_table )
         self.v_split.addWidget( self.v_message_widget )
 
@@ -204,15 +204,15 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
         return len( self.column_titles )
 
     def headerData( self, section, orientation, role ):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            if orientation == QtCore.Qt.Orientation.Horizontal:
                 return T_( self.column_titles[section] )
 
-            if orientation == QtCore.Qt.Vertical:
+            if orientation == QtCore.Qt.Orientation.Vertical:
                 return ''
 
-        elif role == QtCore.Qt.TextAlignmentRole and orientation == QtCore.Qt.Horizontal:
-            return QtCore.Qt.AlignLeft
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole and orientation == QtCore.Qt.Orientation.Horizontal:
+            return QtCore.Qt.AlignmentFlag.AlignLeft
 
         return None
 
@@ -223,10 +223,10 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
         return self.all_commit_log_nodes.get( rev_num, None )
 
     def data( self, index, role ):
-        if role == QtCore.Qt.UserRole:
+        if role == QtCore.Qt.ItemDataRole.UserRole:
             return self.all_annotation_nodes[ index.row() ]
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             node = self.all_annotation_nodes[ index.row() ]
             log_node = self.all_commit_log_nodes[ node.log_id ]
 
@@ -249,14 +249,14 @@ class WbAnnotateModel(QtCore.QAbstractTableModel):
 
             assert False, 'col == %r' % (col,)
 
-        elif role == QtCore.Qt.TextAlignmentRole:
+        elif role == QtCore.Qt.ItemDataRole.TextAlignmentRole:
             if index.column() == self.col_line_num:
-                return QtCore.Qt.AlignRight
+                return QtCore.Qt.AlignmentFlag.AlignRight
 
             else:
-                return QtCore.Qt.AlignLeft
+                return QtCore.Qt.AlignmentFlag.AlignLeft
 
-        elif role == QtCore.Qt.FontRole:
+        elif role == QtCore.Qt.ItemDataRole.FontRole:
             # use the fixed font for all the column otherwise it looks odd
             return self.fixed_font
 
