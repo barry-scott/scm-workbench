@@ -17,7 +17,7 @@ colour-text
 
 GitPython>=2.1.8
 python-hglib>=2.2
-PyQt5>=5.12.2
+PyQt6
 QScintilla>=2.11.1
 pytz>=2016.7
 tzlocal>=1.2.2
