@@ -35,6 +35,12 @@ class PackageWorkbench(object):
 
         self.copr_repo = None
         self.copr_repo_other = None
+        self.COPR_REPO_URL = None
+        self.COPR_REPO_OTHER_URL = None
+        self.MOCK_COPR_REPO_FILENAME = None
+
+        self.copr_repo_pyqt6 = 'copr:copr.fedorainfracloud.org:barryascott:python-qt6'
+        self.MOCK_COPR_REPO_PYQT6_FILENAME = '/etc/yum.repos.d/_%s.repo' % (self.copr_repo_pyqt6,)
 
         self.cmd = None
         self.opt_release = 'auto'
@@ -208,7 +214,8 @@ class PackageWorkbench(object):
         if self.copr_repo is not None:
             run( ('mock',
                         '--root=%s' % (self.MOCK_TARGET_FILENAME,),
-                        '--enablerepo=barryascott-%s' % (self.copr_repo,),
+                        '--enablerepo=copr:copr.fedorainfracloud.org:barryascott:%s' % (self.copr_repo,),
+                        '--enablerepo=%s' % (self.copr_repo_pyqt6,),
                         '--rebuild',
                         self.SRPM_FILENAME) )
         else:
@@ -231,7 +238,6 @@ class PackageWorkbench(object):
 
             log.info( 'Copying %s' % (basename,) )
             shutil.copyfile( src, 'built/%s' % (basename,) )
-
 
         log.info( 'Results in %s/built:' % (os.getcwd(),) )
 
@@ -340,6 +346,8 @@ class PackageWorkbench(object):
         else:
             assert False, 'config_opts missing yum.conf or dnf.conf section'
 
+        config_opts['root'] = os.path.splitext( os.path.basename( self.MOCK_TARGET_FILENAME ) )[0]
+
         with open( self.MOCK_COPR_REPO_FILENAME, 'r' ) as f:
             repo = f.read()
 
@@ -348,7 +356,16 @@ class PackageWorkbench(object):
 
             config_opts[conf_key] += '\n'
             config_opts[conf_key] += repo
-            config_opts['root'] = os.path.splitext( os.path.basename( self.MOCK_TARGET_FILENAME ) )[0]
+
+        if self.MOCK_COPR_REPO_PYQT6_FILENAME:
+            with open( self.MOCK_COPR_REPO_PYQT6_FILENAME, 'r' ) as f:
+                repo = f.read()
+
+                if self.opt_mock_target.startswith( 'epel-' ):
+                    repo = repo.replace( '/fedora-$releasever-$basearch/', '/epel-$releasever-$basearch/' )
+
+                config_opts[conf_key] += '\n'
+                config_opts[conf_key] += repo
 
         with open( self.MOCK_TARGET_FILENAME, 'w' ) as f:
             for k in config_opts:
@@ -364,7 +381,10 @@ class PackageWorkbench(object):
         # mock uses the timestamp on the CFG file and compares to the
         # cache timestamp. Use the timestamp of the input cfg to avoid
         # rebuilding the cache unless the original CFG file changes.
-        mock_cfg = '/etc/mock/%s.cfg' % (self.opt_mock_target,)
+        if self.opt_mock_target.startswith( '/' ):
+            mock_cfg = self.opt_mock_target + '.cfg'
+        else:
+            mock_cfg = '/etc/mock/%s.cfg' % (self.opt_mock_target,)
         st = os.stat( mock_cfg )
         os.utime( self.MOCK_TARGET_FILENAME, (st.st_atime, st.st_mtime) )
 

@@ -81,7 +81,7 @@ def run( cmd, check=True, output=False, cwd=None ):
         retcode = process.poll()
         r = CompletedProcess( retcode, stdout, stderr )
         if check and retcode != 0:
-            raise BuildError( 'Cmd failed %s - %r' % (retcode, cmd) )
+            raise BuildError( 'Cmd failed %s - %s' % (retcode, ' '.join(cmd)) )
 
     return r
 
