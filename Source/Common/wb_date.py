@@ -20,7 +20,12 @@
 import datetime
 import zoneinfo
 # implicit import of tzdata to make sure its included by packaging tools
-import tzdata
+try:
+    import tzdata
+expect ImportError:
+    # not required where zoneinfo uses the systems zone database
+    pass
+
 
 import wb_platform_specific
 
