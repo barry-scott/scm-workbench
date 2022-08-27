@@ -202,15 +202,9 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         return self.all_files[ index.row() ]
 
     role_to_name = {
-<<<<<<< HEAD
         QtCore.Qt.ItemDataRole.UserRole: 'UserRole',
         QtCore.Qt.ItemDataRole.DisplayRole: 'DisplayRole',
         QtCore.Qt.ItemDataRole.ForegroundRole: 'ForegroundRole',
-=======
-#        QtCore.Qt.UserRole: 'UserRole',
-#        QtCore.Qt.DisplayRole: 'DisplayRole',
-#        QtCore.Qt.ForegroundRole: 'ForegroundRole',
->>>>>>> f2a2036 (Port to PyQt6)
         }
     def data( self, index, role ):
         print('QQQ WbScmTableModel.data() role %r' % (role,))
