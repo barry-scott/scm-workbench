@@ -19,18 +19,13 @@
 #
 import datetime
 import zoneinfo
-import tzlocal
+# implicit import of tzdata to make sure its included by packaging tools
+import tzdata
 
-try:
-    # implicit import of tzdata to make sure its included by packaging tools
-    import tzdata
-
-except ImportError:
-    pass
-
+import wb_platform_specific
 
 def utcDatetime( timestamp ):
-    return datetime.datetime.fromtimestamp( timestamp, datetime.timezone.utc )
+    return datetime.datetime.fromtimestamp( timestamp, zoneinfo.ZoneInfo( 'UTC' ) )
 
 def localDatetime( datetime_or_timestamp ):
     if type(datetime_or_timestamp) in (int, float):
@@ -38,7 +33,7 @@ def localDatetime( datetime_or_timestamp ):
     else:
         dt = datetime_or_timestamp
 
-    local_timezone = zoneinfo.ZoneInfo( tzlocal.get_localzone_name() )
+    local_timezone = zoneinfo.ZoneInfo( wb_platform_specific.getTimezoneName() )
     local_dt = dt.astimezone( local_timezone )
     return local_dt
 
