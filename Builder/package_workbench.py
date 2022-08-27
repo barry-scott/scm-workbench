@@ -393,8 +393,11 @@ class PackageWorkbench(object):
 
         log.info( 'Exporting source code' )
 
-        cmd = '(cd ${BUILDER_TOP_DIR}; git archive --format=tar --prefix=%s/ master) | tar xf - -C tmp ' % (self.KIT_BASENAME,)
-        run( cmd )
+        p = run( ('git', 'branch', '--show-current'), output=True, cwd=os.environ['BUILDER_TOP_DIR'] )
+        git_branch = p.stdout.strip()
+
+        cmd = 'git archive --format=tar --prefix=%s/ %s | tar xf - -C Builder/tmp ' % (self.KIT_BASENAME, git_branch)
+        run( cmd, cwd=os.environ['BUILDER_TOP_DIR'] )
 
         p = run( ('git', 'show-ref', '--head', '--hash', 'head'), output=True, cwd=os.environ['BUILDER_TOP_DIR'] )
 

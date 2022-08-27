@@ -19,15 +19,13 @@ def createRpmSpecFile( opt, spec_filename ):
 
     python = '/usr/bin/python3'
     all_requires.add( 'python3 >= 3.5' )
-    all_requires.add( 'python3-qt5 >= 5.7' )
+    all_requires.add( 'python3-qt6 >= 5.7' )
     all_requires.add( 'subversion >= 1.9' )
     all_requires.add( 'python3-pysvn >= 1.9.2' )
     all_requires.add( 'git-core >= 2.7' )
     all_requires.add( 'python3-hglib >= 2.3' )
     all_requires.add( 'python3-GitPython >= 2.1.1' )
-    all_requires.add( 'python3-pytz >= 2016.6' )
-    all_requires.add( 'python3-qscintilla-qt5 >= 2.9' )
-    all_requires.add( 'python3-tzlocal >= 1.2' )
+    all_requires.add( 'python3-qscintilla-qt6 >= 2.9' )
     all_requires.add( 'python3-xml-preferences' )
 
     all_build_requires.add( 'python3' )
