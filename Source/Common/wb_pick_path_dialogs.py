@@ -58,7 +58,7 @@ def pickFolder( parent, orig_folder ):
             orig_folder = orig_folder.parent
 
     file_browser = QtWidgets.QFileDialog( parent )
-    file_browser.setFileMode( file_browser.Directory )
+    file_browser.setFileMode( file_browser.FileMode.Directory )
 
     #
     # When ShowDirsOnly is True QFileDialog show a number of
@@ -66,9 +66,9 @@ def pickFolder( parent, orig_folder ):
     # 1. folder double click edits folder name
     # 2. setDirectory does not work, always starts in $HOME
     #
-    file_browser.setOption( file_browser.ShowDirsOnly, False )
-    file_browser.setOption( file_browser.ReadOnly, True )
-    file_browser.setViewMode( file_browser.Detail )
+    file_browser.setOption( file_browser.Option.ShowDirsOnly, False )
+    file_browser.setOption( file_browser.Option.ReadOnly, True )
+    file_browser.setViewMode( file_browser.ViewMode.Detail )
     file_browser.setFilter( QtCore.QDir.Filter.Hidden | QtCore.QDir.Filter.Dirs )
 
     file_browser.setDirectory( str( folder ) )
