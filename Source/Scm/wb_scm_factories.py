@@ -36,11 +36,4 @@ def allScmFactories():
     except ImportError as e:
         all_messages.append( 'Subversion (svn) is not available - %s' % (e,) )
 
-    try:
-        import wb_p4_factory
-        all_factories.append( wb_p4_factory.WbP4Factory() )
-
-    except ImportError as e:
-        all_messages.append( 'Perforce (P4) is not available - %s' % (e,) )
-
     return all_factories, all_messages
