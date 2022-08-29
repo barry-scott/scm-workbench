@@ -27,7 +27,7 @@ if sys.platform.startswith( 'win' ):
     # these folders
     import PyQt6
     PyQt6_dir = os.path.dirname( PyQt6.__file__ )
-    for folder in (PyQt6_dir, os.path.join( PyQt6_dir, 'Qt5', 'bin' )):
+    for folder in (PyQt6_dir, os.path.join( PyQt6_dir, 'Qt6', 'bin' )):
         os.add_dll_directory( folder )
 
 import wb_main

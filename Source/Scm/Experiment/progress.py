@@ -46,6 +46,6 @@ def main():
     timer.timeout.connect( inc )
     timer.start()
 
-    app.exec_()
+    app.exec()
 
 main()

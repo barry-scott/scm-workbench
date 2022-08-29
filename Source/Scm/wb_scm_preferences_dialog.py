@@ -314,7 +314,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication( ['foo'] )
 
     prefs = WbScmPreferencesDialog( None, None )
-    if prefs.exec_():
+    if prefs.exec():
         print( 'o.k.' )
 
     else:

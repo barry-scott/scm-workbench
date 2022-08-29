@@ -106,8 +106,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
 
         else:
-            em = self.app.fontMetrics().width( 'm' )
-            ex = self.app.fontMetrics().lineSpacing()
+            em, ex = self.app.defaultFontEmEx( 'm' )
             self.resize( 100*em, 50*ex )
 
         # window major widgets
@@ -669,7 +668,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     #------------------------------------------------------------
     def appActionPreferences( self ):
         pref_dialog = wb_scm_preferences_dialog.WbScmPreferencesDialog( self.app, self )
-        if pref_dialog.exec_():
+        if pref_dialog.exec():
             pref_dialog.savePreferences()
             self.app.writePreferences()
 
@@ -703,7 +702,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                         scm_project_tree_node.project.projectName(),
                         scm_project_tree_node.relativePath(),
                         all_existing_menus )
-        if add.exec_():
+        if add.exec():
             prefs.addFavorite( wb_preferences.Favorite(
                         add.getMenu(),
                         scm_project_tree_node.project.projectPath(),
@@ -757,7 +756,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                         self.app, self,
                         favorite,
                         all_other_existing_menus )
-        if edit.exec_():
+        if edit.exec():
             prefs.renameFavorite( favorite.menu, edit.getMenu() )
             self.setupMenuFavorites()
             self.app.writePreferences()
@@ -796,7 +795,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
             '\n'.join( all_about_info ),
             QtWidgets.QMessageBox.StandardButton.Close,
             parent=self )
-        box.exec_()
+        box.exec()
 
     def errorMessage( self, title, message ):
         box = QtWidgets.QMessageBox(
@@ -805,7 +804,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                     message,
                     QtWidgets.QMessageBox.StandardButton.Close,
                     parent=self )
-        box.exec_()
+        box.exec()
 
     def closeEvent( self, event ):
         self.appActionClose( close=False )
@@ -845,7 +844,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     @thread_switcher
     def projectActionAdd_Bg( self, checked ):
         w = wb_scm_project_dialogs.WbScmAddProjectWizard( self.app )
-        if w.exec_():
+        if w.exec():
             ui_components = self.all_ui_components[ w.getScmType() ]
 
             if w.getAction() == w.action_init:
@@ -931,7 +930,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         prefs_project = self.app.prefs.getProject( old_project_name )
 
         dialog = self.app.getScmFactory( self.__ui_active_scm_type ).projectSettingsDialog( self.app, self, prefs_project, scm_project )
-        if dialog.exec_():
+        if dialog.exec():
             dialog.updateProject()
 
             self.app.writePreferences()
@@ -977,7 +976,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         global_pos = self.tree_view.viewport().mapToGlobal( pos )
 
         if self.__ui_active_scm_type is not None:
-            self.all_ui_components[ self.__ui_active_scm_type ].getTreeContextMenu().exec_( global_pos )
+            self.all_ui_components[ self.__ui_active_scm_type ].getTreeContextMenu().exec( global_pos )
 
     @thread_switcher
     def treeSelectionChanged_Bg( self, selected, deselected ):
@@ -1051,7 +1050,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
 
         if self.__ui_active_scm_type is not None:
-            self.all_ui_components[ self.__ui_active_scm_type ].getTableContextMenu().exec_( global_pos )
+            self.all_ui_components[ self.__ui_active_scm_type ].getTableContextMenu().exec( global_pos )
 
     def callTreeOrTableFunction( self, fn_tree, fn_table ):
         if self.focusIsIn() == 'tree':

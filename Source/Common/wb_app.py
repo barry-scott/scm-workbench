@@ -219,6 +219,12 @@ class WbApp(QtWidgets.QApplication):
     def switchToForeground( self, functions, args ):
         self.bg_work.switchToForeground( functions, args )
 
+    def runInForeground( self, function, args ):
+        self.bg_work.runInForeground( function, args )
+
+    def deferRunInForeground( self, functions ):
+        return self.bg_work.deferRunInForeground( functions )
+
     # perfs
     def isDarkMode( self ):
         if hasattr( self.prefs, 'projects_defaults' ):
@@ -236,6 +242,18 @@ class WbApp(QtWidgets.QApplication):
                 self.code_font = QtGui.QFont( wb_config.face, wb_config.point_size )
 
         return self.code_font
+
+    def defaultFontEmEx( self, char ):
+        metrics = QtGui.QFontMetrics( self.font() )
+        em = metrics.horizontalAdvance( char )
+        ex = metrics.lineSpacing()
+        return em, ex
+
+    def codeFontEmEx( self, char ):
+        metrics = QtGui.QFontMetrics( self.codeFont() )
+        em = metrics.horizontalAdvance( char )
+        ex = metrics.lineSpacing()
+        return em, ex
 
     def defaultFgBrush( self ):
         return self.palette().text()

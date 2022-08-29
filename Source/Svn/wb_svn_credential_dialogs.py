@@ -23,7 +23,7 @@ class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
 
         self.username = QtWidgets.QLineEdit( username )
         self.password = QtWidgets.QLineEdit()
-        self.password.setEchoMode( self.password.Password )
+        self.password.setEchoMode( self.password.EchoMode.Password )
         if not may_save:
             self.save_credentials = None
 
@@ -34,7 +34,7 @@ class WbSvnGetLoginDialog(wb_dialog_bases.WbDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.addRow( T_('Realm'), realm )
         self.addRow( T_('Username'), self.username, min_width=50*em )
@@ -67,7 +67,7 @@ class WbSvnSslServerTrustDialog(wb_dialog_bases.WbDialog):
         self.save_trust = QtWidgets.QCheckBox()
         self.save_trust.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.addRow( T_('Hostname'), trust_info['hostname'], min_width=50*em )
         self.addRow( T_('Finger Print'), trust_info['finger_print'] )

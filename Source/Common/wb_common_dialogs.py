@@ -31,7 +31,7 @@ class WbRenameFilenameDialog(wb_dialog_bases.WbDialog):
 
         self.ok_button.setEnabled( False )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
         self.addRow( T_('Name'), self.name, min_width=em*80 )
         self.addButtons()
 
@@ -66,7 +66,7 @@ class WbNewFolderDialog(wb_dialog_bases.WbDialog):
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
         self.addRow( T_('Folder Name'), self.name, min_width=em*60 )
         self.addButtons()
 
@@ -118,7 +118,7 @@ class WbErrorDialog(wb_dialog_bases.WbDialog):
         self.error_message.insertPlainText( error_message )
         self.setFont( self.app.codeFont() )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
         self.addRow( None, self.error_message, min_width=em*60 )
         self.addButtons()
 
@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
     rename = WbRenameFilenameDialog( None, None )
     rename.setName( 'fred.txt' )
-    if rename.exec_():
+    if rename.exec():
         print( rename.getName() )
 
     del rename

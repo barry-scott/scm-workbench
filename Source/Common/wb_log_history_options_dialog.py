@@ -60,21 +60,21 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
 
         self.until = QtWidgets.QCalendarWidget()
         self.until.setDateRange( today, the_past )
-        self.until.setHorizontalHeaderFormat( self.until.SingleLetterDayNames )
+        self.until.setHorizontalHeaderFormat( self.until.HorizontalHeaderFormat.SingleLetterDayNames )
         self.until.setGridVisible( True )
         self.until.setDateEditEnabled( True )
-        self.until.setVerticalHeaderFormat( self.until.NoVerticalHeader )
+        self.until.setVerticalHeaderFormat( self.until.VerticalHeaderFormat.NoVerticalHeader )
 
         self.since = QtWidgets.QCalendarWidget()
         self.since.setDateRange( today, the_past )
-        self.since.setHorizontalHeaderFormat( self.since.SingleLetterDayNames )
+        self.since.setHorizontalHeaderFormat( self.since.HorizontalHeaderFormat.SingleLetterDayNames )
         self.since.setGridVisible( True )
         self.since.setDateEditEnabled( True )
-        self.since.setVerticalHeaderFormat( self.since.NoVerticalHeader )
+        self.since.setVerticalHeaderFormat( self.since.VerticalHeaderFormat.NoVerticalHeader )
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Ok )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Cancel )
 
         self.buttons.accepted.connect( self.accept )
         self.buttons.rejected.connect( self.reject )
@@ -85,7 +85,7 @@ class WbLogHistoryOptions(QtWidgets.QDialog):
         row += 1
         if self.show_since_tag:
             layout.addWidget( self.show_since_tag,  row, 0, 1, 2 )
-            layout.addWidget( self.tag,         row, 2, 1, 4 )
+            layout.addWidget( self.tag,             row, 2, 1, 4 )
             row += 1
 
         layout.addWidget( self.show_only,   row, 0, 1, 6 )

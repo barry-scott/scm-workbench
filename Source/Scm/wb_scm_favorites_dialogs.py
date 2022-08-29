@@ -30,7 +30,7 @@ class WbFavoriteDialogBase(wb_dialog_bases.WbDialog):
 
         self.menuTextChanged( '' )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
         self.addRow( T_('Favorite project'), self.project_name, min_width=em*80 )
         self.addRow( T_('Favorite path'), self.favorite_path, min_width=em*80 )
         self.addRow( T_('Favorite menu'), self.menu, min_width=em*80 )

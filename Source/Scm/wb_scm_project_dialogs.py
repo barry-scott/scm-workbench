@@ -30,11 +30,11 @@ class WbScmAddProjectWizard(QtWidgets.QWizard):
         self.all_factories = app.all_factories
         super().__init__()
 
-        self.setWizardStyle( self.ClassicStyle )
+        self.setWizardStyle( self.WizardStyle.ClassicStyle )
 
         self.setWindowTitle( T_('Add Project Wizard - %s') % (' '.join( app.app_name_parts ),) )
 
-        em = self.app.fontMetrics().width( 'm' )
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.setMinimumWidth( 60*em )
 
         #------------------------------------------------------------
@@ -462,7 +462,7 @@ class PageAddProjectScanForExisting(PageAddProjectScmExistingBase):
 
         # QQQ maybe use a table to allow for SCM and PATH columns?
         self.wc_list = QtWidgets.QListWidget()
-        self.wc_list.setSelectionMode( self.wc_list.SingleSelection )
+        self.wc_list.setSelectionMode( self.wc_list.SelectionMode.SingleSelection )
         self.wc_list.setSortingEnabled( True )
         self.wc_list.itemSelectionChanged.connect( self.__selectionChanged )
 
@@ -728,7 +728,7 @@ class ProjectSettingsDialog(wb_dialog_bases.WbDialog):
         self.ok_button.setEnabled( False )
         self.name.textChanged.connect( self.enableOkButton )
 
-        em = self.app.fontMetrics().width( 'm' )
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.setMinimumWidth( 60*em )
 
     def scmSpecificCheckBoxLineEdit( self, initial_enable, initial_value, case_blind=False, strip=True, validator=None ):
@@ -784,7 +784,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication( ['foo'] )
 
     wiz = WbScmAddProjectWizard( None )
-    if wiz.exec_():
+    if wiz.exec():
         print( 'SCM', wiz.getScmType() )
         print( 'Action', wiz.getAction() )
         print( 'url', wiz.getScmUrl() )

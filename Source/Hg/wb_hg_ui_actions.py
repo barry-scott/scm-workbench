@@ -178,7 +178,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def _actionHgLogHistory_Bg( self, hg_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
-        if not options.exec_():
+        if not options.exec():
             return
 
         commit_log_view = self.factory.logHistoryView(
@@ -304,7 +304,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         if not self.__hg_credential_cache.hasCredentials( url ):
             dialog = wb_hg_credential_dialogs.WbHgGetLoginDialog( self.app, self.main_window, url, realm )
-            if not dialog.exec_():
+            if not dialog.exec():
                 return ''
 
             self.__hg_credential_cache.addCredentials( url, dialog.getUsername(), dialog.getPassword() )
@@ -436,7 +436,7 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def treeActionHgLogHistory_Bg( self, checked=None ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
-        if not options.exec_():
+        if not options.exec():
             return
 
         hg_project = self.selectedHgProject()

@@ -252,7 +252,7 @@ class GitMainWindowComponents(wb_ui_components.WbMainWindowComponents):
 
         cred = wb_git_credentials_dialog.WbGitCredentialsDialog( self.app, self.main_window )
         cred.setFields( url, url_parts.username )
-        if cred.exec_():
+        if cred.exec():
             if url_parts.username is None:
                 wb_git_project.setCallbackReply( 0, cred.getUsername() )
 

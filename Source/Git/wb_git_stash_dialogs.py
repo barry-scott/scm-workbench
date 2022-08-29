@@ -28,7 +28,7 @@ class WbGitStashSave(wb_dialog_bases.WbDialog):
 
         self.message = wb_dialog_bases.WbLineEdit( default_message )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
         self.addRow( T_('Save message'), self.message, min_width=em*50 )
         self.addButtons()
 
@@ -46,15 +46,15 @@ class WbGitStashPick(QtWidgets.QDialog):
         self.app = app
         self.stash_id = None
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
         self.resize( 70*em, 30*em )
 
         self.setWindowTitle( T_('Git Stash list - %s') % (' '.join( app.app_name_parts ),) )
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
+        self.ok_button = self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Ok )
         self.ok_button.setText( T_('Stash Pop') )
-        self.buttons.addButton( self.buttons.Cancel )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Cancel )
 
         self.stashes_table = wb_table_base.WbTableView(
                 self.app,
@@ -64,8 +64,8 @@ class WbGitStashPick(QtWidgets.QDialog):
         self.stashes_table.setSelectionChangedCallback( self.selectionChanged )
         self.stashes_table.loadRows( all_stashes )
 
-        self.stashes_table.setSelectionBehavior( self.stashes_table.SelectRows )
-        self.stashes_table.setSelectionMode( self.stashes_table.SingleSelection )
+        self.stashes_table.setSelectionBehavior( self.stashes_table.SelectionBehavior.SelectRows )
+        self.stashes_table.setSelectionMode( self.stashes_table.SelectionMode.SingleSelection )
 
         self.vert_layout = QtWidgets.QVBoxLayout()
 

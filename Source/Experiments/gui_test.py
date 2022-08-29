@@ -25,7 +25,7 @@ def main( argv ):
     app = QtWidgets.QApplication( argv )
     main_win = HelloWindow()
     main_win.show()
-    return app.exec_()
+    return app.exec()
 
 if __name__ == "__main__":
     sys.exit( main( sys.argv ) )

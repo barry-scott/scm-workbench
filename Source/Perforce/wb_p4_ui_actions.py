@@ -155,7 +155,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
         p4_project = self.selectedP4Project()
         username = os.environ['USER']
         dialog = wb_p4_credential_dialogs.WbP4GetLoginDialog( self.app, self.main_window, username )
-        if not dialog.exec_():
+        if not dialog.exec():
             return
 
         if p4_project.cmdLogin( username, dialog.getPassword() ):
@@ -179,7 +179,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
     def _actionP4LogHistory_Bg( self, p4_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
-        if not options.exec_():
+        if not options.exec():
             return
 
         change_log_view = self.factory.logHistoryView(
@@ -436,7 +436,7 @@ class P4MainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
-        if not options.exec_():
+        if not options.exec():
             return
 
         p4_project = self.selectedP4Project()

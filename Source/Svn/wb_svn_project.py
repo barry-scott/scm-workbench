@@ -547,7 +547,7 @@ class SvnProject:
                       ,pysvn.wc_notify_action.commit_deleted
                       ,pysvn.wc_notify_action.commit_replaced
                       ,pysvn.wc_notify_action.annotate_revision):
-            self.app.runInForeground( self.app.top_window.progress.incEventCount, () )
+            self.app.switchToForeground( self.app.top_window.progress.incEventCount, () )
             return
 
         if action == pysvn.wc_notify_action.failed_lock:

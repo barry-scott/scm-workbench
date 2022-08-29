@@ -45,8 +45,7 @@ class WbGitStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         self.setLayout( self.layout )
 
-        em = self.app.fontMetrics().width( 'm' )
-        ex = self.app.fontMetrics().lineSpacing()
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.resize( 100*em, 50*ex )
 
     def setStatus( self, all_unpushed_commits, all_staged_files, all_untracked_files ):

@@ -39,8 +39,7 @@ class DiffSideBySideView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
             self.restoreGeometry( QtCore.QByteArray.fromHex( geometry ) )
 
         else:
-            em = self.app.fontMetrics().width( 'm' )
-            ex = self.app.fontMetrics().lineSpacing()
+            em, ex = self.app.defaultFontEmEx( 'm' )
             self.resize( 130*em, 45*ex )
 
         self.setupToolBar()
@@ -383,7 +382,7 @@ class DiffBodyText(wb_scintilla.WbScintilla):
         self.setProperty( 'fold', '1' )
         self.diff_line_numbers.setProperty( 'fold', '1' )
 
-        self.setMarginType( self.fold_margin, self.SC_MARGIN_SYMBOL )
+        self.setMarginType( self.fold_margin, self.MarginType.SymbolMargin )
         self.setMarginMask( self.fold_margin, self.SC_MASK_FOLDERS )
         self.setMarginSensitive( self.fold_margin, True )
         self.setMarginWidth( self.fold_margin, 15 )
@@ -497,9 +496,8 @@ class DiffLineNumbers(wb_scintilla.WbScintilla):
                 'fore:%s,back:%s' % (app.defaultFgRgb(), '#0d0d0d') )
 
         # Calculate space for 6 digits
-        fontmetrics = QtGui.QFontMetrics( app.codeFont() )
-
-        width = fontmetrics.width( '123456' )
+        metrics = QtGui.QFontMetrics( app.codeFont() )
+        width = metrics.horizontalAdvance( '123456' )
 
         self.setScrollWidth( width )
         self.setMaximumWidth( width )

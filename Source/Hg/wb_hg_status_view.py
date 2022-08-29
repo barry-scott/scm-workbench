@@ -51,8 +51,7 @@ class WbHgStatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         self.setLayout( self.layout )
 
-        em = self.app.fontMetrics().width( 'm' )
-        ex = self.app.fontMetrics().lineSpacing()
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.resize( 100*em, 50*ex )
 
     def setStatus( self, all_outgoing_commits, all_incoming_commits, all_modified_files, all_untracked_files ):

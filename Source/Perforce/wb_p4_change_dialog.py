@@ -144,8 +144,8 @@ class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
         self.v_message_widget.setLayout( self.v_message_layout )
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
+        self.ok_button = self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Ok )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Cancel )
 
         # ----------------------------------------
         self.v_split = QtWidgets.QSplitter()
@@ -164,8 +164,7 @@ class WbP4ChangeDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracked
 
         self.setCentralWidget( self.widget )
 
-        em = self.app.fontMetrics().width( 'm' )
-        ex = self.app.fontMetrics().lineSpacing()
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.resize( 100*em, 50*ex )
 
         self.ok_button.setEnabled( False )

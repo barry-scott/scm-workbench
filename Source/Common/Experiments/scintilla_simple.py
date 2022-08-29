@@ -37,4 +37,4 @@ scintilla.resize( 400, 300 )
 scintilla.setReadOnly( True )
 
 scintilla.show()
-app.exec_()
+app.exec()

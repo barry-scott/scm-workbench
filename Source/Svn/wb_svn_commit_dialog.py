@@ -130,8 +130,8 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
         self.v_message_widget.setLayout( self.v_message_layout )
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
+        self.ok_button = self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Ok )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Cancel )
 
         # ----------------------------------------
         self.v_split = QtWidgets.QSplitter()
@@ -150,8 +150,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
 
         self.setCentralWidget( self.widget )
 
-        em = self.app.fontMetrics().width( 'm' )
-        ex = self.app.fontMetrics().lineSpacing()
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.resize( 100*em, 50*ex )
 
         self.ok_button.setEnabled( False )
@@ -222,7 +221,7 @@ class WbSvnCommitDialog(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTracke
     def tableContextMenu( self, global_pos ):
         self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
 
-        self.ui_component.getTableContextMenu().exec_( global_pos )
+        self.ui_component.getTableContextMenu().exec( global_pos )
 
     def closeEvent( self, event ):
         super().closeEvent( event )

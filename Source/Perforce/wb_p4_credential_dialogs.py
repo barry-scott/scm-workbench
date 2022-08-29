@@ -25,7 +25,7 @@ class WbP4GetLoginDialog(wb_dialog_bases.WbDialog):
 
         self.password.textChanged.connect( self.passwordTextChanged )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.addRow( T_('Username'), username, min_width=50*em )
         self.addRow( T_('Password'), self.password )

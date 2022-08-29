@@ -100,7 +100,7 @@ class WbLockFileDialog(wb_dialog_bases.WbDialog):
         self.force = QtWidgets.QCheckBox( T_('force files to be locked') )
         self.force.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.addNamedDivider( 'Files to Lock' )
         self.addRow( None, self.details, min_width=60*em )
@@ -130,7 +130,7 @@ class WbUnlockFileDialog(wb_dialog_bases.WbDialog):
         self.force = QtWidgets.QCheckBox( T_('force files to be unlocked') )
         self.force.setCheckState( QtCore.Qt.CheckState.Unchecked )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.addNamedDivider( 'Files to Unlock' )
         self.addRow( None, self.details, min_width=60*em )

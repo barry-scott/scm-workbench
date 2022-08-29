@@ -102,12 +102,13 @@ class WbP4LogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         #----------------------------------------
         self.log_table = WbLogTableView( self )
-        self.log_table.setSelectionBehavior( self.log_table.SelectRows )
-        self.log_table.setSelectionMode( self.log_table.ExtendedSelection )
+        self.log_table.setSelectionBehavior( self.log_table.SelectionBehavior.SelectRows )
+        self.log_table.setSelectionMode( self.log_table.SelectionMode.ExtendedSelection )
         self.log_table.setModel( self.log_model )
 
+        em, ex = self.app.defaultFontEmEx( 'm' )
+
         # size columns
-        em = self.app.fontMetrics().width( 'm' )
         self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
         self.log_table.setColumnWidth( self.log_model.col_date, em*20 )
         self.log_table.setColumnWidth( self.log_model.col_tag, em*5 )
@@ -126,8 +127,8 @@ class WbP4LogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         #----------------------------------------
         self.changes_table = WbChangesTableView( self )
-        self.changes_table.setSelectionBehavior( self.changes_table.SelectRows )
-        self.changes_table.setSelectionMode( self.changes_table.SingleSelection )
+        self.changes_table.setSelectionBehavior( self.changes_table.SelectionBehavior.SelectRows )
+        self.changes_table.setSelectionMode( self.changes_table.SelectionMode.SingleSelection )
         self.changes_table.setModel( self.changes_model )
 
         # size columns
@@ -167,7 +168,6 @@ class WbP4LogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrack
 
         self.setCentralWidget( self.v_split )
 
-        ex = self.app.fontMetrics().lineSpacing()
         self.resize( 70*em, 40*ex )
 
         self.ui_component.setTopWindow( self.app.top_window )
@@ -294,7 +294,7 @@ class WbLogTableView(wb_table_view.WbTableView):
     def tableContextMenu( self, global_pos ):
         self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
 
-        self.main_window.ui_component.getTableContextMenu().exec_( global_pos )
+        self.main_window.ui_component.getTableContextMenu().exec( global_pos )
 
 
 class WbP4LogHistoryModel(QtCore.QAbstractTableModel):
@@ -430,7 +430,7 @@ class WbChangesTableView(wb_table_view.WbTableView):
     def tableContextMenu( self, global_pos ):
         self.debugLog( 'tableContextMenu( %r )' % (global_pos,) )
 
-        self.main_window.ui_component.getChangedFilesContextMenu().exec_( global_pos )
+        self.main_window.ui_component.getChangedFilesContextMenu().exec( global_pos )
 
 class WbP4ChangedFilesModel(QtCore.QAbstractTableModel):
     col_action = 0

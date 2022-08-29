@@ -85,7 +85,7 @@ class WbTableView(wb_table_view.WbTableView):
         self.setModel( self.model )
 
         # size columns
-        em = self.fontMetrics().width( 'm' )
+        em = self.fontMetrics().horizontalAdvance( 'm' )
 
         for index in range( self.view_model_map.numColumns() ):
             self.setColumnWidth( index, em*self.view_model_map.emWidth( index ) )

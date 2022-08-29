@@ -99,7 +99,7 @@ class WbTagNameDialog(wb_dialog_bases.WbDialog):
         self.name = QtWidgets.QLineEdit()
         self.name.textChanged.connect( self.nameTextChanged )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
         self.addRow( T_('Tag Name'), self.name, min_width=50*em )
         self.addButtons()
         self.ok_button.setEnabled( False )
@@ -120,7 +120,7 @@ class WbRebaseConfirmDialog(wb_dialog_bases.WbDialog):
 
         self.setWindowTitle( title )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.rebase_details = QtWidgets.QPlainTextEdit()
         self.rebase_details.setReadOnly( True )
@@ -186,12 +186,14 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         #----------------------------------------
         self.log_table = WbLogTableView( self )
-        self.log_table.setSelectionBehavior( self.log_table.SelectRows )
-        self.log_table.setSelectionMode( self.log_table.ExtendedSelection )
+        self.log_table.setSelectionBehavior( self.log_table.SelectionBehavior.SelectRows )
+        self.log_table.setSelectionMode( self.log_table.SelectionMode.ExtendedSelection )
         self.log_table.setModel( self.log_model )
 
+        em = self.log_table.fontMetrics().horizontalAdvance( 'm' )
+        ex = self.log_table.fontMetrics().lineSpacing()
+
         # size columns
-        em = self.log_table.fontMetrics().width( 'm' )
         self.log_table.setColumnWidth( self.log_model.col_author, em*16 )
         self.log_table.setColumnWidth( self.log_model.col_date, em*20 )
         self.log_table.setColumnWidth( self.log_model.col_tag, em*5 )
@@ -210,12 +212,12 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         #----------------------------------------
         self.changes_table = WbChangesTableView( self )
-        self.changes_table.setSelectionBehavior( self.changes_table.SelectRows )
-        self.changes_table.setSelectionMode( self.changes_table.SingleSelection )
+        self.changes_table.setSelectionBehavior( self.changes_table.SelectionBehavior.SelectRows )
+        self.changes_table.setSelectionMode( self.changes_table.SelectionMode.SingleSelection )
         self.changes_table.setModel( self.changes_model )
 
         # size columns
-        em = self.changes_table.fontMetrics().width( 'm' )
+        em = self.changes_table.fontMetrics().horizontalAdvance( 'm' )
         self.changes_table.setColumnWidth( self.changes_model.col_action, em*6 )
         self.changes_table.setColumnWidth( self.changes_model.col_path, em*60 )
         self.changes_table.setColumnWidth( self.changes_model.col_copyfrom, em*60 )
@@ -252,7 +254,6 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
 
         self.setCentralWidget( self.v_split )
 
-        ex = self.app.fontMetrics().lineSpacing()
         self.resize( 90*em, 40*ex )
 
         self.ui_component.setTopWindow( self.app.top_window )
@@ -296,7 +297,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
         node = self.log_model.commitNode( self.current_commit_selections[0] )
 
         dialog = WbTagNameDialog( self.app, self, self.git_project )
-        if dialog.exec_():
+        if dialog.exec():
             tag_name = dialog.getTagName()
             self.app.log.infoheader( 'Create tag %s for %s' % (tag_name, node.commitIdString()) )
             self.git_project.cmdCreateTag( tag_name, node.commitIdString() )
@@ -352,7 +353,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                 self.app, self,
                 T_('Rebase failed'),
                 '\n'.join( stderr ) )
-            dialog.exec_()
+            dialog.exec()
             return
 
         # reload the commit history to pick up the rebase changes
@@ -422,7 +423,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                     T_('Rebase Squash commits'),
                     all_rebase_commands,
                     '\n'.join( all_commit_text ) )
-        if dialog.exec_():
+        if dialog.exec():
             commit_message = dialog.commitMessage()
             commit_id = self.log_model.commitNode( last_to_squash ).commitIdString()
 
@@ -460,7 +461,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                     self.app, self,
                     T_('Rebase Reword commit message'),
                     all_rebase_commands, commit_message )
-        if dialog.exec_():
+        if dialog.exec():
             commit_message = dialog.commitMessage()
             commit_id = self.log_model.commitNode( reword_row ).commitIdString()
 
@@ -497,7 +498,7 @@ class WbGitLogHistoryView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrac
                     self.app, self,
                     T_('Rebase Drop commits'),
                     all_rebase_commands )
-        if dialog.exec_():
+        if dialog.exec():
             all_rebase_commands.reverse()
 
             commit_id = self.log_model.commitNode( last_drop_row ).commitIdString()
@@ -604,7 +605,7 @@ class WbLogTableView(wb_table_view.WbTableView):
         self.debugLog( 'tableContextMenu( %r )' % (pos,) )
         global_pos = self.viewport().mapToGlobal( pos )
 
-        self.main_window.ui_component.getTableContextMenu().exec_( global_pos )
+        self.main_window.ui_component.getTableContextMenu().exec( global_pos )
 
 
 class WbGitLogHistoryModel(QtCore.QAbstractTableModel):
@@ -756,7 +757,7 @@ class WbChangesTableView(wb_table_view.WbTableView):
         self.debugLog( 'tableContextMenu( %r )' % (pos,) )
         global_pos = self.viewport().mapToGlobal( pos )
 
-        self.main_window.ui_component.getChangedFilesContextMenu().exec_( global_pos )
+        self.main_window.ui_component.getChangedFilesContextMenu().exec( global_pos )
 
 class WbGitChangedFilesModel(QtCore.QAbstractTableModel):
     col_action = 0

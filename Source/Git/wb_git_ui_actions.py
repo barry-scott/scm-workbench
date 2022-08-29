@@ -444,7 +444,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                                 'date': head_commit.committed_datetime.strftime( '%a %d %b %H:%M:%S %z %Y' )}
 
         stash_save = wb_git_stash_dialogs.WbGitStashSave( self.app, self.main_window, default_message )
-        if stash_save.exec_():
+        if stash_save.exec():
             git_project.cmdStashSave( stash_save.getMessage() )
 
             # take account of the change
@@ -458,7 +458,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         all_stashes = git_project.cmdStashList()
 
         pick_stash = wb_git_stash_dialogs.WbGitStashPick( self.app, self.main_window, all_stashes )
-        if pick_stash.exec_():
+        if pick_stash.exec():
             self.log.infoheader( 'Git stash apply %s' % (pick_stash.getStashId(),) )
             git_project.cmdStashPop( pick_stash.getStashId() )
 
@@ -526,7 +526,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def _actionGitLogHistory_Bg( self, git_project, filename ):
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, None, self.main_window )
 
-        if not options.exec_():
+        if not options.exec():
             return
 
         commit_log_view = self.factory.logHistoryView(
@@ -572,7 +572,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
         rename.setName( filename.name )
 
-        if rename.exec_():
+        if rename.exec():
             # handles rename for controlled and uncontrolled files
             git_project.cmdRename( filename, filename.with_name( rename.getName() ) )
 
@@ -662,7 +662,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, all_tags, self.main_window )
 
-        if not options.exec_():
+        if not options.exec():
             return
 
         commit_log_view = self.factory.logHistoryView(

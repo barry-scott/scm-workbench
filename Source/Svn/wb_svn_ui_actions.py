@@ -123,7 +123,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         options = wb_log_history_options_dialog.WbLogHistoryOptions( self.app, all_tags, self.main_window )
         # as soon as possible del options to attemtp to avoid XCB errors
-        if not options.exec_():
+        if not options.exec():
             return
 
         self.setStatusAction( T_('Log for %(filename)s') %
@@ -256,7 +256,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         dialog = wb_svn_dialogs.WbAddFolderDialog( self.app, self.main_window, tree_node.relativePath() )
-        if dialog.exec_():
+        if dialog.exec():
             try:
                 tree_node.project.cmdAdd( tree_node.relativePath(), depth=dialog.getDepth(), force=dialog.getForce() )
 
@@ -272,7 +272,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         dialog = wb_svn_dialogs.WbRevertFolderDialog( self.app, self.main_window, tree_node.absolutePath() )
-        if dialog.exec_():
+        if dialog.exec():
             try:
                 tree_node.project.cmdRevert( tree_node.relativePath(), depth=dialog.getDepth() )
 
@@ -288,7 +288,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         dialog = wb_common_dialogs.WbNewFolderDialog( self.app, self.main_window, tree_node.absolutePath() )
-        if dialog.exec_():
+        if dialog.exec():
             try:
                 tree_node.project.cmdMkdir( tree_node.relativePath() / dialog.getFolderName() )
 
@@ -310,7 +310,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, tree_node.relativePath(), tree_node.absolutePath(), info )
-        dialog.exec_()
+        dialog.exec()
 
     @thread_switcher
     def treeActionSvnProperties_Bg( self, checked=None ):
@@ -323,7 +323,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         prop_dict = svn_project.cmdPropList( filename )
 
         dialog = wb_svn_properties_dialog.FolderPropertiesDialog( self.app, self.main_window, filename, prop_dict )
-        if dialog.exec_():
+        if dialog.exec():
             for is_present, name, value in dialog.getModifiedProperties():
                 try:
                     if not is_present:
@@ -433,7 +433,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                                 (files_in_conflict,),
                         QtWidgets.QMessageBox.StandardButton.Close,
                         parent=self.top_window )
-                box.exec_()
+                box.exec()
 
     def treeActionSvnStatus( self ):
         self.log.info( 'Not implemented yet' )
@@ -560,7 +560,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 return
 
             dialog = wb_svn_info_dialog.InfoDialog( self.app, self.main_window, filename, svn_project.pathForSvn( filename ), info )
-            dialog.exec_()
+            dialog.exec()
 
         yield from self._tableActionSvnCmd_Bg( execute_function )
 
@@ -575,7 +575,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 return
 
             dialog = wb_svn_properties_dialog.FilePropertiesDialog( self.app, self.main_window, filename, prop_dict )
-            if dialog.exec_():
+            if dialog.exec():
                 for is_present, name, value in dialog.getModifiedProperties():
                     try:
                         if not is_present:
@@ -646,7 +646,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         def are_you_sure( all_filenames ):
             dialog.setAllFilenames( all_filenames )
-            return dialog.exec_()
+            return dialog.exec()
 
         yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
 
@@ -664,7 +664,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
 
         def are_you_sure( all_filenames ):
             dialog.setAllFilenames( all_filenames )
-            return dialog.exec_()
+            return dialog.exec()
 
         yield from self._tableActionSvnCmd_Bg( execute_function, are_you_sure )
 
@@ -699,7 +699,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             rename = wb_common_dialogs.WbRenameFilenameDialog( self.app, self.main_window )
             rename.setName( filename.name )
 
-            if rename.exec_():
+            if rename.exec():
                 try:
                     # handles rename for controlled and uncontrolled files
                     svn_project.cmdRename( filename, filename.with_name( rename.getName() ) )

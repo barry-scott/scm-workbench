@@ -46,13 +46,13 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
 
         #----------------------------------------
         self.annotate_table = WbAnnotateTableView( self )
-        self.annotate_table.setSelectionBehavior( self.annotate_table.SelectRows )
+        self.annotate_table.setSelectionBehavior( self.annotate_table.SelectionBehavior.SelectRows )
         self.annotate_table.setAutoScroll( False )
 
         self.annotate_table.setModel( self.annotate_model )
 
         # size columns
-        em = self.fontMetrics().width( 'm' )
+        em = self.fontMetrics().horizontalAdvance( 'm' )
         self.annotate_table.setColumnWidth( self.annotate_model.col_revision, em*5 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_author, em*10 )
         self.annotate_table.setColumnWidth( self.annotate_model.col_date, em*20 )
@@ -80,8 +80,7 @@ class WbAnnotateView(wb_main_window.WbMainWindow, wb_tracked_qwidget.WbTrackedMo
 
         self.setCentralWidget( self.v_split )
 
-        em = self.app.fontMetrics().width( 'm' )
-        ex = self.app.fontMetrics().lineSpacing()
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.resize( 100*em, 45*ex )
 
         self.ui_component.setTopWindow( self.app.top_window )

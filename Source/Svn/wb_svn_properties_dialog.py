@@ -21,7 +21,7 @@ def warningMessage( name ):
             T_('Enter a value for %s') % (name,),
             QtWidgets.QMessageBox.StandardButton.Close,
             parent=None )
-    box.exec_()
+    box.exec()
 
 
 class SingleProperty:
@@ -159,8 +159,8 @@ class PropertiesDialogBase(QtWidgets.QDialog):
         self.addRow( self.new_name_ctrl, self.new_value_ctrl )
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Ok )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Cancel )
 
         self.buttons.accepted.connect( self.accept )
         self.buttons.rejected.connect( self.reject )

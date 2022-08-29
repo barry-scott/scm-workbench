@@ -207,7 +207,6 @@ class WbScmTableModel(QtCore.QAbstractTableModel):
         QtCore.Qt.ItemDataRole.ForegroundRole: 'ForegroundRole',
         }
     def data( self, index, role ):
-        print('QQQ WbScmTableModel.data() role %r' % (role,))
         result = self.data_( index, role )
         if role in self.role_to_name:
             if isinstance( result, QtGui.QBrush ):

@@ -21,9 +21,9 @@ class WbDialog(QtWidgets.QDialog):
         super().__init__( parent )
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
+        self.ok_button = self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Ok )
         if cancel:
-            self.buttons.addButton( self.buttons.Cancel )
+            self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Cancel )
 
         self.buttons.accepted.connect( self.accept )
         self.buttons.rejected.connect( self.reject )
@@ -68,8 +68,8 @@ class WbTabbedDialog(QtWidgets.QDialog):
         self.tabs = QtWidgets.QTabWidget()
 
         self.buttons = QtWidgets.QDialogButtonBox()
-        self.ok_button = self.buttons.addButton( self.buttons.Ok )
-        self.buttons.addButton( self.buttons.Cancel )
+        self.ok_button = self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Ok )
+        self.buttons.addButton( QtWidgets.QDialogButtonBox.StandardButton.Cancel )
 
         self.buttons.accepted.connect( self.accept )
         self.buttons.rejected.connect( self.reject )
@@ -84,8 +84,7 @@ class WbTabbedDialog(QtWidgets.QDialog):
         self.setLayout( self.layout )
 
         if size is not None:
-            em = self.app.fontMetrics().width( 'm' )
-            ex = self.app.fontMetrics().lineSpacing()
+            em, ex = self.app.defaultFontEmEx( 'm' )
             self.resize( size[0]*em, size[1]*ex )
 
     def completeTabsInit( self ):

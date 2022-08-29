@@ -35,7 +35,7 @@ def pickExecutable( parent, executable ):
     else:
         file_browser.setDirectory( str(wb_platform_specific.getDefaultExecutableFolder()) )
 
-    if file_browser.exec_():
+    if file_browser.exec():
         all_files = file_browser.selectedFiles()
         assert len(all_files) == 1
         return all_files[0]
@@ -74,7 +74,7 @@ def pickFolder( parent, orig_folder ):
     file_browser.setDirectory( str( folder ) )
     file_browser.selectFile( str( orig_folder ) )
 
-    if file_browser.exec_():
+    if file_browser.exec():
         all_directories = file_browser.selectedFiles()
         assert len(all_directories) == 1
         return pathlib.Path( all_directories[0] )

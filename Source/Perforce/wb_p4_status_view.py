@@ -66,8 +66,7 @@ class WbP4StatusView(wb_tracked_qwidget.WbTrackedModelessQWidget):
 
         self.setLayout( self.layout )
 
-        em = self.app.fontMetrics().width( 'm' )
-        ex = self.app.fontMetrics().lineSpacing()
+        em, ex = self.app.defaultFontEmEx( 'm' )
         self.resize( 100*em, 50*ex )
 
     def changeListChanged( self, change ):

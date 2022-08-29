@@ -27,7 +27,7 @@ class WbHgGetLoginDialog(wb_dialog_bases.WbDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.addRow( T_('URL'), url )
         self.addRow( T_('Realm'), realm )

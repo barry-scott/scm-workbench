@@ -209,7 +209,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def svnGetLogin( self, realm, username, may_save ):
         # used as a pysvn callback for callback_get_login
         dialog = wb_svn_credential_dialogs.WbSvnGetLoginDialog( self.app, self.app.top_window, realm, username, may_save )
-        if dialog.exec_():
+        if dialog.exec():
             return  (True
                     ,dialog.getUsername()
                     ,dialog.getPassword()
@@ -224,7 +224,7 @@ class SvnMainWindowComponents(wb_ui_components.WbMainWindowComponents):
     def svnSslServerTrustPrompt( self, trust_info ):
         # used as a pysvn callback for callback_ssl_server_trust_prompt
         dialog = wb_svn_credential_dialogs.WbSvnSslServerTrustDialog( self.app.top_window, trust_info )
-        if dialog.exec_():
+        if dialog.exec():
             # Trust, save
             return  (True
                     ,trust_info[ 'failures' ]

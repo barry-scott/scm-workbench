@@ -30,7 +30,7 @@ class WbGitCredentialsDialog(wb_dialog_bases.WbDialog):
         self.username.textChanged.connect( self.nameTextChanged )
         self.password.textChanged.connect( self.nameTextChanged )
 
-        em = self.fontMetrics().width( 'M' )
+        em = self.fontMetrics().horizontalAdvance( 'M' )
 
         self.addRow( T_('URL'), self.url )
         self.addRow( T_('Username'), self.username, min_width=50*em )
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     cred = WbGitCredentialsDialog( None, None )
     cred.setFields( 'http://fred.com/foo', 'bob' )
-    if cred.exec_():
+    if cred.exec():
         print( cred.getUsername() )
         print( cred.getPassword() )
 
