@@ -13,7 +13,7 @@
 from typing import List
 import pathlib
 import sys
-import pytz
+import zoneinfo
 
 import wb_background_thread
 import wb_annotate_node
@@ -569,7 +569,7 @@ class WbHgLogBasic:
         self.branch =   data.branch.decode('utf-8')
         self.author =   data.author.decode('utf-8')
         self.message =  data.desc.decode('utf-8')
-        self.date =     data.date.replace( tzinfo=pytz.utc )
+        self.date =     data.date.replace( tzinfo=zoneinfo.ZoneInfo('UTC') )
 
     def commitMessage( self ):
         return self.message
