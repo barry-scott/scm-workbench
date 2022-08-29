@@ -62,11 +62,16 @@ def getElementText( element ):
     return ''.join( text )
 
 def unittest( argv ):
+    import zoneinfo
+    import datetime
+
     all_packages = listRepo( argv[1] )
 
     for name in sorted( all_packages.keys() ):
-        ver, rel = all_packages[ name ]
-        print( '%s: %s-%s' % (name, ver, rel) )
+        ver, rel, ts = all_packages[ name ]
+        dt = datetime.datetime.fromtimestamp( ts, zoneinfo.ZoneInfo('UTC') )
+        ver_rel = '%s-%s' % (ver, rel)
+        print( '%-30s %-20s built %s' % (name, ver_rel, dt) )
 
     return 0
 
