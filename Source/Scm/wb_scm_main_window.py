@@ -780,7 +780,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
                                 ,sys.version_info.micro
                                 ,sys.version_info.releaselevel
                                 ,sys.version_info.serial) )
-        all_about_info.append( 'PyQt %s, Qt %s' % (Qt.PYQT_VERSION_STR, QtCore.QT_VERSION_STR) )
+        all_about_info.append( 'PyQt %s, Qt %s' % (QtCore.PYQT_VERSION_STR, QtCore.QT_VERSION_STR) )
 
         for scm_type in self.all_ui_components:
             all_about_info.append( '' )
