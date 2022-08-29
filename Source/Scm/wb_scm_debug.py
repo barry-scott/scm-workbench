@@ -27,13 +27,9 @@ class WbScmDebug(wb_debug.WbDebug):
         self.debugLogSvnProject = self.addDebugOption( 'SVN PROJECT' )
         self.debugLogSvnUpdateTree = self.addDebugOption( 'SVN TREE' )
 
-        self.debugLogP4Project = self.addDebugOption( 'P4 PROJECT' )
-        self.debugLogP4UpdateTree = self.addDebugOption( 'P4 TREE' )
-
         self.debugLogGitUi = self.addDebugOption( 'GIT UI' )
         self.debugLogHgUi = self.addDebugOption( 'HG UI' )
         self.debugLogSvnUi = self.addDebugOption( 'SVN UI' )
-        self.debugLogP4Ui = self.addDebugOption( 'P4 UI' )
 
         self.debugLogLogHistory = self.addDebugOption( 'LOG HISTORY' )
         self.debugLogAnnotate = self.addDebugOption( 'ANNOTATE' )
