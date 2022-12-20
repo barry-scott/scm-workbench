@@ -243,7 +243,7 @@ class BuildScmWorkbench(object):
 
         elif self.platform == 'win64':
             run( ('build-windows.cmd'
-                 ,setl.opt_appmode
+                 ,self.opt_appmode
                  ,str(self.INSTALL_BIN_DIR)
                  ,self.wb_version_info.get('version'))
                  ,cwd=r'..\Source' )
