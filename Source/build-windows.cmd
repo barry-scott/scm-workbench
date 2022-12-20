@@ -24,6 +24,10 @@ rem so that python DLLs can be found
 for %%i in (%PYTHON%) do set PATH=%%~di%%~pi;%PATH%
 
 set APPMODE=--gui
+if "%1" == "--gui" (
+    set APPMODE=--gui
+    shift
+)
 if "%1" == "--cli" (
     set APPMODE=--cli
     shift

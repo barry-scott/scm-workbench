@@ -32,6 +32,7 @@ class BuildScmWorkbench(object):
         self.opt_colour = False
         self.opt_verbose = False
         self.opt_vcredist = None
+        self.opt_appmode = '--gui'
         self.opt_prefix = Path( '/usr' )
 
         self.wb_version_info = {}
@@ -69,6 +70,9 @@ class BuildScmWorkbench(object):
 
                     elif arg == '--colour':
                         self.opt_colour = True
+
+                    elif arg == '--cli':
+                        self.opt_appmode = '--cli'
 
                     elif arg.startswith( '--vcredist=' ):
                         self.opt_vcredist = arg[len('--vcredist='):]
@@ -239,6 +243,7 @@ class BuildScmWorkbench(object):
 
         elif self.platform == 'win64':
             run( ('build-windows.cmd'
+                 ,setl.opt_appmode
                  ,str(self.INSTALL_BIN_DIR)
                  ,self.wb_version_info.get('version'))
                  ,cwd=r'..\Source' )

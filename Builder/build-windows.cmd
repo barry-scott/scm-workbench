@@ -18,10 +18,19 @@ if exist tmp rmdir /s /q tmp
 mkdir tmp
 mkdir tmp\app
 
-if not "%1" == "--no-venv"  call build-venv.cmd windows
+if "%1" == "--no-venv" (
+    shift
+) else (
+    call build-venv.cmd windows
+)
 
 set VPYTHON=%CD%\venv.tmp\Scripts\python.exe
-if "%1" == "--enable-debug" set BUILD_OPT=--enable-debug
+
+if "%1" == "--cli" (
+    set BUILD_OPT=--cli
+    shift
+)
+
 %VPYTHON% build_scm_workbench.py --colour --vcredist=k:\subversion %BUILD_OPT% 2>&1 | "%PYTHON%" -u build_tee.py build.log
 
 if "%1" == "--install" for %%f in (tmp\scm-workbench-*-setup.exe) do start /wait %%f

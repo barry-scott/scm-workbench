@@ -5,7 +5,7 @@ rem builder_custom_init
 
 set BUILDER_CFG_PLATFORM=Win64
 set BUILDER_CFG_BUILD_TYPE=Release
-set PYTHON_VERSION=3.10
+set PYTHON_VERSION=3.11
 
 py -%PYTHON_VERSION%-64 -c "import sys;print('set PYTHON=' + sys.executable)" >%TEMP%\__tmp__.cmd
 call %TEMP%\__tmp__.cmd
