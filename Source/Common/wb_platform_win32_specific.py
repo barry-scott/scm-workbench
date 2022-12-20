@@ -115,14 +115,13 @@ def getTimezoneName():
 
     key = r'SYSTEM\CurrentControlSet\Control\TimeZoneInformation'
     tz_key = winreg.OpenKey( h, key )
-    keyvalues = valuestodict( tz_key )
-    tz_key.Close()
 
     tz_info = {}
     for index in range( winreg.QueryInfoKey( tz_key )[1] ):
-        key, value = winreg.EnumValue( tz_key, index )
-
+        key, value, _ = winreg.EnumValue( tz_key, index )
         tz_info[ key ] = value
+
+    tz_key.Close()
 
     try:
         windows_tz_name = tz_info[ 'TimeZoneKeyName' ]
