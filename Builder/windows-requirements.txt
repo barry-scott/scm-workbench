@@ -14,10 +14,10 @@ colour-text
 # get pysvn from https://sourceforge.net/projects/pysvn/
 # pysvn>1.9.3 with svn>1.9 support
 
-GitPython>=2.1.8
-python-hglib>=2.2
+GitPython
+python-hglib
 PyQt6
-QScintilla>=2.11.1
-pytz>=2016.7
-tzlocal>=1.2.2
-xml-preferences>=1.1.2
+PyQt6-QScintilla
+pytz
+tzlocal
+xml-preferences
