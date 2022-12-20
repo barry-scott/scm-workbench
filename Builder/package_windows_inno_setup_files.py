@@ -53,7 +53,7 @@ class InnoSetup:
                 r'''AppName=%(APP_NAME)s''' % self.wb_version_info,
                 r'''AppVerName=SCM Workbench %(major)s.%(minor)s.%(patch)s''' % self.wb_version_info,
                 r'''AppCopyright=Copyright (C) %(copyright_years)s Barry A. Scott''' % self.wb_version_info,
-                r'''DefaultDirName={pf}\Barry Scott\%(APP_NAME)s''' % self.wb_version_info,
+                r'''DefaultDirName={commonpf}\Barry Scott\%(APP_NAME)s''' % self.wb_version_info,
                 r'''DefaultGroupName=%(APP_NAME)s''' % self.wb_version_info,
                 r'''UninstallDisplayIcon={app}\SCM Workbench.exe''',
                 r'''ChangesAssociations=yes''',
