@@ -27,17 +27,6 @@ do
     fi
 done
 echo PYTHONPATH $PYTHONPATH
-PYTHON=${PYTHON:-python3}
-PYTHON=$( which ${PYTHON} )
-BASENAME=$( basename ${PYTHON} )
-SUFFIX=${BASENAME#python*}
-DIRNAME=$( dirname ${PYTHON} )
-
-if [ "${DIRNAME}" != "" ]
-then
-    DIRNAME=${DIRNAME}/
-fi
-PYTHONW=${DIRNAME}pythonw${SUFFIX}
 
 pushd ..
 make -f linux.mak clean
@@ -50,7 +39,7 @@ pwd
 
 case "$( uname )" in
 Darwin)
-    echo "#!/usr/bin/python2.7" >"${PROG}"
+    echo "#!/usr/bin/python3" >"${PROG}"
     ;;
 
 *)
