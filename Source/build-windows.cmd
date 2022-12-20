@@ -102,7 +102,7 @@ popd >NUL
 
 echo on
 %VENV_BIN%\colour-print "<>info Info:<> clean up Qt 1. move all pyd and dll into a tmp folder"
-pushd %DIST_DIR%\PyWinAppRes\Lib\site-packages\PyQt5
+pushd %DIST_DIR%\PyWinAppRes\Lib\site-packages\PyQt6
     if errorlevel 1 goto :error
 
 mkdir tmp
@@ -112,9 +112,9 @@ move Qt*.pyd tmp >NUL
 move tmp\Qt.pyd . >NUL
     if errorlevel 1 goto :error
 
-mkdir Qt5\bin\tmp
+mkdir Qt6\bin\tmp
     if errorlevel 1 goto :error
-move Qt5\bin\Qt5*.dll Qt5\bin\tmp >NUL
+move Qt6\bin\Qt6*.dll Qt6\bin\tmp >NUL
     if errorlevel 1 goto :error
 
 %VENV_BIN%\colour-print "<>info Info:<> clean up Qt 2. bring back only the ones we use"
@@ -123,27 +123,27 @@ for %%x in (Core DBus Gui PrintSupport Svg Widgets) do call :qt_keep %%x
 %VENV_BIN%\colour-print "<>info Info:<> clean up Qt 3. delete the Qt files we do not need"
 rmdir /s /q tmp
     if errorlevel 1 goto :error
-rmdir /s /q Qt5\bin\tmp
+rmdir /s /q Qt6\bin\tmp
     if errorlevel 1 goto :error
 
 %VENV_BIN%\colour-print "<>info Info:<> clean up Qt 4. delete qml file"
-rmdir /s /q Qt5\qml
+rmdir /s /q Qt6\qml
     if errorlevel 1 goto :error
 
 %VENV_BIN%\colour-print "<>info Info:<> clean up Qt 5. delete translations file"
-rmdir /s /q Qt5\translations
+rmdir /s /q Qt6\translations
     if errorlevel 1 goto :error
 
 %VENV_BIN%\colour-print "<>info Info:<> clean up Qt 6. delete webengine files"
-if exist Qt5\bin\QtWebEngineProcess.exe (
-    del Qt5\bin\QtWebEngineProcess.exe >NUL
+if exist Qt6\bin\QtWebEngineProcess.exe (
+    del Qt6\bin\QtWebEngineProcess.exe >NUL
         if errorlevel 1 goto :error
-    del Qt5\resources\qtwebengine*.pak >NUL
+    del Qt6\resources\qtwebengine*.pak >NUL
         if errorlevel 1 goto :error
 )
 
 %VENV_BIN%\colour-print "<>info Info:<> clean up Qt 6. delete qsci resources"
-rmdir /s /q Qt5\qsci
+rmdir /s /q Qt6\qsci
     if errorlevel 1 goto :error
 
 %VENV_BIN%\colour-print "<>info Info:<> clean up python lib 1. delete test code"
@@ -178,7 +178,7 @@ endlocal
     %VENV_BIN%\colour-print "<>info Info:<> Keeping Qt%1"
     move tmp\Qt%1.pyd . >NUL
         if errorlevel 1 goto :error
-    move Qt\bin\tmp\Qt5%1.dll Qt\bin >NUL
+    move Qt\bin\tmp\Qt6%1.dll Qt\bin >NUL
         if errorlevel 1 goto :error
     goto :eof
 

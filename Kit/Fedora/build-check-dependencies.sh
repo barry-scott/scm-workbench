@@ -16,15 +16,15 @@ then
     exit 1
 fi
 
-echo "Info: checking for python library PyQt5"
-if ! ${PYTHON} -c 'from PyQt5 import QtWidgets, QtGui, QtCore' 2>/dev/null
+echo "Info: checking for python library PyQt6"
+if ! ${PYTHON} -c 'from PyQt6 import QtWidgets, QtGui, QtCore' 2>/dev/null
 then
-    echo "Error: PyQt5 is not installed for ${PYTHON}. Hint: dnf install PyQt5"
+    echo "Error: PyQt6 is not installed for ${PYTHON}. Hint: dnf install PyQt6"
     exit 1
 fi
 
 echo "Info: checking for python library QScintilla"
-if ! ${PYTHON} -c 'from PyQt5 import Qsci' 3>/dev/null
+if ! ${PYTHON} -c 'from PyQt6 import Qsci' 3>/dev/null
 then
     echo "Error: QScintilla is not installed for ${PYTHON}. Hint: pip3 install QScintilla"
     exit 1

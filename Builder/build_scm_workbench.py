@@ -180,7 +180,7 @@ class BuildScmWorkbench(object):
                 if self.platform == 'win64':
                     # in a venv on Windows need to tell the OS about the dll's that Qt uses
                     import PyQt6
-                    qt_bin_dir = os.path.join( os.path.dirname( PyQt6.__file__ ), 'Qt5', 'bin' )
+                    qt_bin_dir = os.path.join( os.path.dirname( PyQt6.__file__ ), 'Qt6', 'bin' )
                     os.add_dll_directory( qt_bin_dir )
 
                 from PyQt6 import QtWidgets, QtGui, QtCore

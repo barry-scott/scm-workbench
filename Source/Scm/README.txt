@@ -6,12 +6,12 @@ SCM Workbench requires the following software to be installed.
 You can install using python3 -m pip if the software is not already
 packaged for your operating system.
 
-    python>=3.5
-    PyQt5>=5.7
-    pytz>=2016.7
-    QScintilla>=2.9.3
-    tzlocal>=1.2.2
-    xml-preferences>=1.1.2
+    python
+    PyQt6
+    pytz
+    PyQt6-QScintilla
+    tzlocal
+    xml-preferences
 
 Use the requirements.txt for your OS to install all dependencies at
 versions that are know to work well.
