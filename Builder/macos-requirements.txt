@@ -18,6 +18,6 @@ colour-text
 GitPython>=2.1.8
 python-hglib>=2.2
 PyQt6
-QScintilla>=2.11.1
+PyQt6-QScintilla>=2.11.1
 tzdata
 xml-preferences>=1.1.2
