@@ -174,7 +174,11 @@ class WbApp(QtWidgets.QApplication):
         self.log.info( 'preferences_dir %s' % (wb_platform_specific.getPreferencesDir(),) )
         self.log.info( 'Qt libraryPaths %r' % (QtWidgets.QApplication.libraryPaths(),) )
 
-        self.__is_dark_mode = self.palette().text().color().lightnessF() > self.palette().window().color().lightnessF()
+        fg_lightness = self.palette().text().color().lightnessF()
+        bg_lightness = self.palette().window().color().lightnessF()
+        self.log.info( 'Foreground lightness %r Background lightness %r' % (fg_lightness, bg_lightness) )
+
+        self.__is_dark_mode = fg_lightness > bg_lightness
         self.prefs = None
 
         # capture logs into the log widget
