@@ -120,9 +120,11 @@ class BuildScmWorkbench(object):
                 self.ROOT_DIR = self.BUILDER_TOP_DIR / 'Builder/tmp/ROOT'
 
             self.INSTALL_DOC_DIR = self.opt_prefix / 'share/scm-workbench/doc'
+            self.INSTALL_LIB_DIR = self.opt_prefix / 'share/scm-workbench/lib'
             self.INSTALL_BIN_DIR = self.opt_prefix / 'bin'
 
             self.BUILD_DOC_DIR = '%s%s' % (self.ROOT_DIR, self.INSTALL_DOC_DIR)
+            self.BUILD_LIB_DIR = '%s%s' % (self.ROOT_DIR, self.INSTALL_LIB_DIR)
             self.BUILD_BIN_DIR = '%s%s' % (self.ROOT_DIR, self.INSTALL_BIN_DIR)
 
         elif self.platform == 'MacOSX':
@@ -222,26 +224,32 @@ class BuildScmWorkbench(object):
 
     def ruleBuild( self ):
         log.info( 'Running ruleBuild' )
-        for folder in (self.BUILD_DOC_DIR, self.BUILD_BIN_DIR):
-            build_utils.mkdirAndParents( folder )
-
         self.ruleScmWorkbench()
 
         if self.platform == 'MacOSX':
             self.ruleMacosPackage()
 
-        if self.platform == 'win64':
+        elif self.platform == 'win64':
             self.ruleInnoInstaller()
+
+        else:
+            raise BuildError( 'No rule defined to package %r' % (self.platform,) )
 
     def ruleScmWorkbench( self ):
         log.info( 'Running ruleScmWorkbench' )
 
         if self.platform == 'MacOSX':
+            for folder in (self.BUILD_DOC_DIR, self.BUILD_BIN_DIR):
+                build_utils.mkdirAndParents( folder )
+
             run( ('./build-macosx.sh'
                  ,'--package'),
                     cwd='../Source' )
 
         elif self.platform == 'win64':
+            for folder in (self.BUILD_DOC_DIR, self.BUILD_BIN_DIR):
+                build_utils.mkdirAndParents( folder )
+
             run( ('build-windows.cmd'
                  ,self.opt_appmode
                  ,str(self.INSTALL_BIN_DIR)
@@ -249,8 +257,14 @@ class BuildScmWorkbench(object):
                  ,cwd=r'..\Source' )
 
         else:
+            for folder in (self.BUILD_DOC_DIR, self.BUILD_LIB_DIR, self.BUILD_BIN_DIR):
+                build_utils.mkdirAndParents( folder )
+
             run( ('./build-linux.sh'
-                 ,str(self.ROOT_DIR)),
+                 ,str(self.ROOT_DIR)
+                 ,str(self.INSTALL_BIN_DIR)
+                 ,str(self.INSTALL_LIB_DIR)
+                 ,str(self.INSTALL_DOC_DIR)),
                     cwd='../Source' )
 
     def ruleMacosPackage( self ):
