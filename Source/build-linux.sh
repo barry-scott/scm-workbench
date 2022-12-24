@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 echo "Info: PyQt6 build-linux in $( pwd )"
 
 ROOT_DIR=${1:? Root dir}
@@ -6,7 +7,13 @@ BIN_DIR=${2:? Bin dir}
 LIB_DIR=${3:? Lib dir}
 DOC_DIR=${4:? Doc dir}
 
-${PYTHON} make_wb_scm_images.py
+${PYTHON} ./make_wb_scm_images.py \
+    ${ROOT_DIR}${LIB_DIR}/wb_scm_images.py
+
+make -f linux.mak
+cd Common
+make -f linux.mak
+cd ..
 
 for folder in \
     Common \
