@@ -256,7 +256,7 @@ class BuildScmWorkbench(object):
     def ruleMacosPackage( self ):
         log.info( 'Running ruleMacosPackage' )
 
-        pkg_name = 'SCM Workbench-%s' % (self.wb_version_info.get('version'),)
+        pkg_name = 'SCM Workbench-%s-%s' % (self.wb_version_info.get('version'), platform.machine())
         dmg_folder = '%s/Builder/tmp/dmg' % (self.BUILDER_TOP_DIR,)
         app_folder = '%s/Builder/tmp/app' % (self.BUILDER_TOP_DIR,)
         venv_bin = '%s/Builder/tmp/venv/bin' % (self.BUILDER_TOP_DIR,)
