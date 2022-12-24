@@ -9,7 +9,7 @@ DOC_DIR=${4:? Doc dir}
 
 ${PYTHON} ./make_wb_scm_version.py \
     ../Builder/version.dat \
-    ${ROOT_DIR}${LIB_DIR}/wb_version.py
+    ${ROOT_DIR}${LIB_DIR}/wb_scm_version.py
 
 ${PYTHON} ./make_wb_scm_images.py \
     ${ROOT_DIR}${LIB_DIR}/wb_scm_images.py
