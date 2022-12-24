@@ -13,7 +13,16 @@
 import difflib
 
 import wb_diff_unified_view
-import wb_diff_side_by_side_view
+try:
+    # If Qsci is not packaged then this import will fail
+    import wb_diff_side_by_side_view
+    have_side_by_side = True
+
+except ImportError:
+    have_side_by_side = False
+
+
+
 
 class WbMainWindowActions:
     def __init__( self, scm_type, factory ):
@@ -79,6 +88,10 @@ class WbMainWindowActions:
             self.showDiffText( title, all_lines )
 
         elif self.app.prefs.view.isDiffSideBySide():
+            if not have_side_by_side:
+                self.log.error( 'Qsci is missint - side-by-side will not work' )
+                return
+
             window = wb_diff_side_by_side_view.DiffSideBySideView(
                         self.app, None,
                         title,
