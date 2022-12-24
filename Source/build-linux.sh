@@ -23,7 +23,6 @@ for folder in \
     Common \
     Git \
     Hg \
-    Perforce \
     Scm \
     Svn \
     ;
