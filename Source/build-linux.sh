@@ -7,6 +7,10 @@ BIN_DIR=${2:? Bin dir}
 LIB_DIR=${3:? Lib dir}
 DOC_DIR=${4:? Doc dir}
 
+${PYTHON} ./make_wb_scm_version.py \
+    ../Builder/version.dat \
+    ${ROOT_DIR}${LIB_DIR}/wb_version.py
+
 ${PYTHON} ./make_wb_scm_images.py \
     ${ROOT_DIR}${LIB_DIR}/wb_scm_images.py
 
