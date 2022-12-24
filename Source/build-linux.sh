@@ -26,7 +26,6 @@ for folder in \
 do
     cp ${folder}/wb_*.py ${ROOT_DIR}${LIB_DIR}
 done
-cp Wallet/kwallet.py ${ROOT_DIR}${LIB_DIR}
 
 # see if xml_preferences has been included is in .local
 PY_BASENAME=$(basename ${PYTHON})
