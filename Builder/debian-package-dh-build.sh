@@ -25,6 +25,9 @@ cd Builder
     /usr/share/doc/scm-workbench \
     /usr/share/applications
 
+find "${DESTDIR}" -name __pycache__ -print -ls
+find "${DESTDIR}" -name __pycache__ -exec rm -rf {} ';'
+
 for page in scm-workbench.1 scm-workbench-git-callback.1
 do
     mkdir -p "${DESTDIR}/usr/share/man/man1"

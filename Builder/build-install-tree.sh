@@ -74,23 +74,26 @@ do
 done
 
 
-LOCAL_SITE_PACKAGES="${HOME}/.local/lib/python${PY_VER}/site-packages"
+if false
+then
+    LOCAL_SITE_PACKAGES="${HOME}/.local/lib/python${PY_VER}/site-packages"
 
-for MOD_PACKAGE in pytz tzlocal git gitdb smmap xml_preferences
-do
-    if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ]
-    then
-        cp -r "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ${BUILD_ROOT}${LIB}
-    fi
-done
+    for MOD_PACKAGE in pytz tzlocal git gitdb smmap xml_preferences
+    do
+        if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ]
+        then
+            cp -r "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ${BUILD_ROOT}${LIB}
+        fi
+    done
 
-for MOD_FILE in P4.py P4API.py P4API.cpython-??m-x86_64-linux-gnu.so
-do
-    if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ]
-    then
-        cp "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ${BUILD_ROOT}${LIB}
-    fi
-done
+    for MOD_FILE in P4.py P4API.py P4API.cpython-??m-x86_64-linux-gnu.so
+    do
+        if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ]
+        then
+            cp "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ${BUILD_ROOT}${LIB}
+        fi
+    done
+fi
 
 rm -f ${BUILD_ROOT}${LIB}/make*.py
 

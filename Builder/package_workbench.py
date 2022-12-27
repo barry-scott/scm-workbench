@@ -283,23 +283,36 @@ class PackageWorkbench(object):
         run( ('mkdir', 'tmp/%s/debian' % (self.KIT_BASENAME,)) )
         run( ('mkdir', 'tmp/%s/debian/source' % (self.KIT_BASENAME,)) )
 
+        if False:
+            # vendor in xml_preferences
+            import xml_preferences
+            shutil.copyfile(
+                xml_preferences.__file__,
+                'tmp/%s/debian/xml_preferences.py' %
+                    (self.KIT_BASENAME,) )
+
+        # debian/changelog
         with open( 'tmp/%s/debian/changelog' % (self.KIT_BASENAME,), 'w' ) as f:
             changelog_args = {
                 'date':
                     time.strftime('%a, %d %b %Y %H:%M:%S +0000'),
                 'email':
-                    'Barry Scott <barry@barrys-emacs.org>'
+                    'Barry Scott <barry@barrys-emacs.org>',
+                'version':
+                    self.version,
+                'release':
+                    self.opt_release,
                 }
             f.write(
-'''scm-workbench (1.2.0) UNRELEASED; urgency=medium
+'''scm-workbench (%(version)s-%(release)s) UNRELEASED; urgency=medium
 
   * Initial release.
 
  -- %(email)s  %(date)s
 
-''' % changelog_args
- )
+''' % changelog_args )
 
+        # debian/compat
         with open( 'tmp/%s/debian/compat' % (self.KIT_BASENAME,), 'w' ) as f:
             f.write( '10\n' )
 
@@ -313,6 +326,7 @@ class PackageWorkbench(object):
             'python3-pyqt6',
             ]
 
+        # debian/control
         control_args = {
             'Standards-Version':    # version of a debian packaging standard?
                 '3.9.2',
@@ -340,6 +354,7 @@ Description: Barry's Emacs text editor
  Easy to use text editor
 ''' % control_args )
 
+        # debian/copyright
         with open( 'tmp/%s/debian/copyright' % (self.KIT_BASENAME,), 'w' ) as f:
             f.write(
 '''Files:
@@ -348,9 +363,11 @@ Copyright: 2003-2022 Barry A. Scott
 License: Apache-2.0
 ''' )
 
+        # debian/format
         with open( 'tmp/%s/debian/source/format' % (self.KIT_BASENAME,), 'w' ) as f:
             f.write( '3.0 (quilt)\n' )
 
+        # debian/rules
         with open( 'tmp/%s/debian/rules' % (self.KIT_BASENAME,), 'w' ) as f:
             f.write(
 '''#!/usr/bin/make -f
@@ -362,6 +379,14 @@ override_dh_auto_install:
 '''.replace('\n        ', '\n\t') )
         os.chmod( 'tmp/%s/debian/rules' % (self.KIT_BASENAME,), 0o775)
 
+        # debian/source/lintian-overrides
+        with open( 'tmp/%s/debian/source/lintian-overrides' % (self.KIT_BASENAME,), 'w' ) as f:
+            f.write(
+'''# overrides for scm-workbench
+scm-workbench source: source-is-missing [Source/Common/Docs/Scintilla Documentation.html]
+''' )
+
+        # build
         run( ('debuild', '-us', '-uc'),
             cwd='tmp/%s' % (self.KIT_BASENAME,) )
 
