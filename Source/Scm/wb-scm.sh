@@ -13,7 +13,7 @@ ${BUILDER_TOP_DIR}/Source/Git:\
 ${BUILDER_TOP_DIR}/Source/Hg:\
 ${BUILDER_TOP_DIR}/Source/Svn:\
 ${BUILDER_TOP_DIR}/Source/Common:\
-${BUILDER_TOP_DIR}/Builder/tmp/ROOT/usr/share/scm-workbench/lib
+${BUILDER_TOP_DIR}/Builder/tmp/ROOT/usr/share/scm-workbench
 
 # for override libraries
 #OVERRIDE_PYTHONPATH_1=~/wc/git/GitPython

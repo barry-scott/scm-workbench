@@ -37,7 +37,7 @@ done
 mkdir -p \
     "${DESTDIR}/usr/share/scm-workbench"
 cp  "${BUILDER_TOP_DIR}/Source/wb.png" \
-    "${DESTDIR}/usr/share/scm-workbench/org.barrys-emacs.scm-workbench.png"
+    "${DESTDIR}/usr/share/lib/scm-workbench/workbench.png"
 
 mkdir -p \
     "${DESTDIR}/usr/share/applications"

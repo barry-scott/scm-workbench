@@ -4,5 +4,5 @@ Comment=SCM Workbench
 Type=Application
 Name=SCM Workbench
 Exec=/usr/bin/scm-workbench
-Icon=/usr/share/scm-workbench/lib/scm-workbench.png
+Icon=/usr/share/scm-workbench/scm-workbench.png
 Categories=Development;

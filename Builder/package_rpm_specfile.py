@@ -120,7 +120,7 @@ cd ${BUILDER_TOP_DIR}/Builder
 ./build-install-tree.sh \
     %{buildroot} \
     %{_bindir} \
-    %{_datarootdir}/scm-workbench/lib \
+    %{_datarootdir}/scm-workbench \
     %{_mandir}/man1 \
     %{_datarootdir}/doc/scm-workbench \
     %{_datarootdir}/applications
