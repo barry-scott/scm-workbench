@@ -21,6 +21,16 @@ MacOSX)
     echo "Downloads is missing"
     ;;
 
+Linux-Ubuntu)
+    DEB=$( echo tmp/*.deb )
+    if [[ -e "$DEB" ]]
+    then
+        cp -v "$DEB" /shared/Downloads/ScmWorkbench/beta
+    else
+        colour-print "<>error Error: No .deb file found<>"
+    fi
+    ;;
+
 *)
     echo "Unsupported platform for copy"
     ;;
