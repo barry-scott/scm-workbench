@@ -82,22 +82,18 @@ class WbMainWindowActions:
 
     # ------------------------------------------------------------
     def diffTwoFiles( self, title, old_lines, new_lines, header_left, header_right ):
-        if self.app.prefs.view.isDiffUnified():
-            all_lines = list( difflib.unified_diff( old_lines, new_lines ) )
-
-            self.showDiffText( title, all_lines )
-
-        elif self.app.prefs.view.isDiffSideBySide():
-            if not have_side_by_side:
-                self.log.error( 'Qsci is missint - side-by-side will not work' )
-                return
-
+        if self.app.prefs.view.isDiffSideBySide() and have_side_by_side:
             window = wb_diff_side_by_side_view.DiffSideBySideView(
                         self.app, None,
                         title,
                         old_lines, header_left,
                         new_lines, header_right )
             window.show()
+
+        elif self.app.prefs.view.isDiffUnified():
+            all_lines = list( difflib.unified_diff( old_lines, new_lines ) )
+
+            self.showDiffText( title, all_lines )
 
     def showDiffText( self, title, all_lines ):
         assert type(all_lines) == list
