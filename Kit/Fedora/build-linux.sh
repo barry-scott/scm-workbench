@@ -23,7 +23,7 @@ cd scm-workbench-*
 ${KIT_DIR}/build-install-tree.sh \
     "${BUILDROOT}" \
     "$(rpm --eval %{_bindir})" \
-    "$(rpm --eval %{_datarootdir})/scm-workbench/lib" \
+    "$(rpm --eval %{_datarootdir})/scm-workbench" \
     "$(rpm --eval %{_mandir})/man1" \
     "$(rpm --eval %{_datarootdir})/doc/scm-workbench" \
     "$(rpm --eval %{_datarootdir})/applications"

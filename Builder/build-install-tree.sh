@@ -57,45 +57,11 @@ for LIBSRC in \
     ${BUILDER_TOP_DIR}/Source/Common \
     ${BUILDER_TOP_DIR}/Source/Git \
     ${BUILDER_TOP_DIR}/Source/Hg \
-    ${BUILDER_TOP_DIR}/Source/Perforce \
     ${BUILDER_TOP_DIR}/Source/Svn \
     ${BUILDER_TOP_DIR}/Source/Scm
 do
-    cp ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
+    cp -v ${LIBSRC}/*.py ${BUILD_ROOT}${LIB}
 done
-
-for LIBSO in \
-    ${BUILDER_TOP_DIR}/Source/Common/P4API.cpython-??m-x86_64-linux-gnu.so
-do
-    if [ -e ${LIBSO} ]
-    then
-        cp ${LIBSO} ${BUILD_ROOT}${LIB}
-    fi
-done
-
-
-if false
-then
-    LOCAL_SITE_PACKAGES="${HOME}/.local/lib/python${PY_VER}/site-packages"
-
-    for MOD_PACKAGE in pytz tzlocal git gitdb smmap xml_preferences
-    do
-        if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ]
-        then
-            cp -r "${LOCAL_SITE_PACKAGES}/${MOD_PACKAGE}" ${BUILD_ROOT}${LIB}
-        fi
-    done
-
-    for MOD_FILE in P4.py P4API.py P4API.cpython-??m-x86_64-linux-gnu.so
-    do
-        if [ -e "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ]
-        then
-            cp "${LOCAL_SITE_PACKAGES}/${MOD_FILE}" ${BUILD_ROOT}${LIB}
-        fi
-    done
-fi
-
-rm -f ${BUILD_ROOT}${LIB}/make*.py
 
 ${BUILDER_TOP_DIR}/Docs/build-docs.py ${BUILD_ROOT}${DOC}
 
@@ -103,4 +69,4 @@ cat <<EOF >>${BUILD_ROOT}${LIB}/wb_platform_unix_specific.py
 doc_dir = "${DOC}"
 EOF
 
-cp ${BUILDER_TOP_DIR}/Source/wb.png ${BUILD_ROOT}${LIB}/scm-workbench.png
+cp -v ${BUILDER_TOP_DIR}/Source/wb.png ${BUILD_ROOT}${LIB}/scm-workbench.png
