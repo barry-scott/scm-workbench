@@ -21,11 +21,14 @@ MacOSX)
     echo "Downloads is missing"
     ;;
 
-Linux-Ubuntu)
+Linux-Ubuntu|Linux-Debian)
+    . /etc/os-release
+    TARGET=/shared/Downloads/BEmacs/beta/${NAME}/${VERSION_CODENAME}
+    mkdir -p ${TARGET}
     DEB=$( echo tmp/*.deb )
     if [[ -e "$DEB" ]]
     then
-        cp -v "$DEB" /shared/Downloads/ScmWorkbench/beta
+        cp -v "$DEB" ${TARGET}
     else
         colour-print "<>error Error: No .deb file found<>"
     fi
