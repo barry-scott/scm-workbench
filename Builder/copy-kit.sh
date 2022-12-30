@@ -23,7 +23,7 @@ MacOSX)
 
 Linux-Ubuntu|Linux-Debian)
     . /etc/os-release
-    TARGET=/shared/Downloads/BEmacs/beta/${NAME}/${VERSION_CODENAME}
+    TARGET=/shared/Downloads/BEmacs/beta/${ID}/${VERSION_CODENAME}
     mkdir -p ${TARGET}
     DEB=$( echo tmp/*.deb )
     if [[ -e "$DEB" ]]
