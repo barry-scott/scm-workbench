@@ -94,10 +94,11 @@ class WbScmTreeModel(QtGui.QStandardItemModel):
         yield self.app.switchToBackground
 
         # update the project data
-        if folder is None:
+        if folder is None and self.selected_node is not None:
             folder = self.selected_node.scm_project_tree_node.relativePath()
 
-        scm_project.updateState( folder )
+        if folder is not None:
+            scm_project.updateState( folder )
 
         yield self.app.switchToForeground
 
