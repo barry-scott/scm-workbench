@@ -21,10 +21,10 @@ from PyQt6 import QtCore
 
 def pickExecutable( parent, executable ):
     file_browser = QtWidgets.QFileDialog( parent )
-    file_browser.setFileMode( file_browser.ExistingFile )
-    file_browser.setOption( file_browser.ReadOnly, True )
-    file_browser.setOption( file_browser.DontResolveSymlinks, True )
-    file_browser.setViewMode( file_browser.Detail )
+    file_browser.setFileMode( file_browser.FileMode.ExistingFile )
+    file_browser.setOption( file_browser.Option.ReadOnly, True )
+    file_browser.setOption( file_browser.Option.DontResolveSymlinks, True )
+    file_browser.setViewMode( file_browser.ViewMode.Detail )
     # Without Readable will not return a Executable image
     file_browser.setFilter( QtCore.QDir.Filter.Files|QtCore.QDir.Filter.Executable|QtCore.QDir.Filter.Readable )
 
