@@ -28,7 +28,7 @@ class PackageWorkbench(object):
                  ,'mock-release' ,'mock-testing'
                  ,'copr-release' ,'copr-testing'
                  ,'list-release' ,'list-testing'
-                 ,'debian-source')
+                 ,'debian-test-build', 'debian-sbuild')
 
     def __init__( self ):
         self.KITNAME = 'scm-workbench'
@@ -74,8 +74,11 @@ class PackageWorkbench(object):
             elif self.cmd in ('list-release', 'list-testing'):
                 self.listCopr()
 
-            elif self.cmd in ('debian-source',):
-                self.buildDebianSourcePackage()
+            elif self.cmd in ('debian-test-build',):
+                self.buildDebianSourcePackage( sbuild=False )
+
+            elif self.cmd in ('debian-sbuild',):
+                self.buildDebianSourcePackage( sbuild=True )
 
         except KeyboardInterrupt:
             return 2
@@ -277,7 +280,7 @@ class PackageWorkbench(object):
             cmd.extend( glob.glob( 'tmp/%s*.%s.rpm' % (self.KITNAME, self.opt_arch) ) )
             run( cmd )
 
-    def buildDebianSourcePackage( self ):
+    def buildDebianSourcePackage( self, sbuild ):
         run( ('rm', '-rf', 'tmp') )
         run( ('mkdir', 'tmp') )
         run( ('mkdir', 'tmp/sources') )
@@ -411,8 +414,19 @@ scm-workbench source: source-is-missing [Source/Common/Docs/Scintilla Documentat
 ''' )
 
         # build
-        run( ('debuild', '-us', '-uc'),
-            cwd='tmp/%s' % (self.KIT_BASENAME,) )
+        if not sbuild:
+            # build using system installed dependencies
+            run( ('debuild', '--unsigned-source', '--unsigned-changes'),
+                cwd='tmp/%s' % (self.KIT_BASENAME,) )
+
+        else:
+            # build using chroot
+            run( ('debuild',
+                    '--build=source',
+                    '--unsigned-source',
+                    '--unsigned-changes',
+                    '--no-check-builddeps' ),
+                cwd='tmp/%s' % (self.KIT_BASENAME,) )
 
     def buildCopr( self ):
         log.info( 'buildCopr' )
