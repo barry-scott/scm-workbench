@@ -48,6 +48,7 @@ class PackageWorkbench(object):
 
         self.cmd = None
         self.opt_release = 'auto'
+        self.opt_debian_repos = None
         self.opt_mock_target = None
         self.opt_arch = None
         self.install = False
@@ -185,6 +186,9 @@ class PackageWorkbench(object):
                 elif arg.startswith('--release='):
                     self.opt_release = arg[len('--release='):]
 
+                elif arg.startswith('--debian-repos='):
+                    self.opt_debian_repos = arg[len('--debian-repos='):]
+
                 elif arg.startswith('--mock-target='):
                     self.opt_mock_target = arg[len('--mock-target='):]
 
@@ -283,6 +287,7 @@ class PackageWorkbench(object):
         run( ('mkdir', 'tmp/%s/debian' % (self.KIT_BASENAME,)) )
         run( ('mkdir', 'tmp/%s/debian/source' % (self.KIT_BASENAME,)) )
 
+
         if False:
             # vendor in xml_preferences
             import xml_preferences
@@ -290,6 +295,25 @@ class PackageWorkbench(object):
                 xml_preferences.__file__,
                 'tmp/%s/debian/xml_preferences.py' %
                     (self.KIT_BASENAME,) )
+
+        # figure out the debian release
+        if self.opt_release == 'auto':
+            if self.opt_debian_repos is None:
+                raise BuildError( '--release=auto requires --debian-repos=<repos-dir>' )
+
+            if not os.path.exists( self.opt_debian_repos ):
+                raise BuildError( 'debian repos not found %s' % (self.opt_debian_repos,) )
+
+            # assume debian release 1
+            self.opt_release = '1'
+
+            debian_release = 0
+            for deb in glob.glob( '%s/scm-workbench_%s-*.deb' % (self.opt_debian_repos, self.version) ):
+                debian_release = max( debian_release, int( deb.split('_')[1].split('-')[1] ) )
+
+            self.opt_release = '%d' % (debian_release + 1,)
+
+        log.info( log.colourFormat('Building version <>em %s-%s<>') % (self.version, self.opt_release) )
 
         # debian/changelog
         with open( 'tmp/%s/debian/changelog' % (self.KIT_BASENAME,), 'w' ) as f:

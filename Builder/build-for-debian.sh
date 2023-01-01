@@ -1,7 +1,9 @@
 #!/bin/bash
-release=$(( $(<debian_release.txt) + 1 ))
-echo $release >debian_release.txt
+CMD=${1:-debian-test-build}
 
-python3 ./package_workbench.py debian-source \
-    --release=${release} \
+. /etc/os-release
+TARGET=/shared/Downloads/BEmacs/beta/${ID}/${VERSION_CODENAME}
+
+python3 ./package_workbench.py ${CMD} \
+    --debian-repos=${TARGET} \
     --colour
