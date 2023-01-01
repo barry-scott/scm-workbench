@@ -53,17 +53,17 @@ class Popen(subprocess.Popen):
 
 def run( cmd, check=True, output=False, cwd=None ):
     kwargs = {}
+
     if cwd is None:
         cwd = os.getcwd()
 
     kwargs['cwd'] = cwd
 
     if type(cmd) is unicode_type:
-        log.info( 'Running %s in %s' % (cmd, cwd) )
+        log.info( log.colourFormat( 'Running %s in <>em %s<>' ) % (cmd, cwd) )
         kwargs['shell'] = True
-
     else:
-        log.info( 'Running %s in %s' % (' '.join( cmd ), cwd) )
+        log.info( log.colourFormat( 'Running %s in <>em %s<>' ) % (' '.join( cmd ), cwd) )
 
     if output:
         kwargs['stdout'] = subprocess.PIPE
@@ -81,10 +81,7 @@ def run( cmd, check=True, output=False, cwd=None ):
         retcode = process.poll()
         r = CompletedProcess( retcode, stdout, stderr )
         if check and retcode != 0:
-            print(repr(cmd))
-            if type(cmd) != str:
-                cmd = ' '.join(cmd)
-            raise BuildError( 'Cmd failed %s - %s' % (retcode, cmd) )
+            raise BuildError( 'Cmd failed %s - %r' % (retcode, ' '.join(repr(word) for word in cmd)) )
 
     return r
 
