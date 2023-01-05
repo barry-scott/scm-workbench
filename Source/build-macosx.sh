@@ -167,7 +167,7 @@ fi
 #   add in the git-callback client
 #
 PROG=Resources/scm-workbench-git-callback
-echo '#!/usr/bin/python2.7' >${PROG}
+echo '#!/usr/bin/python3' >${PROG}
 cat ${BUILDER_TOP_DIR}/Source/Git/wb_git_callback_client_unix.py >>${PROG}
 chmod +x ${PROG}
 unset PROG
