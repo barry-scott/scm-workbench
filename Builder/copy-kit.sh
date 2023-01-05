@@ -23,7 +23,7 @@ MacOSX)
 
 Linux-Ubuntu|Linux-Debian)
     . /etc/os-release
-    TARGET=/shared/Downloads/BEmacs/beta/${ID}/${VERSION_CODENAME}
+    TARGET=/shared/Downloads/ScmWorkbench/beta/${ID}/${VERSION_CODENAME}
     mkdir -p ${TARGET}
     for DEB in tmp/*.deb
     do
