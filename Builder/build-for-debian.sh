@@ -6,4 +6,5 @@ TARGET=/shared/Downloads/ScmWorkbench/beta/${ID}/${VERSION_CODENAME}
 
 python3 ./package_workbench.py ${CMD} \
     --debian-repos=${TARGET} \
-    --colour
+    --colour \
+        |& tee build-for-debian.log
