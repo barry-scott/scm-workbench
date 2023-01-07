@@ -145,12 +145,29 @@ class PackageWorkbench(object):
                         other_package_ver = int( rel.split('.')[0] )
                         log.info( 'Release %d found in %s' % (package_ver, self.copr_repo_other) )
 
-                self.opt_release = 1 + max( package_ver, other_package_ver )
+                self.opt_release = '%d' % (1 + max( package_ver, other_package_ver ),)
 
-                log.info( 'Release set to %d' % (self.opt_release,) )
+                log.info( 'Release set to %s' % (self.opt_release,) )
 
         elif self.os_release_info['ID'] in ('ubuntu', 'debian'):
-            return
+            # figure out the debian release
+            if self.opt_release == 'auto':
+                if self.opt_debian_repos is None:
+                    raise BuildError( '--release=auto requires --debian-repos=<repos-dir>' )
+
+                if not os.path.exists( self.opt_debian_repos ):
+                    raise BuildError( 'debian repos not found %s' % (self.opt_debian_repos,) )
+
+                # assume debian release 1
+                self.opt_release = '1'
+
+                debian_release = 0
+                for deb in glob.glob( '%s/scm-workbench_%s-*.deb' % (self.opt_debian_repos, self.version) ):
+                    debian_release = max( debian_release, int( deb.split('_')[1].split('-')[1] ) )
+
+                self.opt_release = '%d' % (debian_release + 1,)
+
+                log.info( 'Release set to %s' % (self.opt_release,) )
 
         else:
             raise BuildError( 'Unsupported OS %r' % (self.os_release_info['ID'],) )
@@ -291,7 +308,6 @@ class PackageWorkbench(object):
         run( ('mkdir', 'tmp/%s/debian' % (self.KIT_BASENAME,)) )
         run( ('mkdir', 'tmp/%s/debian/source' % (self.KIT_BASENAME,)) )
 
-
         if False:
             # vendor in xml_preferences
             import xml_preferences
@@ -299,23 +315,6 @@ class PackageWorkbench(object):
                 xml_preferences.__file__,
                 'tmp/%s/debian/xml_preferences.py' %
                     (self.KIT_BASENAME,) )
-
-        # figure out the debian release
-        if self.opt_release == 'auto':
-            if self.opt_debian_repos is None:
-                raise BuildError( '--release=auto requires --debian-repos=<repos-dir>' )
-
-            if not os.path.exists( self.opt_debian_repos ):
-                raise BuildError( 'debian repos not found %s' % (self.opt_debian_repos,) )
-
-            # assume debian release 1
-            self.opt_release = '1'
-
-            debian_release = 0
-            for deb in glob.glob( '%s/scm-workbench_%s-*.deb' % (self.opt_debian_repos, self.version) ):
-                debian_release = max( debian_release, int( deb.split('_')[1].split('-')[1] ) )
-
-            self.opt_release = '%d' % (debian_release + 1,)
 
         log.info( log.colourFormat('Building version <>em %s-%s<>') % (self.version, self.opt_release) )
 
