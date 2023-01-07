@@ -23,7 +23,7 @@ MacOSX)
 
 Linux-Ubuntu|Linux-Debian)
     . /etc/os-release
-    TARGET=/shared/Downloads/ScmWorkbench/beta/${ID}/${VERSION_CODENAME}
+    TARGET=/shared/Downloads/ScmWorkbench/beta/${VERSION_CODENAME}
     mkdir -p ${TARGET}
     for DEB in tmp/*.deb
     do
@@ -37,7 +37,7 @@ Linux-Ubuntu|Linux-Debian)
     if [[ "$1" = "--install" ]]
     then
         pushd /shared/Downloads/Debian
-        ./make-repos.sh
+        ./make-apt-repos.sh update
 
         sudo apt update
         sudo apt install scm-workbench
