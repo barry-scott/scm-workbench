@@ -149,10 +149,11 @@ class PackageWorkbench(object):
 
                 log.info( 'Release set to %d' % (self.opt_release,) )
 
-        if self.os_release_info['ID'] in ('ubuntu', 'debian'):
+        elif self.os_release_info['ID'] in ('ubuntu', 'debian'):
             return
 
-        raise BuildError( 'Unsupported OS %r' % (self.os_release_info['ID'],) )
+        else:
+            raise BuildError( 'Unsupported OS %r' % (self.os_release_info['ID'],) )
 
     def parseArgs( self, argv ):
         try:
