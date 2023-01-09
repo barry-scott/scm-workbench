@@ -123,8 +123,8 @@ class PackageWorkbench(object):
                 self.opt_mock_target = 'fedora-%s-%s' % (self.os_release_info['VERSION_ID'], platform.machine())
                 log.info( 'Defaulting --mock-target=%s' % (self.opt_mock_target,) )
 
-            self.COPR_REPO_URL = 'https://copr-be.cloud.fedoraproject.org/results/barryascott/%s/%s' % (self.copr_repo, self.opt_mock_target)
-            self.COPR_REPO_OTHER_URL = 'https://copr-be.cloud.fedoraproject.org/results/barryascott/%s/%s' % (self.copr_repo_other, self.opt_mock_target)
+            self.COPR_REPO_URL = 'https://download.copr.fedorainfracloud.org/results/barryascott/%s/%s' % (self.copr_repo, self.opt_mock_target)
+            self.COPR_REPO_OTHER_URL = 'https://download.copr.fedorainfracloud.org/results/barryascott/%s/%s' % (self.copr_repo_other, self.opt_mock_target)
 
             if self.opt_release == 'auto':
                 all_packages = package_list_repo.listRepo( self.COPR_REPO_URL )
