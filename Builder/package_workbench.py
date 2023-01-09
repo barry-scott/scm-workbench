@@ -134,13 +134,13 @@ class PackageWorkbench(object):
                 other_package_ver = 0
 
                 if self.KITNAME in all_packages:
-                    ver, rel, build_time = all_packages[ self.KITNAME ]
+                    key, ver, rel, build_time = all_packages[ self.KITNAME ]
                     if ver == self.version:
                         package_ver = int( rel.split('.')[0] )
                         log.info( 'Release %d found in %s' % (package_ver, self.copr_repo) )
 
                 if self.KITNAME in all_other_packages:
-                    ver, rel, build_time = all_other_packages[ self.KITNAME ]
+                    key, ver, rel, build_time = all_other_packages[ self.KITNAME ]
                     if ver == self.version:
                         other_package_ver = int( rel.split('.')[0] )
                         log.info( 'Release %d found in %s' % (package_ver, self.copr_repo_other) )
@@ -443,7 +443,7 @@ scm-workbench source: source-is-missing [Source/Common/Docs/Scintilla Documentat
         now = time.time()
 
         for name in sorted( all_packages.keys() ):
-            ver, rel, build_time = all_packages[ name ]
+            key, ver, rel, build_time = all_packages[ name ]
 
             build_age = self.formatTimeDelta( now - build_time )
 
