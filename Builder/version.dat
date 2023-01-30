@@ -1,8 +1,8 @@
 major=1
-minor=2
+minor=3
 patch=0
 # change to "2016-2017" in a year
-copyright_years="2016-2022"
+copyright_years="2016-2023"
 # kitting related variables
 APP_NAME="SCM Workbench"
 APP_ID="org.barrys-emacs.scm-workbench"
