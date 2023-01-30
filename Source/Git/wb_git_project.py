@@ -384,7 +384,7 @@ class GitProject:
 
     def getFileState( self, filename ):
         assert isinstance( filename, pathlib.Path )
-        # status only has enties for none CURRENT status files
+        # status only has entries for none CURRENT status files
         return self.all_file_state[ filename ]
 
     def getReportStagedFiles( self ):

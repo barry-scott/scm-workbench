@@ -296,7 +296,11 @@ class ProjectCollection(PreferencesMapNode):
         super().__init__()
 
 class View(PreferencesNode):
-    xml_attribute_info = (('show_controlled', Bool), ('show_uncontrolled', Bool), ('show_ignored', Bool), ('show_only_changed', Bool))
+    xml_attribute_info = (('show_controlled', Bool)
+                         ,('show_uncontrolled', Bool)
+                         ,('show_ignored', Bool)
+                         ,('show_only_changed', Bool)
+                         ,('diff_style', str))
 
     def __init__( self ) -> None:
         super().__init__()
@@ -323,6 +327,12 @@ class View(PreferencesNode):
 
     def isDiffSideBySide( self ) -> bool:
         return self.diff_style == 'side-by-side'
+
+    def setDiffMeld( self ):
+        self.diff_style = 'meld'
+
+    def isDiffMeld( self ) -> bool:
+        return self.diff_style == 'meld'
 
 scheme_nodes = (
     (SchemeNode( Preferences, 'preferences',  )

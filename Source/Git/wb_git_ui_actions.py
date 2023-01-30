@@ -146,7 +146,6 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return False
 
         focus = self.main_window.focusIsIn()
-
         if focus == 'tree':
             git_project = self.selectedGitProject()
             if git_project is None:
@@ -252,8 +251,12 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if tree_node is None:
             return
 
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False, staged=False )
-        self.showDiffText( T_('Diff Staged vs. Working for %s') %
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeld( tree_node.absolutePath() )
+
+        else:
+            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False, staged=False )
+            self.showDiffText( T_('Diff Staged vs. Working for %s') %
                                         (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionGitDiffHeadVsStaged( self ):
@@ -261,8 +264,12 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if tree_node is None:
             return
 
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=True )
-        self.showDiffText( T_('Diff Head vs. Staged for %s') %
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeld( tree_node.absolutePath() )
+
+        else:
+            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=True )
+            self.showDiffText( T_('Diff Head vs. Staged for %s') %
                                         (tree_node.relativePath(),), diff_text.split('\n') )
 
     def treeActionGitDiffHeadVsWorking( self ):
@@ -270,8 +277,12 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if tree_node is None:
             return
 
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=False )
-        self.showDiffText( T_('Diff Head vs. Working for %s') %
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeld( tree_node.absolutePath() )
+
+        else:
+            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=False )
+            self.showDiffText( T_('Diff Head vs. Working for %s') %
                                         (tree_node.relativePath(),), diff_text.split('\n') )
 
     def __logGitCommandError( self, e ):
@@ -591,7 +602,11 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def _actionGitDiffHeadVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
-        self.diffTwoFiles(
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeld( file_state.absolutePath() )
+
+        else:
+            self.diffTwoFiles(
                 T_('Diff HEAD vs. Work %s') % (filename,),
                 file_state.getTextLinesHead(),
                 file_state.getTextLinesWorking(),
@@ -602,7 +617,11 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def _actionGitDiffStagedVsWorking( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
-        self.diffTwoFiles(
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeld( file_state.absolutePath() )
+
+        else:
+            self.diffTwoFiles(
                 T_('Diff Staged vs. Work %s') % (filename,),
                 file_state.getTextLinesStaged(),
                 file_state.getTextLinesWorking(),
@@ -613,7 +632,12 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def _actionGitDiffHeadVsStaged( self, git_project, filename ):
         file_state = git_project.getFileState( filename )
 
-        self.diffTwoFiles(
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeld( file_state.absolutePath() )
+
+        else:
+            file_state = git_project.getFileState( filename )
+            self.diffTwoFiles(
                 T_('Diff HEAD vs. Staged %s') % (filename,),
                 file_state.getTextLinesHead(),
                 file_state.getTextLinesStaged(),

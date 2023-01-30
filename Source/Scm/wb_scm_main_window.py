@@ -43,6 +43,7 @@ import wb_tracked_qwidget
 import wb_platform_specific
 import wb_shell_commands
 import wb_background_thread
+import wb_ui_actions
 
 ellipsis = '…'
 
@@ -423,7 +424,10 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self.diff_group = QtGui.QActionGroup( self )
         self.diff_group.setExclusive( True )
         self._addMenu( m, T_('Unified diff'), self.setDiffUnified, checker=self.checkerDiffUnified, group=self.diff_group )
-        self._addMenu( m, T_('Side by side diff'), self.setDiffSideBySide, checker=self.checkerDiffSideBySide, group=self.diff_group )
+        if wb_ui_actions.have_side_by_side:
+            self._addMenu( m, T_('Side by side diff'), self.setDiffSideBySide, checker=self.checkerDiffSideBySide, group=self.diff_group )
+        if wb_ui_actions.have_meld:
+            self._addMenu( m, T_('Meld diff'), self.setDiffMeld, checker=self.checkerDiffMeld, group=self.diff_group )
 
         m.addSeparator()
         self._addMenu( m, T_('Clear Log Messages'), self.appActionClearLogMessages )
@@ -960,11 +964,17 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
     def setDiffSideBySide( self ):
         self.app.prefs.view.setDiffSideBySide()
 
+    def setDiffMeld( self ):
+        self.app.prefs.view.setDiffMeld()
+
     def checkerDiffUnified( self ):
         return self.app.prefs.view.isDiffUnified()
 
     def checkerDiffSideBySide( self ):
         return self.app.prefs.view.isDiffSideBySide()
+
+    def checkerDiffMeld( self ):
+        return self.app.prefs.view.isDiffMeld()
 
     #------------------------------------------------------------
     #

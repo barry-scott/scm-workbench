@@ -10,7 +10,9 @@
     wb_ui_actions.py
 
 '''
+import subprocess
 import difflib
+from pathlib import Path
 
 import wb_diff_unified_view
 try:
@@ -22,7 +24,8 @@ except ImportError:
     have_side_by_side = False
 
 
-
+have_meld = False
+meld_path = None
 
 class WbMainWindowActions:
     def __init__( self, scm_type, factory ):
@@ -43,6 +46,13 @@ class WbMainWindowActions:
         self.log = None
 
         self.debugLog = None
+
+        # find meld
+        global have_meld
+        global meld_path
+        meld_path = Path('/usr/bin/meld')
+        if meld_path.exists():
+            have_meld = True
 
     # ---- called from ui_component ----
     def setTopWindow( self, top_window ):
@@ -71,6 +81,12 @@ class WbMainWindowActions:
 
         self.setupDebug()
 
+        if self.app.prefs.view.isDiffSideBySide() and not have_side_by_side:
+            self.app.prefs.view.setDiffUnified()
+
+        if self.app.prefs.view.isDiffMeld() and not have_meld:
+            self.app.prefs.view.setDiffUnified()
+
     def setupDebug( self ):
         self.debugLog = self.main_window.app.debug_options.debugLogMainWindow
 
@@ -82,7 +98,7 @@ class WbMainWindowActions:
 
     # ------------------------------------------------------------
     def diffTwoFiles( self, title, old_lines, new_lines, header_left, header_right ):
-        if self.app.prefs.view.isDiffSideBySide() and have_side_by_side:
+        if self.app.prefs.view.isDiffSideBySide():
             window = wb_diff_side_by_side_view.DiffSideBySideView(
                         self.app, None,
                         title,
@@ -94,6 +110,11 @@ class WbMainWindowActions:
             all_lines = list( difflib.unified_diff( old_lines, new_lines ) )
 
             self.showDiffText( title, all_lines )
+
+    def diffMeld( self, filename ):
+        # call meld with one arg and let it do its magic
+        self.log.info( '%s %s' % (meld_path, filename) )
+        subprocess.Popen( [meld_path, filename] )
 
     def showDiffText( self, title, all_lines ):
         assert type(all_lines) == list

@@ -29,13 +29,15 @@ class Preferences(wb_preferences.Preferences):
         self.log_history = None
 
 class General(PreferencesNode):
-    xml_attribute_info = (('new_projects_folder', pathlib.Path), ('force_dark_mode', Bool))
+    xml_attribute_info = (('new_projects_folder', pathlib.Path)
+                         ,('force_dark_mode', Bool))
 
     def __init__( self ):
         super().__init__()
 
         self.new_projects_folder = None
         self.force_dark_mode = False
+        self.default_diff = 'side-by-side'
 
 class LogHistory(PreferencesNode):
     xml_attribute_info = (('default_limit', int)
