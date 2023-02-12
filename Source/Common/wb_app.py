@@ -210,6 +210,15 @@ class WbApp(QtWidgets.QApplication):
 
         self.applicationStateChanged.connect( self.applicationStateChangedHandler )
 
+
+    # called just before the program exits
+    def cleanup( self ):
+        for filename in self.all_temp_files:
+            try:
+                os.remove(filename)
+            except IOError:
+                pass
+
     # facade for BackgroundWork functions
     def isForegroundThread( self ):
         return self.bg_work.isForegroundThread()

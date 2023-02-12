@@ -40,6 +40,8 @@ def main( app_cls, argv ):
 
     rc = app.exec()
 
+    app.cleanup()
+
     # force clean up of objects to avoid segv on exit
     del app
 
