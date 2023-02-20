@@ -19,7 +19,7 @@ import shutil
 import wb_platform_win32_specific
 
 __all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
-          ,'guiDiffFiles', 'shellDiffFiles', 'editFile'
+          ,'editFile', 'hasMeld', 'diffMeldFolder', 'diffMeldTwoFiles'
           ,'shellOpen', 'commandShell', 'fileBrowser')
 
 def U_( s: str ) -> str:
@@ -52,14 +52,6 @@ def editFile( app, working_dir, all_filenames ):
         command_list.extend( all_filenames )
 
     CreateProcess( app, command_list, working_dir )
-
-def guiDiffFiles( app, options ):
-    cmd_list= [app.prefs.getDiffTool().gui_diff_tool, options]
-    CreateProcess( app, cmd_list, os.path.curdir )
-
-def shellDiffFiles( app, options ):
-    cmd_list = [app.prefs.getDiffTool().shell_diff_tool, options]
-    return __run_command_with_output( cmd_list )
 
 SW_SHOWNORMAL = 1
 
@@ -98,6 +90,29 @@ def __getShellExecuteErrorMessage( err ):
     else:
         return getErrorMessage( err )
 
+
+
+meld_program = None
+
+# must call hasMeld before trying to use meld
+def hasMeld( app ):
+    global meld_program
+    if meld_program is None:
+        meld_program = shutil.which( 'meld' )
+
+    return meld_program is not None
+
+def getMeld( app ):
+    return meld_program
+
+def diffMeldFolder( app, working_dir, folder ):
+    __run_command( app, getMeld( app ), [folder], working_dir )
+
+def diffMeldTwoFiles( app, working_dir, file1, header1, file2, header2 ):
+    __run_command( app, getMeld( app ),
+                    ['--lable=%s' % (header1,), file1
+                    ,'--lable=%s' % (header2,), file2], working_dir )
+
 def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     for filename in all_filenames:
@@ -135,11 +150,10 @@ def commandShell( app, working_dir ):
         if len( p.terminal_init ) > 0:
             cmd_lines.append( 'call %s\n' % (p.terminal_init,) )
 
-        f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.cmd' )
-        app.all_temp_files.append( f.name )
-        for line in cmd_lines:
-            f.write( line )
-        f.close()
+        with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.cmd' ) as f:
+            app.all_temp_files.append( f.name )
+            for line in cmd_lines:
+                f.write( line )
 
         command_list = [abs_terminal_program, '/k', f.name]
 
@@ -161,11 +175,10 @@ def commandShell( app, working_dir ):
             if len( p.terminal_init ) > 0:
                 cmd_lines.append( 'call %s\n' % (p.terminal_init,) )
 
-            f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.ps1' )
-            app.all_temp_files.append( f.name )
-            for line in cmd_lines:
-                f.write( line )
-            f.close()
+            with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.ps1' ) as f:
+                app.all_temp_files.append( f.name )
+                for line in cmd_lines:
+                    f.write( line )
 
         command_list = [abs_terminal_program, '-NoExit' ] #, '-file', f.name]
 
@@ -197,11 +210,10 @@ def commandShell( app, working_dir ):
         if len( p.terminal_init ) > 0:
             cmd_lines.append( '. %s\n' % (p.terminal_init,) )
 
-        f = open( str(rcfile), mode='w', newline='\n' )
-        app.all_temp_files.append( str(rcfile) )
-        for line in cmd_lines:
-            f.write( line )
-        f.close()
+        with open( str(rcfile), mode='w', newline='\n' ) as f:
+            app.all_temp_files.append( str(rcfile) )
+            for line in cmd_lines:
+                f.write( line )
 
         # replace the uses .bashrc with our script
         command_list = [abs_terminal_program, '--rcfile', rcfile.name]
@@ -209,7 +221,6 @@ def commandShell( app, working_dir ):
     else:
         app.log.error( 'Unknown shell %r' % (p.terminal_program,) )
         return
-
 
     CreateProcess( app, command_list, working_dir )
 

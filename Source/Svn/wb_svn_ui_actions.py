@@ -230,24 +230,32 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if tree_node is None:
             return
 
-        try:
-            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
-            self.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeldFolder( tree_node.absolutePath() )
 
-        except wb_svn_project.ClientError as e:
-            tree_node.project.logClientError( e )
+        else:
+            try:
+                diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False )
+                self.showDiffText( 'Diff Base vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+
+            except wb_svn_project.ClientError as e:
+                tree_node.project.logClientError( e )
 
     def treeActionSvnDiffHeadVsWorking( self ):
         tree_node = self.selectedSvnProjectTreeNode()
         if tree_node is None:
             return
 
-        try:
-            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
-            self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeldFolder( tree_node.absolutePath() )
 
-        except wb_svn_project.ClientError as e:
-            tree_node.project.logClientError( e )
+        else:
+            try:
+                diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True )
+                self.showDiffText( 'Diff Head vs. Working from %s' % (tree_node.relativePath(),), diff_text.split('\n') )
+
+            except wb_svn_project.ClientError as e:
+                tree_node.project.logClientError( e )
 
     @thread_switcher
     def treeActionSvnAdd_Bg( self, checked=None ):
@@ -532,7 +540,7 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
     def tableActionSvnDiffBaseVsWorking( self ):
         for file_state in self.tableSelectedAllFileStates():
             self.diffTwoFiles(
-                    T_('Diff Base vs. Working %s') % (file_state.relativePath(),),
+                    T_('Diff Base vs. Working %s')% (file_state.relativePath(),),
                     file_state.getTextLinesBase(),
                     file_state.getTextLinesWorking(),
                     T_('Base %s') % (file_state.relativePath(),),
@@ -1000,9 +1008,13 @@ class SvnMainWindowActions(wb_ui_actions.WbMainWindowActions):
             heading_old = T_('r%(rev_old)d date %(date_old)s') % title_vars
 
         if filestate.isDir():
-            title = T_('Diff %s') % (mw.filename,)
-            text = mw.svn_project.cmdDiffRevisionVsRevision( mw.filename, rev_old, rev_new )
-            self.showDiffText( title, text.split('\n') )
+            if self.app.prefs.view.isDiffMeld():
+                self.diffMeldFolder( mw.filename )
+
+            else:
+                title = T_('Diff %s') % (mw.filename,)
+                text = mw.svn_project.cmdDiffRevisionVsRevision( mw.filename, rev_old, rev_new )
+                self.showDiffText( title, text.split('\n') )
 
         else:
             title = T_('Diff %s') % (mw.filename,)

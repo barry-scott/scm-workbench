@@ -14,6 +14,7 @@ import os
 import signal
 import subprocess
 import types
+import shutil
 import shlex
 import tempfile
 import pathlib
@@ -21,7 +22,7 @@ import pathlib
 from PyQt6 import QtCore
 
 __all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
-          ,'guiDiffFiles', 'shellDiffFiles', 'editFile'
+          ,'editFile', 'hasMeld', 'diffMeldFolder', 'diffMeldTwoFiles'
           ,'shellOpen', 'commandShell', 'fileBrowser')
 
 __sigchld_handler_installed = False
@@ -69,8 +70,46 @@ def editFile( app, working_dir, all_filenames ):
 
     editor_args.extend( all_filenames )
 
-
     __run_command( app, editor, editor_args, working_dir )
+
+meld_program = None
+
+# must call hasMeld before trying to use meld
+def hasMeld( app ):
+    global meld_program
+    if meld_program is None:
+        meld_program = shutil.which( 'meld' )
+
+    return meld_program is not None
+
+def getMeld( app ):
+    return meld_program
+
+def diffMeldFolder( app, working_dir, folder ):
+    __run_command( app, getMeld( app ), [folder], working_dir )
+
+def diffMeldTwoFiles( app, working_dir, file1, header1, file2, header2 ):
+    if type(file1) == list:
+        with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-diff-file1', suffix='.txt' ) as f:
+            app.all_temp_files.append( f.name )
+            for line in file1:
+                f.write(line)
+                f.write('\n')
+
+            file1 = f.name
+
+    if type(file2) == list:
+        with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-diff-file2', suffix='.txt' ) as f:
+            app.all_temp_files.append( f.name )
+            for line in file2:
+                f.write(line)
+                f.write('\n')
+
+            file2 = f.name
+
+    __run_command( app, getMeld( app ),
+                    ['--label=%s' % (header1,), file1
+                    ,'--label=%s' % (header2,), file2], working_dir )
 
 def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
@@ -78,12 +117,6 @@ def shellOpen( app, working_dir, all_filenames ):
     for filename in all_filenames:
         # xdg-open only accepts 1 filename at a time
         __run_command( app, '/usr/bin/xdg-open', [filename], working_dir )
-
-def guiDiffFiles( app, args ):
-    __run_command( app, app.prefs.getDiffTool().gui_diff_tool, args. os.getcwd() )
-
-def shellDiffFiles( app, args ):
-    return __run_command_with_output( app, app.prefs.getDiffTool().shell_diff_tool, args )
 
 def __titleFromPath( working_dir ):
     title = []

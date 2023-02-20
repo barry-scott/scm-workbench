@@ -19,7 +19,7 @@ import tempfile
 import pathlib
 
 __all__ = ('setupCommands', 'getTerminalProgramList', 'getFileBrowserProgramList'
-          ,'guiDiffFiles', 'shellDiffFiles', 'editFile'
+          ,'editFile', 'hasMeld', 'diffMeldFolder', 'diffMeldTwoFiles'
           ,'shellOpen', 'commandShell', 'fileBrowser')
 
 __sigchld_handler_installed = False
@@ -47,12 +47,6 @@ def getTerminalProgramList():
 def getFileBrowserProgramList():
     return ['Finder']
 
-def guiDiffFiles( app, args ):
-    __run_command( app, app.prefs.getDiffTool().gui_diff_tool, args )
-
-def shellDiffFiles( app, args ):
-    return __run_command_with_output( app, app.prefs.getDiffTool().shell_diff_tool, args )
-
 def editFile( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Edit %s') % (' '.join( [str(name) for name in all_filenames] ),) )
     all_filenames = [str(path) for path in all_filenames]
@@ -77,6 +71,31 @@ def editFile( app, working_dir, all_filenames ):
 
     finally:
         os.chdir( cur_dir )
+
+meld_program = None
+
+# must call hasMeld before trying to use meld
+def hasMeld( app ):
+    global meld_program
+    if meld_program is None:
+        meld_program = shutil.which( 'meld' )
+
+    if meld_program is None:
+        meld_program = shutil.which( 'meld',
+                        path=[os.path.join( os.environ['HOME'], 'homebrew/bin' )] )
+
+    return meld_program is not None
+
+def getMeld( app ):
+    return meld_program
+
+def diffMeldFolder( app, working_dir, folder ):
+    __run_command( app, getMeld( app ), [folder], working_dir )
+
+def diffMeldTwoFiles( app, working_dir, file1, header1, file2, header2 ):
+    __run_command( app, getMeld( app ),
+                    ['--label=%s' % (header1,), file1
+                    ,'--label=%s' % (header2,), file2], working_dir )
 
 def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
@@ -138,10 +157,9 @@ end tell
 ''' %   {'title': title.replace( '"', '\\"' )
         ,'commands': commands.replace( '"', '\\"' )}
 
-    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt', encoding='utf=8' )
-    app.all_temp_files.append( f.name )
-    f.write( contents )
-    f.close()
+    with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-shell', suffix='.scpt', encoding='utf=8' ) as f:
+        app.all_temp_files.append( f.name )
+        f.write( contents )
 
     __run_command( app, u'/usr/bin/osascript', [f.name] )
 
@@ -174,10 +192,9 @@ def commandShell_Terminal( app, working_dir ):
 ''' %   (xml.sax.saxutils.escape( title )
         ,xml.sax.saxutils.escape( commands ))
 
-    f = tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-term', suffix='.term', encoding='utf=8' )
-    app.all_temp_files.append( f.name )
-    f.write( contents )
-    f.close()
+    with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-wb-term', suffix='.term', encoding='utf=8' ) as f:
+        app.all_temp_files.append( f.name )
+        f.write( contents )
 
     __run_command( app, u'/usr/bin/open', [f.name] )
 

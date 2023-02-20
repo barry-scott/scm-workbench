@@ -210,8 +210,12 @@ class HgMainWindowActions(wb_ui_actions.WbMainWindowActions):
         if tree_node is None:
             return
 
-        diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath() )
-        self.showDiffText( T_('Diff Head vs. Working for %s') %
+        if self.app.prefs.view.isDiffMeld():
+            self.diffMeldFolder( tree_node.absolutePath() )
+
+        else:
+            diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath() )
+            self.showDiffText( T_('Diff Head vs. Working for %s') %
                                         (tree_node.relativePath(),), diff_text.split('\n') )
 
     def __logHgCommandError( self, e ):

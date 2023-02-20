@@ -252,7 +252,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         if self.app.prefs.view.isDiffMeld():
-            self.diffMeld( tree_node.absolutePath() )
+            self.diffMeldFolder( tree_node.absolutePath() )
 
         else:
             diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=False, staged=False )
@@ -265,7 +265,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         if self.app.prefs.view.isDiffMeld():
-            self.diffMeld( tree_node.absolutePath() )
+            self.diffMeldFolder( tree_node.absolutePath() )
 
         else:
             diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=True )
@@ -278,7 +278,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
             return
 
         if self.app.prefs.view.isDiffMeld():
-            self.diffMeld( tree_node.absolutePath() )
+            self.diffMeldFolder( tree_node.absolutePath() )
 
         else:
             diff_text = tree_node.project.cmdDiffFolder( tree_node.relativePath(), head=True, staged=False )
@@ -603,7 +603,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         file_state = git_project.getFileState( filename )
 
         if self.app.prefs.view.isDiffMeld():
-            self.diffMeld( file_state.absolutePath() )
+            self.diffMeldFolder( file_state.absolutePath() )
 
         else:
             self.diffTwoFiles(
@@ -618,7 +618,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         file_state = git_project.getFileState( filename )
 
         if self.app.prefs.view.isDiffMeld():
-            self.diffMeld( file_state.absolutePath() )
+            self.diffMeldFolder( file_state.absolutePath() )
 
         else:
             self.diffTwoFiles(
@@ -633,7 +633,7 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         file_state = git_project.getFileState( filename )
 
         if self.app.prefs.view.isDiffMeld():
-            self.diffMeld( file_state.absolutePath() )
+            self.diffMeldFolder( file_state.absolutePath() )
 
         else:
             file_state = git_project.getFileState( filename )

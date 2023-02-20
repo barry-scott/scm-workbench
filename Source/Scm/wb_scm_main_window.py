@@ -61,7 +61,6 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
 
         super().__init__( app, app.debug_options.debugLogMainWindow )
 
-
         win_prefs = self.app.prefs.main_window
         if win_prefs.title is not None:
             title = win_prefs.title
@@ -426,7 +425,7 @@ class WbScmMainWindow(wb_main_window.WbMainWindow):
         self._addMenu( m, T_('Unified diff'), self.setDiffUnified, checker=self.checkerDiffUnified, group=self.diff_group )
         if wb_ui_actions.have_side_by_side:
             self._addMenu( m, T_('Side by side diff'), self.setDiffSideBySide, checker=self.checkerDiffSideBySide, group=self.diff_group )
-        if wb_ui_actions.have_meld:
+        if wb_shell_commands.hasMeld( self.app ):
             self._addMenu( m, T_('Meld diff'), self.setDiffMeld, checker=self.checkerDiffMeld, group=self.diff_group )
 
         m.addSeparator()

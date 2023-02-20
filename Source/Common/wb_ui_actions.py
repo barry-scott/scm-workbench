@@ -13,6 +13,8 @@
 import subprocess
 import difflib
 from pathlib import Path
+import wb_shell_commands
+import wb_platform_specific
 
 import wb_diff_unified_view
 try:
@@ -23,9 +25,6 @@ try:
 except ImportError:
     have_side_by_side = False
 
-
-have_meld = False
-meld_path = None
 
 class WbMainWindowActions:
     def __init__( self, scm_type, factory ):
@@ -46,13 +45,6 @@ class WbMainWindowActions:
         self.log = None
 
         self.debugLog = None
-
-        # find meld
-        global have_meld
-        global meld_path
-        meld_path = Path('/usr/bin/meld')
-        if meld_path.exists():
-            have_meld = True
 
     # ---- called from ui_component ----
     def setTopWindow( self, top_window ):
@@ -84,7 +76,7 @@ class WbMainWindowActions:
         if self.app.prefs.view.isDiffSideBySide() and not have_side_by_side:
             self.app.prefs.view.setDiffUnified()
 
-        if self.app.prefs.view.isDiffMeld() and not have_meld:
+        if self.app.prefs.view.isDiffMeld() and not wb_shell_commands.hasMeld( self.app ):
             self.app.prefs.view.setDiffUnified()
 
     def setupDebug( self ):
@@ -98,7 +90,10 @@ class WbMainWindowActions:
 
     # ------------------------------------------------------------
     def diffTwoFiles( self, title, old_lines, new_lines, header_left, header_right ):
-        if self.app.prefs.view.isDiffSideBySide():
+        if self.app.prefs.view.isDiffMeld() and wb_shell_commands.hasMeld( self.app ):
+            self.diffMeldTwoFiles( old_lines, header_left, new_lines, header_right )
+
+        elif self.app.prefs.view.isDiffSideBySide():
             window = wb_diff_side_by_side_view.DiffSideBySideView(
                         self.app, None,
                         title,
@@ -111,10 +106,18 @@ class WbMainWindowActions:
 
             self.showDiffText( title, all_lines )
 
-    def diffMeld( self, filename ):
+    def diffMeldFolder( self, filename ):
         # call meld with one arg and let it do its magic
-        self.log.info( '%s %s' % (meld_path, filename) )
-        subprocess.Popen( [meld_path, filename] )
+        wb_shell_commands.diffMeldFolder(
+            self.app, wb_platform_specific.getHomeFolder(),
+            filename )
+
+    def diffMeldTwoFiles( self, filename1, header1, filename2, header2 ):
+        # call meld with one arg and let it do its magic
+        wb_shell_commands.diffMeldTwoFiles(
+            self.app, wb_platform_specific.getHomeFolder(),
+            filename1, header1,
+            filename2, header2 )
 
     def showDiffText( self, title, all_lines ):
         assert type(all_lines) == list

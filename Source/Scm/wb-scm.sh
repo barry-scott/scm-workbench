@@ -1,5 +1,6 @@
-#!/bin/bash -x
+#!/bin/bash
 set -e
+set -x
 export SCM_WORKBENCH_STDOUT_LOG=$(tty)
 
 if [ "${BUILDER_TOP_DIR}" = "" ]
