@@ -113,7 +113,7 @@ def diffMeldTwoFiles( app, working_dir, file1, header1, file2, header2 ):
             file2 = f.name
 
     __run_command_in_background( app,
-                    getMeld( app )
+                    getMeld( app ),
                     ['--label=%s' % (header1,), file1
                     ,'--label=%s' % (header2,), file2],
                     working_dir )
@@ -258,13 +258,15 @@ def __run_command_with_output( app, cmd, args ):
 def __run_command_in_background( app, cmd, args, working_dir ):
     err_prefix = u'error running %s %s' % (cmd, ' '.join( [str(arg) for arg in args] ))
 
+    cmd = asUtf8( cmd )
+    args = [cmd] + [asUtf8( str(arg) ) for arg in args]
+    app.log.infoheader( ' '.join( ['"%s"' % (arg.decode('utf-8'),) for arg in args] ) )
+
     cur_dir = os.getcwd()
     try:
         os.chdir( working_dir )
-        cmd = asUtf8( cmd )
-        args = [asUtf8( str(arg) ) for arg in args]
         proc = subprocess.Popen(
-                    [cmd]+args,
+                    args,
                     close_fds=True,
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
