@@ -90,8 +90,6 @@ def __getShellExecuteErrorMessage( err ):
     else:
         return getErrorMessage( err )
 
-
-
 meld_program = None
 
 # must call hasMeld before trying to use meld
@@ -106,12 +104,34 @@ def getMeld( app ):
     return meld_program
 
 def diffMeldFolder( app, working_dir, folder ):
-    __run_command( app, getMeld( app ), [folder], working_dir )
+    cmd = [getMeld( app ), str(folder)]
+    app.log.infoheader( T_('Meld: %s') % (' '.join( cmd ),) )
+    CreateProcess( app, cmd, working_dir )
 
 def diffMeldTwoFiles( app, working_dir, file1, header1, file2, header2 ):
-    __run_command( app, getMeld( app ),
-                    ['--lable=%s' % (header1,), file1
-                    ,'--lable=%s' % (header2,), file2], working_dir )
+    if type(file1) == list:
+        with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-diff-file1', suffix='.txt' ) as f:
+            app.all_temp_files.append( f.name )
+            for line in file1:
+                f.write(line)
+                f.write('\n')
+
+            file1 = f.name
+
+    if type(file2) == list:
+        with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-diff-file2', suffix='.txt' ) as f:
+            app.all_temp_files.append( f.name )
+            for line in file2:
+                f.write(line)
+                f.write('\n')
+
+            file2 = f.name
+
+    cmd = [getMeld( app ),
+            '--label=%s' % (header1,), str(file1),
+            '--label=%s' % (header2,), str(file2)]
+    app.log.infoheader( T_('Meld: %s') % (' '.join( cmd ),) )
+    CreateProcess( app, cmd, working_dir )
 
 def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
