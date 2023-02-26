@@ -160,6 +160,7 @@ class PackageWorkbench(object):
 
                 if not os.path.exists( self.opt_debian_repos ):
                     log.info( 'debian repos not found %s' % (self.opt_debian_repos,) )
+                    self.opt_debian_repos = None
 
                 else:
                     debian_release = 0
@@ -352,6 +353,9 @@ class PackageWorkbench(object):
             '${misc:Depends}',
             'python3',
             'python3-pyqt6',
+            'python3-svn',
+            'python3-git',
+            'python3-hglib',
             ]
         # do not depend on QSci for versions that do not provide it
         # Unbuntu 2022.4 (jammy) and 2022.10 (kinetic)
