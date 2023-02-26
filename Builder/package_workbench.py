@@ -155,17 +155,18 @@ class PackageWorkbench(object):
                 if self.opt_debian_repos is None:
                     raise BuildError( '--release=auto requires --debian-repos=<repos-dir>' )
 
-                if not os.path.exists( self.opt_debian_repos ):
-                    raise BuildError( 'debian repos not found %s' % (self.opt_debian_repos,) )
-
                 # assume debian release 1
                 self.opt_release = '1'
 
-                debian_release = 0
-                for deb in glob.glob( '%s/scm-workbench_%s-*.deb' % (self.opt_debian_repos, self.version) ):
-                    debian_release = max( debian_release, int( deb.split('_')[1].split('-')[1] ) )
+                if not os.path.exists( self.opt_debian_repos ):
+                    log.info( 'debian repos not found %s' % (self.opt_debian_repos,) )
 
-                self.opt_release = '%d' % (debian_release + 1,)
+                else:
+                    debian_release = 0
+                    for deb in glob.glob( '%s/scm-workbench_%s-*.deb' % (self.opt_debian_repos, self.version) ):
+                        debian_release = max( debian_release, int( deb.split('_')[1].split('-')[1] ) )
+
+                    self.opt_release = '%d' % (debian_release + 1,)
 
                 log.info( 'Release set to %s' % (self.opt_release,) )
 
@@ -347,11 +348,16 @@ class PackageWorkbench(object):
             'debhelper (>= 13)',
             ]
         depends = [
-            'shlibs',
-            'misc',
+            '${shlibs:Depends}',
+            '${misc:Depends}',
             'python3',
             'python3-pyqt6',
             ]
+        # do not depend on QSci for versions that do not provide it
+        # Unbuntu 2022.4 (jammy) and 2022.10 (kinetic)
+        # Debian 10 bullseye
+        if self.os_release_info['VERSION_CODENAME'] not in ('jammy', 'kinetic', 'bullseye'):
+            depends.append( 'python3-pyqt6.qsci' )
 
         # debian/control
         control_args = {
@@ -360,7 +366,7 @@ class PackageWorkbench(object):
             'Version':
                 '%s-%s' % (self.version, self.opt_release),
             'Depends':
-                ', '.join( ['${%s:Depends}' % (dep,) for dep in depends] ),
+                ', '.join( depends ),
             'Build-Depends':
                 ', '.join( build_depends ),
             }
