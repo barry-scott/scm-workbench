@@ -15,6 +15,7 @@ import signal
 import subprocess
 import xml.sax.saxutils
 import shlex
+import shutil
 import tempfile
 import pathlib
 
@@ -82,7 +83,7 @@ def hasMeld( app ):
 
     if meld_program is None:
         meld_program = shutil.which( 'meld',
-                        path=[os.path.join( os.environ['HOME'], 'homebrew/bin' )] )
+                        path=os.path.join( os.environ['HOME'], 'homebrew/bin' ) )
 
     return meld_program is not None
 
@@ -90,12 +91,32 @@ def getMeld( app ):
     return meld_program
 
 def diffMeldFolder( app, working_dir, folder ):
-    __run_command( app, getMeld( app ), [folder], working_dir )
+    __run_command_in_background( app, getMeld( app ), [folder], working_dir )
 
 def diffMeldTwoFiles( app, working_dir, file1, header1, file2, header2 ):
-    __run_command( app, getMeld( app ),
+    if type(file1) == list:
+        with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-diff-file1', suffix='.txt' ) as f:
+            app.all_temp_files.append( f.name )
+            for line in file1:
+                f.write(line)
+                f.write('\n')
+
+            file1 = f.name
+
+    if type(file2) == list:
+        with tempfile.NamedTemporaryFile( mode='w', delete=False, prefix='tmp-diff-file2', suffix='.txt' ) as f:
+            app.all_temp_files.append( f.name )
+            for line in file2:
+                f.write(line)
+                f.write('\n')
+
+            file2 = f.name
+
+    __run_command_in_background( app,
+                    getMeld( app )
                     ['--label=%s' % (header1,), file1
-                    ,'--label=%s' % (header2,), file2], working_dir )
+                    ,'--label=%s' % (header2,), file2],
+                    working_dir )
 
 def shellOpen( app, working_dir, all_filenames ):
     app.log.infoheader( T_('Open %s') % (' '.join( [str(name) for name in all_filenames] ),) )
@@ -233,6 +254,30 @@ def __run_command_with_output( app, cmd, args ):
 
     except EnvironmentError as e:
         return '%s - %s' % (err_prefix, str(e))
+
+def __run_command_in_background( app, cmd, args, working_dir ):
+    err_prefix = u'error running %s %s' % (cmd, ' '.join( [str(arg) for arg in args] ))
+
+    cur_dir = os.getcwd()
+    try:
+        os.chdir( working_dir )
+        cmd = asUtf8( cmd )
+        args = [asUtf8( str(arg) ) for arg in args]
+        proc = subprocess.Popen(
+                    [cmd]+args,
+                    close_fds=True,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT
+                    )
+        return ''
+
+    except EnvironmentError as e:
+        return '%s - %s' % (err_prefix, str(e))
+
+    finally:
+        os.chdir( cur_dir )
+
 
 def asUtf8( s ):
     if type( s ) == str:
