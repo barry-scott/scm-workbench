@@ -310,14 +310,6 @@ class PackageWorkbench(object):
         run( ('mkdir', 'tmp/%s/debian' % (self.KIT_BASENAME,)) )
         run( ('mkdir', 'tmp/%s/debian/source' % (self.KIT_BASENAME,)) )
 
-        if False:
-            # vendor in xml_preferences
-            import xml_preferences
-            shutil.copyfile(
-                xml_preferences.__file__,
-                'tmp/%s/debian/xml_preferences.py' %
-                    (self.KIT_BASENAME,) )
-
         log.info( log.colourFormat('Building version <>em %s-%s<>') % (self.version, self.opt_release) )
 
         # debian/changelog

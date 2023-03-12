@@ -172,10 +172,6 @@ class BuildScmWorkbench(object):
                 from PyQt6 import QtWidgets, QtGui, QtCore
             except ImportError:
                 raise BuildError( 'PyQt6 is not installed for %s. Hint: dnf install PyQt6' % (sys.executable,) )
-            try:
-                import xml_preferences
-            except ImportError:
-                raise BuildError( 'xml-preferences is not installed for %s. Hint: dnf install python3-xml-preferences' % (sys.executable,) )
 
         if self.platform in ('MacOSX', 'win64', 'NetBSD'):
             try:
@@ -188,10 +184,6 @@ class BuildScmWorkbench(object):
                 from PyQt6 import QtWidgets, QtGui, QtCore
             except ImportError:
                 raise BuildError( 'PyQt6 is not installed for %s. Hint: pip3 install --user PyQt6' % (sys.executable,) )
-            try:
-                import xml_preferences
-            except ImportError:
-                raise BuildError( 'xml-preferences is not installed for %s. Hint: pip3 install --user xml-preferences' % (sys.executable,) )
 
         if self.platform in ('win64',):
             try:
