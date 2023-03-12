@@ -10,7 +10,7 @@ def copyFile( src, dst_dir ):
 
 if len(sys.argv) < 3:
     print( 'Usage: %s <version> <kits-folder> [--test] [--install]' % (sys.argv[0],) )
-    print( '       %s 0.9.3 /shared/Downloads/ScmWorkbench/0.9.3' % (sys.argv[0],) )
+    print( '       %s 1.3.0 /shared/Downloads/ScmWorkbench/1.3.0' % (sys.argv[0],) )
     sys.exit( 1 )
 
 version = sys.argv[1]
@@ -58,7 +58,8 @@ kit_values = {
     }
 
 for kit_fmt in ('SCM-Workbench-%(VERSION)s-setup.exe',
-                'SCM-Workbench-%(VERSION)s.dmg'):
+                'SCM Workbench-%(VERSION)s-arm64.dmg',
+                'SCM Workbench-%(VERSION)s-x86_64.dmg'):
     copyFile( built_kits_dir / (kit_fmt % kit_values), output_kits_dir )
 
 with open( str( output_dir / 'index.html' ), encoding='utf-8' ) as f:
