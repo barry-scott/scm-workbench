@@ -11,4 +11,4 @@ Hg
 - Only a few commands implemented
 
 P4
-- Lots to do
+- Remove support its Perforce does not support its python extension
