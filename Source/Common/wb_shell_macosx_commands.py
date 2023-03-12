@@ -83,7 +83,8 @@ def hasMeld( app ):
 
     if meld_program is None:
         meld_program = shutil.which( 'meld',
-                        path=os.path.join( os.environ['HOME'], 'homebrew/bin' ) )
+                        path=':'.join([os.path.join( os.environ['HOME'], 'homebrew/bin' ),
+                                '/usr/local/bin']) )
 
     return meld_program is not None
 
