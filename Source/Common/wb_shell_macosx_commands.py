@@ -231,7 +231,12 @@ def __run_command( app, cmd, args ):
     cmd = asUtf8( cmd )
     args = [asUtf8( str(arg) ) for arg in args]
 
-    p = subprocess.run( [cmd]+args, stderr=subprocess.STDOUT, stdout=subprocess.PIPE )
+    # remove env that can break subprocesses
+    for env_to_remove in ('QML2_IMPORT_PATH', 'QT_PLUGIN_PATH'):
+        if env_to_remove in env:
+            del env[ env_to_remove ]
+
+    p = subprocess.run( [cmd]+args, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=env )
     if p.returncode != 0:
         app.log.error('rc = %d stdout: %r' % (p.returncode, p.stdout))
 
