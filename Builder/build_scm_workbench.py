@@ -224,7 +224,12 @@ class BuildScmWorkbench(object):
         elif self.platform == 'win64':
             self.ruleInnoInstaller()
 
+        elif self.platform == 'Linux':
+            log.info( 'No package required for %s' % (self.platform,) )
+
         else:
+            import traceback
+            traceback.print_stack()
             raise BuildError( 'No rule defined to package %r' % (self.platform,) )
 
     def ruleScmWorkbench( self ):
