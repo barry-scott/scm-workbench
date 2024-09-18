@@ -506,6 +506,11 @@ scm-workbench source: source-is-missing [Source/Common/Docs/Scintilla Documentat
         # set to match the mock target
         self.opt_arch = config_opts[ 'target_arch' ]
         self.dist_tag = expandMockCfgVars( 'dist' )
+
+        # rawhide will put fcXX into the RPM names
+        if self.dist_tag == 'rawhide':
+            self.dist_tag = 'fc%s' % (config_opts[ 'releasever' ],)
+
         return config_opts
 
     def makeMockTargetFile( self ):
