@@ -10,9 +10,9 @@ Darwin)
     ;;
 
 Linux)
-    export PYTHON_VERSION=${1:-3.12}
+    export PYTHON_VERSION=${1:-3.13}
 
-    for version in ${PYTHON_VERSION} 3.11 3.10 3.9 3.8
+    for version in ${PYTHON_VERSION} 3.13 3.12 3.11
     do
         if [ -e /usr/bin/python${version} ]
         then
@@ -23,7 +23,7 @@ Linux)
         elif [ -e /opt/rh/rh-python35/root/usr/bin/python${version} ]
         then
             export PYTHON_VERSION=${version}
-            export PYTHON=/opt/rh/rh-python35/root/usr/bin/python${version}
+            export PYTHON=/opt/rh/rh-python35/root/usr/bin/python􏼶${version}
         fi
     done
     if [ -e /etc/fedora-release ]
