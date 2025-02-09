@@ -43,9 +43,6 @@ class PackageWorkbench(object):
         self.COPR_REPO_OTHER_URL = None
         self.MOCK_COPR_REPO_FILENAME = None
 
-        self.copr_repo_pyqt6 = 'copr:copr.fedorainfracloud.org:barryascott:python-qt6'
-        self.MOCK_COPR_REPO_PYQT6_FILENAME = '/etc/yum.repos.d/_%s.repo' % (self.copr_repo_pyqt6,)
-
         self.cmd = None
         self.opt_release = 'auto'
         self.opt_debian_repos = None
@@ -261,7 +258,6 @@ class PackageWorkbench(object):
             run( ('mock',
                         '--root=%s' % (self.MOCK_TARGET_FILENAME,),
                         '--enablerepo=copr:copr.fedorainfracloud.org:barryascott:%s' % (self.copr_repo,),
-                        '--enablerepo=%s' % (self.copr_repo_pyqt6,),
                         '--rebuild',
                         self.SRPM_FILENAME) )
         else:
@@ -537,16 +533,6 @@ scm-workbench source: source-is-missing [Source/Common/Docs/Scintilla Documentat
 
             config_opts[conf_key] += '\n'
             config_opts[conf_key] += repo
-
-        if self.MOCK_COPR_REPO_PYQT6_FILENAME:
-            with open( self.MOCK_COPR_REPO_PYQT6_FILENAME, 'r' ) as f:
-                repo = f.read()
-
-                if self.opt_mock_target.startswith( 'epel-' ):
-                    repo = repo.replace( '/fedora-$releasever-$basearch/', '/epel-$releasever-$basearch/' )
-
-                config_opts[conf_key] += '\n'
-                config_opts[conf_key] += repo
 
         with open( self.MOCK_TARGET_FILENAME, 'w' ) as f:
             for k in config_opts:

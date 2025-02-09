@@ -19,7 +19,7 @@ def createRpmSpecFile( opt, spec_filename ):
 
     python = '/usr/bin/python3'
     all_requires.add( 'python3' )
-    all_requires.add( 'python3-qt6' )
+    all_requires.add( 'python3-pyqt6' )
     all_requires.add( 'subversion' )
     all_requires.add( 'python3-pysvn' )
     all_requires.add( 'git-core >= 2.7' )
