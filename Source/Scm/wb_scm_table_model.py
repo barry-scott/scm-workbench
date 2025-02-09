@@ -142,6 +142,12 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
 
             return left < right
 
+        if column == model.col_include:
+            left = left_ent.name in model.all_included_files
+            right = right_ent.name in model.all_included_files
+
+            return left < right
+
         assert False, 'Unknown column %r' % (source_left,)
 
 class WbScmTableModel(QtCore.QAbstractTableModel):
