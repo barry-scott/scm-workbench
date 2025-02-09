@@ -131,8 +131,8 @@ class WbScmTableSortFilter(QtCore.QSortFilterProxyModel):
             return left > right
 
         if column == model.col_date:
-            left = (left_ent.stat().st_mtime, left_ent.name)
-            right = (right_ent.stat().st_mtime, right_ent.name)
+            left = (left_ent.fileDate(), left_ent.name)
+            right = (right_ent.fileDate(), right_ent.name)
 
             return left < right
 
