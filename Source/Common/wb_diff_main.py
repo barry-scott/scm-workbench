@@ -51,6 +51,7 @@ class WbDiff_App(wb_app.WbApp):
         self.log = self
         self.file1 = None
         self.file2 = None
+        self.size = (1000, 800)
 
         super().__init__( ('Wb', 'Diff'), argv, wb_debug.WbDebug )
 
@@ -59,7 +60,31 @@ class WbDiff_App(wb_app.WbApp):
             sys.exit( 1 )
 
         # self is log and app
-        self.main_window.resize( 800, 600 )
+        self.main_window.resize( *self.size )
+
+    def optionParse( self, args ):
+        if args[1].startswith('--size='):
+            size = args[1][len('--size='):]
+            try:
+                size = [int(x.strip()) for x in size.split(',')]
+                if len(size) != 2:
+                    raise ValueError('must be two')
+            except ValueError:
+                print( 'Error: expecting --size=<width>,<height>' )
+                sys.exit( 1 )
+
+            width, height = size
+
+            if( width < 200 or width > 3840
+            or height < 200 or height > 2100 ):
+                print( 'Error: width between 200 and 3840, height between 200 and 2100' )
+                sys.exit( 1 )
+
+            self.size = (width, height)
+            del args[ 1 ]
+            return True
+
+        return False
 
     def getAppQIcon( self ):
         wb_diff_images.getQIcon( 'wb.png' )
