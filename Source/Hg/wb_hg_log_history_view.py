@@ -59,7 +59,7 @@ class HgLogHistoryWindowComponents(wb_ui_components.WbMainWindowComponents):
     def __logHistoryProgress( self, count, total ):
         if total > 0:
             if count == 0:
-                self.progress.start( '%(count)s of %(total)d commits loaded. %(percent)d%%', total )
+                self.progress.start( T_('%(count)s of %(total)d commits loaded. %(percent)d%%'), total )
 
             else:
                 self.progress.incEventCount()

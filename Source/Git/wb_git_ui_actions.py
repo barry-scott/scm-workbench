@@ -332,23 +332,29 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
         self.main_window.updateActionEnabledStates()
 
     def pushInfoHandler( self, info ):
-        self.log.info( 'Push summary: %s' % (info.summary,) )
+        self.log.info( T_('Push summary: %s') % (info.summary,) )
 
     def pushProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count, message ):
+        status_values = {
+            'stage': stage_name,
+            }
+
         if type(cur_count) in (int,float):
+            status_values['cur_count'] = int(cur_count)
             if type(max_count) in (int,float):
-                status = 'Push %s %d/%d' % (stage_name, int(cur_count), int(max_count))
+                status_values['max_count'] = int(max_count)
+                status = T_('Push %(stage)s %(cur_count)d/%(max_count)d') % status_values
 
             else:
-                status = 'Push %s %d' % (stage_name, int(cur_count))
+                status = T_('Push %(stage)s %(cur_count)d') % status_values
 
         else:
-            status = 'Push %s' % (stage_name,)
+            status = T_('Push %(stage)s') % status_values
 
         if message != '':
             self.log.info( message )
 
-        self.progress.start( status )
+        self.progress.start( status.replace('%', '%%') )
         if is_end:
             self.log.info( status )
 
@@ -427,20 +433,26 @@ class GitMainWindowActions(wb_ui_actions.WbMainWindowActions):
                 self.log.error( T_('Pull status: %(state_name)s') % {'state_name': state_name} )
 
     def pullProgressHandler( self, is_begin, is_end, stage_name, cur_count, max_count=None, message='' ):
+        status_values = {
+            'stage': stage_name,
+            }
+
         if type(cur_count) in (int,float):
+            status_values['cur_count'] = int(cur_count)
             if type(max_count) in (int,float):
-                status = 'Pull %s %d/%d' % (stage_name, int(cur_count), int(max_count))
+                status_values['max_count'] = int(max_count)
+                status = T_('Pull %(stage)s %(cur_count)d/%(max_count)d') % status_values
 
             else:
-                status = 'Pull %s %d' % (stage_name, int(cur_count))
+                status = T_('Pull %(stage)s %(cur_count)d') % status_values
 
         else:
-            status = 'Pull %s' % (stage_name,)
+            status = T_('Pull %(stage)s') % status_values
 
         if message != '':
             status = '%s %s' % (status, message)
 
-        self.progress.start( status )
+        self.progress.start( status.replace('%', '%%') )
         if is_end:
             self.log.info( status )
 
