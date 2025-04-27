@@ -38,6 +38,15 @@ echo PYTHONPATH $PYTHONPATH
 pushd ..
 make -f linux.mak clean
 make -f linux.mak
+
+mkdir -p ${BUILDER_TOP_DIR}/Builder/tmp/Source
+
+${PYTHON} ./make_wb_scm_version.py \
+    ../Builder/version.dat \
+    ${BUILDER_TOP_DIR}/Builder/tmp/Source/wb_scm_version.py
+
+${PYTHON} ./make_wb_scm_images.py \
+    ${BUILDER_TOP_DIR}/Builder/tmp/Source/wb_scm_images.py
 popd
 
 PROG="scm-workbench-git-callback"
