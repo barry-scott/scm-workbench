@@ -287,7 +287,11 @@ class GitProject:
 
                 repo_relative = abs_path.relative_to( repo_root )
 
-                if abs_path.is_dir():
+                if abs_path.is_symlink():
+                    self.all_file_state[ repo_relative ] = WbGitFileState( self, repo_relative )
+                    self.debugLog( '__calculateStatus() Q2.4' )
+
+                elif abs_path.is_dir():
                     if abs_path != git_dir:
                         all_folders.add( abs_path )
 
