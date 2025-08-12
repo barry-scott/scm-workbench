@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 set -x
+
+# Change to directory containing this script
+cd ${0%/*}
+
 export SCM_WORKBENCH_STDOUT_LOG=$(tty)
 
 if [ "${BUILDER_TOP_DIR}" = "" ]
